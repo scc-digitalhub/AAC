@@ -16,12 +16,17 @@
 
 package it.smartcommunitylab.aac.console;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yubico.webauthn.data.PublicKeyCredentialCreationOptions;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -32,13 +37,9 @@ import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.MyUserManager;
 import it.smartcommunitylab.aac.core.ScopeManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
-import it.smartcommunitylab.aac.core.model.EditableUserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -46,6 +47,7 @@ import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
 import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.users.MyUserManager;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationResponse;
@@ -295,16 +297,21 @@ public class UserConsoleController {
     public ResponseEntity<WebAuthnRegistrationResponse> attestateWebAuthnCredential(
         @RequestBody(required = false) @Nullable WebAuthnEditableUserCredential reg
     )
-        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
+        throws NoSuchCredentialException, NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException, JsonProcessingException {
         WebAuthnRegistrationRequest request = userManager.registerMyWebAuthnCredential(reg);
 
         // store request
         String key = webAuthnRequestStore.store(request);
 
+        //rebuild key to export for client
+        PublicKeyCredentialCreationOptions publicKey = PublicKeyCredentialCreationOptions.fromJson(
+            request.getCredentialCreationInfo().getOptions()
+        );
+
         // build response
         WebAuthnRegistrationResponse response = new WebAuthnRegistrationResponse(
             key,
-            request.getCredentialCreationInfo().getOptions()
+            publicKey.toCredentialsCreateJson()
         );
 
         return ResponseEntity.ok(response);

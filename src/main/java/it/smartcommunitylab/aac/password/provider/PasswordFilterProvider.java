@@ -17,14 +17,14 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,13 +37,13 @@ public class PasswordFilterProvider implements FilterProvider {
 
     private final ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository;
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalPasswordUserCredentialsService userPasswordService;
+    private final InternalPasswordJpaUserCredentialsService userPasswordService;
 
     private AuthenticationManager authManager;
 
     public PasswordFilterProvider(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         Assert.notNull(userAccountService, "account service is mandatory");

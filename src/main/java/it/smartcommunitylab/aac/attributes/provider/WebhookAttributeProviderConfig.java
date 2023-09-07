@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeProviderConfig;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 
 public class WebhookAttributeProviderConfig extends AbstractAttributeProviderConfig<WebhookAttributeProviderConfigMap> {
 
@@ -27,14 +27,21 @@ public class WebhookAttributeProviderConfig extends AbstractAttributeProviderCon
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + WebhookAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public WebhookAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_WEBHOOK, provider, realm, new WebhookAttributeProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_WEBHOOK,
+            provider,
+            realm,
+            new AttributeProviderSettingsMap(),
+            new WebhookAttributeProviderConfigMap()
+        );
     }
 
     public WebhookAttributeProviderConfig(
         ConfigurableAttributeProvider cp,
+        AttributeProviderSettingsMap settingsMap,
         WebhookAttributeProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
     }
 
     /**
@@ -43,8 +50,9 @@ public class WebhookAttributeProviderConfig extends AbstractAttributeProviderCon
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
+
     @SuppressWarnings("unused")
     private WebhookAttributeProviderConfig() {
-        super(SystemKeys.AUTHORITY_WEBHOOK, (String) null, (String) null, new WebhookAttributeProviderConfigMap());
+        super();
     }
 }

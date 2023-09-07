@@ -23,10 +23,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

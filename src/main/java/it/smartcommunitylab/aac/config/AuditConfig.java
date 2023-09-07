@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.audit.AuthenticationEventListener;
 import it.smartcommunitylab.aac.audit.AuthorizationEventListener;
 import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
 import it.smartcommunitylab.aac.audit.store.AutoJdbcAuditEventStore;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.password.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,44 +27,40 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final String username;
+    private final String userId;
     private String key;
 
     private InternalUserAccount account;
 
-    public ResetKeyAuthenticationToken(String username, String key) {
+    public ResetKeyAuthenticationToken(String userId, String key) {
         super(null);
-        this.username = username;
+        this.userId = userId;
         this.key = key;
         setAuthenticated(false);
     }
 
-    public ResetKeyAuthenticationToken(
-        String username,
-        String key,
-        Collection<? extends GrantedAuthority> authorities
-    ) {
+    public ResetKeyAuthenticationToken(String userId, String key, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
-        this.username = username;
+        this.userId = userId;
         this.key = key;
         super.setAuthenticated(true);
     }
 
     public ResetKeyAuthenticationToken(
-        String username,
+        String userId,
         String key,
         InternalUserAccount account,
         Collection<? extends GrantedAuthority> authorities
     ) {
         super(authorities);
-        this.username = username;
+        this.userId = userId;
         this.key = key;
         this.account = account;
         super.setAuthenticated(true);
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserId() {
+        return userId;
     }
 
     public String getKey() {
@@ -82,12 +78,12 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return (this.account == null ? this.username : this.account);
+        return (this.account == null ? this.userId : this.account);
     }
 
     @Override
     public String getName() {
-        return this.username;
+        return this.userId;
     }
 
     @Override

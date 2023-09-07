@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.oauth.token;
 
 import it.smartcommunitylab.aac.claims.ClaimsService;
+import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
@@ -24,7 +25,6 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import java.io.Serializable;
 import java.util.Map;

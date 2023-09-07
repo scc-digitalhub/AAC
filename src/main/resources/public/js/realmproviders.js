@@ -651,7 +651,7 @@ angular.module('aac.controllers.realmproviders', [])
                 result: null,
                 error: null
             };
-            if ("attributeMapping" in data.hookFunctions) {
+            if ("hookFunctions" in data.settings && "attributeMapping" in data.settings.hookFunctions) {
                 attributeMapping.enabled = true;
                 attributeMapping.code = atob(data.hookFunctions["attributeMapping"]);
             }
@@ -688,11 +688,17 @@ angular.module('aac.controllers.realmproviders', [])
 
             var configuration = extractConfiguration(provider.authority, provider.configuration, provider.schema);
 
-            var hookFunctions = provider.hookFunctions;
+            var hookFunctions = [];
             if ($scope.attributeMapping.code != "") {
                 hookFunctions["attributeMapping"] = btoa($scope.attributeMapping.code);
-            } else {
-                delete hookFunctions["attributeMapping"];
+            }
+
+            var settings = {
+                persistence: provider.settings.persistence,
+                linkable: provider.settings.linkable,
+                events: provider.settings.events,
+                position: provider.settings.position,
+                hookFunctions: hookFunctions
             }
 
             var data = {
@@ -705,12 +711,8 @@ angular.module('aac.controllers.realmproviders', [])
                 descriptionMap: provider.descriptionMap,
                 displayMode: provider.displayMode,
                 enabled: provider.enabled,
-                persistence: provider.persistence,
-                linkable: provider.linkable,
-                events: provider.events,
-                position: provider.position,
+                settings: settings,
                 configuration: configuration,
-                hookFunctions: hookFunctions
             }
 
             RealmProviders.saveIdentityProvider($scope.realm.slug, data)

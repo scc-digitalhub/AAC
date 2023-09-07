@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

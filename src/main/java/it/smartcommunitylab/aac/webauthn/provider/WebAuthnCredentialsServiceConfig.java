@@ -19,8 +19,9 @@ package it.smartcommunitylab.aac.webauthn.provider;
 import com.yubico.webauthn.data.ResidentKeyRequirement;
 import com.yubico.webauthn.data.UserVerificationRequirement;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsServiceConfig;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 
 public class WebAuthnCredentialsServiceConfig
     extends AbstractCredentialsServiceConfig<WebAuthnIdentityProviderConfigMap> {
@@ -38,16 +39,36 @@ public class WebAuthnCredentialsServiceConfig
     private static final int DEFAULT_TIMEOUT = 30;
 
     public WebAuthnCredentialsServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, realm, new WebAuthnIdentityProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_WEBAUTHN,
+            provider,
+            realm,
+            new CredentialsServiceSettingsMap(),
+            new WebAuthnIdentityProviderConfigMap()
+        );
     }
 
     public WebAuthnCredentialsServiceConfig(
         ConfigurableCredentialsProvider cp,
+        CredentialsServiceSettingsMap settingsMap,
         WebAuthnIdentityProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private WebAuthnCredentialsServiceConfig() {
+        super();
+    }
+
+    @Override
     public String getRepositoryId() {
         // not configurable for now
         return getRealm();

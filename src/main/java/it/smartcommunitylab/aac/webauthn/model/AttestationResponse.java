@@ -17,11 +17,12 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.io.Serializable;
 import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AttestationResponse {
+public class AttestationResponse implements Serializable {
 
     private String attestation;
 

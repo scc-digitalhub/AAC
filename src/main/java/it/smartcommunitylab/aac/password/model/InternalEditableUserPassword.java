@@ -25,12 +25,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
+import it.smartcommunitylab.aac.credentials.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import javax.persistence.Column;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
@@ -51,10 +50,6 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     @JsonSchemaIgnore
     private String credentialsId;
-
-    @NotBlank
-    @JsonSchemaIgnore
-    private String username;
 
     @JsonSchemaIgnore
     private PasswordPolicy policy;
@@ -77,19 +72,19 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     private String curPassword;
 
-    public InternalEditableUserPassword() {
-        super(SystemKeys.AUTHORITY_PASSWORD, null, null);
+    private InternalEditableUserPassword() {
+        super(SystemKeys.AUTHORITY_PASSWORD, null, null, null);
     }
 
-    public InternalEditableUserPassword(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
+    public InternalEditableUserPassword(String realm, String id) {
+        super(SystemKeys.AUTHORITY_PASSWORD, null, realm, id);
     }
 
-    public InternalEditableUserPassword(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
-        setRealm(realm);
-        setUserId(userId);
-    }
+    // public InternalEditableUserPassword(String provider, String realm, String userId, String uuid) {
+    //     super(SystemKeys.AUTHORITY_PASSWORD, provider, uuid);
+    //     setRealm(realm);
+    //     setUserId(userId);
+    // }
 
     @Override
     public String getType() {
@@ -102,14 +97,6 @@ public class InternalEditableUserPassword extends AbstractEditableUserCredential
 
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPassword() {

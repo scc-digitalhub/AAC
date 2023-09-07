@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.console;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.controller.BaseScopesController;
+import it.smartcommunitylab.aac.scope.controller.BaseScopesController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 

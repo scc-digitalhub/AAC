@@ -16,10 +16,10 @@
 
 package it.smartcommunitylab.aac.profiles.extractor;
 
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.CustomProfile;
 import java.util.Arrays;

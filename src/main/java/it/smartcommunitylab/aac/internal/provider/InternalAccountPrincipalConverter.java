@@ -17,12 +17,12 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -62,10 +62,10 @@ public class InternalAccountPrincipalConverter
         this.repositoryId = repositoryId;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Override
     public InternalUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {

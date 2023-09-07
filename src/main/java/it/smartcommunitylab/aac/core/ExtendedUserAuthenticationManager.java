@@ -17,6 +17,10 @@
 package it.smartcommunitylab.aac.core;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
+import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
@@ -30,20 +34,16 @@ import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -560,13 +560,13 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // load additional attributes from providers
             UserDetails userDetails = userAuth.getUser();
-            Collection<AttributeProvider<?, ?>> attributeProviders = attributeProviderAuthorityService
+            Collection<AttributeProvider<?, ?, ?>> attributeProviders = attributeProviderAuthorityService
                 .getAuthorities()
                 .stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
                 .collect(Collectors.toList());
 
-            for (AttributeProvider<?, ?> ap : attributeProviders) {
+            for (AttributeProvider<?, ?, ?> ap : attributeProviders) {
                 // try to fetch attributes, don't stop authentication on errors
                 // attributes from aps are optional by definition
                 try {
@@ -685,7 +685,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
         String providerId
     ) {
         // lookup in authority
-        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService.findAuthority(authorityId);
+        IdentityProviderAuthority<?, ?, ?> ia = identityProviderAuthorityService.findAuthority(authorityId);
         if (ia == null) {
             return null;
         }
@@ -702,7 +702,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     ) {
         List<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = new ArrayList<>();
         // lookup in authority
-        IdentityProviderAuthority<?, ?, ?, ?> ia = identityProviderAuthorityService.findAuthority(authorityId);
+        IdentityProviderAuthority<?, ?, ?> ia = identityProviderAuthorityService.findAuthority(authorityId);
         if (ia != null) {
             providers.addAll(ia.getProvidersByRealm(realm));
         }
@@ -713,7 +713,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
     private Collection<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> fetchIdentityProviders(String realm) {
         List<IdentityProvider<? extends UserIdentity, ?, ?, ?, ?>> providers = new ArrayList<>();
 
-        for (IdentityProviderAuthority<?, ?, ?, ?> ia : identityProviderAuthorityService.getAuthorities()) {
+        for (IdentityProviderAuthority<?, ?, ?> ia : identityProviderAuthorityService.getAuthorities()) {
             providers.addAll(ia.getProvidersByRealm(realm));
         }
 

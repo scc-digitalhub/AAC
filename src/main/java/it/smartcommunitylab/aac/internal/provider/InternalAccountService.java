@@ -17,28 +17,30 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
-import it.smartcommunitylab.aac.core.model.EditableUserAccount;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.persistence.UserEntity;
-import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,7 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class InternalAccountService
-    extends AbstractConfigurableProvider<InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+    extends AbstractConfigurableResourceProvider<InternalUserAccount, InternalAccountServiceConfig, AccountServiceSettingsMap, InternalIdentityProviderConfigMap>
     implements
         AccountService<InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
 
@@ -118,7 +120,20 @@ public class InternalAccountService
     @Override
     @Transactional(readOnly = true)
     public List<InternalUserAccount> listAccounts(String userId) {
-        List<InternalUserAccount> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
+
+        // map to our authority
+        accounts.forEach(a -> {
+            a.setAuthority(getAuthority());
+            a.setProvider(getProvider());
+        });
+        return accounts;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<InternalUserAccount> listAccounts() {
+        List<InternalUserAccount> accounts = userAccountService.findAccounts(repositoryId);
 
         // map to our authority
         accounts.forEach(a -> {
@@ -183,7 +198,7 @@ public class InternalAccountService
         // we pick first account matching email, repository should contain unique
         // email+provider
         InternalUserAccount account = userAccountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()
@@ -245,7 +260,7 @@ public class InternalAccountService
     }
 
     @Override
-    public void deleteAccount(String username) throws NoSuchUserException {
+    public void deleteAccount(String username) {
         logger.debug("delete account with username {}", String.valueOf(username));
 
         InternalUserAccount account = findAccountByUsername(username);
@@ -269,7 +284,7 @@ public class InternalAccountService
     public void deleteAccounts(String userId) {
         logger.debug("delete accounts for user {}", String.valueOf(userId));
 
-        List<InternalUserAccount> accounts = userAccountService.findAccountByUser(repositoryId, userId);
+        List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
         for (InternalUserAccount a : accounts) {
             // remove account
             userAccountService.deleteAccount(repositoryId, a.getUsername());
@@ -323,7 +338,7 @@ public class InternalAccountService
 
         // registration is create but user-initiated
         // build model
-        InternalUserAccount ua = new InternalUserAccount();
+        InternalUserAccount ua = new InternalUserAccount(getProvider(), getRealm(), null);
         ua.setRepositoryId(repositoryId);
         ua.setUsername(reg.getUsername());
         ua.setEmail(reg.getEmail());
@@ -389,7 +404,7 @@ public class InternalAccountService
         // we require unique email
         if (
             StringUtils.hasText(emailAddress) &&
-            userAccountService.findAccountByEmail(repositoryId, emailAddress).size() > 0
+            userAccountService.findAccountsByEmail(repositoryId, emailAddress).size() > 0
         ) {
             throw new DuplicatedDataException("email");
         }
@@ -437,13 +452,12 @@ public class InternalAccountService
         }
 
         // create new account
-        account = new InternalUserAccount();
+        account = new InternalUserAccount(getProvider(), getRealm(), null);
         account.setRepositoryId(repositoryId);
         account.setUsername(username);
         account.setUuid(uuid);
 
         account.setUserId(userId);
-        account.setRealm(realm);
 
         // set account as active
         account.setStatus(SubjectStatus.ACTIVE.getValue());
@@ -526,7 +540,7 @@ public class InternalAccountService
 
         // edit is update but user-initiated
         // build model
-        InternalUserAccount ua = new InternalUserAccount();
+        InternalUserAccount ua = new InternalUserAccount(getProvider(), getRealm(), null);
         ua.setRepositoryId(repositoryId);
         ua.setUsername(reg.getUsername());
         ua.setEmail(reg.getEmail());
@@ -600,7 +614,7 @@ public class InternalAccountService
 
             // if set to value, check if unique
             if (StringUtils.hasText(email)) {
-                if (userAccountService.findAccountByEmail(repositoryId, email).size() > 0) {
+                if (userAccountService.findAccountsByEmail(repositoryId, email).size() > 0) {
                     throw new DuplicatedDataException("email");
                 }
 
@@ -960,6 +974,7 @@ public class InternalAccountService
     private InternalEditableUserAccount toEditableAccount(InternalUserAccount account) {
         // build editable model
         InternalEditableUserAccount ea = new InternalEditableUserAccount(
+            getAuthority(),
             getProvider(),
             getRealm(),
             account.getUserId(),

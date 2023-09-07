@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.attributes;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.core.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;

@@ -38,32 +38,24 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<AuditEvent> rowMapper = new AuditEventRowMapper();
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
-        " CREATE TABLE IF NOT EXISTS audit (" +
-        "  time TIMESTAMP," +
-        "  principal varchar(255)," +
-        "  realm varchar(255) DEFAULT NULL," +
-        "  type varchar(255)," +
-        "  event BLOB ) ";
-
     private static final String DEFAULT_INSERT_STATEMENT =
-        "insert into audit (time, principal, realm , type, event ) values (?, ?, ?, ?, ?)";
+        "INSERT INTO audit_events (event_time, principal, realm , event_type, event_data ) VALUES (?, ?, ?, ?, ?)";
 
     private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT =
-        "select time, principal, realm , type, event from audit where principal = ?";
+        "SELECT event_time, principal, realm, event_type, event_data FROM audit_events WHERE principal = ?";
     private static final String DEFAULT_SELECT_REALM_STATEMENT =
-        "select time, principal, realm , type, event from audit where realm = ?";
+        "SELECT event_time, principal, realm, event_type, event_data FROM audit_events WHERE realm = ?";
 
-    private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT = "select count(*) from audit where principal = ?";
-    private static final String DEFAULT_COUNT_REALM_STATEMENT = "select count(*) from audit where realm = ?";
+    private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT =
+        "SELECT COUNT(*) FROM audit_events WHERE principal = ?";
+    private static final String DEFAULT_COUNT_REALM_STATEMENT = "SELECT COUNT(*) FROM audit_events WHERE realm = ?";
 
-    private static final String TIME_AFTER_CONDITION = "time >= ?";
-    private static final String TIME_BETWEEN_CONDITION = "time between ? and ? ";
-    private static final String TYPE_CONDITION = "type = ?";
+    private static final String TIME_AFTER_CONDITION = "event_time >= ?";
+    private static final String TIME_BETWEEN_CONDITION = "event_time BETWEEN ? AND ? ";
+    private static final String TYPE_CONDITION = "event_type = ?";
 
-    private static final String DEFAULT_ORDER_BY = "order by time DESC";
+    private static final String DEFAULT_ORDER_BY = "ORDER BY event_time DESC";
 
-    private String createAuditTableSql = DEFAULT_CREATE_TABLE_STATEMENT;
     private String insertAuditEventSql = DEFAULT_INSERT_STATEMENT;
 
     private String selectByPrincipalAuditEvent = DEFAULT_SELECT_PRINCIPAL_STATEMENT;
@@ -80,11 +72,6 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     public AutoJdbcAuditEventStore(DataSource dataSource) {
         Assert.notNull(dataSource, "DataSource required");
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        initSchema();
-    }
-
-    protected void initSchema() {
-        jdbcTemplate.execute(createAuditTableSql);
     }
 
     @Override
@@ -257,10 +244,6 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
             return 0;
         }
         return count.longValue();
-    }
-
-    public void setCreateAuditTableSql(String createAuditTableSql) {
-        this.createAuditTableSql = createAuditTableSql;
     }
 
     public void setInsertAuditEventSql(String insertAuditEventSql) {

@@ -1,10 +1,1 @@
-databaseChangeLog:
-  - include:
-      file: db/changelog/core-4.x.yaml
-#  - include:
-#      file: db/changelog/idp-accounts-4.x.yaml      
-#  - include:
-#      file: db/changelog/client-auth.yaml      
-#  - include:
-#      file: db/changelog/internal-idp-credentials.yaml    
- 
+databaseChangeLog: []

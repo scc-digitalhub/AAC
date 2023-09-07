@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
@@ -35,6 +34,7 @@ import it.smartcommunitylab.aac.oauth.request.OAuth2RegistrationRequestValidator
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.scope.OAuth2DCRResource;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;

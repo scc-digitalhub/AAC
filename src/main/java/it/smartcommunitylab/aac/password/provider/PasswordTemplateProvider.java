@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
@@ -26,6 +25,7 @@ import it.smartcommunitylab.aac.password.templates.PasswordChangeTemplate;
 import it.smartcommunitylab.aac.password.templates.PasswordPolicyTemplate;
 import it.smartcommunitylab.aac.password.templates.PasswordResetSuccessTemplate;
 import it.smartcommunitylab.aac.password.templates.PasswordResetTemplate;
+import it.smartcommunitylab.aac.templates.base.AbstractTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
@@ -47,7 +47,7 @@ public class PasswordTemplateProvider
             PasswordChangeTemplate.TEMPLATE,
             () -> {
                 TemplateModel m = new PasswordChangeTemplate(realm);
-                m.setModelAttribute("reg", new InternalEditableUserPassword());
+                m.setModelAttribute("reg", new InternalEditableUserPassword(getRealm(), null));
                 m.setModelAttribute("policy", new PasswordPolicy());
                 return m;
             }

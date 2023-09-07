@@ -17,9 +17,10 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
+import it.smartcommunitylab.aac.core.authorities.AuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,7 +47,7 @@ public class AuthConfig {
 
     @Autowired
     //    private IdentityProviderAuthorityService identityProviderAuthorityService;
-    private ConfigurableAuthorityService<IdentityProviderAuthority<?, ?, ?, ?>> identityProviderAuthorityService;
+    private AuthorityService<IdentityProviderAuthority<?, ?, ?>> identityProviderAuthorityService;
 
     @Autowired
     private ExtendedUserAuthenticationManager authManager;
@@ -80,10 +81,9 @@ public class AuthConfig {
         List<Filter> filters = new ArrayList<>();
 
         // build filters for every authority
-        Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities =
-            identityProviderAuthorityService.getAuthorities();
+        Collection<IdentityProviderAuthority<?, ?, ?>> authorities = identityProviderAuthorityService.getAuthorities();
 
-        for (IdentityProviderAuthority<?, ?, ?, ?> authority : authorities) {
+        for (IdentityProviderAuthority<?, ?, ?> authority : authorities) {
             // build filters for this authority via filterProvider from authority itself
             FilterProvider provider = authority.getFilterProvider();
             if (provider != null) {

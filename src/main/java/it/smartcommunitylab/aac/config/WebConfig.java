@@ -103,8 +103,7 @@ public class WebConfig implements WebMvcConfigurer {
         // configure a sane path mapping by disabling content negotiation via extensions
         // the default breaks every single mapping which receives a path ending with
         // '.x', like 'user.roles.me'
-        configurer//                .favorPathExtension(false) // disable path extension, as of 5.3 is false by default
-        .favorParameter(false);
+        configurer.favorParameter(false); //                .favorPathExtension(false) // disable path extension, as of 5.3 is false by default
 
         // add mediatypes
         configurer

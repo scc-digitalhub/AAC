@@ -13,17 +13,21 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  ******************************************************************************/
+
 package it.smartcommunitylab.aac.config;
 
-//import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariDataSource;
+import it.smartcommunitylab.aac.autoconfigure.JdbcDataSourceInitializer;
 import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 import java.beans.PropertyVetoException;
 import java.util.Properties;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -45,34 +49,44 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EntityScan(
     basePackages = {
-        "it.smartcommunitylab.aac.core.persistence",
-        "it.smartcommunitylab.aac.internal.persistence",
-        "it.smartcommunitylab.aac.openid.persistence",
-        "it.smartcommunitylab.aac.saml.persistence",
-        "it.smartcommunitylab.aac.roles.persistence",
-        "it.smartcommunitylab.aac.oauth.persistence",
-        "it.smartcommunitylab.aac.services.persistence",
+        "it.smartcommunitylab.aac.accounts.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
-        "it.smartcommunitylab.aac.password.persistence",
-        "it.smartcommunitylab.aac.webauthn.persistence",
+        "it.smartcommunitylab.aac.clients.persistence",
+        "it.smartcommunitylab.aac.core.persistence",
+        "it.smartcommunitylab.aac.credentials.persistence",
         "it.smartcommunitylab.aac.groups.persistence",
+        "it.smartcommunitylab.aac.internal.persistence",
+        "it.smartcommunitylab.aac.oauth.persistence",
+        "it.smartcommunitylab.aac.oidc.persistence",
+        "it.smartcommunitylab.aac.password.persistence",
+        "it.smartcommunitylab.aac.realms.persistence",
+        "it.smartcommunitylab.aac.roles.persistence",
+        "it.smartcommunitylab.aac.saml.persistence",
+        "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.templates.persistence",
+        "it.smartcommunitylab.aac.users.persistence",
+        "it.smartcommunitylab.aac.webauthn.persistence",
     }
 )
 @EnableJpaRepositories(
     basePackages = {
-        "it.smartcommunitylab.aac.core.persistence",
-        "it.smartcommunitylab.aac.internal.persistence",
-        "it.smartcommunitylab.aac.openid.persistence",
-        "it.smartcommunitylab.aac.saml.persistence",
-        "it.smartcommunitylab.aac.roles.persistence",
-        "it.smartcommunitylab.aac.oauth.persistence",
-        "it.smartcommunitylab.aac.services.persistence",
+        "it.smartcommunitylab.aac.accounts.persistence",
         "it.smartcommunitylab.aac.attributes.persistence",
-        "it.smartcommunitylab.aac.password.persistence",
-        "it.smartcommunitylab.aac.webauthn.persistence",
+        "it.smartcommunitylab.aac.clients.persistence",
+        "it.smartcommunitylab.aac.core.persistence",
+        "it.smartcommunitylab.aac.credentials.persistence",
         "it.smartcommunitylab.aac.groups.persistence",
+        "it.smartcommunitylab.aac.internal.persistence",
+        "it.smartcommunitylab.aac.oauth.persistence",
+        "it.smartcommunitylab.aac.oidc.persistence",
+        "it.smartcommunitylab.aac.password.persistence",
+        "it.smartcommunitylab.aac.realms.persistence",
+        "it.smartcommunitylab.aac.roles.persistence",
+        "it.smartcommunitylab.aac.saml.persistence",
+        "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.templates.persistence",
+        "it.smartcommunitylab.aac.users.persistence",
+        "it.smartcommunitylab.aac.webauthn.persistence",
         "it.smartcommunitylab.aac.repository",
     },
     queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND
@@ -100,8 +114,28 @@ public class DatabaseConfig {
     //        return bean;
     //    }
 
-    @Bean
-    public HikariDataSource getDataSource() throws PropertyVetoException {
+    @Bean(name = "jdbcDataSource")
+    public HikariDataSource jdbcDataSource() throws PropertyVetoException {
+        HikariDataSource bean = new HikariDataSource();
+
+        bean.setDriverClassName(env.getProperty("jdbc.driver"));
+        bean.setJdbcUrl(env.getProperty("jdbc.url"));
+        bean.setUsername(env.getProperty("jdbc.user"));
+        bean.setPassword(env.getProperty("jdbc.password"));
+
+        //
+        //        bean.setAcquireIncrement(5);
+        //        bean.setIdleConnectionTestPeriod(60);
+        //        bean.setMaxPoolSize(100);
+        //        bean.setMaxStatements(50);
+        bean.setMinimumIdle(10);
+
+        return bean;
+    }
+
+    @Primary
+    @Bean(name = "jpaDataSource")
+    public HikariDataSource jpaDataSource() throws PropertyVetoException {
         HikariDataSource bean = new HikariDataSource();
 
         bean.setDriverClassName(env.getProperty("jdbc.driver"));
@@ -123,7 +157,7 @@ public class DatabaseConfig {
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() throws PropertyVetoException {
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
         bean.setPersistenceUnitName("aac");
-        bean.setDataSource(getDataSource());
+        bean.setDataSource(jpaDataSource());
 
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         adapter.setDatabasePlatform(env.getProperty("jdbc.dialect"));
@@ -143,18 +177,23 @@ public class DatabaseConfig {
         // TODO rework, align with @EntityScan
         // spring boot 2.x should fix the issue
         bean.setPackagesToScan(
-            "it.smartcommunitylab.aac.core.persistence",
-            "it.smartcommunitylab.aac.internal.persistence",
-            "it.smartcommunitylab.aac.openid.persistence",
-            "it.smartcommunitylab.aac.saml.persistence",
-            "it.smartcommunitylab.aac.roles.persistence",
-            "it.smartcommunitylab.aac.oauth.persistence",
-            "it.smartcommunitylab.aac.services.persistence",
+            "it.smartcommunitylab.aac.accounts.persistence",
             "it.smartcommunitylab.aac.attributes.persistence",
+            "it.smartcommunitylab.aac.clients.persistence",
+            "it.smartcommunitylab.aac.core.persistence",
+            "it.smartcommunitylab.aac.credentials.persistence",
+            "it.smartcommunitylab.aac.groups.persistence",
+            "it.smartcommunitylab.aac.internal.persistence",
+            "it.smartcommunitylab.aac.oauth.persistence",
+            "it.smartcommunitylab.aac.oidc.persistence",
             "it.smartcommunitylab.aac.password.persistence",
-            "it.smartcommunitylab.aac.webauthn.persistence",
+            "it.smartcommunitylab.aac.realms.persistence",
+            "it.smartcommunitylab.aac.roles.persistence",
+            "it.smartcommunitylab.aac.saml.persistence",
+            "it.smartcommunitylab.aac.services.persistence",
             "it.smartcommunitylab.aac.templates.persistence",
-            "it.smartcommunitylab.aac.groups.persistence"
+            "it.smartcommunitylab.aac.users.persistence",
+            "it.smartcommunitylab.aac.webauthn.persistence"
         );
         //		bean.setPersistenceUnitManager(null);
 
@@ -166,5 +205,34 @@ public class DatabaseConfig {
         JpaTransactionManager bean = new JpaTransactionManager();
         bean.setEntityManagerFactory(getEntityManagerFactory().getObject()); // ???
         return bean;
+    }
+
+    @Bean(name = "coreJdbcDataSourceInitializer")
+    public JdbcDataSourceInitializer jdbcDataSourceInitializer(
+        @Qualifier("jdbcDataSource") DataSource dataSource,
+        JdbcProperties properties
+    ) {
+        return new JdbcDataSourceInitializer(dataSource, properties);
+    }
+
+    @Bean(name = "oauth2JdbcDataSourceInitializer")
+    public JdbcDataSourceInitializer oauth2DataSourceInitializer(
+        @Qualifier("jdbcDataSource") DataSource dataSource,
+        JdbcProperties properties
+    ) {
+        return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/oauth2/schema-@@platform@@.sql");
+    }
+
+    //TODO add optional ObjectProvider<DataSource> to support separated dataSource for audit
+    @Bean(name = "auditJdbcDataSourceInitializer")
+    public JdbcDataSourceInitializer audit2DataSourceInitializer(
+        @Qualifier("jdbcDataSource") DataSource dataSource,
+        JdbcProperties properties
+    ) {
+        return new JdbcDataSourceInitializer(
+            dataSource,
+            properties,
+            "optional:classpath:db/sql/audit/schema-@@platform@@.sql"
+        );
     }
 }

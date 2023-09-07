@@ -18,10 +18,11 @@ package it.smartcommunitylab.aac.password.auth;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityCredentialsService;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,18 +73,20 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
 
         ResetKeyAuthenticationToken authRequest = (ResetKeyAuthenticationToken) authentication;
 
-        String username = authRequest.getUsername();
+        String userId = authRequest.getUserId();
         String key = authRequest.getKey();
 
-        if (!StringUtils.hasText(username) || !StringUtils.hasText(key)) {
+        if (!StringUtils.hasText(userId) || !StringUtils.hasText(key)) {
             throw new BadCredentialsException("missing required parameters in request");
         }
 
         try {
-            InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
-            if (account == null) {
+            //pick any account for the same user
+            List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
+            if (accounts.isEmpty()) {
                 throw new BadCredentialsException("invalid request");
             }
+            InternalUserAccount account = accounts.iterator().next();
 
             // verify only, won't disable the key
             passwordService.verifyReset(key);
@@ -104,7 +107,7 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(username, key, account, authorities);
+            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(userId, key, account, authorities);
 
             return auth;
         } catch (Exception e) {

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import java.util.Date;
 import javax.validation.Valid;
@@ -76,20 +76,21 @@ public class SamlEditableUserAccount extends AbstractEditableAccount {
     private String lang;
 
     protected SamlEditableUserAccount() {
-        super(SystemKeys.AUTHORITY_OIDC, null, null);
+        super(SystemKeys.AUTHORITY_SAML, null, null, null);
     }
 
+    @Deprecated
     public SamlEditableUserAccount(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
+        super(SystemKeys.AUTHORITY_SAML, provider, null, uuid);
     }
 
+    @Deprecated
     public SamlEditableUserAccount(String authority, String provider, String uuid) {
-        super(authority, provider, uuid);
+        super(authority, provider, null, uuid);
     }
 
     public SamlEditableUserAccount(String authority, String provider, String realm, String userId, String uuid) {
-        super(authority, provider, uuid);
-        setRealm(realm);
+        super(authority, provider, realm, uuid);
         setUserId(userId);
     }
 

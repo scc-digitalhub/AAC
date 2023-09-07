@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.mapper.DefaultAttributesMapper;
-import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 
 public class MapperAttributeProviderConfig extends AbstractAttributeProviderConfig<MapperAttributeProviderConfigMap> {
 
@@ -28,11 +28,21 @@ public class MapperAttributeProviderConfig extends AbstractAttributeProviderConf
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + MapperAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public MapperAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_MAPPER, provider, realm, new MapperAttributeProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_MAPPER,
+            provider,
+            realm,
+            new AttributeProviderSettingsMap(),
+            new MapperAttributeProviderConfigMap()
+        );
     }
 
-    public MapperAttributeProviderConfig(ConfigurableAttributeProvider cp, MapperAttributeProviderConfigMap configMap) {
-        super(cp, configMap);
+    public MapperAttributeProviderConfig(
+        ConfigurableAttributeProvider cp,
+        AttributeProviderSettingsMap settingsMap,
+        MapperAttributeProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
     /**
@@ -41,9 +51,10 @@ public class MapperAttributeProviderConfig extends AbstractAttributeProviderConf
      * We need to implement this to enable deserialization of resources via
      * reflection
      */
+
     @SuppressWarnings("unused")
     private MapperAttributeProviderConfig() {
-        super(SystemKeys.AUTHORITY_MAPPER, (String) null, (String) null, new MapperAttributeProviderConfigMap());
+        super();
     }
 
     public String getMapperType() {

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
+import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
 import javax.validation.Valid;
 import org.springframework.util.Assert;

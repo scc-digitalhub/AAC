@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.oauth.service;
 
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;

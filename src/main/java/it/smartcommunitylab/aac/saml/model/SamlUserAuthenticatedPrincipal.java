@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.base.AbstractUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.SamlKeys;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincipal {
+public class SamlUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPrincipal {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
@@ -51,11 +51,19 @@ public class SamlUserAuthenticatedPrincipal extends AbstractAuthenticatedPrincip
     private Map<String, Serializable> attributes;
 
     public SamlUserAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
-        super(SystemKeys.AUTHORITY_SAML, provider);
+        this(SystemKeys.AUTHORITY_SAML, provider, realm, userId, subjectId);
+    }
+
+    public SamlUserAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String subjectId
+    ) {
+        super(authority, provider, realm, subjectId, userId);
         Assert.notNull(subjectId, "subjectId cannot be null");
         this.subjectId = subjectId;
-        setRealm(realm);
-        setUserId(userId);
     }
 
     @Override

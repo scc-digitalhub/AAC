@@ -17,22 +17,19 @@
 package it.smartcommunitylab.aac.webauthn.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserHandleService;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +43,7 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
 
     private final UserAccountService<InternalUserAccount> accountService;
-    private final WebAuthnUserCredentialsService credentialsService;
+    private final WebAuthnJpaUserCredentialsService credentialsService;
     private final WebAuthnUserHandleService userHandleService;
 
     private final WebAuthnIdentityProviderConfig config;
@@ -57,7 +54,7 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
     public WebAuthnIdentityCredentialsService(
         String providerId,
         UserAccountService<InternalUserAccount> accountService,
-        WebAuthnUserCredentialsService credentialsService,
+        WebAuthnJpaUserCredentialsService credentialsService,
         WebAuthnIdentityProviderConfig config,
         String realm
     ) {
@@ -82,11 +79,6 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         this.resourceService = resourceService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
-    }
-
     public String getUuidFromUserHandle(String userHandle) throws NoSuchUserException {
         String username = userHandleService.getUsernameForUserHandle(repositoryId, userHandle);
         if (username == null) {
@@ -103,21 +95,6 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         }
 
         return account.getUuid();
-    }
-
-    @Transactional(readOnly = true)
-    public List<WebAuthnUserCredential> findCredentialsByUsername(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
-
-        // fetch all active credentials
-        return credentialsService
-            .findCredentialsByAccount(repositoryId, username)
-            .stream()
-            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-            .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -163,26 +140,25 @@ public class WebAuthnIdentityCredentialsService extends AbstractProvider<WebAuth
         c = credentialsService.updateCredentials(repositoryId, c.getId(), c);
         return c;
     }
+    // public void deleteCredentialsByUsername(String username) {
+    //     logger.debug("delete all credentials for account {}", String.valueOf(username));
 
-    public void deleteCredentialsByUsername(String username) {
-        logger.debug("delete all credentials for account {}", String.valueOf(username));
+    //     // fetch all to collect ids
+    //     List<WebAuthnUserCredential> passwords = credentialsService.findCredentialsByAccount(repositoryId, username);
 
-        // fetch all to collect ids
-        List<WebAuthnUserCredential> passwords = credentialsService.findCredentialsByAccount(repositoryId, username);
+    //     // delete in batch
+    //     Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
+    //     credentialsService.deleteAllCredentials(repositoryId, ids);
 
-        // delete in batch
-        Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
-        credentialsService.deleteAllCredentials(repositoryId, ids);
-
-        if (resourceService != null) {
-            // remove resources
-            try {
-                // delete in batch
-                Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
-                resourceService.deleteAllResourceEntities(uuids);
-            } catch (RuntimeException re) {
-                logger.error("error removing resources: {}", re.getMessage());
-            }
-        }
-    }
+    //     if (resourceService != null) {
+    //         // remove resources
+    //         try {
+    //             // delete in batch
+    //             Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+    //             resourceService.deleteAllResourceEntities(uuids);
+    //         } catch (RuntimeException re) {
+    //             logger.error("error removing resources: {}", re.getMessage());
+    //         }
+    //     }
+    // }
 }

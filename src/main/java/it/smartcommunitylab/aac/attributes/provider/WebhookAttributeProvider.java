@@ -19,18 +19,16 @@ package it.smartcommunitylab.aac.attributes.provider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeProvider;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
+import it.smartcommunitylab.aac.attributes.model.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oauth.flow.FlowExecutionException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -63,8 +61,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 public class WebhookAttributeProvider
-    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig>
-    implements AttributeProvider<WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
+    extends AbstractAttributeProvider<DefaultUserAttributesImpl, WebhookAttributeProviderConfig, WebhookAttributeProviderConfigMap> {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookAttributeProvider.class);
 
@@ -88,7 +85,7 @@ public class WebhookAttributeProvider
         WebhookAttributeProviderConfig providerConfig,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_WEBHOOK, providerId, realm, providerConfig);
+        super(SystemKeys.AUTHORITY_WEBHOOK, providerId, attributeService, providerConfig, realm);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 

@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.internal.auth;
 
 import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityConfirmService;
 import java.util.Collections;
 import java.util.Set;

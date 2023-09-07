@@ -16,21 +16,45 @@
 
 package it.smartcommunitylab.aac.webauthn.store;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yubico.webauthn.AssertionRequest;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 /*
  * In memory local request store
  *
  */
-public class InMemoryWebAuthnAssertionRequestStore implements WebAuthnAssertionRequestStore {
+public class InMemoryWebAuthnAssertionRequestStore implements WebAuthnAssertionRequestStore, Serializable {
 
-    private final Map<String, AssertionRequest> requests;
+    // private final Map<String, AssertionRequest> requests;
+    //use json string since requests are not serializable
+    private final Map<String, String> requests;
+
+    private AssertionRequest from(String json) {
+        try {
+            return AssertionRequest.fromJson(json);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    private String to(AssertionRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException();
+        }
+        try {
+            return request.toJson();
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
 
     public InMemoryWebAuthnAssertionRequestStore() {
         this.requests = new ConcurrentHashMap<>();
@@ -39,30 +63,41 @@ public class InMemoryWebAuthnAssertionRequestStore implements WebAuthnAssertionR
     @Override
     public AssertionRequest find(String key) {
         Assert.hasText(key, "key can not be null or empty");
-        return requests.get(key);
+        if (requests.containsKey(key)) {
+            return from(requests.get(key));
+        }
+
+        return null;
     }
 
     @Override
     public AssertionRequest consume(String key) {
         Assert.hasText(key, "key can not be null or empty");
-        return requests.remove(key);
+        if (requests.containsKey(key)) {
+            return from(requests.remove(key));
+        }
+
+        return null;
     }
 
     @Override
     public Collection<AssertionRequest> findAll() {
-        return Collections.unmodifiableCollection(requests.values());
+        return Collections.unmodifiableCollection(
+            requests.values().stream().map(j -> from(j)).collect(Collectors.toList())
+        );
     }
 
     @Override
     public String store(AssertionRequest request) {
         String key = extractKey(request);
-        requests.put(key, request);
+        String json = to(request);
+        requests.put(key, json);
         return key;
     }
 
     @Override
     public void store(AssertionRequest request, String key) {
-        requests.put(key, request);
+        requests.put(key, to(request));
     }
 
     @Override

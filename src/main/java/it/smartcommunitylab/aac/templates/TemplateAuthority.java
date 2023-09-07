@@ -17,16 +17,16 @@
 package it.smartcommunitylab.aac.templates;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
 import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.provider.TemplateTemplateProvider;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +35,9 @@ import org.springframework.util.Assert;
 
 @Service
 public class TemplateAuthority
-    extends AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    extends AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
     implements
-        TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+        TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
     // services
     private final TemplateService templateService;
@@ -62,10 +62,10 @@ public class TemplateAuthority
         openIdResource = provider.getResource();
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_TEMPLATE;
+    // }
 
     @Autowired
     public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {

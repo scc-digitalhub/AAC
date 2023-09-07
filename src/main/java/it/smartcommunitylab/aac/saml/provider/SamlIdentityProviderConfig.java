@@ -17,10 +17,10 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.io.IOException;
 import java.io.StringReader;
 import java.security.PrivateKey;
@@ -52,17 +52,29 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         this(SystemKeys.AUTHORITY_SAML, provider, realm);
     }
 
-    public SamlIdentityProviderConfig(
-        @JsonProperty("authority") String authority,
-        @JsonProperty("provider") String provider,
-        @JsonProperty("realm") String realm
-    ) {
-        super(authority, provider, realm, new SamlIdentityProviderConfigMap());
+    public SamlIdentityProviderConfig(String authority, String provider, String realm) {
+        super(authority, provider, realm, new IdentityProviderSettingsMap(), new SamlIdentityProviderConfigMap());
         this.relyingPartyRegistration = null;
     }
 
-    public SamlIdentityProviderConfig(ConfigurableIdentityProvider cp, SamlIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public SamlIdentityProviderConfig(
+        ConfigurableIdentityProvider cp,
+        IdentityProviderSettingsMap settingsMap,
+        SamlIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private SamlIdentityProviderConfig() {
+        super();
     }
 
     public String getRepositoryId() {

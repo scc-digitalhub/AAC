@@ -18,16 +18,20 @@ package it.smartcommunitylab.aac.core.provider;
 
 import it.smartcommunitylab.aac.core.model.Resource;
 
+/*
+ * A provider for resources of a given type, for a specific authority
+ */
 public interface ResourceProvider<R extends Resource> {
     /*
      * identify this provider
      */
-    public String getAuthority();
+    public String getId();
 
-    public String getProvider();
+    public String getAuthority();
 
     public String getRealm();
 
-    // TODO replace with proper typing <T> on resource
-    public String getType();
+    default String getProvider() {
+        return getId();
+    }
 }

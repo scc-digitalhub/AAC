@@ -16,11 +16,14 @@
 
 package it.smartcommunitylab.aac.core.model;
 
+import java.io.Serializable;
+
 /*
- * A realm scoped resource, provided by an authority
+ * A realm scoped resource, handled by an authority via a given provider
  */
 
-public interface Resource {
+public interface Resource extends Serializable {
+    //resource context
     public String getRealm();
 
     public String getAuthority();
@@ -32,11 +35,4 @@ public interface Resource {
 
     // TODO replace with proper typing <T> on resource
     public String getType();
-
-    // resourceId is local to (type)/authority+provider
-    public String getResourceId();
-
-    public default String getUrn() {
-        return null;
-    }
 }

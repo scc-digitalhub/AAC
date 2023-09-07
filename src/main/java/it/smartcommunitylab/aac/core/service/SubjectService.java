@@ -17,18 +17,18 @@
 package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.clients.persistence.ClientEntity;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.core.persistence.ClientEntity;
 import it.smartcommunitylab.aac.core.persistence.SubjectAuthorityEntity;
 import it.smartcommunitylab.aac.core.persistence.SubjectAuthorityEntityRepository;
 import it.smartcommunitylab.aac.core.persistence.SubjectEntity;
 import it.smartcommunitylab.aac.core.persistence.SubjectEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.UserEntity;
 import it.smartcommunitylab.aac.groups.persistence.GroupEntity;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.services.persistence.ServiceEntity;
+import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

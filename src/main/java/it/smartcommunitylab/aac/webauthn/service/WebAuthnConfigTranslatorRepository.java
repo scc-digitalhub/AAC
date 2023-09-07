@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.webauthn.service;
 
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 
@@ -39,7 +41,11 @@ public class WebAuthnConfigTranslatorRepository
 
             // we share the same configMap
             config.setConfigMap(source.getConfigMap());
-            config.setRepositoryId(source.getRepositoryId());
+
+            //build new settingsMap
+            CredentialsServiceSettingsMap settingsMap = new CredentialsServiceSettingsMap();
+            settingsMap.setRepositoryId(source.getRepositoryId());
+            config.setSettingsMap(settingsMap);
 
             return config;
         });

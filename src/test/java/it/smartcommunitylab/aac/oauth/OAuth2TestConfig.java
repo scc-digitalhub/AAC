@@ -18,10 +18,10 @@ package it.smartcommunitylab.aac.oauth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.dto.RealmConfig;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -83,7 +83,12 @@ public final class OAuth2TestConfig {
             .getCredentials()
             .stream()
             .filter(c -> (c instanceof InternalUserPassword))
-            .collect(Collectors.toMap(c -> c.getAccountId(), c -> ((InternalUserPassword) c).getPassword()));
+            .collect(
+                Collectors.toMap(
+                    c -> ((InternalUserPassword) c).getUserId(),
+                    c -> ((InternalUserPassword) c).getPassword()
+                )
+            );
 
         this.users =
             rc
@@ -92,7 +97,7 @@ public final class OAuth2TestConfig {
                 .map(a -> {
                     UserRegistration r = new UserRegistration(a.getUserId());
                     r.setUsername(a.getUsername());
-                    r.setPassword(passwords.get(a.getAccountId()));
+                    r.setPassword(passwords.get(a.getUserId()));
                     r.setEmail(a.getEmailAddress());
                     if (a instanceof InternalUserAccount) {
                         InternalUserAccount ia = (InternalUserAccount) a;

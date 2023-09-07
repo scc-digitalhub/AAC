@@ -16,27 +16,26 @@
 
 package it.smartcommunitylab.aac.core.auth;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import java.time.Instant;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 public abstract class ExtendedAuthenticationProvider<P extends UserAuthenticatedPrincipal, A extends UserAccount>
-    extends AbstractProvider
+    extends AbstractProvider<P>
     implements AuthenticationProvider {
 
-    public ExtendedAuthenticationProvider(String authority, String provider, String realm) {
+    protected ExtendedAuthenticationProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
     }
 
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_AUTHENTICATION;
-    }
+    // @Override
+    // public final String getType() {
+    //     return SystemKeys.RESOURCE_AUTHENTICATION;
+    // }
 
     @Override
     public ExtendedAuthenticationToken authenticate(Authentication authentication) throws AuthenticationException {

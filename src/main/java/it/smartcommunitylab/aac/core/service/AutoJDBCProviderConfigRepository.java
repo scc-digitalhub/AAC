@@ -16,18 +16,18 @@
 
 package it.smartcommunitylab.aac.core.service;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -37,36 +37,31 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
-import org.springframework.security.oauth2.common.util.DefaultSerializationStrategy;
-import org.springframework.security.oauth2.common.util.SerializationStrategy;
-import org.springframework.security.oauth2.common.util.SerializationUtils;
-import org.springframework.security.oauth2.common.util.WhitelistedSerializationStrategy;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-@Transactional
+//should execute in Propagation.REQUIRES_NEW but breaks transaction manager
+//TODO resolve, we create this bean manually thus no proxy for transactions
+// @Transactional(propagation = Propagation.REQUIRED)
 public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?, ?>>
     implements ProviderConfigRepository<U> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
-        "CREATE TABLE IF NOT EXISTS provider_config (type VARCHAR(256), provider_id VARCHAR(256),  realm VARCHAR(256), config BLOB, PRIMARY KEY (provider_id, type));";
     private static final String DEFAULT_SELECT_STATEMENT =
-        "select config from provider_config where provider_id = ? and type = ?";
-    private static final String DEFAULT_FIND_ALL_STATEMENT = "select config from provider_config where type = ?";
+        "SELECT config FROM provider_config WHERE provider_id = ? AND provider_type = ?";
+    private static final String DEFAULT_FIND_ALL_STATEMENT =
+        "SELECT config FROM provider_config WHERE provider_type = ?";
     private static final String DEFAULT_FIND_BY_REALM_STATEMENT =
-        "select config from provider_config where type = ? and realm = ?";
+        "SELECT config FROM provider_config WHERE provider_type = ? AND realm = ?";
     private static final String DEFAULT_INSERT_STATEMENT =
-        "insert into provider_config (type, provider_id, realm, config) values (?, ?, ?, ?)";
+        "insert into provider_config (provider_type, provider_id, realm, config) values (?, ?, ?, ?)";
     private static final String DEFAULT_UPDATE_STATEMENT =
-        "update provider_config set config = ?  where provider_id = ? and type = ?";
+        "update provider_config set config = ?  WHERE provider_id = ? AND provider_type = ?";
     private static final String DEFAULT_DELETE_STATEMENT =
-        "delete from provider_config where provider_id = ? and type = ?";
-    private static final String DEFAULT_CLEAR_STATEMENT = "delete from provider_config where type = ?";
+        "delete FROM provider_config WHERE provider_id = ? AND provider_type = ?";
+    private static final String DEFAULT_CLEAR_STATEMENT = "delete FROM provider_config WHERE provider_type = ?";
 
-    private String createTableSql = DEFAULT_CREATE_TABLE_STATEMENT;
     private String selectSql = DEFAULT_SELECT_STATEMENT;
     private String findAllSql = DEFAULT_FIND_ALL_STATEMENT;
     private String findByRealmSql = DEFAULT_FIND_BY_REALM_STATEMENT;
@@ -107,6 +102,10 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
         //        rowMapper = new ConfigRowMapper(serializer);
 
         CBORMapper cborMapper = new CBORMapper();
+        //serialize only fields and ignore all getter/setters to avoid any processing
+        cborMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
+        cborMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+
         this.rowMapper = new CBORConfigRowMapper(cborMapper, className);
         this.mapper = cborMapper;
 
@@ -115,13 +114,8 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
         //        this.mapper = jsonMapper;
 
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        initSchema();
         // TODO make sure table does not contain old/stale registrations on startup
         // should support multi-instance
-    }
-
-    protected void initSchema() {
-        jdbcTemplate.execute(createTableSql);
     }
 
     public void clear() {

@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 
 public class CustomAuthoritiesProperties {
 

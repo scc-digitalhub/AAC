@@ -18,17 +18,26 @@ package it.smartcommunitylab.aac.webauthn.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.CredentialsAuthoritiesProperties;
-import it.smartcommunitylab.aac.core.base.AbstractCredentialsConfigurationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsConfigurationProvider;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import org.springframework.stereotype.Service;
 
-@Service
+// @Service
 public class WebAuthnCredentialsConfigurationProvider
-    extends AbstractCredentialsConfigurationProvider<WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+    extends AbstractCredentialsConfigurationProvider<WebAuthnCredentialsServiceConfig, WebAuthnIdentityProviderConfigMap> {
 
-    public WebAuthnCredentialsConfigurationProvider(CredentialsAuthoritiesProperties authoritiesProperties) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN);
-        if (authoritiesProperties != null && authoritiesProperties.getWebauthn() != null) {
+    public WebAuthnCredentialsConfigurationProvider(
+        ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository,
+        CredentialsAuthoritiesProperties authoritiesProperties
+    ) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getWebauthn() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getWebauthn());
         } else {
             setDefaultConfigMap(new WebAuthnIdentityProviderConfigMap());
@@ -37,6 +46,10 @@ public class WebAuthnCredentialsConfigurationProvider
 
     @Override
     protected WebAuthnCredentialsServiceConfig buildConfig(ConfigurableCredentialsProvider cp) {
-        return new WebAuthnCredentialsServiceConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new WebAuthnCredentialsServiceConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

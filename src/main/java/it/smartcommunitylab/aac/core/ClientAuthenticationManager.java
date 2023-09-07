@@ -16,10 +16,10 @@
 
 package it.smartcommunitylab.aac.core;
 
+import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

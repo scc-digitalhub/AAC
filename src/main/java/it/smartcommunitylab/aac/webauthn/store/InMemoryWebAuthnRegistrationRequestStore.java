@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.webauthn.store;
 
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnRegistrationRequest;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -28,7 +29,7 @@ import org.springframework.util.Assert;
  * In memory local request store
  *
  */
-public class InMemoryWebAuthnRegistrationRequestStore implements WebAuthnRegistrationRequestStore {
+public class InMemoryWebAuthnRegistrationRequestStore implements WebAuthnRegistrationRequestStore, Serializable {
 
     private final Map<String, WebAuthnRegistrationRequest> requests;
 

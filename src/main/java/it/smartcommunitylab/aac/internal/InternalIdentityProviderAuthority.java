@@ -17,27 +17,25 @@
 package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractSingleProviderIdentityAuthority;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.identity.base.AbstractSingleProviderIdentityAuthority;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityFilterProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
 public class InternalIdentityProviderAuthority
-    extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig>
-    implements InitializingBean {
+    extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 

@@ -18,23 +18,18 @@ package it.smartcommunitylab.aac.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractIdentity;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserCredentials;
-import it.smartcommunitylab.aac.core.model.UserCredentialsIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import java.util.ArrayList;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
 import org.springframework.util.Assert;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class InternalUserIdentity extends AbstractIdentity implements UserCredentialsIdentity {
+public class InternalUserIdentity extends AbstractUserIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
@@ -46,24 +41,20 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
     // internal user account
     private final InternalUserAccount account;
 
-    // credentials (when available)
-    // TODO evaluate exposing on abstract identity model for all providers
-    private List<UserCredentials> credentials;
+    // // credentials (when available)
+    // // TODO evaluate exposing on abstract identity model for all providers
+    // private List<UserCredentials> credentials;
 
     // attributes map for sets associated with this identity
     private Map<String, UserAttributes> attributes;
 
     public InternalUserIdentity(String authority, String provider, String realm, InternalUserAccount account) {
-        super(authority, provider);
+        super(authority, provider, realm, account.getUuid(), account.getUserId());
         Assert.notNull(account, "account can not be null");
 
         this.account = account;
         this.principal = null;
         this.attributes = Collections.emptyMap();
-
-        setUserId(account.getUserId());
-        setUuid(account.getUuid());
-        setRealm(realm);
     }
 
     public InternalUserIdentity(
@@ -73,16 +64,12 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
         InternalUserAccount account,
         InternalUserAuthenticatedPrincipal principal
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, account.getUuid(), account.getUserId());
         Assert.notNull(account, "account can not be null");
 
         this.account = account;
         this.principal = principal;
         this.attributes = Collections.emptyMap();
-
-        setUserId(account.getUserId());
-        setUuid(account.getUuid());
-        setRealm(realm);
     }
 
     @Override
@@ -119,19 +106,18 @@ public class InternalUserIdentity extends AbstractIdentity implements UserCreden
     public String getEmailAddress() {
         return account.getEmail();
     }
+    // public List<UserCredentials> getCredentials() {
+    //     return credentials;
+    // }
 
-    public List<UserCredentials> getCredentials() {
-        return credentials;
-    }
+    // public void setCredentials(Collection<? extends UserCredentials> credentials) {
+    //     this.credentials = new ArrayList<>(credentials);
+    // }
 
-    public void setCredentials(Collection<? extends UserCredentials> credentials) {
-        this.credentials = new ArrayList<>(credentials);
-    }
-
-    @Override
-    public void eraseCredentials() {
-        if (this.credentials != null) {
-            credentials.stream().forEach(c -> c.eraseCredentials());
-        }
-    }
+    // @Override
+    // public void eraseCredentials() {
+    //     if (this.credentials != null) {
+    //         credentials.stream().forEach(c -> c.eraseCredentials());
+    //     }
+    // }
 }

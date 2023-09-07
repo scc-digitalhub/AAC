@@ -17,10 +17,10 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +56,10 @@ public class InternalSubjectResolver
         this.repositoryId = repositoryId;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_SUBJECT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_SUBJECT;
+    // }
 
     @Override
     public Subject resolveByUsername(String username) {
@@ -98,7 +98,7 @@ public class InternalSubjectResolver
 
         logger.debug("resolve by email " + email);
         InternalUserAccount account = accountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()

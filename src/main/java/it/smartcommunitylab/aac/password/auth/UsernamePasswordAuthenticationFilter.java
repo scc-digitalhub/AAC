@@ -17,16 +17,16 @@
 package it.smartcommunitylab.aac.password.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -65,11 +65,11 @@ public class UsernamePasswordAuthenticationFilter extends AbstractAuthentication
     private final UserAccountService<InternalUserAccount> userAccountService;
 
     // TODO remove
-    private final InternalPasswordUserCredentialsService userPasswordService;
+    private final InternalPasswordJpaUserCredentialsService userPasswordService;
 
     public UsernamePasswordAuthenticationFilter(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         this(userAccountService, userPasswordService, registrationRepository, DEFAULT_FILTER_URI, null);
@@ -77,7 +77,7 @@ public class UsernamePasswordAuthenticationFilter extends AbstractAuthentication
 
     public UsernamePasswordAuthenticationFilter(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
         String filterProcessingUrl,
         AuthenticationEntryPoint authenticationEntryPoint

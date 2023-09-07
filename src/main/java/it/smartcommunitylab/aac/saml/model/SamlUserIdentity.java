@@ -17,16 +17,15 @@
 package it.smartcommunitylab.aac.saml.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractIdentity;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.util.Assert;
 
-public class SamlUserIdentity extends AbstractIdentity {
+public class SamlUserIdentity extends AbstractUserIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
@@ -39,19 +38,15 @@ public class SamlUserIdentity extends AbstractIdentity {
     private final SamlUserAccount account;
 
     // attribute sets
-    protected Set<UserAttributes> attributes;
+    private Set<UserAttributes> attributes;
 
     public SamlUserIdentity(String authority, String provider, String realm, SamlUserAccount account) {
-        super(authority, provider);
+        super(authority, provider, realm, account.getUuid(), account.getUserId());
         Assert.notNull(account, "account can not be null");
 
         this.account = account;
         this.principal = null;
         this.attributes = Collections.emptySet();
-
-        setUserId(account.getUserId());
-        setUuid(account.getUuid());
-        setRealm(realm);
     }
 
     public SamlUserIdentity(
@@ -61,16 +56,12 @@ public class SamlUserIdentity extends AbstractIdentity {
         SamlUserAccount account,
         SamlUserAuthenticatedPrincipal principal
     ) {
-        super(authority, provider);
+        super(authority, provider, realm, account.getUuid(), account.getUserId());
         Assert.notNull(account, "account can not be null");
 
         this.account = account;
         this.principal = principal;
         this.attributes = Collections.emptySet();
-
-        setUserId(account.getUserId());
-        setUuid(account.getUuid());
-        setRealm(realm);
     }
 
     @Override

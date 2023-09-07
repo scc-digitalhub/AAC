@@ -17,27 +17,25 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.provider.AccountService;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.util.Collection;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -60,7 +58,7 @@ public class PasswordIdentityProvider
     public PasswordIdentityProvider(
         String providerId,
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         PasswordIdentityProviderConfig config,
         String realm
     ) {
@@ -169,25 +167,23 @@ public class PasswordIdentityProvider
         );
         identity.setAttributes(attributes);
 
-        // if attributes then load credentials
-        if (attributes != null) {
-            try {
-                List<InternalUserPassword> passwords = passwordService.findPassword(account.getUsername());
-                passwords.forEach(p -> p.eraseCredentials());
-                identity.setCredentials(passwords);
-            } catch (NoSuchUserException e) {
-                // this should not happen
-                logger.error("no user for account {}", String.valueOf(account.getUsername()));
-            }
-        }
+        // // if attributes then load credentials
+        // if (attributes != null) {
+        //     try {
+        //         List<InternalUserPassword> passwords = passwordService.findPassword(account.getUsername());
+        //         passwords.forEach(p -> p.eraseCredentials());
+        //         identity.setCredentials(passwords);
+        //     } catch (NoSuchUserException e) {
+        //         // this should not happen
+        //         logger.error("no user for account {}", String.valueOf(account.getUsername()));
+        //     }
+        // }
 
         return identity;
     }
 
     @Override
     public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        // remove all credentials
-        passwordService.deletePassword(username);
         // do not remove account because we are NOT authoritative
     }
 

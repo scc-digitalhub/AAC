@@ -16,13 +16,13 @@
 
 package it.smartcommunitylab.aac.tos.controller;
 
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.Realm;
-import java.nio.file.ProviderNotFoundException;
+import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.users.service.UserService;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -57,14 +57,14 @@ public class TosController {
     private UserService userService;
 
     @GetMapping("/-/{realm}" + TOS_TERMS)
-    public String realmTerms(@PathVariable String realm, Model model) {
+    public String realmTerms(@PathVariable String realm, Model model) throws NoSuchProviderException {
         Realm realmEntity = realmService.findRealm(realm);
         if (
             realmEntity == null ||
             realmEntity.getTosConfiguration() == null ||
             !realmEntity.getTosConfiguration().isEnableTOS()
         ) {
-            throw new ProviderNotFoundException("realm not found");
+            throw new NoSuchProviderException("realm not found");
         }
 
         model.addAttribute("realm", realm);
@@ -73,7 +73,7 @@ public class TosController {
     }
 
     @GetMapping(TOS_TERMS)
-    public String terms(HttpServletRequest request, Model model, Locale locale) {
+    public String terms(HttpServletRequest request, Model model, Locale locale) throws NoSuchProviderException {
         UserDetails user = authHelper.getUserDetails();
 
         if (user == null) {
@@ -88,7 +88,7 @@ public class TosController {
             realmEntity.getTosConfiguration() == null ||
             !realmEntity.getTosConfiguration().isEnableTOS()
         ) {
-            throw new ProviderNotFoundException("realm not found");
+            throw new NoSuchProviderException("realm not found");
         }
 
         model.addAttribute("acceptUrl", TOS_TERMS_ACCEPT);
@@ -109,7 +109,7 @@ public class TosController {
         HttpServletRequest request,
         Model model,
         Locale locale
-    ) throws NoSuchUserException {
+    ) throws NoSuchUserException, NoSuchProviderException {
         UserDetails user = authHelper.getUserDetails();
         if (user == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
@@ -122,7 +122,7 @@ public class TosController {
             realmEntity.getTosConfiguration() == null ||
             !realmEntity.getTosConfiguration().isEnableTOS()
         ) {
-            throw new ProviderNotFoundException("realm not found");
+            throw new NoSuchProviderException("realm not found");
         }
 
         request.getSession().setAttribute("termsStatus", approveParam);

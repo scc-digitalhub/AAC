@@ -16,39 +16,38 @@
 
 package it.smartcommunitylab.aac.core.authorities;
 
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfig;
+import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
+import org.springframework.lang.Nullable;
 
 /*
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
  */
 public interface ConfigurableProviderAuthority<
-    S extends ConfigurableResourceProvider<R, T, M, C>,
-    R extends Resource,
-    T extends ConfigurableProvider,
-    M extends ConfigMap,
-    C extends ProviderConfig<M>
+    RP extends ConfigurableResourceProvider<? extends Resource, P, S, M>,
+    C extends ConfigurableProvider<S>,
+    P extends ProviderConfig<S, M>,
+    S extends ConfigMap,
+    M extends ConfigMap
 >
-    extends ProviderAuthority<S, R> {
+    extends ProviderAuthority<RP> {
     /*
      * Registration
      *
      * TODO remove and make interface RO
      */
 
-    public C registerProvider(ConfigurableProvider config)
-        throws IllegalArgumentException, RegistrationException, SystemException;
+    // public C registerProvider(ConfigurableProvider config)
+    //     throws IllegalArgumentException, RegistrationException, SystemException;
 
-    public void unregisterProvider(String providerId) throws SystemException;
+    // public void unregisterProvider(String providerId) throws SystemException;
 
     /*
-     * Config provider exposes configuration translation, validation and schema
+     * Config provider exposes configuration
      */
-    public ConfigurationProvider<M, T, C> getConfigurationProvider();
+    public @Nullable ConfigurationProvider<P, C, S, M> getConfigurationProvider();
 }

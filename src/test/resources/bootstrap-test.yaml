@@ -119,6 +119,7 @@ realms:
         provider: tpassword
         id: 9a5623f8-1f1e-4ac0-bd15-394721fe1778        
         username: test
+        userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
         password: test123        
         
         
@@ -199,6 +200,7 @@ realms:
         authority: password
         provider: tpassword2
         username: test
+        userId: 202e7f14-b6b3-49d3-8a00-ce2ed14f7a32
         password: test123              
         id: 2a5623f8-1f1e-4ac0-bd15-394721fe1778        
         

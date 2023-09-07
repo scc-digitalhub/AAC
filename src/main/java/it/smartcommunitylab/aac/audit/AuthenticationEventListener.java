@@ -20,8 +20,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.service.IdentityProviderService;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +35,7 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
+import org.springframework.util.StringUtils;
 
 public class AuthenticationEventListener extends AbstractAuthenticationAuditListener {
 
@@ -49,6 +50,7 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
     public static final String CLIENT_AUTHENTICATION_FAILURE = "CLIENT_AUTHENTICATION_FAILURE";
     public static final String CLIENT_AUTHENTICATION_SUCCESS = "CLIENT_AUTHENTICATION_SUCCESS";
 
+    //TODO replace with identity authority provider service to read only *active* providers
     private IdentityProviderService providerService;
 
     public void setProviderService(IdentityProviderService providerService) {
@@ -82,8 +84,12 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
         if (providerService != null) {
             ConfigurableIdentityProvider p = providerService.findProvider(provider);
-            if (p != null && p.getEvents() != null) {
-                level = p.getEvents();
+            if (
+                p != null &&
+                p.getSettings() != null &&
+                StringUtils.hasText(String.valueOf(p.getSettings().get("events")))
+            ) {
+                level = String.valueOf(p.getSettings().get("events"));
             }
         }
 
@@ -128,8 +134,12 @@ public class AuthenticationEventListener extends AbstractAuthenticationAuditList
 
         if (providerService != null) {
             ConfigurableIdentityProvider p = providerService.findProvider(provider);
-            if (p != null && p.getEvents() != null) {
-                level = p.getEvents();
+            if (
+                p != null &&
+                p.getSettings() != null &&
+                StringUtils.hasText(String.valueOf(p.getSettings().get("events")))
+            ) {
+                level = String.valueOf(p.getSettings().get("events"));
             }
         }
 

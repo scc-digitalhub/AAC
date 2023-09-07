@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.Template;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -105,10 +104,10 @@ public class TemplateModel implements Template {
         return id;
     }
 
-    @Override
-    public String getResourceId() {
-        return template + "." + language;
-    }
+    // @Override
+    // public String getResourceId() {
+    //     return template + "." + language;
+    // }
 
     @Override
     public String getTemplate() {
