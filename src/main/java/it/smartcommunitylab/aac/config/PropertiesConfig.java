@@ -32,6 +32,12 @@ public class PropertiesConfig {
     }
 
     @Bean
+    @ConfigurationProperties(prefix = "jdbc")
+    public JdbcProperties jdbcProps() {
+        return new JdbcProperties();
+    }
+
+    @Bean
     @ConfigurationProperties(prefix = "authorities.identity")
     public IdentityAuthoritiesProperties identityAuthoritiesProps() {
         return new IdentityAuthoritiesProperties();

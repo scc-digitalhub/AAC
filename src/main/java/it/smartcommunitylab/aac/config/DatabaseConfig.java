@@ -17,10 +17,13 @@
 package it.smartcommunitylab.aac.config;
 
 import com.zaxxer.hikari.HikariDataSource;
+import it.smartcommunitylab.aac.autoconfigure.JdbcDataSourceInitializer;
 import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 import java.beans.PropertyVetoException;
 import java.util.Properties;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -202,5 +205,30 @@ public class DatabaseConfig {
         JpaTransactionManager bean = new JpaTransactionManager();
         bean.setEntityManagerFactory(getEntityManagerFactory().getObject()); // ???
         return bean;
+    }
+
+    @Bean(name = "coreJdbcDataSourceInitializer")
+    public JdbcDataSourceInitializer jdbcDataSourceInitializer(
+        @Qualifier("jdbcDataSource") DataSource dataSource,
+        JdbcProperties properties
+    ) {
+        return new JdbcDataSourceInitializer(dataSource, properties);
+    }
+
+    @Bean(name = "oauth2JdbcDataSourceInitializer")
+    public JdbcDataSourceInitializer oauth2DataSourceInitializer(
+        @Qualifier("jdbcDataSource") DataSource dataSource,
+        JdbcProperties properties
+    ) {
+        return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/schema-oauth2-@@platform@@.sql");
+    }
+
+    //TODO add optional ObjectProvider<DataSource> to support separated dataSource for audit
+    @Bean(name = "auditJdbcDataSourceInitializer")
+    public JdbcDataSourceInitializer audit2DataSourceInitializer(
+        @Qualifier("jdbcDataSource") DataSource dataSource,
+        JdbcProperties properties
+    ) {
+        return new JdbcDataSourceInitializer(dataSource, properties, "optional:classpath:db/sql/schema-audit-@@platform@@.sql");
     }
 }
