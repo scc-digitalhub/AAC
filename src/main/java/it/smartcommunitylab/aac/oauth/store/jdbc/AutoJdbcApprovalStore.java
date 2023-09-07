@@ -34,15 +34,6 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
     private JdbcTemplate jdbcTemplate;
     private final RowMapper<Approval> rowMapper = new AuthorizationRowMapper();
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
-        " CREATE TABLE IF NOT EXISTS oauth_approvals (" +
-        "  clientId varchar(255) DEFAULT NULL," +
-        "  expiresAt datetime DEFAULT NULL," +
-        "  lastModifiedAt datetime DEFAULT NULL," +
-        "  scope varchar(255) DEFAULT NULL," +
-        "  status varchar(255) DEFAULT NULL," +
-        "  userId varchar(255) DEFAULT NULL) ";
-
     private static final String DEFAULT_FIND_SINGLE_APPROVAL_SQL =
         "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM oauth_approvals WHERE userId=? AND clientId=? AND scope=?";
     private static final String DEFAULT_GET_USER_APPROVAL_SQL =
@@ -54,7 +45,6 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
     private static final String DEFAULT_GET_USER_SCOPE_APPROVAL_SQL =
         "SELECT expiresAt,status,lastModifiedAt,userId,clientId,scope FROM oauth_approvals WHERE userId=? and scope=?";
 
-    private String createTableStatement = DEFAULT_CREATE_TABLE_STATEMENT;
     private String findSingleApprovalStatement = DEFAULT_FIND_SINGLE_APPROVAL_SQL;
     private String findUserApprovalStatement = DEFAULT_GET_USER_APPROVAL_SQL;
     private String findClientApprovalStatement = DEFAULT_GET_CLIENT_APPROVAL_SQL;
@@ -63,12 +53,6 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
 
     public AutoJdbcApprovalStore(DataSource dataSource) {
         super(dataSource);
-        initSchema(dataSource);
-    }
-
-    protected void initSchema(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.execute(createTableStatement);
     }
 
     @Override

@@ -3,9 +3,9 @@ CREATE TABLE
         provider_type VARCHAR(256),
         provider_id VARCHAR(256),
         realm VARCHAR(256),
-        config BLOB,
+        config bytea,
         PRIMARY KEY (provider_id, provider_type)
-    ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC;
+    );
 
 CREATE INDEX provider_config_ix1 ON provider_config (provider_type);
 
@@ -18,5 +18,5 @@ CREATE TABLE
         entity_id VARCHAR(256),
         provider_id VARCHAR(256),
         attr_key VARCHAR(256),
-        attr_value BLOB
+        attr_value bytea
     );

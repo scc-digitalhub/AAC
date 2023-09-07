@@ -5,13 +5,7 @@ CREATE TABLE
         realm VARCHAR(256),
         config BLOB,
         PRIMARY KEY (provider_id, provider_type)
-    ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC;
-
-CREATE INDEX provider_config_ix1 ON provider_config (provider_type);
-
-CREATE INDEX provider_config_ix2 ON provider_config (provider_id);
-
-CREATE INDEX provider_config_ix2 ON provider_config (realm);
+    );
 
 CREATE TABLE
     IF NOT EXISTS attributes (

@@ -46,20 +46,16 @@ import org.springframework.util.Assert;
  */
 public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServices, PeekableAuthorizationCodeServices {
 
-    //    private static final StringKeyGenerator TOKEN_GENERATOR = new HumanStringKeyGenerator(6);
     private static final StringKeyGenerator TOKEN_GENERATOR = new SecureStringKeyGenerator(16);
 
     private static final int DEFAULT_CODE_VALIDITY_SECONDS = 10 * 60;
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
-        "CREATE TABLE IF NOT EXISTS oauth_code (code VARCHAR(256), client_id VARCHAR(256), expiresAt TIMESTAMP, authentication BLOB);";
     private static final String DEFAULT_SELECT_STATEMENT =
         "select code, client_id, expiresAt, authentication from oauth_code where code = ?";
     private static final String DEFAULT_INSERT_STATEMENT =
         "insert into oauth_code (code, client_id, expiresAt, authentication) values (?, ?, ?, ?)";
     private static final String DEFAULT_DELETE_STATEMENT = "delete from oauth_code where code = ?";
 
-    private String createAuthenticationSql = DEFAULT_CREATE_TABLE_STATEMENT;
     private String selectAuthenticationSql = DEFAULT_SELECT_STATEMENT;
     private String insertAuthenticationSql = DEFAULT_INSERT_STATEMENT;
     private String deleteAuthenticationSql = DEFAULT_DELETE_STATEMENT;
@@ -74,7 +70,6 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
     public AutoJdbcAuthorizationCodeServices(DataSource dataSource) {
         Assert.notNull(dataSource, "DataSource required");
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        initSchema();
     }
 
     /**
@@ -193,10 +188,6 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
         return null;
     }
 
-    public void setCreateAuthenticationSql(String createAuthenticationSql) {
-        this.createAuthenticationSql = createAuthenticationSql;
-    }
-
     public void setSelectAuthenticationSql(String selectAuthenticationSql) {
         this.selectAuthenticationSql = selectAuthenticationSql;
     }
@@ -211,9 +202,5 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
 
     public void setTokenGenerator(StringKeyGenerator tokenGenerator) {
         this.tokenGenerator = tokenGenerator;
-    }
-
-    protected void initSchema() {
-        jdbcTemplate.execute(createAuthenticationSql);
     }
 }

@@ -220,7 +220,7 @@ public class DatabaseConfig {
         @Qualifier("jdbcDataSource") DataSource dataSource,
         JdbcProperties properties
     ) {
-        return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/schema-oauth2-@@platform@@.sql");
+        return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/oauth2/schema-@@platform@@.sql");
     }
 
     //TODO add optional ObjectProvider<DataSource> to support separated dataSource for audit
@@ -229,6 +229,10 @@ public class DatabaseConfig {
         @Qualifier("jdbcDataSource") DataSource dataSource,
         JdbcProperties properties
     ) {
-        return new JdbcDataSourceInitializer(dataSource, properties, "optional:classpath:db/sql/schema-audit-@@platform@@.sql");
+        return new JdbcDataSourceInitializer(
+            dataSource,
+            properties,
+            "optional:classpath:db/sql/audit/schema-@@platform@@.sql"
+        );
     }
 }
