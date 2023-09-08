@@ -15,6 +15,7 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<spring-security.version>5.8.6</spring-security.version>
 		<bouncycastle.version>1.76</bouncycastle.version>
 		<springdoc.version>1.6.9</springdoc.version>
 		<jsoup.version>1.15.3</jsoup.version>
@@ -144,8 +145,8 @@
 		</dependency>
 
 		<dependency>
-         <groupId>com.mysql</groupId>
-         <artifactId>mysql-connector-j</artifactId>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
 		</dependency>
 
 		<!-- <dependency> -->

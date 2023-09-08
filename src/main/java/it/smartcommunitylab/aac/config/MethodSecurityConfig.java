@@ -21,13 +21,12 @@ import it.smartcommunitylab.aac.core.auth.DefaultSecurityContextAuthenticationHe
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
 @Order(11)
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+@EnableMethodSecurity
+public class MethodSecurityConfig {
 
     // TODO evaluate injecting a reduced authManager
 
