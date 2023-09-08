@@ -18,11 +18,11 @@ package it.smartcommunitylab.aac.saml.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
 import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;

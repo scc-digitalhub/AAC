@@ -28,9 +28,9 @@ import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import org.springframework.util.Assert;
 
 @Valid

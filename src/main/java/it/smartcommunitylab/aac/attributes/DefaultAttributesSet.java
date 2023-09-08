@@ -23,13 +23,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.DefaultAttribute;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.stream.Collectors;
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonInclude(Include.NON_NULL)

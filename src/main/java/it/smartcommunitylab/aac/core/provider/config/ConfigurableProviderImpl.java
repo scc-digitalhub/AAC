@@ -34,14 +34,14 @@ import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvide
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

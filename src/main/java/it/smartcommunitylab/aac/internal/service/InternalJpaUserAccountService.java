@@ -28,10 +28,10 @@ import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRe
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountId;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.util.Assert;
 
 @Valid

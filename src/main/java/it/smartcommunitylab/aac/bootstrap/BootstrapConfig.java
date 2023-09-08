@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.dto.RealmConfig;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.Valid;
 
 //@Configuration
 //@PropertySource(factory = JacksonPropertySourceFactory.class, ignoreResourceNotFound = true, value = "${bootstrap.file}")

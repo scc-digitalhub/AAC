@@ -23,10 +23,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import jakarta.validation.Valid;
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Map;
-import javax.validation.Valid;
 import org.springframework.util.StringUtils;
 
 @Valid

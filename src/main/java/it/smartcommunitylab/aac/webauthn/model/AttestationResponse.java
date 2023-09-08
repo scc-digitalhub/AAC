@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.Valid;
 import java.io.Serializable;
-import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

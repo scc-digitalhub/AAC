@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.core.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 
 public class WebAuthenticationDetails extends org.springframework.security.web.authentication.WebAuthenticationDetails {

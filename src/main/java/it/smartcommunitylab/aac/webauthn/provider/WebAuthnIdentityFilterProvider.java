@@ -24,11 +24,11 @@ import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationFilter;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
+import jakarta.servlet.Filter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.servlet.Filter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.Assert;
 

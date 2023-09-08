@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.core.entrypoint;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;

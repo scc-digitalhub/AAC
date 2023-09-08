@@ -17,12 +17,12 @@
 package it.smartcommunitylab.aac.model;
 
 import it.smartcommunitylab.aac.scope.Scope;
+import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import javax.validation.constraints.NotBlank;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.util.StringUtils;
 

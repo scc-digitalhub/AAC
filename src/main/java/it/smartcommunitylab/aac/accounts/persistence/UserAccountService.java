@@ -19,8 +19,8 @@ package it.smartcommunitylab.aac.accounts.persistence;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import javax.validation.constraints.NotNull;
 
 public interface UserAccountService<U extends UserAccount> {
     public List<U> findAccounts(@NotNull String repositoryId);

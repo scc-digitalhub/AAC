@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.saml.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 
 public interface Saml2AuthenticationRequestRepository<T extends SerializableSaml2AuthenticationRequestContext> {

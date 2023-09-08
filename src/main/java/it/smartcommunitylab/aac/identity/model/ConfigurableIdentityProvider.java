@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @Valid
 @JsonInclude(Include.NON_NULL)

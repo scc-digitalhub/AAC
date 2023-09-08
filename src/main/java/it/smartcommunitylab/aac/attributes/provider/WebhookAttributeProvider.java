@@ -44,10 +44,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -113,9 +115,8 @@ public class WebhookAttributeProvider
         int timeout = config.getConfigMap().getTimeout() != null ? config.getConfigMap().getTimeout() : DEFAULT_TIMEOUT;
         RequestConfig rconfig = RequestConfig
             .custom()
-            .setConnectTimeout(timeout)
-            .setConnectionRequestTimeout(timeout)
-            .setSocketTimeout(timeout)
+            .setConnectTimeout(timeout, TimeUnit.SECONDS)
+            .setConnectionRequestTimeout(timeout, TimeUnit.SECONDS)
             .build();
         CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(rconfig).build();
         HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(

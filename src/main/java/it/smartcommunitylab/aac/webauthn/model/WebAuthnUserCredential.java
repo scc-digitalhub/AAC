@@ -21,13 +21,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.Lob;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import org.springframework.data.annotation.CreatedDate;
 
 @Valid

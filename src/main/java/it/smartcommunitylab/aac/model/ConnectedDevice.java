@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.model;
 
 import it.smartcommunitylab.aac.scope.Scope;
+import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import javax.validation.constraints.NotBlank;
 
 public class ConnectedDevice {
 

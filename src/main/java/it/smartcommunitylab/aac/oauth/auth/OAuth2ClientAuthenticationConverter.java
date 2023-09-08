@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.oauth.auth;
 
 import it.smartcommunitylab.aac.core.auth.ClientAuthenticationConverter;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class OAuth2ClientAuthenticationConverter implements ClientAuthenticationConverter {
 

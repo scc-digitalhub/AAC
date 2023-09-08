@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.core.entrypoint;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.util.UriComponents;
 
 public interface RealmAwareUriBuilder {

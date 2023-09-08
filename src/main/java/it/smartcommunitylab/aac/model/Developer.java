@@ -18,9 +18,9 @@ package it.smartcommunitylab.aac.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.Set;
-import javax.validation.constraints.NotBlank;
 import org.springframework.security.core.GrantedAuthority;
 
 @JsonInclude(Include.NON_NULL)

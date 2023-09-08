@@ -19,8 +19,8 @@ package it.smartcommunitylab.aac.credentials.persistence;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
-import javax.validation.constraints.NotNull;
 
 public interface UserCredentialsService<C extends UserCredentials> {
     public Collection<C> findCredentials(@NotNull String repositoryId);

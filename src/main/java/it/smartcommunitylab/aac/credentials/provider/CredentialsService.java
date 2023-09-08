@@ -24,8 +24,8 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
-import javax.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
 
 /*

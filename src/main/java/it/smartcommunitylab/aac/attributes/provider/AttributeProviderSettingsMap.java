@@ -24,10 +24,10 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.model.PersistenceMode;
+import jakarta.validation.Valid;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
-import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

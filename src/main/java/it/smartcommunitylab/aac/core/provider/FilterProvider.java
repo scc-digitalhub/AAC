@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.core.provider;
 
+import jakarta.servlet.Filter;
 import java.util.Collection;
-import javax.servlet.Filter;
 
 public interface FilterProvider {
     public String getAuthorityId();

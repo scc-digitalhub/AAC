@@ -18,8 +18,8 @@ package it.smartcommunitylab.aac.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

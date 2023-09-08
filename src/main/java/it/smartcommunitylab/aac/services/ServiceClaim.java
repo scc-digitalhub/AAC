@@ -23,14 +23,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.claims.model.AbstractClaim;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.services.persistence.ServiceClaimEntity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 @Valid
 @JsonInclude(Include.NON_NULL)

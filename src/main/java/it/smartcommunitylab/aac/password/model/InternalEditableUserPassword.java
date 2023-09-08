@@ -27,11 +27,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.credentials.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonInclude(Include.ALWAYS)

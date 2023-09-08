@@ -25,11 +25,11 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.auth.ResetKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationFilter;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import jakarta.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import javax.servlet.Filter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.Assert;
 

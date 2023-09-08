@@ -18,9 +18,9 @@ package it.smartcommunitylab.aac.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;

@@ -24,10 +24,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.services.persistence.ServiceScopeEntity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import java.util.Base64;
 import java.util.Set;
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import org.springframework.util.StringUtils;
 
 @Valid

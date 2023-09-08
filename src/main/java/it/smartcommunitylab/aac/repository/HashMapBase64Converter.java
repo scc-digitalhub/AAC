@@ -18,11 +18,11 @@ package it.smartcommunitylab.aac.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.AttributeConverter;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.persistence.AttributeConverter;
 import org.springframework.util.StringUtils;
 
 public class HashMapBase64Converter implements AttributeConverter<Map<String, String>, String> {

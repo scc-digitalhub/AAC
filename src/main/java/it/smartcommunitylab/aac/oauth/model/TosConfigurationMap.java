@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import jakarta.validation.Valid;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab</groupId>
 	<artifactId>aac</artifactId>
@@ -10,12 +11,11 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.15</version>
+		<version>3.0.10</version>
 	</parent>
 
 	<properties>
 		<java.version>17</java.version>
-		<spring-security.version>5.8.6</spring-security.version>
 		<bouncycastle.version>1.76</bouncycastle.version>
 		<springdoc.version>1.6.9</springdoc.version>
 		<jsoup.version>1.15.3</jsoup.version>
@@ -181,6 +181,12 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+		</dependency>
+
 		<!-- <dependency> -->
 		<!-- <groupId>com.zaxxer</groupId> -->
 		<!-- <artifactId>HikariCP</artifactId> -->
@@ -383,7 +389,7 @@
 					<image>
 						<name>smartcommunitylab/aac:${project.version}</name>
 						<env>
-							<BP_JVM_VERSION>17</BP_JVM_VERSION>
+							<BP_JVM_VERSION>${java.version}</BP_JVM_VERSION>
 						</env>
 					</image>
 				</configuration>
@@ -494,8 +500,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>11</source>
-					<target>11</target>
+					<release>${java.version}</release>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -508,6 +513,15 @@
 			<id>SmartCommunity</id>
 			<url>https://repository.smartcommunitylab.it/content/groups/public</url>
 		</repository>
+		<repository>
+			<id>shibbolet</id>
+			<url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+		</repository>
+		<!-- <repository>
+			<id>repository.spring.release</id>
+			<name>Spring GA Repository</name>
+			<url>https://repo.spring.io/release</url>
+		</repository> -->
 		<!-- <repository> -->
 		<!-- <id>SmartCommunity snapshots</id> -->
 		<!-- <url>http://repository.smartcommunitylab.it/content/repositories/snapshots</url> -->

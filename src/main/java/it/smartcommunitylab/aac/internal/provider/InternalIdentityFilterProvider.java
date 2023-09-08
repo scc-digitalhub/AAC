@@ -24,10 +24,10 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationFilter;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import jakarta.servlet.Filter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import javax.servlet.Filter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.Assert;
 

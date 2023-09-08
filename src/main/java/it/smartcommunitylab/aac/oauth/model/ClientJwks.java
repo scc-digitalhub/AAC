@@ -24,8 +24,8 @@ import com.nimbusds.jose.jwk.JWKSet;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.clients.model.ClientCredentials;
 import it.smartcommunitylab.aac.oauth.persistence.AbstractOAuth2ClientResource;
+import jakarta.validation.Valid;
 import java.text.ParseException;
-import javax.validation.Valid;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

@@ -23,9 +23,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.credentials.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Date;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonInclude(Include.ALWAYS)

@@ -27,9 +27,9 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 import it.smartcommunitylab.aac.users.service.UserService;
+import jakarta.servlet.Filter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

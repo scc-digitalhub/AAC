@@ -18,10 +18,10 @@ package it.smartcommunitylab.aac.scope;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.ScopeType;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import java.util.Set;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import org.springframework.util.Assert;
 
 @Valid

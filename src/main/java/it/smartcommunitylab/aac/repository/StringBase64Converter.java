@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.repository;
 
+import jakarta.persistence.AttributeConverter;
 import java.util.Base64;
-import javax.persistence.AttributeConverter;
 
 public class StringBase64Converter implements AttributeConverter<String, String> {
 

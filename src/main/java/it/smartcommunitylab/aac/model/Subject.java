@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
-import javax.validation.constraints.Size;
 import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

@@ -17,10 +17,10 @@
 package it.smartcommunitylab.aac.repository;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
 import org.springframework.jdbc.datasource.ConnectionHandle;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
