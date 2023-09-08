@@ -100,7 +100,6 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, null, headers, status, request);
     }
 
-    @Override
     protected ResponseEntity<Object> handleExceptionInternal(
         Exception ex,
         @Nullable Object body,

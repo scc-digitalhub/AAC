@@ -62,7 +62,7 @@ public class APISecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only API endpoints
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             .authorizeRequests(authorizeRequests ->
                 authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_ADMIN, Config.R_CLIENT)
             )

@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.config;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
+import it.smartcommunitylab.aac.core.auth.Http401UnauthorizedEntryPoint;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientJwtAssertionAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;
@@ -90,13 +91,14 @@ public class OAuth2SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only client endpoints
         http
-            .requestMatcher(getRequestMatcher())
-            .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority(Config.R_CLIENT))
+            .securityMatcher(getRequestMatcher())
+            .authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority(Config.R_CLIENT))
             // disable request cache, we override redirects but still better enforce it
             .requestCache(requestCache -> requestCache.disable())
             .exceptionHandling()
             // use custom entrypoint with error message
-            .authenticationEntryPoint(new OAuth2AuthenticationEntryPoint())
+            // .authenticationEntryPoint(new OAuth2AuthenticationEntryPoint())
+            .authenticationEntryPoint(new Http401UnauthorizedEntryPoint())
             .accessDeniedPage("/accesserror")
             .and()
             .cors()

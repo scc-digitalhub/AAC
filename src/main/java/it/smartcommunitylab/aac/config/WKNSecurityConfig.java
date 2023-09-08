@@ -51,7 +51,7 @@ public class WKNSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             // public access
             .authorizeRequests(requests -> requests.anyRequest().permitAll())
             // allow cors

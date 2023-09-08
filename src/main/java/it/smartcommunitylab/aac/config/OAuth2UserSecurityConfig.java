@@ -105,7 +105,7 @@ public class OAuth2UserSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only user endpoints
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             //                .authorizeRequests().anyRequest().authenticated().and()
             .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER))
             .exceptionHandling()

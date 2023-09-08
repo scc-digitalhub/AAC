@@ -58,7 +58,7 @@ public class ConsoleSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only console endpoints and require user access
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority("ROLE_USER"))
             // disable request cache, we override redirects but still better enforce it
             .requestCache(requestCache -> requestCache.disable())

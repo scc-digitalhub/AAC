@@ -61,7 +61,7 @@ public class MonitoringSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only actuator endpoints
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             .authorizeRequests(requests -> requests.anyRequest().permitAll())
             .exceptionHandling()
             // use 403

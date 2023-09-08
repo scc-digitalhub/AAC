@@ -62,7 +62,7 @@ public class OpenIdSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         // match only endpoints
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             .authorizeRequests(authorizeRequests ->
                 authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT)
             )

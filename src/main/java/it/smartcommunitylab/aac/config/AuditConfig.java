@@ -87,9 +87,10 @@ public class AuditConfig {
 
         return listener;
     }
-
-    @Bean
-    public AuthorizationEventListener authorizationEventListener() {
-        return new AuthorizationEventListener();
-    }
+    //DISABLED, authEvents are different in spring 6+
+    //TODO rewrite
+    // @Bean
+    // public AuthorizationEventListener authorizationEventListener() {
+    //     return new AuthorizationEventListener();
+    // }
 }

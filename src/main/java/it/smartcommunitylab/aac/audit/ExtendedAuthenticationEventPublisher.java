@@ -27,8 +27,6 @@ import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.auth.InternalUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.oidc.auth.OIDCUserAuthenticationFailureEvent;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
-import it.smartcommunitylab.aac.saml.auth.SamlUserAuthenticationFailureEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -180,15 +178,6 @@ public class ExtendedAuthenticationEventPublisher
         AuthenticationException exception
     ) {
         // TODO use converters..
-        if (exception instanceof SamlAuthenticationException) {
-            return new SamlUserAuthenticationFailureEvent(
-                authority,
-                provider,
-                realm,
-                authentication,
-                (SamlAuthenticationException) exception
-            );
-        }
         if (exception instanceof OIDCAuthenticationException) {
             return new OIDCUserAuthenticationFailureEvent(
                 authority,

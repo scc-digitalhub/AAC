@@ -221,9 +221,11 @@ public class DevTemplatesController extends BaseTemplatesController {
         String template = t.getTemplate();
 
         // build web context and render view
-        WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
-        String s = devManager.previewRealmTemplate(realm, authority, template, id, reg, ctx);
-
+        //TODO refactor because webContext is not instantiable like this anymore
+        // WebContext ctx = new WebContext(req, res, servletContext, req.getLocale());
+        // String s = devManager.previewRealmTemplate(realm, authority, template, id, reg, ctx);
+        String s = "TODO";
+        
         // write as file
         res.setContentType("text/html");
         ServletOutputStream out = res.getOutputStream();

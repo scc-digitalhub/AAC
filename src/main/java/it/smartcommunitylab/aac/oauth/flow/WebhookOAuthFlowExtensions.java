@@ -31,9 +31,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import java.util.concurrent.TimeUnit;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -80,9 +82,8 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     public void init() {
         RequestConfig config = RequestConfig
             .custom()
-            .setConnectTimeout(timeout)
-            .setConnectionRequestTimeout(timeout)
-            .setSocketTimeout(timeout)
+            .setConnectTimeout(timeout, TimeUnit.SECONDS)
+            .setConnectionRequestTimeout(timeout, TimeUnit.SECONDS)
             .build();
         CloseableHttpClient client = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
         HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(
@@ -181,7 +182,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
             logger.debug("Hook response code: " + response.getStatusCodeValue());
             logger.trace("Hook result: " + response.getBody());
 
-            HttpStatus statusCode = response.getStatusCode();
+            HttpStatusCode statusCode = response.getStatusCode();
             if (statusCode.is2xxSuccessful()) {
                 // check if response body, otherwise we consider 200 as "approved"
                 String body = response.getBody();

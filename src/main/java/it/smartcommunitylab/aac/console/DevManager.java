@@ -547,7 +547,8 @@ public class DevManager {
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        tf.render(model, ctx.getRequest(), response);
+        //DISABLED, TODO fix
+        // tf.render(model, ctx.getRequest(), response);
         String html = response.getContentAsString();
 
         return html;

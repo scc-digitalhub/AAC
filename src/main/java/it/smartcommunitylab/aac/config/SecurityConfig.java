@@ -132,21 +132,21 @@ public class SecurityConfig {
         http
             .authorizeRequests()
             // whitelist error
-            .antMatchers("/error")
+            .requestMatchers("/error")
             .permitAll()
             // whitelist login pages
-            .antMatchers(LOGINPATH, LOGOUTPATH)
+            .requestMatchers(LOGINPATH, LOGOUTPATH)
             .permitAll()
-            .antMatchers("/-/{realm}/" + LOGINPATH)
+            .requestMatchers("/-/{realm}/" + LOGINPATH)
             .permitAll()
-            .antMatchers("/endsession")
+            .requestMatchers("/endsession")
             .permitAll()
-            .antMatchers("/-/{realm}/" + TERMSPATH)
+            .requestMatchers("/-/{realm}/" + TERMSPATH)
             .permitAll()
             // whitelist auth providers pages (login,registration etc)
             //                .antMatchers("/auth/**").permitAll()
             // TODO remove tech-specific paths
-            .antMatchers("/webauthn/**")
+            .requestMatchers("/webauthn/**")
             .permitAll()
             // anything else requires auth
             .anyRequest()
@@ -178,7 +178,7 @@ public class SecurityConfig {
             //                .and()
             .csrf()
             //                .disable()
-            .ignoringAntMatchers("/logout", "/console/**", "/account/**")
+            .ignoringRequestMatchers("/logout", "/console/**", "/account/**")
             .and()
             //                // TODO replace with filterRegistrationBean and explicitely map urls
             //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);

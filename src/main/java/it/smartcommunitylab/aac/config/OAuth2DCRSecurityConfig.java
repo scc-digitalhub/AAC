@@ -65,7 +65,7 @@ public class OAuth2DCRSecurityConfig {
         // match only dcr endpoints, do not require any role since we support open
         // registration as anonymous
         http
-            .requestMatcher(getRequestMatcher())
+            .securityMatcher(getRequestMatcher())
             .authorizeRequests(authorizeRequests ->
                 authorizeRequests.anyRequest().hasAnyAuthority(Config.R_CLIENT, Config.R_USER, "ROLE_ANONYMOUS")
             )
