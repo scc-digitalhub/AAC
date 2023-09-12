@@ -22,6 +22,8 @@
 		<jsonschema.version>4.28.0</jsonschema.version>
 		<node.version>v16.15.0</node.version>
 		<yarn.version>v1.21.1</yarn.version>
+		<postgresql.version>42.3.8</postgresql.version>
+		<mysql.version>8.0.31</mysql.version>
 		<profile.authorization />
 	</properties>
 
@@ -146,7 +148,15 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.version}</version>
 		</dependency>
+		
+		<dependency>
+		  	<groupId>org.postgresql</groupId>
+		  	<artifactId>postgresql</artifactId>
+		  	<version>${postgresql.version}</version>
+		</dependency>
+
 
 		<!-- <dependency> -->
 		<!-- <groupId>org.springframework</groupId> -->
