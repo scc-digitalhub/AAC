@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.oauth.request;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -191,6 +192,11 @@ public class OAuth2RequestValidator
 
         // require exact match for redirectUri to registered (when provided)
         String redirectUri = authorizationRequest.getRedirectUri();
+
+        if (authorizationRequest.getScope().contains(Config.SCOPE_OPENID) && !StringUtils.hasText(redirectUri)) {
+            throw new InvalidRequestException("missing redirect uri");
+        }
+
         if (StringUtils.hasText(redirectUri)) {
             validateRedirectUri(redirectUri, clientDetails);
         }
