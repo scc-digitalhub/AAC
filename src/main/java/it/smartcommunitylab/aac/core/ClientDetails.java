@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.core;
 
 import it.smartcommunitylab.aac.attributes.model.ClientAttributes;
-import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import java.util.Collection;

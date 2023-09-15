@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
-import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import java.util.Collection;

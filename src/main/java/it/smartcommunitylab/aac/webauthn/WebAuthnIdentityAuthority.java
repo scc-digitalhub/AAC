@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityFilterProvider
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnLoginRpService;
 import it.smartcommunitylab.aac.webauthn.store.WebAuthnAssertionRequestStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

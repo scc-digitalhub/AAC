@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.accounts.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.EditableResource;
-import it.smartcommunitylab.aac.core.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResource;
 
 /*
  * An editable account, suitable for registration

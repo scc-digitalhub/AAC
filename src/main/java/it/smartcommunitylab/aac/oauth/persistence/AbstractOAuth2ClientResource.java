@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.oauth.persistence;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ClientResource;
+import it.smartcommunitylab.aac.clients.model.ClientResource;
 import java.io.Serializable;
 
 public abstract class AbstractOAuth2ClientResource implements ClientResource, Serializable {

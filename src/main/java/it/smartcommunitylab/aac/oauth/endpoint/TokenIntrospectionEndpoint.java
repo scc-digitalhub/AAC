@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
@@ -29,6 +28,7 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.openid.scope.OpenIdScopeProvider;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdProfileScopeProvider;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;

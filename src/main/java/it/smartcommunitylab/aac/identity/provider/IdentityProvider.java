@@ -20,12 +20,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.users.provider.UserResourceProvider;
 import java.util.Collection;
 
 /*
@@ -44,7 +45,7 @@ public interface IdentityProvider<
     M extends ConfigMap,
     C extends IdentityProviderConfig<M>
 >
-    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M> {
+    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M>, UserResourceProvider<I> {
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 
     /*

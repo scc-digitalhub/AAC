@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.users.service;
 
-/*
- * A realm scoped realm resource, provided by an authority via a specific provider
- */
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.provider.UserResolver;
+import java.nio.file.attribute.UserPrincipal;
+import org.springframework.stereotype.Service;
 
-public interface RealmResource extends Resource {}
+public class DefaultUserResolver implements UserResolver {}

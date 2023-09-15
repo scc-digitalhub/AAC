@@ -25,7 +25,6 @@ import com.nimbusds.jwt.SignedJWT;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
 import it.smartcommunitylab.aac.oauth.flow.OAuthFlowExtensions;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
@@ -39,6 +38,7 @@ import it.smartcommunitylab.aac.openid.common.exceptions.InvalidRequestObjectExc
 import it.smartcommunitylab.aac.openid.common.exceptions.UnsupportedRequestUriException;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.model.User;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Arrays;

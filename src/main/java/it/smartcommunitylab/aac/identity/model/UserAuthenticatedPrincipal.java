@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.identity.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResource;
 import java.io.Serializable;
 import java.util.Map;
 import org.springframework.security.core.AuthenticatedPrincipal;

@@ -16,11 +16,11 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.authorities.AuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.users.ExtendedUserAuthenticationManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

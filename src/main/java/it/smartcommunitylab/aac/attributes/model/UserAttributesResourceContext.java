@@ -14,38 +14,14 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.attributes.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.core.model.ResourceContext;
 import java.util.Collection;
-import java.util.Date;
 
-/*
- * A User
- */
-public interface User extends UserResource {
-    //core attributes
-    public String getUsername();
-
-    public String getEmailAddress();
-
-    public boolean isEmailVerified();
-
-    //user registration status
-    public String getStatus();
-
-    //audit
-    public Date getCreateDate();
-
-    public Date getModifiedDate();
-
-    //identities
-    public Collection<UserIdentity> getIdentities();
-
-    //TODO evaluate adding EditableAccounts and EditableCredentials
-
-    default String getType() {
-        return SystemKeys.RESOURCE_USER;
+public interface UserAttributesResourceContext extends ResourceContext {
+    default Collection<UserAttributes> getAttributes() {
+        return getResources(SystemKeys.RESOURCE_ATTRIBUTES);
     }
 }

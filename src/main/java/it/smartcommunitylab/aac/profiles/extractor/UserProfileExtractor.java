@@ -18,8 +18,8 @@ package it.smartcommunitylab.aac.profiles.extractor;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 
 /*

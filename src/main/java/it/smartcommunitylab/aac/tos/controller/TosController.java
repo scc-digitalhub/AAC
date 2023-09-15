@@ -19,10 +19,10 @@ package it.smartcommunitylab.aac.tos.controller;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
@@ -132,7 +132,7 @@ public class TosController {
         } else if (approveParam.equals(TosOnAccessFilter.TOS_REFUSED)) {
             request.getSession().setAttribute("termsStatus", approveParam);
             logger.debug("terms of service rejected");
-            userService.rejectTos(user.getSubjectId());
+            userService.rejectTos(user.getUserId());
         } else {
             throw new IllegalArgumentException("Need either approve or deny!");
         }

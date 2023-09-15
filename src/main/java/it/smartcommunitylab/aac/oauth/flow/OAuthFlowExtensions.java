@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.oauth.flow;
 
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;

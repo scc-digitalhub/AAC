@@ -17,12 +17,12 @@
 package it.smartcommunitylab.aac.password.auth;
 
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntity;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

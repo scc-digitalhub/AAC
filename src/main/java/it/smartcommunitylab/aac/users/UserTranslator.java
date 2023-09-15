@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.users;
 
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
 
 /*
  * Implementations need to provide a policy for translating a user model, as provided from the source realm,

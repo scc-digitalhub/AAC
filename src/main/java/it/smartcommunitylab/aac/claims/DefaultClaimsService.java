@@ -29,9 +29,9 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.model.AttributeType;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -134,7 +134,7 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
         }
 
         // base information, could be overwritten by converters
-        claims.put("sub", userDetails.getSubjectId());
+        claims.put("sub", userDetails.getUserId());
 
         if (scopes.contains(Config.SCOPE_PROFILE)) {
             // realm should stay behind scope "profile", if client doesn't match the realm

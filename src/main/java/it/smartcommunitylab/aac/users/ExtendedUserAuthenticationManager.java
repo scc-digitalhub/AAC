@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.users;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
@@ -26,12 +26,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
@@ -42,6 +38,11 @@ import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.users.auth.DefaultUserAuthenticationToken;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.ArrayList;
@@ -549,9 +550,10 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             DefaultUserAuthenticationToken userAuth = new DefaultUserAuthenticationToken(
                 subject,
                 realm,
+                user.getUsername(),
                 auth,
-                identity,
-                attributeSets,
+                // identity,
+                // attributeSets,
                 authorities
             );
 

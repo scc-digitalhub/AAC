@@ -1,5 +1,5 @@
-/*
- * Copyright 2023 the original author or authors
+/**
+ * Copyright 2023 Fondazione Bruno Kessler
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.provider;
+package it.smartcommunitylab.aac.identity.model;
 
-import it.smartcommunitylab.aac.core.model.UserResource;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ResourceContext;
 import java.util.Collection;
 
-/*
- * A provider for resources of a given type, for a specific authority
- */
-public interface UserResourceProvider<R extends UserResource> extends ResourceProvider<R> {
-    /*
-     * Resources for the user
-     */
-    public Collection<R> listResourcesByUser(String userId);
+public interface UserIdentitiesResourceContext extends ResourceContext {
+    default Collection<UserIdentity> getIdentities() {
+        return getResources(SystemKeys.RESOURCE_IDENTITY);
+    }
 }

@@ -14,27 +14,40 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.users.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.model.UserAttributes;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.users.model.UserDetails;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
-public class DefaultUserAuthenticationToken extends UserAuthentication {
+public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken implements UserAuthentication {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    // subject userDetails with multiple identities bound
-    private UserDetails details;
+    // auth principal is the subject
+    protected final Subject principal;
+
+    // subject userDetails
+    protected UserDetails details;
+
+    // the token is bound to a single realm, since we can match identities only over
+    // same realm by design
+    protected final String realm;
+
+    // the token is created at the given time
+    protected final Instant createdAt;
 
     // we collect authentications for identities
     // this way consumers will be able to verify if a identity is authenticated
@@ -47,78 +60,77 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
     // web authentication details
     private WebAuthenticationDetails webAuthenticationDetails;
 
+    // user resources collected at auth time
+    //stored in context for convenience, consumers should refresh
+    //TODO
+
     // audit
     // TODO
 
     public DefaultUserAuthenticationToken(
         Subject principal,
         String realm,
-        ExtendedAuthenticationToken auth,
-        UserIdentity identity,
-        Collection<UserAttributes> attributeSets,
-        Collection<? extends GrantedAuthority> authorities
+        String username,
+        Collection<? extends GrantedAuthority> authorities,
+        List<ExtendedAuthenticationToken> tokens
     ) {
         // we set authorities via super
         // we don't support null authorities list
-        super(principal, realm, authorities, auth != null ? auth.isAuthenticated() : false);
-        Assert.notNull(auth, "auth token for identity is required");
-        Assert.notNull(identity, "identity is required");
+        super(authorities);
+        Assert.notEmpty(tokens, "at least one auth token is required");
+        Assert.notEmpty(authorities, "authorities can not be empty");
+        Assert.notNull(principal, "principal is required");
+        Assert.notNull(realm, "realm is required");
 
-        this.details = new UserDetails(principal.getSubjectId(), realm, identity, attributeSets, authorities);
+        this.principal = principal;
+        this.realm = realm;
 
-        this.tokens = new HashSet<>();
-        this.tokens.add(auth);
+        this.createdAt = Instant.now();
+
+        super.setAuthenticated(true); // must use super, as we override
+
+        //build details
+        this.details = new UserDetails(principal.getSubjectId(), realm, username, authorities);
+
+        //store tokens
+        this.tokens = new HashSet<>(tokens);
     }
 
     public DefaultUserAuthenticationToken(
         Subject principal,
         String realm,
+        String username,
         Collection<? extends GrantedAuthority> authorities,
-        UserAuthentication... authenticationTokens
+        ExtendedAuthenticationToken tokens
     ) {
-        super(
-            principal,
-            realm,
-            authorities,
-            authenticationTokens.length > 0 ? authenticationTokens[0].isAuthenticated() : false
-        );
-        Assert.notEmpty(authorities, "authorities can not be empty");
-        Assert.notEmpty(authenticationTokens, "at least one authentication token is required");
+        this(principal, realm, username, authorities, Arrays.asList(tokens));
+    }
 
-        this.tokens = new HashSet<>();
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+    @SuppressWarnings("unused")
+    private DefaultUserAuthenticationToken() {
+        this(null, null, null, null, (List<ExtendedAuthenticationToken>) null);
+    }
 
-        // use first token as base
-        UserAuthentication token = authenticationTokens[0];
-        this.details =
-            new UserDetails(
-                principal.getSubjectId(),
-                realm,
-                token.getUser().getIdentities(),
-                token.getUser().getAttributeSets(true),
-                authorities
-            );
+    @Override
+    public Object getCredentials() {
+        // no credentials here, we expect those handled at account level
+        return null;
+    }
 
-        // add auth tokens
-        this.tokens.addAll(token.getAuthentications());
+    @Override
+    public Object getPrincipal() {
+        return principal;
+    }
 
-        // process additional tokens
-        Arrays
-            .stream(authenticationTokens)
-            .skip(1)
-            .forEach(t -> {
-                // identities
-                for (UserIdentity i : t.getUser().getIdentities()) {
-                    details.addIdentity(i);
-                }
-
-                // attributes
-                for (UserAttributes ras : t.getUser().getAttributeSets(true)) {
-                    details.addAttributeSet(ras);
-                }
-
-                // tokens
-                tokens.addAll(t.getAuthentications());
-            });
+    @Override
+    public String getName() {
+        return principal.getSubjectId();
     }
 
     @Override
@@ -131,9 +143,54 @@ public class DefaultUserAuthenticationToken extends UserAuthentication {
         return details;
     }
 
+    @JsonIgnore
+    public Subject getSubject() {
+        return principal;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public String getSubjectId() {
+        return principal.getSubjectId();
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public long getAge() {
+        if (createdAt != null) {
+            return Duration.between(createdAt, Instant.now()).getSeconds();
+        }
+        return -1;
+    }
+
+    @Override
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+        if (isAuthenticated) {
+            throw new IllegalArgumentException(
+                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
+            );
+        }
+
+        super.setAuthenticated(false);
+    }
+
+    @Override
+    public void eraseCredentials() {
+        super.eraseCredentials();
+    }
+
     /*
      * Auth tokens
      */
+
+    public boolean isExpired() {
+        // check if any token is valid
+        return !getAuthentications().stream().filter(a -> !a.isExpired()).findFirst().isPresent();
+    }
 
     public void addAuthentication(ExtendedAuthenticationToken auth) {
         // TODO implement a proper lock

@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.oauth.request;
 
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Map;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.oauth2.provider.OAuth2Request;

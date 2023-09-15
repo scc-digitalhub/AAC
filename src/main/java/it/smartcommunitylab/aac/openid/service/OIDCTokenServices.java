@@ -27,11 +27,8 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.jwt.JWTService;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
@@ -44,6 +41,9 @@ import it.smartcommunitylab.aac.profiles.scope.OpenIdAddressScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdPhoneScope;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.time.Instant;
@@ -168,7 +168,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             }
 
             UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -243,7 +243,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             }
 
             UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -317,7 +317,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             }
 
             UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -396,7 +396,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
             }
 
             UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -457,7 +457,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         String clientId = oauth2ClientDetails.getClientId();
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
         Set<String> scopes = request.getScope();
 
         ClientDetails clientDetails = clientService.loadClient(clientId);

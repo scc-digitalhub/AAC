@@ -25,12 +25,12 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.RealmManager;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
@@ -124,7 +124,7 @@ public class WebAuthnCredentialsController {
         // fetch credentials
         // NOTE: credentials are listed by user not account
         // TODO implement picker for account when more than one available
-        String userId = user.getSubjectId();
+        String userId = user.getUserId();
         Collection<WebAuthnUserCredential> credentials = service.listCredentials(userId);
         model.addAttribute("credentials", credentials);
 
@@ -162,7 +162,7 @@ public class WebAuthnCredentialsController {
             }
 
             // check user matches
-            boolean matches = user.getSubjectId().equals(cred.getUserId());
+            boolean matches = user.getUserId().equals(cred.getUserId());
             // boolean matches = user
             //     .getIdentities()
             //     .stream()

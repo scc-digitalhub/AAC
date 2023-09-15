@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;

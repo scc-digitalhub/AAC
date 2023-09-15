@@ -16,13 +16,13 @@
 
 package it.smartcommunitylab.aac.oauth.approval;
 
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.openid.scope.OfflineAccessScope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -103,7 +103,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         }
 
         UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
 
         OAuth2ClientDetails clientDetails;
         try {
@@ -382,7 +382,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         }
 
         UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
 
         // Get the approved scopes
         Set<String> requestedScopes = authorizationRequest.getScope();
@@ -494,7 +494,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
 
         // fetch previously approved from store
         Collection<Approval> userApprovals = approvalStore.getApprovals(
-            userDetails.getSubjectId(),
+            userDetails.getUserId(),
             clientDetails.getClientId()
         );
         Set<Approval> expiredApprovals = new HashSet<>();

@@ -22,7 +22,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -34,6 +33,7 @@ import it.smartcommunitylab.aac.profiles.model.EmailProfile;
 import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.users.MyUserManager;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +54,8 @@ import org.springframework.web.servlet.ModelAndView;
  * @author raman
  *
  */
-@Controller
+// @Controller
+@Deprecated
 public class UserAccountController {
 
     @Autowired
@@ -175,13 +176,12 @@ public class UserAccountController {
         Collection<ConnectedApp> result = userManager.getMyConnectedApps();
         return ResponseEntity.ok(result);
     }
-
-    @GetMapping("/account/providers")
-    public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders()
-        throws NoSuchRealmException, NoSuchUserException {
-        Collection<ConfigurableIdentityProvider> providers = userManager.getMyIdentityProviders();
-        return ResponseEntity.ok(providers);
-    }
+    // @GetMapping("/account/providers")
+    // public ResponseEntity<Collection<ConfigurableIdentityProvider>> getRealmProviders()
+    //     throws NoSuchRealmException, NoSuchUserException {
+    //     Collection<ConfigurableIdentityProvider> providers = userManager.getMyIdentityProviders();
+    //     return ResponseEntity.ok(providers);
+    // }
     //    @GetMapping("/credentials/{userId}")
     //    public ModelAndView credentials(
     //            @PathVariable @Valid @Pattern(regexp = SystemKeys.ID_PATTERN) String userId)

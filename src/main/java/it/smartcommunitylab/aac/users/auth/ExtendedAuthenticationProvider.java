@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.users.auth;
 
 import groovyjarjarantlr4.v4.parse.ANTLRParser.throwsSpec_return;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;

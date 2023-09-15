@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.attributes.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResource;
 
 /*
  * A set of attributes for a given user, from an authority via a provider

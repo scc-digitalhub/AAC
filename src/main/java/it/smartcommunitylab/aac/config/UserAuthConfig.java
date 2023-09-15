@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
-import it.smartcommunitylab.aac.core.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.users.ExtendedUserAuthenticationManager;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

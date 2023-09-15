@@ -16,8 +16,9 @@
 
 package it.smartcommunitylab.aac.core;
 
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import org.springframework.security.core.Authentication;
 
 public interface AuthenticationHelper {

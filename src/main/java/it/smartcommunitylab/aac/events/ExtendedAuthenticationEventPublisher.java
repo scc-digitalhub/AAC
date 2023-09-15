@@ -17,10 +17,8 @@
 package it.smartcommunitylab.aac.events;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
@@ -29,6 +27,8 @@ import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.oidc.auth.OIDCUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlUserAuthenticationFailureEvent;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;

@@ -18,11 +18,11 @@ package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.ConfirmKeyAuthenticationProvider;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

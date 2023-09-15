@@ -20,8 +20,6 @@ import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.auth.DefaultUserAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Subject;
@@ -29,6 +27,9 @@ import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
+import it.smartcommunitylab.aac.users.auth.DefaultUserAuthenticationToken;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationToken;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -113,8 +114,8 @@ public class MockUserAuthenticationFactory implements WithSecurityContextFactory
 
             // resolve
             Subject subject = idp.getSubjectResolver().resolveByAccountId(username);
-            UserIdentity identity = idp.convertIdentity(principal, userId);
-            Collection<UserAttributes> attributeSets = Collections.emptyList();
+            // UserIdentity identity = idp.convertIdentity(principal, userId);
+            // Collection<UserAttributes> attributeSets = Collections.emptyList();
 
             // Collection<UserAttributes> attributeSets =
             // idp.getAttributeProvider().convertPrincipalAttributes(principal,
@@ -125,8 +126,9 @@ public class MockUserAuthenticationFactory implements WithSecurityContextFactory
                 subject,
                 realm,
                 extToken,
-                identity,
-                attributeSets,
+                username,
+                // identity,
+                // attributeSets,
                 authorities
             );
 

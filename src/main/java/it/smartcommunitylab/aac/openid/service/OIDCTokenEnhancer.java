@@ -29,14 +29,14 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.jwt.JWTService;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -173,7 +173,7 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         logger.trace("access token used for oidc is " + accessToken);
 
         String clientId = clientDetails.getClientId();
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
         Set<String> scopes = request.getScope();
         Set<String> resourceIds = request.getResourceIds();
 
