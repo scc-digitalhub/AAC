@@ -19,13 +19,13 @@ package it.smartcommunitylab.aac.oauth.token;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.jwt.JWTService;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.TokenType;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -143,7 +143,7 @@ public class JwtTokenConverter implements TokenEnhancer {
         String subjectId = clientId;
         if (userDetails != null) {
             // this is a user token, use subjectId
-            subjectId = userDetails.getSubjectId();
+            subjectId = userDetails.getUserId();
         }
 
         Set<String> scopes = request.getScope();

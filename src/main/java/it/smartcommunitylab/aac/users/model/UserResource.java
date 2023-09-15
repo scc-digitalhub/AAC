@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.users.model;
+
+import it.smartcommunitylab.aac.core.model.Resource;
 
 /*
  * A realm scoped user resource, provided by an authority via a specific provider

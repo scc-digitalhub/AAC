@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.clients.base;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.Client;
+import it.smartcommunitylab.aac.clients.model.Client;
 import java.io.Serializable;
 import org.springframework.util.Assert;
 

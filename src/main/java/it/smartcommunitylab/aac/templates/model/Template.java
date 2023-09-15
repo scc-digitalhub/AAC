@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.templates.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.RealmResource;
+import it.smartcommunitylab.aac.realms.model.RealmResource;
 import java.util.Collection;
 import java.util.Map;
 

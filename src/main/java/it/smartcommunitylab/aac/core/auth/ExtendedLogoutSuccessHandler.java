@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.core.auth;
 
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;

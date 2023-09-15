@@ -29,11 +29,11 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.RealmManager;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.auth.WebAuthnAuthenticationException;
 import it.smartcommunitylab.aac.webauthn.model.AttestationResponse;
@@ -99,7 +99,7 @@ public class WebAuthnRegistrationController {
     ) throws NoSuchProviderException, NoSuchRealmException {
         // first check uuid vs user
         UserDetails user = authHelper.getUserDetails();
-        if (user == null || !user.getSubjectId().equals(userId)) {
+        if (user == null || !user.getUserId().equals(userId)) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
@@ -198,7 +198,7 @@ public class WebAuthnRegistrationController {
         if (user == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
-        String userId = user.getSubjectId();
+        String userId = user.getUserId();
 
         // // fetch internal identities
         // Set<UserIdentity> identities = user
@@ -262,7 +262,7 @@ public class WebAuthnRegistrationController {
         if (user == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
-        String userId = user.getSubjectId();
+        String userId = user.getUserId();
 
         // fetch registration
         WebAuthnRegistrationRequest request = requestStore.consume(key);

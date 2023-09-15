@@ -27,6 +27,8 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.users.provider.UserResourceProvider;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
@@ -47,7 +49,7 @@ public interface IdentityProvider<
     M extends ConfigMap,
     C extends IdentityProviderConfig<M>
 >
-    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M> {
+    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M>, UserResourceProvider<I> {
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
     public static final String AUTHORIZATION_FUNCTION = "authorize";
 

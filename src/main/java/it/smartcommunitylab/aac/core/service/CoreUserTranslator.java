@@ -19,8 +19,8 @@ package it.smartcommunitylab.aac.core.service;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.users.UserTranslator;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,7 +35,7 @@ public class CoreUserTranslator implements UserTranslator {
 
     @Override
     public User translate(User user, String realm) {
-        User result = new User(user.getSubjectId(), user.getSource());
+        User result = new User(user.getUserId(), user.getSource());
         result.setRealm(realm);
 
         // pass only username+email

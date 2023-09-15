@@ -1,5 +1,5 @@
-/*
- * Copyright 2023 the original author or authors
+/**
+ * Copyright 2023 Fondazione Bruno Kessler
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,21 @@
 
 package it.smartcommunitylab.aac.core.model;
 
-public interface Client {
-    public String getClientId();
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import org.springframework.util.Assert;
 
-    public String getRealm();
+public interface ResourceContext {
+    Map<String, List<? extends Resource>> getResources();
 
-    public String getType();
+    default boolean hasResources(String type) {
+        Assert.notNull(type, "type cannot be null");
+        return getResources().containsKey(type);
+    }
 
-    public String getName();
+    @SuppressWarnings("unchecked")
+    default <T extends Resource> T getResources(String type) {
+        return !hasResources(type) ? null : (T) getResources().get(type);
+    }
 }

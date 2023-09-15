@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.oauth.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.DefaultClientAuthenticationToken;
+import it.smartcommunitylab.aac.clients.auth.DefaultClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;

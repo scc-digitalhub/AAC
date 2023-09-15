@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.clients.ClientAuthenticationManager;
 import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.ClientAuthenticationManager;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientJwtAssertionAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientPKCEAuthenticationProvider;

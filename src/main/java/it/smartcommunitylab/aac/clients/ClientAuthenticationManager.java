@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core;
+package it.smartcommunitylab.aac.clients;
 
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -61,10 +62,10 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        logger.debug("process authentication for " + authentication.getName());
+        logger.debug("process authentication for {}", String.valueOf(authentication.getName()));
 
         if (!(authentication instanceof ClientAuthentication)) {
-            logger.error("invalid authentication class: " + authentication.getClass().getName());
+            logger.error("invalid authentication class: {}", authentication.getClass().getName());
             throw new AuthenticationServiceException("invalid request");
         }
 

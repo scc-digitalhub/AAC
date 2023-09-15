@@ -37,7 +37,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.SessionManager;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.credentials.service.UserCredentialsService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
@@ -47,7 +46,6 @@ import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.ConnectedDevice;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
@@ -62,6 +60,8 @@ import it.smartcommunitylab.aac.profiles.model.OpenIdProfile;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.service.UserService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnEditableUserCredential;
@@ -171,7 +171,7 @@ public class MyUserManager {
 
     public void deleteMyUser() {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
 
         try {
             User user = userService.findUser(userId);
@@ -213,7 +213,7 @@ public class MyUserManager {
      */
     public Collection<EditableUserAccount> getMyAccounts() throws NoSuchUserException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
 
         return userAccountService.listEditableUserAccounts(userId);
     }
@@ -221,7 +221,7 @@ public class MyUserManager {
     public EditableUserAccount getMyAccount(String uuid)
         throws NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
 
         // fetch account and check user match
         EditableUserAccount account = userAccountService.getEditableUserAccount(uuid);
@@ -235,7 +235,7 @@ public class MyUserManager {
     public <U extends EditableUserAccount> EditableUserAccount updateMyAccount(String uuid, U reg)
         throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
 
         // fetch account and check user match
         EditableUserAccount account = userAccountService.getEditableUserAccount(uuid);
@@ -250,7 +250,7 @@ public class MyUserManager {
     public void deleteMyAccount(String uuid)
         throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
 
         // fetch account and check user match
         UserAccount account = userAccountService.getUserAccount(uuid);
@@ -267,7 +267,7 @@ public class MyUserManager {
      */
     public Collection<InternalEditableUserPassword> getMyPassword() throws NoSuchUserException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         try {
@@ -280,7 +280,7 @@ public class MyUserManager {
     public InternalEditableUserPassword getMyPassword(String id)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         // fetch credentials and check user match
@@ -297,7 +297,7 @@ public class MyUserManager {
     public InternalEditableUserPassword registerMyPassword(InternalEditableUserPassword reg)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         // resolve a local account from service to enable registration *after* login
@@ -330,7 +330,7 @@ public class MyUserManager {
     public InternalEditableUserPassword updateMyPassword(String id, InternalEditableUserPassword reg)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         PasswordCredentialsService service = passwordCredentialsAuthority.getProviderByRealm(realm);
@@ -348,7 +348,7 @@ public class MyUserManager {
     public void deleteMyPassword(String id)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         PasswordCredentialsService service = passwordCredentialsAuthority.getProviderByRealm(realm);
@@ -368,7 +368,7 @@ public class MyUserManager {
      */
     public Collection<WebAuthnEditableUserCredential> getMyWebAuthnCredentials() throws NoSuchUserException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         try {
@@ -381,7 +381,7 @@ public class MyUserManager {
     public WebAuthnEditableUserCredential getMyWebAuthnCredential(String id)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         // fetch credentials and check user match
@@ -398,7 +398,7 @@ public class MyUserManager {
     public WebAuthnRegistrationRequest registerMyWebAuthnCredential(@Nullable WebAuthnEditableUserCredential reg)
         throws NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         // // resolve a local account from service to enable registration *after* login
@@ -440,7 +440,7 @@ public class MyUserManager {
     )
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         // // resolve a local account from service to enable registration *after* login
@@ -473,7 +473,7 @@ public class MyUserManager {
     public WebAuthnEditableUserCredential updateMyWebAuthnCredential(String id, WebAuthnEditableUserCredential reg)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         WebAuthnCredentialsService service = webAuthnCredentialsAuthority.getProviderByRealm(realm);
@@ -491,7 +491,7 @@ public class MyUserManager {
     public void deleteMyWebAuthnCredential(String id)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchUserException, RegistrationException, NoSuchAuthorityException {
         UserDetails details = curUserDetails();
-        String userId = details.getSubjectId();
+        String userId = details.getUserId();
         String realm = details.getRealm();
 
         WebAuthnCredentialsService service = webAuthnCredentialsAuthority.getProviderByRealm(realm);
@@ -541,7 +541,7 @@ public class MyUserManager {
     @Transactional(readOnly = false)
     public Collection<ConnectedApp> getMyConnectedApps() {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
         Collection<Approval> approvals = approvalStore.findUserApprovals(subjectId);
         Map<String, List<Approval>> map = approvals.stream().collect(Collectors.groupingBy(a -> a.getClientId()));
         Set<String> keys = approvals.stream().map(a -> a.getScope()).collect(Collectors.toSet());
@@ -652,7 +652,7 @@ public class MyUserManager {
     @Transactional(readOnly = false)
     public ConnectedApp getMyConnectedApp(String clientId) throws NoSuchClientException {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
 
         ClientEntity client = clientService.getClient(clientId);
         Collection<Approval> approvals = approvalStore.getApprovals(subjectId, clientId);
@@ -671,7 +671,7 @@ public class MyUserManager {
 
     public void deleteMyConnectedApp(String clientId) {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
 
         // TODO revoke tokens
 
@@ -698,27 +698,27 @@ public class MyUserManager {
      * Providers
      */
 
-    @Deprecated
-    public Collection<ConfigurableIdentityProvider> getMyIdentityProviders()
-        throws NoSuchRealmException, NoSuchUserException {
-        UserDetails details = curUserDetails();
-        String realm = details.getRealm();
-        // filter per user
-        Set<String> idps = details.getIdentities().stream().map(i -> i.getProvider()).collect(Collectors.toSet());
-        return identityProviderService
-            .listProviders(realm)
-            .stream()
-            .filter(cp -> idps.contains(cp.getProvider()))
-            .map(cp -> {
-                // clear config and reserved info
-                cp.setSettings(null);
-                cp.setConfiguration(null);
-                cp.setSchema(null);
+    // @Deprecated
+    // public Collection<ConfigurableIdentityProvider> getMyIdentityProviders()
+    //     throws NoSuchRealmException, NoSuchUserException {
+    //     UserDetails details = curUserDetails();
+    //     String realm = details.getRealm();
+    //     // filter per user
+    //     Set<String> idps = details.getIdentities().stream().map(i -> i.getProvider()).collect(Collectors.toSet());
+    //     return identityProviderService
+    //         .listProviders(realm)
+    //         .stream()
+    //         .filter(cp -> idps.contains(cp.getProvider()))
+    //         .map(cp -> {
+    //             // clear config and reserved info
+    //             cp.setSettings(null);
+    //             cp.setConfiguration(null);
+    //             cp.setSchema(null);
 
-                return cp;
-            })
-            .collect(Collectors.toList());
-    }
+    //             return cp;
+    //         })
+    //         .collect(Collectors.toList());
+    // }
 
     /*
      * Profiles
@@ -728,7 +728,7 @@ public class MyUserManager {
     public Collection<AbstractProfile> getMyProfiles() {
         UserDetails details = curUserDetails();
         String realm = details.getRealm();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
         Collection<AbstractProfile> profiles = new ArrayList<>();
 
         try {
@@ -759,7 +759,7 @@ public class MyUserManager {
      */
     public Collection<SessionInformation> getMySessions() {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
 
         return sessionManager.listUserSessions(subjectId, details.getRealm(), details.getUsername());
         //        // fetch from context for now
@@ -776,7 +776,7 @@ public class MyUserManager {
      */
     public Collection<AACOAuth2AccessToken> getMyAccessTokens() {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
         // WORKAROUND: currently tokenStore doesn't persist subject, but only username
         // as such we fetch all matching username, and filter
         String username = details.getUsername();
@@ -801,7 +801,7 @@ public class MyUserManager {
      */
     public Collection<ExtendedAuditEvent<?>> getMyAuditEvents(String type) {
         UserDetails details = curUserDetails();
-        String subjectId = details.getSubjectId();
+        String subjectId = details.getUserId();
 
         return auditStore
             .findByPrincipal(subjectId, null, null, type)

@@ -18,7 +18,10 @@ package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
@@ -32,28 +35,33 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.credentials.service.CredentialsServiceAuthorityService;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
+import it.smartcommunitylab.aac.users.model.UserResource;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.provider.UserResourceProvider;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -120,14 +128,11 @@ public class UserService {
     @Autowired
     private UserTranslatorService translator;
 
-    @Autowired
-    private List<it.smartcommunitylab.aac.accounts.persistence.UserAccountService<? extends UserAccount>> userAccountServices;
-
     /*
      * User translation
      */
     public User getUser(UserDetails userDetails) {
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
         String realm = userDetails.getRealm();
 
         User u = new User(userDetails);
@@ -167,7 +172,7 @@ public class UserService {
     }
 
     public User getUser(UserDetails userDetails, String realm) {
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
 
         if (realm == null || userDetails.getRealm().equals(realm)) {
             // no translation needed, just refresh
@@ -213,7 +218,7 @@ public class UserService {
     }
 
     public User getUser(User user, String realm) {
-        String subjectId = user.getSubjectId();
+        String subjectId = user.getUserId();
 
         if (realm == null || user.getRealm().equals(realm)) {
             // no translation needed
@@ -399,7 +404,43 @@ public class UserService {
         // add space roles
         u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
 
+        //add all as resource
+        Map<String, List<UserResource>> resources = new HashMap<>();
+        getUserProviders(realm)
+            .forEach(p -> {
+                try {
+                    logger.debug("fetch resources from {}:{}", p.getAuthority(), p.getProvider());
+                    Collection<? extends UserResource> res = p.listResourcesByUser(subjectId);
+                    if (!res.isEmpty()) {
+                        String t = res.iterator().next().getType();
+                        if (!resources.containsKey(t)) {
+                            resources.put(t, new ArrayList<>());
+                        }
+
+                        resources.get(t).addAll(res);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+        u.setResources(resources);
+
         return u;
+    }
+
+    private List<UserResourceProvider<? extends UserResource>> getUserProviders(String realm) {
+        List<UserResourceProvider<? extends UserResource>> providers = new ArrayList<>();
+        List<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>> accountProviders =
+            accountServiceAuthorityService
+                .getAuthorities()
+                .stream()
+                .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                .collect(Collectors.toList());
+
+        providers.addAll(accountProviders);
+
+        return providers;
     }
 
     /*

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.clients.auth;
 
 import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import org.springframework.security.authentication.AuthenticationProvider;

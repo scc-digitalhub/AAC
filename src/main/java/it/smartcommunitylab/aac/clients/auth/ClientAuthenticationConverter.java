@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.clients.auth;
 
-/*
- * A realm scoped client resource, provided by an authority via a specific provider
- */
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 
-public interface ClientResource extends Resource {
-    //owner
-    public String getClientId();
+public interface ClientAuthenticationConverter extends AuthenticationConverter {
+    @Override
+    ClientAuthentication convert(HttpServletRequest request);
 }

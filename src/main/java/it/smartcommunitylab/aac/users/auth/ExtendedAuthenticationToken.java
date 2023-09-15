@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.users.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
@@ -28,7 +28,7 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
 /*
- * An authenticationToken holding both the provider token and a resolved identity
+ * An authenticationToken holding both the provider token and a resolved principal
  *
  */
 

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.clients.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;

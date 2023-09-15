@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.users.provider;
 
-import javax.servlet.http.HttpServletRequest;
-import org.springframework.security.web.authentication.AuthenticationConverter;
+import it.smartcommunitylab.aac.core.provider.ResourceProvider;
+import it.smartcommunitylab.aac.users.model.UserResource;
+import java.util.Collection;
 
-public interface ClientAuthenticationConverter extends AuthenticationConverter {
-    @Override
-    ClientAuthentication convert(HttpServletRequest request);
+/*
+ * A provider for resources of a given type, for a specific authority
+ */
+public interface UserResourceProvider<R extends UserResource> extends ResourceProvider<R> {
+    /*
+     * Resources for the user
+     */
+    public Collection<R> listResourcesByUser(String userId);
 }

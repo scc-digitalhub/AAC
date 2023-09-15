@@ -16,9 +16,11 @@
 
 package it.smartcommunitylab.aac.core.auth;
 
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;

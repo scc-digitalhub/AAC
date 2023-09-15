@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.accounts.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResource;
 
 /*
  * An account used to login users into a realm, from an authority via a provider

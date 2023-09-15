@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.auth;
+package it.smartcommunitylab.aac.users.auth;
 
+import it.smartcommunitylab.aac.core.auth.ComposedAuthenticationToken;
 import java.io.IOException;
 import java.util.Set;
 import javax.servlet.FilterChain;

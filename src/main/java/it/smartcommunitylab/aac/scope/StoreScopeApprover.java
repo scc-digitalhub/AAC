@@ -19,8 +19,8 @@ package it.smartcommunitylab.aac.scope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -68,7 +68,7 @@ public class StoreScopeApprover implements ScopeApprover {
             return null;
         }
 
-        Approval approval = approvalStore.findApproval(userId, user.getSubjectId(), scope);
+        Approval approval = approvalStore.findApproval(userId, user.getUserId(), scope);
         if (approval == null) {
             return null;
         }

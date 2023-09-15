@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.core.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

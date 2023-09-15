@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -70,7 +70,7 @@ public class UserProfile {
     }
 
     public UserProfile(User user) {
-        this.subjectId = user.getSubjectId();
+        this.subjectId = user.getUserId();
         this.source = user.getSource();
         this.realm = user.getRealm();
         this.username = user.getUsername();

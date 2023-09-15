@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.claims;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;

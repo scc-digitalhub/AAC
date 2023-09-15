@@ -37,6 +37,7 @@ public class SystemKeys {
     public static final String REALM_SYSTEM = "system";
     public static final String REALM_COMMON = "common";
 
+    public static final String AUTHORITY_AAC = "aac";
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
