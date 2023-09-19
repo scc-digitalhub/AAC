@@ -101,4 +101,8 @@ public class Realm {
     public void setTosConfiguration(TosConfigurationMap tosConfiguration) {
         this.tosConfiguration = tosConfiguration;
     }
+    
+    public String getId() {
+    	return this.slug;
+    }
 }

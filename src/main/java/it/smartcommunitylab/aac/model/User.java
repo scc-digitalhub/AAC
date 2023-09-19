@@ -386,6 +386,10 @@ public class User {
     public boolean isTosAccepted() {
         return tosAccepted != null ? tosAccepted.booleanValue() : false;
     }
+    
+    public String getId() {
+    	return this.subjectId;
+    }
     //    public void addSpaceRoles(Collection<SpaceRole> rr) {
     //        if (rr != null) {
     //            spaceRoles.addAll(rr);
