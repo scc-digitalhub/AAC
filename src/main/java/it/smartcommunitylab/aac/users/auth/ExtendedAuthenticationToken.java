@@ -36,6 +36,8 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
+    // authenticated principal from the authProvider view
+    // do note that *here* this could be detached from an actual user
     private final UserAuthenticatedPrincipal principal;
 
     private final String authority;

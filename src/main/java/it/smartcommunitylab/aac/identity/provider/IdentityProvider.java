@@ -55,6 +55,7 @@ public interface IdentityProvider<
      * while non-authoritative should handle only authentication + credentials +
      * attributes when available
      */
+    @Deprecated
     public boolean isAuthoritative();
 
     /*
@@ -62,6 +63,7 @@ public interface IdentityProvider<
      * the resolution of UserPrincipal. Optionally they can expose a UserAccount
      * matching the principal, if available in the provider.
      */
+    @Deprecated
     public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
@@ -69,7 +71,7 @@ public interface IdentityProvider<
      * properties (such as email) and looking at locally (in the provider)
      * registered accounts to find an existing identity for the same user.
      */
-
+    @Deprecated
     public SubjectResolver<U> getSubjectResolver();
 
     /*
@@ -117,6 +119,7 @@ public interface IdentityProvider<
      *
      * Providers must expose the ability to link/relink identities to a given user
      */
+    @Deprecated
     public I linkIdentity(String userId, String identityId) throws NoSuchUserException, RegistrationException;
 
     /*
@@ -125,8 +128,10 @@ public interface IdentityProvider<
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
      */
+    @Deprecated
     public void deleteIdentity(String userId, String identityId) throws NoSuchUserException;
 
+    @Deprecated
     public void deleteIdentities(String userId);
 
     /*
@@ -136,8 +141,10 @@ public interface IdentityProvider<
      * handle different kind of requests.
      */
 
+    @Deprecated
     public String getAuthenticationUrl();
 
+    @Deprecated
     public LoginProvider getLoginProvider();
 
     //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
@@ -147,7 +154,7 @@ public interface IdentityProvider<
     //     */
     //    public Map<String, String> getActionUrls();
 
-    public default String getType() {
+    default String getType() {
         return SystemKeys.RESOURCE_IDENTITY;
     }
 }

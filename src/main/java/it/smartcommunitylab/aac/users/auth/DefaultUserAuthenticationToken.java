@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,6 +29,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
@@ -37,24 +39,21 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // auth principal is the subject
-    protected final Subject principal;
+    protected final Subject subject;
 
-    // subject userDetails
+    // user userDetails
     protected UserDetails details;
 
-    // the token is bound to a single realm, since we can match identities only over
-    // same realm by design
+    // the auth is bound to a single realm,
     protected final String realm;
 
     // the token is created at the given time
     protected final Instant createdAt;
 
-    // we collect authentications for identities
-    // this way consumers will be able to verify if a identity is authenticated
-    // (by default only authenticated identities should populate userDetails)
-    // note: we could have more than one token for the same identity, someone else
-    // should evaluate
-    // we should also purge expired auth tokens
+    // we collect authentications for users
+    // do note that tokens are *supposed* to be associated to the same user
+    // but this is *not* a hard-requirement: we could store client auth
+    // when relevant to the user auth, for example for MFA
     private final Set<ExtendedAuthenticationToken> tokens;
 
     // web authentication details
@@ -62,7 +61,9 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
 
     // user resources collected at auth time
     //stored in context for convenience, consumers should refresh
-    //TODO
+    //TODO evaluate JsonIgnore
+    @JsonIgnore
+    private User user;
 
     // audit
     // TODO
@@ -82,7 +83,7 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
         Assert.notNull(principal, "principal is required");
         Assert.notNull(realm, "realm is required");
 
-        this.principal = principal;
+        this.subject = principal;
         this.realm = realm;
 
         this.createdAt = Instant.now();
@@ -118,46 +119,34 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
     }
 
     @Override
-    public Object getCredentials() {
-        // no credentials here, we expect those handled at account level
-        return null;
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return principal;
-    }
-
-    @Override
-    public String getName() {
-        return principal.getSubjectId();
-    }
-
-    @Override
-    public Object getDetails() {
-        return details;
-    }
-
-    @JsonIgnore
-    public UserDetails getUser() {
-        return details;
-    }
-
-    @JsonIgnore
-    public Subject getSubject() {
-        return principal;
-    }
-
     public String getRealm() {
         return realm;
     }
 
-    public String getSubjectId() {
-        return principal.getSubjectId();
+    @Override
+    public Subject getSubject() {
+        return subject;
     }
 
+    @Override
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    @Override
+    public UserDetails getUserDetails() {
+        return details;
+    }
+
+    @Override
+    @Nullable
+    public User getUser() {
+        return user;
+    }
+
+    @Override
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public long getAge() {
@@ -175,12 +164,8 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
             );
         }
 
+        //we let managers de-authenticate user
         super.setAuthenticated(false);
-    }
-
-    @Override
-    public void eraseCredentials() {
-        super.eraseCredentials();
     }
 
     /*
@@ -246,6 +231,6 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
 
     @Override
     public String toString() {
-        return "UserAuthenticationToken [principal=" + principal + ", details=" + details + ", tokens=" + tokens + "]";
+        return "UserAuthenticationToken [principal=" + subject + ", details=" + details + ", tokens=" + tokens + "]";
     }
 }

@@ -17,81 +17,57 @@
 package it.smartcommunitylab.aac.clients.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.clients.model.Client;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import java.util.Collection;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import javax.annotation.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 
-public abstract class ClientAuthentication extends AbstractAuthenticationToken {
-
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
-    // clientId is principal
-    protected final String principal;
-
-    // keep realm separated to support clients authentication in different realms
-    protected String realm;
-
-    public ClientAuthentication(String clientId) {
-        super(null);
-        this.principal = clientId;
-        setAuthenticated(false);
+/*
+ * A client authentication
+ */
+public interface ClientAuthentication extends ExtendedAuthentication {
+    /*
+     * Client
+     */
+    @Override
+    public default String getType() {
+        return SystemKeys.RESOURCE_CLIENT;
     }
 
-    public ClientAuthentication(String clientId, Collection<? extends GrantedAuthority> authorities) {
-        super(authorities);
-        this.principal = clientId;
-        super.setAuthenticated(true); // must use super, as we override
+    // client details reports client info relevant for the auth/security context
+    // do note that client details are immutable within a session:
+    // in order to refresh we need to build a new session
+    public ClientDetails getClientDetails();
+
+    public default String getClientId() {
+        return getClientDetails() != null ? getClientDetails().getClientId() : null;
     }
 
     @Override
-    public String getCredentials() {
-        return null;
+    default Collection<? extends GrantedAuthority> getAuthorities() {
+        return getClientDetails() != null ? getClientDetails().getAuthorities() : null;
     }
+
+    // client (temporarily) stores user info and resources
+    // for consumption *outside* the auth/security context
+    // do note that this field *IS* refreshable, as in actual implementations
+    // could update the field as needed during the session lifetime
+    public @Nullable Client getClient();
+
+    public void setClient(Client client);
+
+    /*
+     * web auth details
+     * TODO remove from here, some auth could be NOT web
+     */
+    public @Nullable WebAuthenticationDetails getWebAuthenticationDetails();
 
     @Override
-    public String getPrincipal() {
-        return this.principal;
+    default Object getDetails() {
+        //web auth are the default details,
+        return getWebAuthenticationDetails();
     }
-
-    @Override
-    public String getName() {
-        return principal;
-    }
-
-    public String getClientId() {
-        return this.principal;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-        if (isAuthenticated) {
-            throw new IllegalArgumentException(
-                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
-            );
-        }
-
-        super.setAuthenticated(false);
-    }
-
-    @Override
-    public void eraseCredentials() {
-        // nothing to do
-    }
-
-    public abstract ClientDetails getClient();
-
-    public abstract void setClient(ClientDetails details);
-
-    public abstract String getAuthenticationMethod();
-
-    public abstract WebAuthenticationDetails getWebAuthenticationDetails();
 }

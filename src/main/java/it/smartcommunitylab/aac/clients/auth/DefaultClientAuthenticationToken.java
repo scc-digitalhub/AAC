@@ -20,11 +20,18 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import java.util.Collection;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
-public abstract class DefaultClientAuthenticationToken extends ClientAuthentication {
+public abstract class DefaultClientAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+
+    // clientId is principal
+    protected final String principal;
+
+    // keep realm separated to support clients authentication in different realms
+    protected String realm;
 
     // client details
     protected ClientDetails clientDetails;
@@ -35,11 +42,15 @@ public abstract class DefaultClientAuthenticationToken extends ClientAuthenticat
     protected String authenticationMethod;
 
     public DefaultClientAuthenticationToken(String clientId) {
-        super(clientId);
+        super(null);
+        this.principal = clientId;
+        setAuthenticated(false);
     }
 
     public DefaultClientAuthenticationToken(String clientId, Collection<? extends GrantedAuthority> authorities) {
-        super(clientId, authorities);
+        super(authorities);
+        this.principal = clientId;
+        super.setAuthenticated(true); // must use super, as we override
     }
 
     @Override
@@ -73,5 +84,47 @@ public abstract class DefaultClientAuthenticationToken extends ClientAuthenticat
 
     public void setAuthenticationMethod(String authenticationMethod) {
         this.authenticationMethod = authenticationMethod;
+    }
+
+    @Override
+    public String getCredentials() {
+        return null;
+    }
+
+    @Override
+    public String getPrincipal() {
+        return this.principal;
+    }
+
+    @Override
+    public String getName() {
+        return principal;
+    }
+
+    public String getClientId() {
+        return this.principal;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+        if (isAuthenticated) {
+            throw new IllegalArgumentException(
+                "Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead"
+            );
+        }
+
+        super.setAuthenticated(false);
+    }
+
+    @Override
+    public void eraseCredentials() {
+        // nothing to do
     }
 }
