@@ -290,7 +290,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
             //            String principal = rs.getString("principal");
             //            String realm = rs.getString("realm");
             //            String type = rs.getString("type");
-            AuditEvent event = SerializationUtils.deserialize(rs.getBytes("event"));
+            AuditEvent event = SerializationUtils.deserialize(rs.getBytes("event_data"));
             return event;
         }
     }
