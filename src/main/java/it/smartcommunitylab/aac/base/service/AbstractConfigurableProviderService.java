@@ -386,9 +386,15 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
      */
 
     @Transactional(readOnly = true)
-    public ConfigurableProperties getConfigurableProperties(String authority) throws NoSuchAuthorityException {
+    public ConfigurableProperties getConfigurableProperties(String authority, String type)
+        throws NoSuchAuthorityException {
         ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
-        return configProvider.getDefaultConfigMap();
+        if (SystemKeys.RESOURCE_SETTINGS.equals(type)) {
+            return configProvider.getDefaultSettingsMap();
+        } else if (SystemKeys.RESOURCE_CONFIG.equals(type)) {
+            return configProvider.getDefaultConfigMap();
+        }
+        throw new IllegalArgumentException("invalid type");
     }
 
     @Transactional(readOnly = true)

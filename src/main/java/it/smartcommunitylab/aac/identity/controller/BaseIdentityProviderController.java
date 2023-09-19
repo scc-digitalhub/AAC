@@ -162,7 +162,11 @@ public class BaseIdentityProviderController implements InitializingBean {
         // merge default properties
         Map<String, Serializable> configuration = new HashMap<>();
         configuration.putAll(provider.getConfiguration());
-        ConfigurableProperties cp = providerManager.getConfigurableProperties(realm, provider.getAuthority());
+        ConfigurableProperties cp = providerManager.getConfigurableProperties(
+            realm,
+            provider.getAuthority(),
+            SystemKeys.RESOURCE_CONFIG
+        );
         Map<String, Serializable> dcp = cp.getConfiguration();
         dcp
             .entrySet()
@@ -170,6 +174,21 @@ public class BaseIdentityProviderController implements InitializingBean {
                 configuration.putIfAbsent(e.getKey(), e.getValue());
             });
         provider.setConfiguration(configuration);
+
+        Map<String, Serializable> settings = new HashMap<>();
+        settings.putAll(provider.getSettings());
+        ConfigurableProperties scp = providerManager.getConfigurableProperties(
+            realm,
+            provider.getAuthority(),
+            SystemKeys.RESOURCE_SETTINGS
+        );
+        Map<String, Serializable> dscp = scp.getConfiguration();
+        dscp
+            .entrySet()
+            .forEach(e -> {
+                settings.putIfAbsent(e.getKey(), e.getValue());
+            });
+        provider.setSettings(settings);
 
         // check if registered
         boolean isRegistered = providerManager.isProviderRegistered(realm, provider);

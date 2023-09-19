@@ -293,9 +293,9 @@ public abstract class ConfigurableProviderManager<
      * Configuration schemas
      */
 
-    public ConfigurableProperties getConfigurableProperties(String realm, String authority)
+    public ConfigurableProperties getConfigurableProperties(String realm, String authority, String type)
         throws NoSuchAuthorityException {
-        return providerService.getConfigurableProperties(authority);
+        return providerService.getConfigurableProperties(authority, type);
     }
 
     public JsonSchema getConfigurationSchema(String realm, String authority) throws NoSuchAuthorityException {

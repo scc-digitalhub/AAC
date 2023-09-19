@@ -98,6 +98,8 @@ jwt:
 #EXTERNAL PROVIDERS
 authorities:
   account:
+     settings:
+        persistence: repository
      internal:
         confirmationValidity: 86400
         enableDelete: true
@@ -120,6 +122,9 @@ authorities:
         allowUntrustedAttestation: true
         registrationTimeout: 30
   identity:
+     settings:
+        linkable: true
+        persistence: repository
      internal:
         enableDelete: true
         maxSessionDuration: 86400

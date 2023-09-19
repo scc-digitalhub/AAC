@@ -158,6 +158,21 @@ public abstract class AbstractConfigurationProvider<
             cp.setConfiguration(map);
         }
 
+        if (mergeDefault && defaultSettingsMap != null) {
+            // merge settingsMap with default on missing values
+            Map<String, Serializable> map = new HashMap<>();
+            map.putAll(cp.getSettings());
+
+            Map<String, Serializable> defaultMap = defaultSettingsMap.getConfiguration();
+            defaultMap
+                .entrySet()
+                .forEach(e -> {
+                    map.putIfAbsent(e.getKey(), e.getValue());
+                });
+
+            cp.setSettings(map);
+        }
+
         return buildConfig(cp);
     }
 
