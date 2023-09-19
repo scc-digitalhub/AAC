@@ -5,4 +5,4 @@ CREATE TABLE
         realm varchar(255) DEFAULT NULL,
         event_type varchar(255),
         event_data BLOB
-    )
+    );

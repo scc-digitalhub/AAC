@@ -225,14 +225,10 @@ public class DatabaseConfig {
 
     //TODO add optional ObjectProvider<DataSource> to support separated dataSource for audit
     @Bean(name = "auditJdbcDataSourceInitializer")
-    public JdbcDataSourceInitializer audit2DataSourceInitializer(
+    public JdbcDataSourceInitializer auditDataSourceInitializer(
         @Qualifier("jdbcDataSource") DataSource dataSource,
         JdbcProperties properties
     ) {
-        return new JdbcDataSourceInitializer(
-            dataSource,
-            properties,
-            "optional:classpath:db/sql/audit/schema-@@platform@@.sql"
-        );
+        return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/audit/schema-@@platform@@.sql");
     }
 }
