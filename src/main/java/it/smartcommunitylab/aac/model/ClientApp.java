@@ -292,4 +292,8 @@ public class ClientApp {
         this.spaceRoles = new HashSet<>();
         spaceRoles.addAll(rr);
     }
+    
+    public String getId() {
+    	return this.clientId;
+    }
 }
