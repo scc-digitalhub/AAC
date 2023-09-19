@@ -17,44 +17,62 @@
 package it.smartcommunitylab.aac.users.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Set;
-import org.springframework.security.core.Authentication;
+import javax.annotation.Nullable;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
- *
+ * A user authentication as used in the auth/security context
  */
-public interface UserAuthentication extends Authentication {
-    public Subject getSubject();
-
-    public String getRealm();
-
-    public String getSubjectId();
-
-    @JsonIgnore
-    public UserDetails getUser();
-
-    public Instant getCreatedAt();
-
-    public long getAge();
-
+public interface UserAuthentication extends ExtendedAuthentication {
     /*
-     * Auth tokens
+     * User
      */
 
-    public ExtendedAuthenticationToken getAuthentication(String authority, String provider, String userId);
+    @Override
+    public default String getType() {
+        return SystemKeys.RESOURCE_USER;
+    }
 
-    public void eraseAuthentication(ExtendedAuthenticationToken auth);
+    // user details reports user info relevant for the auth/security context
+    // do note that user details are immutable within a session:
+    // in order to refresh we need to build a new session
+    public UserDetails getUserDetails();
 
-    public Set<ExtendedAuthenticationToken> getAuthentications();
+    public default String getUserId() {
+        return getUserDetails() != null ? getUserDetails().getUserId() : null;
+    }
 
-    public boolean isExpired();
+    @Override
+    default Collection<? extends GrantedAuthority> getAuthorities() {
+        return getUserDetails() != null ? getUserDetails().getAuthorities() : null;
+    }
+
+    // user (temporarily) stores user info and resources
+    // for consumption *outside* the auth/security context
+    // do note that this field *IS* refreshable, as in actual implementations
+    // could update the field as needed during the session lifetime
+    public @Nullable User getUser();
+
+    public void setUser(User user);
 
     /*
      * web auth details
+     * TODO remove from here, some auth could be NOT web
      */
-    public WebAuthenticationDetails getWebAuthenticationDetails();
+    public @Nullable WebAuthenticationDetails getWebAuthenticationDetails();
+
+    @Override
+    default Object getDetails() {
+        //web auth are the default details,
+        return getWebAuthenticationDetails();
+    }
 }

@@ -35,8 +35,7 @@ import org.springframework.util.Assert;
 /*
  * User details container
  *
- * This model should be used to describe and manage the real user, in relation to the realm
- * which "owns" the registrations. Its usage is relevant for the auth/securityContext.
+ * This model should be used to describe the user in the auth/securityContext.
  *
  * Services and controllers should adopt the User model.
  */

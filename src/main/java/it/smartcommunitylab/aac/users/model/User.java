@@ -94,6 +94,7 @@ public class User
 
     // authorities in AAC
     // these are either global or realm scoped
+    // stored here because these are NOT resources
     private Set<GrantedAuthority> authorities;
 
     // // identities associated with this user (realm scoped)
