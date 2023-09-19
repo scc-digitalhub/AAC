@@ -80,17 +80,10 @@ const PostFilterForm = () => {
 
     const onSubmit = (values: any) => {
         if (Object.keys(values).length > 0) {
-            if (values.before) {
-                let before = new Date(values.before);
-                values.before = before.toISOString();
-            }
-            if (values.after) {
-                let after = new Date(values.after);
-                values.after = after.toISOString();
-            }
-            if (values.type == 'All') {
-                values.type = null;
-            }
+            let before = new Date(values.before);
+            let after = new Date(values.after);
+            values.before = before.toISOString();
+            values.after = after.toISOString();
             setFilters(values, null);
         } else {
             hideFilter('main');
@@ -116,7 +109,7 @@ const PostFilterForm = () => {
                     <Box component="span" mr={2}>
                         <DateInput
                             helperText={false}
-                            // validate={[required()]}
+                            validate={[required()]}
                             source="before"
                         />
                     </Box>
