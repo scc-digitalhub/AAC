@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
@@ -27,6 +28,7 @@ import javax.validation.constraints.Size;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Realm {
 
     private String name;
