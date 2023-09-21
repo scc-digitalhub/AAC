@@ -9,9 +9,17 @@ import {
     ShowButton,
     useRedirect,
     useRecordContext,
+    useNotify,
+    useRefresh,
+    useDelete,
+    EditButton,
+    Confirm,
+    DeleteButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Typography } from '@mui/material';
+import React from 'react';
+import { CustomDeleteButton } from '../components/CustomDeleteButton';
 
 export const AppList = () => {
     const params = useParams();
@@ -36,6 +44,7 @@ export const AppList = () => {
                     <TextField source="name" />
                     <TextField source="id" />
                     <ShowAppButton />
+                    <CustomDeleteButton realmId={params.realmId} />
                 </Datagrid>
             </List>
         </>
