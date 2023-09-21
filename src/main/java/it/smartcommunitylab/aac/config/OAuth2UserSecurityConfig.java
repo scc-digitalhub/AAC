@@ -118,6 +118,7 @@ public class OAuth2UserSecurityConfig {
             .configurationSource(corsConfigurationSource())
             .and()
             .csrf()
+            .ignoringAntMatchers(AUTHORIZATION_ENDPOINT)
             .and()
             .addFilterBefore(
                 getOAuth2UserFilters(idpProviderService, clientDetailsService, clientService, loginPath),

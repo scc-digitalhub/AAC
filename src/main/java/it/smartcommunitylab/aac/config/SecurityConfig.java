@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.crypto.InternalPasswordEncoder;
+import it.smartcommunitylab.aac.openid.endpoint.EndSessionEndpoint;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
@@ -178,7 +179,7 @@ public class SecurityConfig {
             //                .and()
             .csrf()
             //                .disable()
-            .ignoringAntMatchers("/logout", "/console/**", "/account/**")
+            .ignoringAntMatchers("/logout", "/console/**", "/account/**", EndSessionEndpoint.END_SESSION_URL)
             .and()
             //                // TODO replace with filterRegistrationBean and explicitely map urls
             //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
