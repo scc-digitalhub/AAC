@@ -126,6 +126,10 @@ public class Service {
     public void setClaims(Collection<ServiceClaim> claims) {
         this.claims = claims;
     }
+    
+    public String getId() {
+    	return this.serviceId;
+    }
 
     @JsonProperty("claimMapping")
     public Map<String, String> getClaimMappingBase64() {

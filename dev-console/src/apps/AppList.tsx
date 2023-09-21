@@ -6,6 +6,9 @@ import {
     TextField,
     TopToolbar,
     CreateButton,
+    ShowButton,
+    useRedirect,
+    useRecordContext,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Typography } from '@mui/material';
@@ -32,6 +35,7 @@ export const AppList = () => {
                 <Datagrid bulkActionButtons={false}>
                     <TextField source="name" />
                     <TextField source="id" />
+                    <ShowAppButton />
                 </Datagrid>
             </List>
         </>
@@ -49,3 +53,16 @@ const AppListActions = () => (
         />
     </TopToolbar>
 );
+
+const ShowAppButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to = `/apps/r/${realmId}/${record.id}`;
+    if (!record) return null;
+    return (
+        <>
+            <ShowButton to={to}></ShowButton>
+        </>
+    );
+};
