@@ -168,6 +168,10 @@ public class Group {
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
+    
+    public String getId() {
+    	return this.groupId;
+    }
 
     @Override
     public String toString() {

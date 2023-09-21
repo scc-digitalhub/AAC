@@ -78,6 +78,6 @@ function createRealm(data: any): any {
     let body: any = {};
     body['slug'] = data.slug;
     body['name'] = data.name;
-    body['public'] = data.hidden;
+    body['public'] = data.public;
     return body;
 }
