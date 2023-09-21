@@ -86,6 +86,10 @@ public class Resource {
         this.scopes = new HashSet<>();
         this.scopes.addAll(scopes);
     }
+    
+    public String getId() {
+    	return this.resourceId;
+    }
 
     @Override
     public int hashCode() {

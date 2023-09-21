@@ -61,11 +61,10 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
 
             if (resource !== 'myrealms') {
                 const realmId = params.meta.realmId;
-                url = url + '/' + realmId + `?${stringify(query)}`;
-            } else {
-                url = url + `?${stringify(query)}`;
+                url = url + '/' + realmId;
             }
-            // const url = `${apiUrl}/${resource}?${stringify(query)}`;
+
+            url = url + `?${stringify(query)}`;
 
             return httpClient(url).then(({ headers, json }) => {
                 if (json && Array.isArray(json)) {
@@ -80,7 +79,25 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 };
             });
         },
-        getOne: (resource, params) => provider.getOne(resource, params),
+        getOne: (resource, params) => {
+            let url = `${apiUrl}/${resource}`;
+
+            if (resource !== 'myrealms') {
+                const realmId = params.meta.realmId;
+                url = url + '/' + realmId;
+            }
+
+            url = url + `/${params.id}`;
+
+            return httpClient(url).then(({ status, json }) => {
+                if (status !== 200) {
+                    throw new Error('Invalid response status ' + status);
+                }
+                return {
+                    data: json,
+                };
+            });
+        },
         getMany: (resource, params) => provider.getMany(resource, params),
         getManyReference: (resource, params) => {
             const { page, perPage } = params.pagination;

@@ -22,11 +22,15 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import DeveloperModeIcon from '@mui/icons-material/DeveloperMode';
 import AppsIcon from '@mui/icons-material/Apps';
+import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
 import GroupIcon from '@mui/icons-material/Group';
+import GroupsIcon from '@mui/icons-material/Groups';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import GradingIcon from '@mui/icons-material/Grading';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import DatasetIcon from '@mui/icons-material/Dataset';
+import PasswordIcon from '@mui/icons-material/Password';
 import React from 'react';
 import { RealmListMenu } from './realmListMenu';
 
@@ -184,15 +188,29 @@ const MyMenu = (props: any) => {
             {realmId && (
                 <Menu.Item
                     to={`/apps/r/${realmId}`}
-                    primaryText="App and services"
+                    primaryText="Apps"
                     leftIcon={<AppsIcon />}
                 />
             )}
             {realmId && (
                 <Menu.Item
+                    to={`/services/r/${realmId}`}
+                    primaryText="Services"
+                    leftIcon={<MiscellaneousServicesIcon />}
+                />
+            )}
+            {realmId && (
+                <Menu.Item
                     to={`/users/r/${realmId}`}
-                    primaryText="User and groups"
+                    primaryText="Users"
                     leftIcon={<GroupIcon />}
+                />
+            )}
+            {realmId && (
+                <Menu.Item
+                    to={`/groups/r/${realmId}`}
+                    primaryText="Groups"
+                    leftIcon={<GroupsIcon />}
                 />
             )}
             {realmId && (
@@ -205,15 +223,29 @@ const MyMenu = (props: any) => {
             {realmId && (
                 <Menu.Item
                     to={`/roles/r/${realmId}`}
-                    primaryText="Authorization"
+                    primaryText="Authorization roles"
                     leftIcon={<LockOpenIcon />}
                 />
             )}
             {realmId && (
                 <Menu.Item
+                    to={`/resources/r/${realmId}`}
+                    primaryText="Authorization scopes"
+                    leftIcon={<PasswordIcon />}
+                />
+            )}
+            {realmId && (
+                <Menu.Item
                     to={`/aps/r/${realmId}`}
-                    primaryText="Attributes"
+                    primaryText="Attributes providers"
                     leftIcon={<ListAltIcon />}
+                />
+            )}
+            {realmId && (
+                <Menu.Item
+                    to={`/attributeset/r/${realmId}`}
+                    primaryText="Attributes sets"
+                    leftIcon={<DatasetIcon />}
                 />
             )}
             {realmId && (

@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +17,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
@@ -71,6 +83,29 @@ public class DevConsoleController {
 
 		PageImpl<Realm> realmPage = new PageImpl<>(realms);
 		return ResponseEntity.ok(realmPage);
+	}
+
+	@GetMapping("/myrealms/{slug}")
+	public Realm getRealm(@PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug)
+			throws NoSuchRealmException {
+		return realmManager.getRealm(slug);
+	}
+
+	@PostMapping("/myrealms")
+	public Realm addRealm(@RequestBody @Valid @NotNull Realm realm) throws RegistrationException {
+		return realmManager.addRealm(realm);
+	}
+
+	@PutMapping("/myrealms/{slug}")
+	public Realm updateRealm(@PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
+			@RequestBody @Valid @NotNull Realm realm) throws NoSuchRealmException, RegistrationException {
+		return realmManager.updateRealm(slug, realm);
+	}
+
+	@DeleteMapping("/myrealms/{slug}")
+	public void deleteRealm(@PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug)
+			throws NoSuchRealmException {
+		realmManager.deleteRealm(slug, true);
 	}
 
 }

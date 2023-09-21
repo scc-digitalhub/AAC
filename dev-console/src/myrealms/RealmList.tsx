@@ -9,6 +9,8 @@ import {
     BulkDeleteButton,
     RecordContextProvider,
     SearchInput,
+    EditButton,
+    DeleteButton,
 } from 'react-admin';
 import { useRedirect } from 'react-admin';
 import { List as MList, ListItem, ListItemText, Button } from '@mui/material';
@@ -32,6 +34,18 @@ const RealmListContent = () => {
                             <ListItemText
                                 primary={`${realm.name}`}
                             ></ListItemText>
+                            {realm.slug !== 'system' && (
+                                <EditButton
+                                    sx={{ fontSize: '14.4px' }}
+                                    to={`/myrealms/${realm.slug}/edit`}
+                                />
+                            )}
+                            {realm.slug !== 'system' && (
+                                <DeleteButton
+                                    sx={{ fontSize: '14.4px' }}
+                                    to={`/myrealms/r/${realm.slug}`}
+                                />
+                            )}
                             <ManageButton
                                 selectedId={realm.id}
                                 selectedName={realm.name}

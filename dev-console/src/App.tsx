@@ -36,6 +36,11 @@ import myaudit from './audit';
 import { AuditList } from './audit/AuditList';
 import { DebugList } from './components/DebugList';
 import { AppList } from './apps/AppList';
+import { RealmList } from './myrealms/RealmList';
+import { RealmEdit } from './myrealms/RealmEdit';
+import { RealmCreate } from './myrealms/RealmCreate';
+import { AttributeSetList } from './attributeset/AttributeSetList';
+import { AppShow } from './apps/AppShow';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -120,14 +125,28 @@ const App = () => (
         requireAuth
         disableTelemetry
     >
-        <Resource name="myrealms" {...myrealms} />
+        {/* <Resource name="myrealms" {...myrealms} /> */}
+
+        <Resource name="myrealms">
+            <Route path="*" element={<RealmList />} />
+            <Route path="create/*" element={<RealmCreate />} />
+            <Route path=":id/edit/*" element={<RealmEdit />} />
+        </Resource>
+
         <Resource name="audit">
             <Route path="/r/:realmId/*" element={<AuditList />} />
         </Resource>
         <Resource name="apps">
             <Route path="/r/:realmId/*" element={<AppList />} />
+            <Route path="/r/:realmId/:id" element={<AppShow />} />
+        </Resource>
+        <Resource name="services">
+            <Route path="/r/:realmId/*" element={<DebugList />} />
         </Resource>
         <Resource name="users">
+            <Route path="/r/:realmId/*" element={<DebugList />} />
+        </Resource>
+        <Resource name="groups">
             <Route path="/r/:realmId/*" element={<DebugList />} />
         </Resource>
         <Resource name="idps">
@@ -136,8 +155,14 @@ const App = () => (
         <Resource name="roles">
             <Route path="/r/:realmId/*" element={<DebugList />} />
         </Resource>
+        <Resource name="resources">
+            <Route path="/r/:realmId/*" element={<DebugList />} />
+        </Resource>
         <Resource name="aps">
             <Route path="/r/:realmId/*" element={<DebugList />} />
+        </Resource>
+        <Resource name="attributeset">
+            <Route path="/r/:realmId/*" element={<AttributeSetList />} />
         </Resource>
         <Resource name="templates">
             <Route path="/r/:realmId/*" element={<DebugList />} />

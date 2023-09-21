@@ -73,15 +73,16 @@ const UserAuthAuditDetails = () => {
                             />
                         </Labeled>
                     )}
-                    {/* {record.data.details.remoteAddress && (
-                        <Labeled>
-                            <TextField
-                                label="remoteAddress"
-                                source="data.details.remoteAddress"
-                            />
-                        </Labeled>
-                    )} */}
-                    {/* {record.data.details.protocol && (
+                    {record.data.details &&
+                        record.data.details.remoteAddress && (
+                            <Labeled>
+                                <TextField
+                                    label="remoteAddress"
+                                    source="data.details.remoteAddress"
+                                />
+                            </Labeled>
+                        )}
+                    {record.data.details && record.data.details.protocol && (
                         <Labeled>
                             <TextField
                                 label="protocol"
@@ -89,14 +90,14 @@ const UserAuthAuditDetails = () => {
                             />
                         </Labeled>
                     )}
-                    {record.data.details.userAgent && (
+                    {record.data.details && record.data.details.userAgent && (
                         <Labeled>
                             <TextField
                                 label="userAgent"
                                 source="data.details.userAgent"
                             />
                         </Labeled>
-                    )} */}
+                    )}
                 </Stack>
             )}
         </Box>
