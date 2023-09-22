@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.internal.controller;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -336,7 +337,7 @@ public class InternalRegistrationController {
      */
     @Hidden
     @RequestMapping(value = "/auth/internal/register/{providerId}", method = RequestMethod.POST)
-    public String register(Model model,
+    public String register(Model model, Locale locale,
             @PathVariable("providerId") String providerId,
             @ModelAttribute("reg") @Valid UserRegistrationBean reg,
             BindingResult result,
@@ -400,7 +401,7 @@ public class InternalRegistrationController {
             String email = reg.getEmail();
             String name = reg.getName();
             String surname = reg.getSurname();
-            String lang = reg.getLang();
+            String lang = reg.getLang() != null ? reg.getLang() : locale.getLanguage();
 
             // convert registration model to internal model
             InternalUserAccount account = new InternalUserAccount(idp.getAuthority());
