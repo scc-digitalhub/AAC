@@ -48,8 +48,8 @@ export const AppList = () => {
                     <TextField source="name" />
                     <TextField source="id" />
                     <ShowAppButton />
-                    {/* <CustomDeleteButton realmId={params.realmId} /> */}
-                    <DeleteWithConfirmButton></DeleteWithConfirmButton>
+                    <CustomDeleteButton realmId={params.realmId} />
+                    {/* <DeleteWithConfirmButton></DeleteWithConfirmButton> */}
                     <ExportAppButton />
                 </Datagrid>
             </List>
@@ -97,7 +97,7 @@ const ExportAppButton = () => {
         <>
             <Button
                 onClick={handleExport}
-                endIcon={<FileUploadIcon />}
+                startIcon={<FileUploadIcon />}
                 label="Export"
             ></Button>
         </>
