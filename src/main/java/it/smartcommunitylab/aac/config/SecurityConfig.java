@@ -140,8 +140,6 @@ public class SecurityConfig {
             .permitAll()
             .antMatchers("/-/{realm}/" + LOGINPATH)
             .permitAll()
-            .antMatchers("/endsession")
-            .permitAll()
             .antMatchers("/-/{realm}/" + TERMSPATH)
             .permitAll()
             // whitelist auth providers pages (login,registration etc)
@@ -179,7 +177,7 @@ public class SecurityConfig {
             //                .and()
             .csrf()
             //                .disable()
-            .ignoringAntMatchers("/logout", "/console/**", "/account/**", EndSessionEndpoint.END_SESSION_URL)
+            .ignoringAntMatchers("/logout", "/console/**", "/account/**")
             .and()
             //                // TODO replace with filterRegistrationBean and explicitely map urls
             //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
