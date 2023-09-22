@@ -1,11 +1,9 @@
 import {
     Button,
     SimpleForm,
-    TextField,
     TextInput,
     required,
     useDelete,
-    useInput,
     useNotify,
     useRecordContext,
     useRedirect,
@@ -32,11 +30,11 @@ export const CustomDeleteButton = (params: any) => {
 
     const [deleteOne, { isLoading }] = useDelete(
         'apps',
-        { id: record.name, meta: { realmId: params.realmId, id: params.id } },
+        { id: record.id, meta: { realmId: params.realmId } },
         {
             onSuccess: () => {
                 notify(`Client application deleted successfully`);
-                redirect('list', 'apps');
+                redirect(`/apps/r/${params.realmId}`);
                 refresh();
             },
         }
@@ -68,7 +66,7 @@ export const CustomDeleteButton = (params: any) => {
                 loading={isLoading}
                 title={title}
                 content={<DialogContent id={record.id} />}
-                onConfirm={handleConfirm}
+                onDelete={handleConfirm}
                 onClose={handleDialogClose}
                 onTouchCancel={handleDialogClose}
             />
@@ -104,7 +102,7 @@ const DialogContent = (params: any) => {
             <br />
             <span>
                 You are deleting client{' '}
-                <span style={{ fontWeight: 500 }}>{params.id}</span>{' '}
+                <span style={{ fontWeight: 500 }}>{params.id}</span>
             </span>
             <br />
             <span>To proceed enter the clientId</span>
