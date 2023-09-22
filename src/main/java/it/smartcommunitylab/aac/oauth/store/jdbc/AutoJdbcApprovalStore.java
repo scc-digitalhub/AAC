@@ -53,6 +53,7 @@ public class AutoJdbcApprovalStore extends JdbcApprovalStore implements Searchab
 
     public AutoJdbcApprovalStore(DataSource dataSource) {
         super(dataSource);
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
