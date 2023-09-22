@@ -15,11 +15,15 @@ import {
     EditButton,
     Confirm,
     DeleteButton,
+    DeleteWithConfirmButton,
+    Button,
+    useDataProvider,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import React from 'react';
 import { CustomDeleteButton } from '../components/CustomDeleteButton';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 
 export const AppList = () => {
     const params = useParams();
@@ -44,7 +48,9 @@ export const AppList = () => {
                     <TextField source="name" />
                     <TextField source="id" />
                     <ShowAppButton />
-                    <CustomDeleteButton realmId={params.realmId} />
+                    {/* <CustomDeleteButton realmId={params.realmId} /> */}
+                    <DeleteWithConfirmButton></DeleteWithConfirmButton>
+                    <ExportAppButton />
                 </Datagrid>
             </List>
         </>
@@ -72,6 +78,28 @@ const ShowAppButton = () => {
     return (
         <>
             <ShowButton to={to}></ShowButton>
+        </>
+    );
+};
+
+const ExportAppButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to =
+        process.env.REACT_APP_DEVELOPER_CONSOLE +
+        `/apps/${realmId}/${record.id}/export`;
+    const handleExport = (data: any) => {
+        window.open(to, '_blank');
+    };
+    if (!record) return null;
+    return (
+        <>
+            <Button
+                onClick={handleExport}
+                endIcon={<FileUploadIcon />}
+                label="Export"
+            ></Button>
         </>
     );
 };
