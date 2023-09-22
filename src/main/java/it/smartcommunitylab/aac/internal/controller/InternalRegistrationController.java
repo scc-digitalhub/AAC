@@ -368,7 +368,7 @@ public class InternalRegistrationController {
             String email = reg.getEmail();
             String name = reg.getName();
             String surname = reg.getSurname();
-            String lang = reg.getLang();
+            String lang = reg.getLang() != null ? reg.getLang() : locale.getLanguage();
 
             // validate password
             // TODO rework flow
