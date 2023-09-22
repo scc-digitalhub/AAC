@@ -124,7 +124,20 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         update: (resource, params) => provider.update(resource, params),
         updateMany: (resource, params) => provider.updateMany(resource, params),
         create: (resource, params) => provider.create(resource, params),
-        delete: (resource, params) => provider.delete(resource, params),
+        delete: (resource, params) => {
+            let url = `${apiUrl}/${resource}`;
+
+            if (resource !== 'myrealms') {
+                const realmId = params.meta.realmId;
+                url = url + '/' + realmId;
+            }
+
+            url = url + `/${params.id}`;
+
+            return httpClient(url, {
+                method: 'DELETE',
+            }).then(({ json }) => ({ data: json }));
+        },
         deleteMany: (resource, params) => provider.deleteMany(resource, params),
     };
 };
