@@ -40,7 +40,6 @@ export const CustomDeleteConfirm = (props: any) => {
         title,
         content,
         cancel = 'ra.action.cancel',
-        deleteColor = 'danger',
         DeleteIcon = ActionDelete,
         CancelIcon = AlertError,
         onClose,
