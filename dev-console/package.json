@@ -18,6 +18,7 @@
         "querystring": "^0.2.1",
         "ra-data-json-server": "^4.7.2",
         "react": "^18.2.0",
+        "react-ace": "^10.1.0",
         "react-admin": "^4.7.2",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.15.0",
