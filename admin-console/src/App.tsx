@@ -27,6 +27,7 @@ import { RealmsPage } from './pages/realms';
 
 import { LoginPage } from './pages/login';
 import { RealmCreate, RealmEdit } from './resources/realms';
+import { MetricsList } from './resources/metrics';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -118,6 +119,7 @@ const App = () => (
             edit={RealmEdit}
             create={RealmCreate}
         />
+        <Resource name="metrics" icon={WorkspacesIcon} list={MetricsList} />
     </Admin>
 );
 

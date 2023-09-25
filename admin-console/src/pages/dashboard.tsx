@@ -99,6 +99,62 @@ const AppPropsCard = () => {
     );
 };
 
+interface MetricProps {
+    id: string;
+    icon?: string;
+}
+
+const MetricsCard = (props: MetricProps) => {
+    const { id, icon } = props;
+    const translate = useTranslate();
+    const dataProvider = useDataProvider();
+    const [metric, setMetric] = useState<any>();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState();
+
+    useEffect(() => {
+        dataProvider
+            .getOne('metrics', { id: id })
+            .then(function (data: any) {
+                setMetric(data.data);
+                setLoading(false);
+            })
+            .catch(function (error: any) {
+                setError(error);
+                setLoading(false);
+            });
+    }, []);
+
+    return (
+        <Card sx={{ height: '100%' }}>
+            <CardHeader
+                title={translate('metrics.' + id)}
+                avatar={<DisplaySettingsIcon />}
+                titleTypographyProps={{ variant: 'h6' }}
+            />
+            <CardContent>
+                {metric && (
+                    <Box>
+                        <p>{metric.description}</p>
+                        <p>{metric.sample?.value}</p>
+                    </Box>
+                )}
+            </CardContent>
+        </Card>
+    );
+};
+
+const metricValue = ({
+    value,
+}: // baseUnit,
+{
+    value: string;
+    // baseUnit: string;
+}) => {
+    console.log(value);
+    return value;
+};
+
 const AdminDashboard = () => {
     const { data, isLoading } = useGetIdentity();
     const translate = useTranslate();
@@ -133,6 +189,10 @@ const AdminDashboard = () => {
             />
 
             <Grid container spacing={2}>
+                <Grid item xs={6} md={6} zeroMinWidth>
+                    <MetricsCard id="jvm.memory.used" />
+                </Grid>
+
                 <Grid item xs={12} md={6} zeroMinWidth>
                     <AppPropsCard />
                 </Grid>
