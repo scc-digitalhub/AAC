@@ -7,23 +7,12 @@ import {
     TopToolbar,
     CreateButton,
     ShowButton,
-    useRedirect,
     useRecordContext,
-    useNotify,
-    useRefresh,
-    useDelete,
-    EditButton,
-    Confirm,
-    DeleteButton,
-    DeleteWithConfirmButton,
     Button,
-    useDataProvider,
 } from 'react-admin';
-import { useLocation, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Typography } from '@mui/material';
-import React from 'react';
-import { CustomDeleteButton } from '../components/CustomDeleteButton';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 export const AppList = () => {
     const params = useParams();
@@ -48,8 +37,11 @@ export const AppList = () => {
                     <TextField source="name" />
                     <TextField source="id" />
                     <ShowAppButton />
-                    <CustomDeleteButton realmId={params.realmId} />
-                    {/* <DeleteWithConfirmButton></DeleteWithConfirmButton> */}
+                    <CustomDeleteButtonDialog
+                        realmId={params.realmId}
+                        title="Client App Deletion"
+                        resourceName="Client Application"
+                    />
                     <ExportAppButton />
                 </Datagrid>
             </List>
@@ -59,15 +51,20 @@ export const AppList = () => {
 
 const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
-const AppListActions = () => (
-    <TopToolbar>
-        <CreateButton
-            variant="contained"
-            label="New App"
-            sx={{ marginLeft: 2 }}
-        />
-    </TopToolbar>
-);
+const AppListActions = () => {
+    const params = useParams();
+    const to = `/apps/r/${params.realmId}/create`;
+    return (
+        <TopToolbar>
+            <CreateButton
+                variant="contained"
+                label="New App"
+                sx={{ marginLeft: 2 }}
+                to={to}
+            />
+        </TopToolbar>
+    );
+};
 
 const ShowAppButton = () => {
     const record = useRecordContext();
@@ -86,20 +83,14 @@ const ExportAppButton = () => {
     const record = useRecordContext();
     const params = useParams();
     const realmId = params.realmId;
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/apps/${realmId}/${record.id}/export`;
+    const to = `/apps/r/${realmId}/${record.id}`;
     const handleExport = (data: any) => {
-        window.open(to, '_blank');
+        window.open(`console/dev/apps/${realmId}/${record.id}/export`);
     };
     if (!record) return null;
     return (
         <>
-            <Button
-                onClick={handleExport}
-                startIcon={<FileUploadIcon />}
-                label="Export"
-            ></Button>
+            <Button onClick={handleExport} label="Export"></Button>
         </>
     );
 };

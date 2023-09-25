@@ -58,14 +58,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 page: page - 1,
                 size: perPage,
             };
-
             if (resource !== 'myrealms') {
                 const realmId = params.meta.realmId;
                 url = url + '/' + realmId;
             }
-
             url = url + `?${stringify(query)}`;
-
             return httpClient(url).then(({ headers, json }) => {
                 if (json && Array.isArray(json)) {
                     return { data: json, total: json.length };
@@ -81,14 +78,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         getOne: (resource, params) => {
             let url = `${apiUrl}/${resource}`;
-
             if (resource !== 'myrealms') {
                 const realmId = params.meta.realmId;
                 url = url + '/' + realmId;
             }
-
             url = url + `/${params.id}`;
-
             return httpClient(url).then(({ status, json }) => {
                 if (status !== 200) {
                     throw new Error('Invalid response status ' + status);
@@ -110,7 +104,6 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 size: perPage,
             };
             const url = `${apiUrl}/${resource}?${stringify(query)}`;
-
             return httpClient(url).then(({ headers, json }) => {
                 if (!json.content) {
                     throw new Error('the response must match page<> model');
@@ -123,7 +116,22 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         update: (resource, params) => provider.update(resource, params),
         updateMany: (resource, params) => provider.updateMany(resource, params),
-        create: (resource, params) => provider.create(resource, params),
+        create: (resource, params) => {
+            let url = `${apiUrl}/${resource}`;
+            if (resource !== 'myrealms') {
+                const realmId = params.meta.realmId;
+                url = url + '/' + realmId;
+            }
+            return httpClient(url, {
+                method: 'POST',
+                body:
+                    typeof params.data === 'string'
+                        ? params.data
+                        : JSON.stringify(params.data),
+            }).then(({ json }) => ({
+                data: { ...params.data, id: json.id } as any,
+            }));
+        },
         delete: (resource, params) => {
             let url = `${apiUrl}/${resource}`;
 

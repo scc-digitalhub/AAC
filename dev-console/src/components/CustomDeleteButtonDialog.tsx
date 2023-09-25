@@ -13,8 +13,17 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { CustomDeleteConfirm } from './CustomDeleteConfirm';
 import React from 'react';
-
-export const CustomDeleteButton = (params: any) => {
+/**
+ * Custom Delete button dialog
+ *
+ * @example
+ * <Confirm
+ *     isOpen={true}
+ *     title="Item title"
+ *     resourceName="Item name"
+ * />
+ */
+export const CustomDeleteButtonDialog = (params: any) => {
     const redirect = useRedirect();
     const record = useRecordContext();
     const notify = useNotify();
@@ -40,7 +49,7 @@ export const CustomDeleteButton = (params: any) => {
         }
     );
 
-    let title = 'Client Application Deletion';
+    let title = params.title;
 
     const handleDialogClose = () => setOpen(false);
     const handleConfirm = (data: any) => {
@@ -65,7 +74,12 @@ export const CustomDeleteButton = (params: any) => {
                 isOpen={open}
                 loading={isLoading}
                 title={title}
-                content={<DialogContent id={record.id} />}
+                content={
+                    <DialogContent
+                        id={record.id}
+                        resourceName={params.resourceName}
+                    />
+                }
                 onDelete={handleConfirm}
                 onClose={handleDialogClose}
                 onTouchCancel={handleDialogClose}
@@ -94,18 +108,21 @@ const DialogContent = (params: any) => {
     };
 
     const validateClientId = [required(), idValidation];
+    let labelInput = params.resourceName + ' Id';
 
     return (
         <>
-            <span>Are you sure you want to delete this application ?</span>
+            <span>
+                Are you sure you want to delete this {params.resourceName} ?
+            </span>
             <br />
             <br />
             <span>
-                You are deleting client{' '}
+                You are deleting {params.resourceName}{' '}
                 <span style={{ fontWeight: 500 }}>{params.id}</span>
             </span>
             <br />
-            <span>To proceed enter the clientId</span>
+            <span>To proceed enter the {params.resourceName} Id</span>
             <br />
             <br />
             <span style={{ color: 'red' }}>
@@ -113,7 +130,7 @@ const DialogContent = (params: any) => {
             </span>
             <SimpleForm toolbar={false} mode="onChange" reValidateMode="onBlur">
                 <TextInput
-                    label="Client Id*"
+                    label={labelInput}
                     source="selectedId"
                     validate={validateClientId}
                     fullWidth
