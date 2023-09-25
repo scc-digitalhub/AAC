@@ -9,6 +9,7 @@ import {
     ShowButton,
     useRecordContext,
     Button,
+    EditButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Typography } from '@mui/material';
@@ -37,6 +38,7 @@ export const AppList = () => {
                     <TextField source="name" />
                     <TextField source="id" />
                     <ShowAppButton />
+                    <EditAppButton />
                     <CustomDeleteButtonDialog
                         realmId={params.realmId}
                         title="Client App Deletion"
@@ -79,13 +81,28 @@ const ShowAppButton = () => {
     );
 };
 
+const EditAppButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to = `/apps/r/${realmId}/${record.id}/edit`;
+    if (!record) return null;
+    return (
+        <>
+            <EditButton to={to}></EditButton>
+        </>
+    );
+};
+
 const ExportAppButton = () => {
     const record = useRecordContext();
     const params = useParams();
     const realmId = params.realmId;
-    const to = `/apps/r/${realmId}/${record.id}`;
+    const to =
+        process.env.REACT_APP_DEVELOPER_CONSOLE +
+        `/apps/${realmId}/${record.id}/export`;
     const handleExport = (data: any) => {
-        window.open(`console/dev/apps/${realmId}/${record.id}/export`);
+        window.open(to, '_blank');
     };
     if (!record) return null;
     return (

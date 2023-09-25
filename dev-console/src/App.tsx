@@ -42,6 +42,7 @@ import { RealmCreate } from './myrealms/RealmCreate';
 import { AttributeSetList } from './attributeset/AttributeSetList';
 import { AppShow } from './apps/AppShow';
 import { AppCreate } from './apps/AppCreate';
+import { AppEdit } from './apps/AppEdit';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -140,6 +141,7 @@ const App = () => (
         <Resource name="apps">
             <Route path="/r/:realmId/*" element={<AppList />} />
             <Route path="/r/:realmId/:id" element={<AppShow />} />
+            <Route path="/r/:realmId/:id/edit/*" element={<AppEdit />} />
             <Route path="/r/:realmId/create/*" element={<AppCreate />} />
         </Resource>
         <Resource name="services">
