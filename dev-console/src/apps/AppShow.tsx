@@ -10,6 +10,7 @@ import {
     Show,
     TabbedShowLayout,
     TextField,
+    TopToolbar,
     useNotify,
     useRecordContext,
     useRedirect,
@@ -21,7 +22,7 @@ export const AppShow = () => {
     const params = useParams();
     const options = { meta: { realmId: params.realmId } };
     return (
-        <Show queryOptions={options}>
+        <Show queryOptions={options} actions={<ShowToolBarActions />}>
             <AppTabComponent />
         </Show>
     );
@@ -83,5 +84,20 @@ const AppTabComponent = () => {
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
+    );
+};
+
+const ShowToolBarActions = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to = `/apps/r/${realmId}/${record.id}/edit`;
+    if (!record) return null;
+    return (
+        <TopToolbar>
+            <>
+                <EditButton to={to}></EditButton>
+            </>
+        </TopToolbar>
     );
 };
