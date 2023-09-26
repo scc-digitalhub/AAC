@@ -60,7 +60,7 @@ const PostFilterButton = () => {
             size="small"
             color="primary"
             onClick={() => showFilter('main', null)}
-            startIcon={React.cloneElement(<ContentFilter />)}
+            startIcon={<ContentFilter />}
         >
             Filter
         </Button>
