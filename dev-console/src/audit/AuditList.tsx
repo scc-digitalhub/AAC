@@ -5,13 +5,9 @@ import {
     Datagrid,
     TextField,
     DateField,
-    TextInput,
-    NullableBooleanInput,
     TopToolbar,
-    DateTimeInput,
     DateInput,
     SelectInput,
-    required,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentFilter from '@mui/icons-material/FilterList';
@@ -19,8 +15,8 @@ import { AuditDetails } from './AuditDetails';
 import { Typography } from '@mui/material';
 
 import { useForm, FormProvider } from 'react-hook-form';
-import { Box, Button, InputAdornment } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
+import { Box, Button } from '@mui/material';
+import React from 'react';
 
 export const AuditList = () => {
     const params = useParams();
