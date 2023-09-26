@@ -114,7 +114,21 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 };
             });
         },
-        update: (resource, params) => provider.update(resource, params),
+        update: (resource, params) => {
+            let url = `${apiUrl}/${resource}`;
+            if (resource !== 'myrealms') {
+                const realmId = params.meta.realmId;
+                url = url + '/' + realmId;
+            }
+            url = url + `/${params.id}`;
+            return httpClient(url, {
+                method: 'PUT',
+                body:
+                    typeof params.data === 'string'
+                        ? params.data
+                        : JSON.stringify(params.data),
+            }).then(({ json }) => ({ data: json }));
+        },
         updateMany: (resource, params) => provider.updateMany(resource, params),
         create: (resource, params) => {
             let url = `${apiUrl}/${resource}`;
