@@ -144,11 +144,9 @@ const EditToolBarActions = () => {
     return (
         <TopToolbar>
             <span>
-                <Button
-                    label="Inspect"
-                    startIcon={<VisibilityIcon />}
-                    onClick={handleClick}
-                />
+                <Button label="Inspect" onClick={handleClick}>
+                    {<VisibilityIcon />}
+                </Button>
             </span>
             <Dialog
                 open={open}

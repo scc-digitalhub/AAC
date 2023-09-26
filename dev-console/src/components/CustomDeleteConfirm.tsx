@@ -7,13 +7,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Button from '@mui/material/Button';
 import { alpha } from '@mui/material/styles';
 import ActionDelete from '@mui/icons-material/Delete';
 import AlertError from '@mui/icons-material/ErrorOutline';
 import clsx from 'clsx';
 import { useTranslate } from 'ra-core';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { Button } from 'react-admin';
 
 /**
  * Custom Confirmation dialog
@@ -91,20 +91,20 @@ export const CustomDeleteConfirm = (props: any) => {
             </DialogContent>
             <DialogActions>
                 <Button
+                    label={translate(cancel, { _: cancel })}
                     disabled={loading}
                     onClick={onClose}
-                    startIcon={<CancelIcon />}
                 >
-                    {translate(cancel, { _: cancel })}
+                    {<CancelIcon />}
                 </Button>
                 <Button
                     disabled={disableDeleteButton}
                     onClick={handleDelete}
                     autoFocus
                     sx={{ color: 'red' }}
-                    startIcon={<DeleteIcon />}
+                    label="Delete"
                 >
-                    Delete
+                    {<DeleteIcon />}
                 </Button>
             </DialogActions>
         </Dialog>
