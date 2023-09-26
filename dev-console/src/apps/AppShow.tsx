@@ -17,6 +17,7 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 export const AppShow = () => {
     const params = useParams();
@@ -49,9 +50,9 @@ const AppTabComponent = () => {
                     <TextField source="clientId" />
                     <TextField source="scopes" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Quickstart">
+                {/* <TabbedShowLayout.Tab label="Quickstart">
                     <RichTextField source="body" label={false} />
-                </TabbedShowLayout.Tab>
+                </TabbedShowLayout.Tab> */}
                 <TabbedShowLayout.Tab label="Credentials">
                     <TextField
                         label="Password (if protected post)"
@@ -66,7 +67,7 @@ const AppTabComponent = () => {
                     />
                     <TextField label="Nb views" source="views" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Test">
+                {/* <TabbedShowLayout.Tab label="Test">
                     <ReferenceManyField
                         reference="comments"
                         target="post_id"
@@ -78,25 +79,30 @@ const AppTabComponent = () => {
                             <EditButton />
                         </Datagrid>
                     </ReferenceManyField>
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Endpoint">
+                </TabbedShowLayout.Tab> */}
+                {/* <TabbedShowLayout.Tab label="Endpoint">
                     <RichTextField source="body" label={false} />
-                </TabbedShowLayout.Tab>
+                </TabbedShowLayout.Tab> */}
             </TabbedShowLayout>
         </>
     );
 };
 
 const ShowToolBarActions = () => {
-    const record = useRecordContext();
     const params = useParams();
     const realmId = params.realmId;
-    const to = `/apps/r/${realmId}/${record.id}/edit`;
+    const record = useRecordContext();
     if (!record) return null;
+    const to = `/apps/r/${realmId}/${record.id}/edit`;
     return (
         <TopToolbar>
             <>
                 <EditButton to={to}></EditButton>
+                <CustomDeleteButtonDialog
+                    realmId={params.realmId}
+                    title="Client App Deletion"
+                    resourceName="Client Application"
+                />
             </>
         </TopToolbar>
     );

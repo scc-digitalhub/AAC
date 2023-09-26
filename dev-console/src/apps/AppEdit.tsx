@@ -34,6 +34,7 @@ import React from 'react';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
+import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 export const AppEdit = () => {
     const params = useParams();
@@ -52,7 +53,6 @@ export const AppEdit = () => {
 const AppTabComponent = () => {
     const record = useRecordContext();
     if (!record) return null;
-
     return (
         <>
             <br />
@@ -85,12 +85,10 @@ const EditSetting = () => {
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-
     const onSuccess = (data: any) => {
         notify(`App updated successfully`);
         refresh();
     };
-
     return (
         <EditBase
             mutationMode="pessimistic"
@@ -143,7 +141,6 @@ const EditToolBarActions = () => {
     const handleClose = () => {
         setOpen(false);
     };
-
     return (
         <TopToolbar>
             <span>
@@ -191,6 +188,11 @@ const EditToolBarActions = () => {
                     </ShowBase>
                 </DialogContent>
             </Dialog>
+            <CustomDeleteButtonDialog
+                realmId={params.realmId}
+                title="Client App Deletion"
+                resourceName="Client Application"
+            />
         </TopToolbar>
     );
 };
