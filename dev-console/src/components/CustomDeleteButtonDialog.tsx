@@ -64,10 +64,12 @@ export const CustomDeleteButtonDialog = (params: any) => {
             <span>
                 <Button
                     label="Delete"
-                    startIcon={<DeleteIcon />}
+                    // startIcon={<DeleteIcon />}
                     onClick={handleClick}
                     sx={{ color: 'red' }}
-                />
+                >
+                    {<DeleteIcon />}
+                </Button>
             </span>
             <CustomDeleteConfirm
                 disableDeleteButton={disabledeletebutton}

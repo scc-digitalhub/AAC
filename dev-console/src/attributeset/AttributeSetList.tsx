@@ -1,5 +1,6 @@
 import {
     List,
+    Button,
     useListContext,
     SearchInput,
     Datagrid,
@@ -12,7 +13,7 @@ import { useParams } from 'react-router-dom';
 import ContentFilter from '@mui/icons-material/FilterList';
 import { Typography } from '@mui/material';
 import { useForm, FormProvider } from 'react-hook-form';
-import { Box, Button } from '@mui/material';
+import { Box } from '@mui/material';
 import React from 'react';
 
 export const AttributeSetList = () => {
@@ -57,12 +58,12 @@ const PostFilterButton = () => {
     const { showFilter } = useListContext();
     return (
         <Button
+            label="Filter"
             size="small"
             color="primary"
             onClick={() => showFilter('main', null)}
-            startIcon={<ContentFilter />}
         >
-            Filter
+            {<ContentFilter />}
         </Button>
     );
 };
@@ -151,17 +152,18 @@ const PostFilterForm = () => {
                     </Box>
                     <Box component="span" mr={2}>
                         <Button
+                            label="Filter"
                             variant="outlined"
                             color="primary"
                             type="submit"
-                        >
-                            Filter
-                        </Button>
+                        ></Button>
                     </Box>
                     <Box component="span">
-                        <Button variant="outlined" onClick={resetFilter}>
-                            Close
-                        </Button>
+                        <Button
+                            label="Close"
+                            variant="outlined"
+                            onClick={resetFilter}
+                        ></Button>
                     </Box>
                 </Box>
             </form>
