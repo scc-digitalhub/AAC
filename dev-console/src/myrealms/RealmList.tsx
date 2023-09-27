@@ -11,10 +11,12 @@ import {
     SearchInput,
     EditButton,
     DeleteButton,
+    DeleteWithConfirmButton,
 } from 'react-admin';
 import { useRedirect } from 'react-admin';
 import { List as MList, ListItem, ListItemText, Button } from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 const RealmListContent = () => {
     const { data: realms, isLoading } = useListContext<any>();
@@ -41,10 +43,15 @@ const RealmListContent = () => {
                                 />
                             )}
                             {realm.slug !== 'system' && (
-                                <DeleteButton
+                                <DeleteWithConfirmButton
                                     sx={{ fontSize: '14.4px' }}
                                     to={`/myrealms/r/${realm.slug}`}
                                 />
+                                // <CustomDeleteButtonDialog
+                                //     realmId={realm.slug}
+                                //     title="Realm Deletion"
+                                //     resourceName="Realm"
+                                // />
                             )}
                             <ManageButton
                                 selectedId={realm.id}
