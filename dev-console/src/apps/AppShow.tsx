@@ -1,19 +1,12 @@
 import { Typography } from '@mui/material';
 import {
-    BooleanField,
-    Datagrid,
-    DateField,
     EditButton,
-    NumberField,
-    ReferenceManyField,
     RichTextField,
     Show,
     TabbedShowLayout,
     TextField,
     TopToolbar,
-    useNotify,
     useRecordContext,
-    useRedirect,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -54,18 +47,25 @@ const AppTabComponent = () => {
                     <RichTextField source="body" label={false} />
                 </TabbedShowLayout.Tab> */}
                 <TabbedShowLayout.Tab label="Credentials">
-                    <TextField
-                        label="Password (if protected post)"
-                        source="password"
-                        type="password"
-                    />
-                    <DateField label="Publication date" source="published_at" />
-                    <NumberField source="average_note" />
-                    <BooleanField
-                        label="Allow comments?"
-                        source="commentable"
-                    />
-                    <TextField label="Nb views" source="views" />
+                    <Typography variant="h6" sx={{ mr: 2 }}>
+                        OAuth2 Credentials
+                    </Typography>
+                    <Typography sx={{ mr: 2 }}>
+                        Client credentials to authenticate with AAC.
+                    </Typography>
+                    <TextField label="Client ID" source="clientId" />
+                    {record.configuration.clientSecret && (
+                        <TextField
+                            label="Client Key Set (JWKS)"
+                            source="configuration.clientSecret"
+                        />
+                    )}
+                    {record.configuration.jwks && (
+                        <RichTextField
+                            label="Client Secret"
+                            source="configuration.jwks"
+                        />
+                    )}
                 </TabbedShowLayout.Tab>
                 {/* <TabbedShowLayout.Tab label="Test">
                     <ReferenceManyField
