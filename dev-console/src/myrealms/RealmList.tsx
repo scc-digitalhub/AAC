@@ -10,13 +10,18 @@ import {
     RecordContextProvider,
     SearchInput,
     EditButton,
-    DeleteButton,
     DeleteWithConfirmButton,
 } from 'react-admin';
 import { useRedirect } from 'react-admin';
-import { List as MList, ListItem, ListItemText, Button } from '@mui/material';
+import {
+    List as MList,
+    ListItem,
+    ListItemText,
+    Button,
+    Box,
+    Typography,
+} from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 const RealmListContent = () => {
     const { data: realms, isLoading } = useListContext<any>();
@@ -47,11 +52,6 @@ const RealmListContent = () => {
                                     sx={{ fontSize: '14.4px' }}
                                     to={`/myrealms/r/${realm.slug}`}
                                 />
-                                // <CustomDeleteButtonDialog
-                                //     realmId={realm.slug}
-                                //     title="Realm Deletion"
-                                //     resourceName="Realm"
-                                // />
                             )}
                             <ManageButton
                                 selectedId={realm.id}
@@ -78,6 +78,7 @@ const RealmListActions = () => (
 export const RealmList = () => {
     return (
         <List
+            empty={<Empty />}
             actions={<RealmListActions />}
             perPage={25}
             pagination={<Pagination rowsPerPageOptions={[10, 25, 50, 100]} />}
@@ -86,6 +87,21 @@ export const RealmList = () => {
         >
             <RealmListContent />
         </List>
+    );
+};
+
+const Empty = () => {
+    return (
+        <Box textAlign="center" mt={30} ml={70}>
+            <Typography variant="h6" paragraph>
+                No realm available, create one
+            </Typography>
+            <CreateButton
+                variant="contained"
+                label="New Realm"
+                sx={{ marginLeft: 2 }}
+            />
+        </Box>
     );
 };
 
