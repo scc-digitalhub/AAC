@@ -29,10 +29,10 @@ const AppTabComponent = () => {
     return (
         <>
             <br />
-            <Typography variant="h5" sx={{ mr: 2, mt: 1 }}>
+            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
                 <StarBorderIcon color="primary" /> {record.name}
             </Typography>
-            <Typography variant="h6" sx={{ mr: 2 }}>
+            <Typography variant="h6" sx={{ ml: 2 }}>
                 {record.id}
             </Typography>
             <br />
@@ -98,11 +98,11 @@ const ShowToolBarActions = () => {
         <TopToolbar>
             <>
                 <EditButton to={to}></EditButton>
-                <CustomDeleteButtonDialog
+                {/* <CustomDeleteButtonDialog
                     realmId={params.realmId}
                     title="Client App Deletion"
                     resourceName="Client Application"
-                />
+                /> */}
             </>
         </TopToolbar>
     );

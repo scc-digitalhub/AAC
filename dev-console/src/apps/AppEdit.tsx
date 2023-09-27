@@ -384,6 +384,25 @@ const EditToolBarActions = () => {
                 title="Client App Deletion"
                 resourceName="Client Application"
             />
+            <ExportAppButton />
         </TopToolbar>
+    );
+};
+
+const ExportAppButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to =
+        process.env.REACT_APP_DEVELOPER_CONSOLE +
+        `/apps/${realmId}/${record.id}/export`;
+    const handleExport = (data: any) => {
+        window.open(to, '_blank');
+    };
+    if (!record) return null;
+    return (
+        <>
+            <Button onClick={handleExport} label="Export"></Button>
+        </>
     );
 };
