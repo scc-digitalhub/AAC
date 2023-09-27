@@ -129,16 +129,15 @@ const App = () => (
     >
         {/* <Resource name="myrealms" {...myrealms} /> */}
 
-        <Resource name="myrealms">
+        <Resource name="myrealms" hasCreate={true} create={RealmCreate}>
             <Route path="*" element={<RealmList />} />
             <Route path="create/*" element={<RealmCreate />} />
             <Route path=":id/edit/*" element={<RealmEdit />} />
         </Resource>
-
         <Resource name="audit">
             <Route path="/r/:realmId/*" element={<AuditList />} />
         </Resource>
-        <Resource name="apps">
+        <Resource name="apps" hasCreate={true} create={AppCreate}>
             <Route path="/r/:realmId/*" element={<AppList />} />
             <Route path="/r/:realmId/:id" element={<AppShow />} />
             <Route path="/r/:realmId/:id/edit/*" element={<AppEdit />} />
