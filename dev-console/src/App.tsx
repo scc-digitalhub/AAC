@@ -137,7 +137,7 @@ const App = () => (
         <Resource name="audit">
             <Route path="/r/:realmId/*" element={<AuditList />} />
         </Resource>
-        <Resource name="apps" hasCreate={true} create={AppCreate}>
+        <Resource name="apps">
             <Route path="/r/:realmId/*" element={<AppList />} />
             <Route path="/r/:realmId/:id" element={<AppShow />} />
             <Route path="/r/:realmId/:id/edit/*" element={<AppEdit />} />
