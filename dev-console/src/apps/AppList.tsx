@@ -12,7 +12,7 @@ import {
     EditButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 export const AppList = () => {
@@ -29,6 +29,7 @@ export const AppList = () => {
                 Manage web, mobile, server and IoT applications
             </Typography>
             <List
+                empty={<Empty />}
                 actions={<AppListActions />}
                 queryOptions={options}
                 filters={RealmFilters}
@@ -65,6 +66,19 @@ const AppListActions = () => {
                 to={to}
             />
         </TopToolbar>
+    );
+};
+
+const Empty = () => {
+    const params = useParams();
+    const to = `/apps/r/${params.realmId}/create`;
+    return (
+        <Box textAlign="center" mt={30} ml={70}>
+            <Typography variant="h6" paragraph>
+                No app available, create one
+            </Typography>
+            <CreateButton variant="contained" label="New App" to={to} />
+        </Box>
     );
 };
 
