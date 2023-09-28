@@ -688,8 +688,8 @@ angular.module('aac.controllers.realmproviders', [])
 
             var configuration = extractConfiguration(provider.authority, provider.configuration, provider.schema);
 
-            var hookFunctions = new Object();
-            if ($scope.attributeMapping.code != "" && $scope.attributeMapping.enabled) {
+            var hookFunctions = {};
+            if ($scope.attributeMapping.code != "") {
                 hookFunctions["attributeMapping"] = btoa($scope.attributeMapping.code);
             }
 
