@@ -21,6 +21,8 @@ import React from 'react';
  *     isOpen={true}
  *     title="Item title"
  *     resourceName="Item name"
+ *     registeredResource="resource id registered in Apps.tsx file"
+ *     redirectUrl="url to redirect after delete"
  * />
  */
 export const CustomDeleteButtonDialog = (params: any) => {
@@ -38,13 +40,12 @@ export const CustomDeleteButtonDialog = (params: any) => {
     };
 
     const [deleteOne, { isLoading }] = useDelete(
-        'apps',
+        params.registeredResource,
         { id: record.id, meta: { realmId: params.realmId } },
         {
             onSuccess: () => {
-                notify(`Client application deleted successfully`);
-                redirect(`/apps/r/${params.realmId}`);
-                refresh();
+                notify(params.resourceName + ` deleted successfully`);
+                redirect(params.redirectUrl);
             },
         }
     );
@@ -57,14 +58,11 @@ export const CustomDeleteButtonDialog = (params: any) => {
         setOpen(false);
     };
 
-    const to = `/apps/r/${params.realmId}/${record.id}`;
-
     return (
         <>
             <span>
                 <Button
                     label="Delete"
-                    // startIcon={<DeleteIcon />}
                     onClick={handleClick}
                     sx={{ color: 'red' }}
                 >

@@ -44,6 +44,8 @@ export const AppList = () => {
                         realmId={params.realmId}
                         title="Client App Deletion"
                         resourceName="Client Application"
+                        registeredResource="apps"
+                        redirectUrl={`/apps/r/${params.realmId}`}
                     />
                     <ExportAppButton />
                 </Datagrid>

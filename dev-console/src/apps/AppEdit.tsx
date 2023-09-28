@@ -21,6 +21,7 @@ import {
     SelectArrayInput,
     SelectInput,
     ShowBase,
+    ShowButton,
     SimpleFormIterator,
     SimpleShowLayout,
     TabbedShowLayout,
@@ -336,11 +337,10 @@ const EditToolBarActions = () => {
     };
     return (
         <TopToolbar>
-            <span>
-                <Button label="Inspect" onClick={handleClick}>
-                    {<VisibilityIcon />}
-                </Button>
-            </span>
+            <ShowAppButton />
+            <Button label="Inspect" onClick={handleClick}>
+                {<VisibilityIcon />}
+            </Button>
             <Dialog
                 open={open}
                 onClose={handleClose}
@@ -383,6 +383,8 @@ const EditToolBarActions = () => {
                 realmId={params.realmId}
                 title="Client App Deletion"
                 resourceName="Client Application"
+                registeredResource="apps"
+                redirectUrl={`/apps/r/${params.realmId}`}
             />
             <ExportAppButton />
         </TopToolbar>
@@ -403,6 +405,19 @@ const ExportAppButton = () => {
     return (
         <>
             <Button onClick={handleExport} label="Export"></Button>
+        </>
+    );
+};
+
+const ShowAppButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to = `/apps/r/${realmId}/${record.id}`;
+    if (!record) return null;
+    return (
+        <>
+            <ShowButton to={to}></ShowButton>
         </>
     );
 };
