@@ -653,7 +653,7 @@ angular.module('aac.controllers.realmproviders', [])
             };
             if ("hookFunctions" in data.settings && "attributeMapping" in data.settings.hookFunctions) {
                 attributeMapping.enabled = true;
-                attributeMapping.code = atob(data.hookFunctions["attributeMapping"]);
+                attributeMapping.code = atob(data.settings.hookFunctions["attributeMapping"]);
             }
 
             $scope.attributeMapping = attributeMapping;
@@ -688,8 +688,8 @@ angular.module('aac.controllers.realmproviders', [])
 
             var configuration = extractConfiguration(provider.authority, provider.configuration, provider.schema);
 
-            var hookFunctions = [];
-            if ($scope.attributeMapping.code != "") {
+            var hookFunctions = new Object();
+            if ($scope.attributeMapping.code != "" && $scope.attributeMapping.enabled) {
                 hookFunctions["attributeMapping"] = btoa($scope.attributeMapping.code);
             }
 
