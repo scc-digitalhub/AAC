@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.users.provider;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.users.model.User;
 
 /*
@@ -26,10 +27,15 @@ import it.smartcommunitylab.aac.users.model.User;
  * When the provider has no solution, it is expected to return null
  * When needed, providers can *create* users to resolve the lookup.
  */
+
+//TODO add typing and remove resource provider to make composable
 public interface UserResolver extends ResourceProvider<User> {
-    //resolve by looking at principal attributes
+    //resolve by looking at principal and attributes
     public User resolveByPrincipal(UserAuthenticatedPrincipal p);
 
-    //resolve by looking at account attributes
+    //resolve by looking at account and attributes
     public User resolveByAccount(UserAccount a);
+
+    //resolve by looking at identity and attributes
+    public User resolveByIdentity(UserIdentity a);
 }
