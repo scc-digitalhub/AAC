@@ -22,6 +22,7 @@ import {
     Typography,
 } from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 
 const RealmListContent = () => {
     const { data: realms, isLoading } = useListContext<any>();
@@ -31,9 +32,6 @@ const RealmListContent = () => {
 
     return (
         <>
-            <BulkActionsToolbar>
-                <BulkDeleteButton />
-            </BulkActionsToolbar>
             <MList>
                 {realms.map(realm => (
                     <RecordContextProvider key={realm.id} value={realm}>
@@ -48,9 +46,12 @@ const RealmListContent = () => {
                                 />
                             )}
                             {realm.slug !== 'system' && (
-                                <DeleteWithConfirmButton
-                                    sx={{ fontSize: '14.4px' }}
-                                    to={`/myrealms/r/${realm.slug}`}
+                                <CustomDeleteButtonDialog
+                                    realmId={realm.slug}
+                                    title="Realm Deletion"
+                                    resourceName="Realm"
+                                    registeredResource="myrealms"
+                                    redirectUrl={`/myrealms`}
                                 />
                             )}
                             <ManageButton
