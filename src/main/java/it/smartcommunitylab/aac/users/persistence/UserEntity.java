@@ -53,6 +53,9 @@ public class UserEntity {
     @Column(name = "email_verified")
     private Boolean emailVerified;
 
+    @Column(name = "language")
+    private String lang;
+
     /*
      * user status
      */
@@ -82,6 +85,7 @@ public class UserEntity {
     @Column(name = "last_login_provider")
     private String loginProvider;
 
+    //TODO remove
     @Column(name = "tos_accepted")
     private Boolean tosAccepted;
 
@@ -135,6 +139,14 @@ public class UserEntity {
 
     public boolean isEmailVerified() {
         return emailVerified != null ? emailVerified.booleanValue() : false;
+    }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
     }
 
     public String getRealm() {
