@@ -62,13 +62,13 @@
         <div class="row">
             <div class="form-group col ">
                 <label for="idpEntityId">Asserting Party Entity ID</label>
-                <input type="text" name="idpEntityId" class="form-control form-control-sm" id="ssoLoginServiceLocation"
+                <input type="text" name="idpEntityId" class="form-control form-control-sm" id="idpEntityId"
                     ng-model="idp.configuration.idpEntityId">
             </div>
             <div class="form-group col ">
-                <label for="ssoLoginServiceLocation">Login Service Location</label>
-                <input type="text" name="ssoLoginServiceLocation" class="form-control form-control-sm"
-                    id="ssoLoginServiceLocation" ng-model="idp.configuration.ssoLoginServiceLocation">
+                <label for="webSsoUrl">Login Service Location</label>
+                <input type="text" name="webSsoUrl" class="form-control form-control-sm"
+                    id="webSsoUrl" ng-model="idp.configuration.webSsoUrl">
             </div>
         </div>
         <div class="row">
@@ -101,7 +101,7 @@
             </div>
         </div>
         <div class="py-0 text-center text-danger small"
-            ng-if="!idp.configuration.idpMetadataUrl && (!idp.configuration.ssoLoginServiceLocation || !idp.configuration.ssoLoginServiceLocation ||!idp.configuration.ssoServiceBinding)">
+            ng-if="!idp.configuration.idpMetadataUrl && (!idp.configuration.webSsoUrl || !idp.configuration.webSsoUrl ||!idp.configuration.ssoServiceBinding)">
             Either metadata or Asserting party entity + login service + SSO service binding should be specified
         </div>
 
