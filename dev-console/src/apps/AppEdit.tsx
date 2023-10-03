@@ -22,6 +22,7 @@ import {
     SelectInput,
     ShowBase,
     ShowButton,
+    SimpleForm,
     SimpleFormIterator,
     SimpleShowLayout,
     TabbedShowLayout,
@@ -29,6 +30,7 @@ import {
     TextInput,
     Toolbar,
     TopToolbar,
+    required,
     useEditContext,
     useNotify,
     useRecordContext,
@@ -42,6 +44,9 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
+import { CustomJSONSchemaForm } from '../components/CustomJSONSchemaForm';
+import { JSONSchemaForm } from '../components/JsonSchemaForm';
+import { JSONSchemaFormInput } from '../components/JsonSchemaFormInput';
 
 export const AppEdit = () => {
     const params = useParams();
@@ -57,9 +62,209 @@ export const AppEdit = () => {
     );
 };
 
+const schemaOAuthClient = {
+    title: 'Configuration',
+    type: 'object',
+    properties: {
+        selectWidgetAuthMethods: {
+            type: 'array',
+            uniqueItems: true,
+            items: {
+                type: 'string',
+                enum: [
+                    'client_secret_post',
+                    'private_key_jwt',
+                    'client_secret_basic',
+                    'client_secret_jwt',
+                    'none',
+                ],
+            },
+        },
+        selectableAuthGrantTypes: {
+            type: 'array',
+            uniqueItems: true,
+            items: {
+                type: 'string',
+                enum: [
+                    'authorization_code',
+                    'implicit',
+                    'refresh_token',
+                    'password',
+                    'client_credentials',
+                ],
+            },
+        },
+        redirectUri: {
+            type: 'array',
+            title: 'Redirect uris',
+            items: {
+                type: 'string',
+                default: 'http://localhost',
+            },
+        },
+        selectWidgetAppType: {
+            title: 'Application Type ',
+            type: 'string',
+            oneOf: [
+                {
+                    const: 'web',
+                    title: 'Web',
+                },
+                {
+                    const: 'native',
+                    title: 'Native',
+                },
+                {
+                    const: 'machine',
+                    title: 'Machine',
+                },
+                {
+                    const: 'spa',
+                    title: 'SPA',
+                },
+                {
+                    const: 'introspection',
+                    title: 'Introspection',
+                },
+            ],
+        },
+        firstParty: {
+            type: 'boolean',
+            title: 'Configuration first party',
+        },
+        idToken: {
+            type: 'boolean',
+            title: 'Configuration id token claims',
+        },
+        refreshToken: {
+            type: 'boolean',
+            title: 'Configuration refresh token rotation',
+        },
+        selectWidgetSubjectType: {
+            title: 'Subject type ',
+            type: 'string',
+            oneOf: [
+                {
+                    const: 'public',
+                    title: 'Public',
+                },
+                {
+                    const: 'pairwise',
+                    title: 'Pairwise',
+                },
+            ],
+        },
+        selectWidgetTokenType: {
+            title: 'Token type ',
+            type: 'string',
+            oneOf: [
+                {
+                    const: 'jwt',
+                    title: 'JWT',
+                },
+                {
+                    const: 'opaque',
+                    title: 'Opaque',
+                },
+            ],
+        },
+        accessTokenValidity: {
+            title: 'Acccess token validity ',
+            type: 'number',
+        },
+        rereshTokenValidity: {
+            title: 'Refresh token validity ',
+            type: 'number',
+        },
+    },
+};
+
+const uiSchemaOAuthClient = {
+    // 'ui:submitButtonOptions': {
+    //     submitText: 'Confirm Details',
+    //     norender: false,
+    //     props: {
+    //         disabled: false,
+    //         className: 'btn btn-info',
+    //     },
+    // },
+    // firstName: {
+    //     'ui:autofocus': true,
+    //     'ui:emptyValue': '',
+    //     'ui:autocomplete': 'family-name',
+    // },
+    // lastName: {
+    //     'ui:title': 'Surname',
+    //     'ui:emptyValue': '',
+    //     'ui:autocomplete': 'given-name',
+    // },
+    // telephone: {
+    //     'ui:options': {
+    //         inputType: 'tel',
+    //     },
+    // },
+};
+
 const AppTabComponent = () => {
     const record = useRecordContext();
     if (!record) return null;
+
+    const schema = {
+        title: 'A registration form',
+        description: 'A simple form example. Demonstrating ui options',
+        type: 'object',
+        required: ['firstName', 'lastName'],
+        properties: {
+            firstName: {
+                type: 'string',
+                title: 'First name',
+                default: 'Chuck',
+            },
+            lastName: {
+                type: 'string',
+                minLength: 4,
+                title: 'Last name',
+            },
+            telephone: {
+                type: 'string',
+                title: 'Telephone',
+                minLength: 10,
+            },
+        },
+    };
+
+    const uiSchema = {
+        'ui:submitButtonOptions': {
+            submitText: 'Confirm Details',
+            norender: false,
+            props: {
+                disabled: false,
+                className: 'btn btn-info',
+            },
+        },
+        firstName: {
+            'ui:autofocus': true,
+            'ui:emptyValue': '',
+            'ui:autocomplete': 'family-name',
+        },
+        lastName: {
+            'ui:title': 'Surname',
+            'ui:emptyValue': '',
+            'ui:autocomplete': 'given-name',
+        },
+        telephone: {
+            'ui:options': {
+                inputType: 'tel',
+            },
+        },
+    };
+
+    const data = {
+        firstName: 'Chuck',
+        lastName: 'Norris',
+        telephone: '377201489',
+    };
+
     return (
         <>
             <br />
@@ -86,6 +291,22 @@ const AppTabComponent = () => {
                     </Typography>
                     <TextField source="clientId" />
                     <EditOAuthSetting />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab label="react json schema form">
+                    <CustomJSONSchemaForm
+                        schema={schema}
+                        uiSchema={uiSchema}
+                        record={data}
+                    ></CustomJSONSchemaForm>
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab label="OAuth2 json schema form">
+                    <Typography variant="h5" sx={{ mr: 2 }}>
+                        OAuth2.0 Configuration
+                    </Typography>
+                    <Typography variant="h6" sx={{ mr: 2 }}>
+                        Basic client configuration for OAuth2/OpenId Connect
+                    </Typography>
+                    <EditOAuthJsonSchemaForm />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
@@ -421,3 +642,46 @@ const ShowAppButton = () => {
         </>
     );
 };
+
+const EditOAuthJsonSchemaForm = () => {
+    const params = useParams();
+    const options = { meta: { realmId: params.realmId } };
+    const notify = useNotify();
+    const refresh = useRefresh();
+    const { isLoading, record } = useEditContext<any>();
+    if (isLoading || !record) return null;
+    const onSuccess = (data: any) => {
+        notify(`App updated successfully`);
+        refresh();
+    };
+
+    const onChange = (data: any) => {
+        notify(`form changed`);
+    };
+    return (
+        <EditBase
+            mutationMode="pessimistic"
+            mutationOptions={{ ...options, onSuccess }}
+            queryOptions={options}
+        >
+            <SimpleForm
+                resource="posts"
+                record={record}
+                toolbar={<MyToolbar />}
+            >
+                <JSONSchemaFormInput
+                    source="configuration"
+                    schema={schemaOAuthClient}
+                    uiSchema={uiSchemaOAuthClient}
+                    onChange={onChange}
+                />
+            </SimpleForm>
+        </EditBase>
+    );
+};
+
+const MyToolbar = () => (
+    <Toolbar>
+        <SaveButton alwaysEnable />
+    </Toolbar>
+);
