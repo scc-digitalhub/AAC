@@ -66,7 +66,7 @@ const schemaOAuthClient = {
     title: 'Configuration',
     type: 'object',
     properties: {
-        selectWidgetAuthMethods: {
+        authenticationMethods: {
             type: 'array',
             uniqueItems: true,
             items: {
@@ -80,7 +80,7 @@ const schemaOAuthClient = {
                 ],
             },
         },
-        selectableAuthGrantTypes: {
+        authorizedGrantTypes: {
             type: 'array',
             uniqueItems: true,
             items: {
@@ -94,7 +94,7 @@ const schemaOAuthClient = {
                 ],
             },
         },
-        redirectUri: {
+        redirectUris: {
             type: 'array',
             title: 'Redirect uris',
             items: {
@@ -102,7 +102,7 @@ const schemaOAuthClient = {
                 default: 'http://localhost',
             },
         },
-        selectWidgetAppType: {
+        applicationType: {
             title: 'Application Type ',
             type: 'string',
             oneOf: [
@@ -132,15 +132,15 @@ const schemaOAuthClient = {
             type: 'boolean',
             title: 'Configuration first party',
         },
-        idToken: {
+        idTokenClaims: {
             type: 'boolean',
             title: 'Configuration id token claims',
         },
-        refreshToken: {
+        refreshTokenRotation: {
             type: 'boolean',
             title: 'Configuration refresh token rotation',
         },
-        selectWidgetSubjectType: {
+        subjectType: {
             title: 'Subject type ',
             type: 'string',
             oneOf: [
@@ -154,7 +154,7 @@ const schemaOAuthClient = {
                 },
             ],
         },
-        selectWidgetTokenType: {
+        tokenType: {
             title: 'Token type ',
             type: 'string',
             oneOf: [
@@ -172,7 +172,7 @@ const schemaOAuthClient = {
             title: 'Acccess token validity ',
             type: 'number',
         },
-        rereshTokenValidity: {
+        refreshTokenValidity: {
             title: 'Refresh token validity ',
             type: 'number',
         },
@@ -655,9 +655,9 @@ const EditOAuthJsonSchemaForm = () => {
         refresh();
     };
 
-    const onChange = (data: any) => {
-        notify(`form changed`);
-    };
+    // const onChange = (data: any) => {
+    //     notify(`form changed`);
+    // };
     return (
         <EditBase
             mutationMode="pessimistic"
@@ -673,7 +673,7 @@ const EditOAuthJsonSchemaForm = () => {
                     source="configuration"
                     schema={schemaOAuthClient}
                     uiSchema={uiSchemaOAuthClient}
-                    onChange={onChange}
+                    // onChange={onChange}
                 />
             </SimpleForm>
         </EditBase>

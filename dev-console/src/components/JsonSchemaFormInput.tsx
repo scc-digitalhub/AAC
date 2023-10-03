@@ -1,14 +1,6 @@
-import {
-    useInput,
-    InputProps,
-    Labeled,
-    InputHelperText,
-    TextField,
-    TextInput,
-    RecordContext,
-} from 'react-admin';
-import { Fragment } from 'react';
-import { RichTextInput } from 'ra-input-rich-text';
+import { useInput, InputProps, Labeled, InputHelperText } from 'react-admin';
+import { Fragment, useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 
@@ -45,39 +37,35 @@ export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
         source,
     };
 
-    let data = {};
-    if (field.value) {
-        data = {
-            selectableAuthGrantTypes: field.value['authorizedGrantTypes'],
-            selectWidgetAuthMethods: field.value['authenticationMethods'],
-            redirectUri: field.value['redirectUris'],
-            selectWidgetAppType: field.value['applicationType'],
-            firstParty: field.value['firstParty'],
-            idToken: field.value['idTokenClaims'],
-            refreshToken: field.value['refreshTokenRotation'],
-            selectWidgetSubjectType: field.value['subjectType'],
-            selectWidgetTokenType: field.value['tokenType'],
-            accessTokenValidity: field.value['accessTokenValidity'],
-            refreshTokenValidity: field.value['refreshTokenValidity'],
-        };
-    }
+    const formContext = useFormContext();
+    let updatedData = {};
 
-    const log = (type: any) => {
-        return console.log.bind(console, type);
+    // moved the setValue into a useEffect
+    useEffect(() => {
+        // if (updatedData) {
+        // formContext.setValue('configuration', updatedData);
+        // }
+    });
+
+    // if (field.value) {
+    //     updatedData = field.value;
+    // }
+
+    const update = (data: any) => {
+        // updatedData = JSON.parse(type);
+        field.onChange(data);
+        return console.log.bind(console, data);
     };
 
     return (
         <Fragment>
             <Labeled {...labelProps}>
-                {/* <input id={id} {...field} /> */}
                 <Form
                     schema={schema}
                     uiSchema={uiSchema}
-                    formData={data}
+                    formData={field.value}
                     validator={validator}
-                    onChange={log('changed')}
-                    onSubmit={log('submitted')}
-                    onError={log('errors')}
+                    onChange={e => update(e.formData)}
                 >
                     <div>
                         <button hidden type="submit"></button>
