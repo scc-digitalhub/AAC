@@ -16,7 +16,6 @@ import {
     EditBase,
     Form,
     NumberInput,
-    RichTextField,
     SaveButton,
     SelectArrayInput,
     SelectInput,
@@ -30,7 +29,6 @@ import {
     TextInput,
     Toolbar,
     TopToolbar,
-    required,
     useEditContext,
     useNotify,
     useRecordContext,
@@ -44,8 +42,6 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
-import { CustomJSONSchemaForm } from '../components/CustomJSONSchemaForm';
-import { JSONSchemaForm } from '../components/JsonSchemaForm';
 import { JSONSchemaFormInput } from '../components/JsonSchemaFormInput';
 
 export const AppEdit = () => {
@@ -63,7 +59,6 @@ export const AppEdit = () => {
 };
 
 const schemaOAuthClient = {
-    title: 'Configuration',
     type: 'object',
     properties: {
         authenticationMethods: {
@@ -209,62 +204,6 @@ const AppTabComponent = () => {
     const record = useRecordContext();
     if (!record) return null;
 
-    const schema = {
-        title: 'A registration form',
-        description: 'A simple form example. Demonstrating ui options',
-        type: 'object',
-        required: ['firstName', 'lastName'],
-        properties: {
-            firstName: {
-                type: 'string',
-                title: 'First name',
-                default: 'Chuck',
-            },
-            lastName: {
-                type: 'string',
-                minLength: 4,
-                title: 'Last name',
-            },
-            telephone: {
-                type: 'string',
-                title: 'Telephone',
-                minLength: 10,
-            },
-        },
-    };
-
-    const uiSchema = {
-        'ui:submitButtonOptions': {
-            submitText: 'Confirm Details',
-            norender: false,
-            props: {
-                disabled: false,
-                className: 'btn btn-info',
-            },
-        },
-        firstName: {
-            'ui:autofocus': true,
-            'ui:emptyValue': '',
-            'ui:autocomplete': 'family-name',
-        },
-        lastName: {
-            'ui:title': 'Surname',
-            'ui:emptyValue': '',
-            'ui:autocomplete': 'given-name',
-        },
-        telephone: {
-            'ui:options': {
-                inputType: 'tel',
-            },
-        },
-    };
-
-    const data = {
-        firstName: 'Chuck',
-        lastName: 'Norris',
-        telephone: '377201489',
-    };
-
     return (
         <>
             <br />
@@ -292,14 +231,7 @@ const AppTabComponent = () => {
                     <TextField source="clientId" />
                     <EditOAuthSetting />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="react json schema form">
-                    <CustomJSONSchemaForm
-                        schema={schema}
-                        uiSchema={uiSchema}
-                        record={data}
-                    ></CustomJSONSchemaForm>
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="OAuth2 json schema form">
+                <TabbedShowLayout.Tab label="OAuth2 JSON schema form">
                     <Typography variant="h5" sx={{ mr: 2 }}>
                         OAuth2.0 Configuration
                     </Typography>
