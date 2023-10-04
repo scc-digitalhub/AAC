@@ -610,6 +610,6 @@ const EditOAuthJsonSchemaForm = () => {
 
 const MyToolbar = () => (
     <Toolbar>
-        <SaveButton alwaysEnable />
+        <SaveButton />
     </Toolbar>
 );
