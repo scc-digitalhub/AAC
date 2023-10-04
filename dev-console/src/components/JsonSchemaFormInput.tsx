@@ -23,8 +23,6 @@ export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
         formState: { isSubmitted },
         isRequired,
     } = useInput({
-        // Pass the event handlers to the hook but not the component as the field property already has them.
-        // useInput will call the provided onChange and onBlur in addition to the default needed by react-hook-form.
         onChange,
         onBlur,
         ...props,
@@ -37,24 +35,8 @@ export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
         source,
     };
 
-    const formContext = useFormContext();
-    let updatedData = {};
-
-    // moved the setValue into a useEffect
-    useEffect(() => {
-        // if (updatedData) {
-        // formContext.setValue('configuration', updatedData);
-        // }
-    });
-
-    // if (field.value) {
-    //     updatedData = field.value;
-    // }
-
     const update = (data: any) => {
-        // updatedData = JSON.parse(type);
         field.onChange(data);
-        return console.log.bind(console, data);
     };
 
     return (
