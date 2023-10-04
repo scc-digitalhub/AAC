@@ -655,9 +655,6 @@ const EditOAuthJsonSchemaForm = () => {
         refresh();
     };
 
-    // const onChange = (data: any) => {
-    //     notify(`form changed`);
-    // };
     return (
         <EditBase
             mutationMode="pessimistic"
@@ -673,7 +670,6 @@ const EditOAuthJsonSchemaForm = () => {
                     source="configuration"
                     schema={schemaOAuthClient}
                     uiSchema={uiSchemaOAuthClient}
-                    // onChange={onChange}
                 />
             </SimpleForm>
         </EditBase>
