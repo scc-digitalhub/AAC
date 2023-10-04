@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/metadata"
+  },
+  "response": {
+    "status": 200,
+    "body":  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<md:EntityDescriptor xmlns:md=\"urn:oasis:names:tc:SAML:2.0:metadata\" xmlns:alg=\"urn:oasis:names:tc:SAML:metadata:algsupport\" entityID=\"https://idp.identityserver.invalid\" ID=\"_bf133aac099b99b3d81286e1a341f2d34188043a77fe15bf4bf1487dae9b2ea3\">\n<md:IDPSSODescriptor WantAuthnRequestsSigned=\"true\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n<md:SingleSignOnService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"https://idp.identityserver.invalid/saml/sso\"/>\n<md:SingleLogoutService Binding=\"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect\" Location=\"https://idp.identityserver.invalid/saml/sso\"/>\n<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>\n<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>\n<md:KeyDescriptor use=\"signing\">\n<ds:KeyInfo xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n<ds:X509Data>\n<ds:X509Certificate>MIIDPzCCAiegAwIBAgIUfxQng0AcL1XU2Ry/B0CX4DdpXWcwDQYJKoZIhvcNAQELBQAwLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMB4XDTIzMDkyODA5NDMyOVoXDTI0MDkyNzA5NDMyOVowLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4G9prMo3UhIJquYw1oFjz4gBGzO8HLS//sJuZ7SIRu2tytc8eG890Mo1EFdSojUKzcH4+R94u6LwfmQLJ1eJEYDlSHB9lI1bfhVISCRWF7G2I7bS4d9eHXwizuVU7/DQZhSUMaOorR3KTYVXcNxatX8eSyqF9LDd86K5lkKRQ9c7Mm70KJR2skpL8enUHxc15v1jSyexagM3Job/p1XkYPRtD1vZuYVjHncp6B9H7S/UBvdqnQoJr9tzNtDpXo8xsZjQXkcuetvV+mc/LZczp9PlflMzaZafOpNWMxuxFad2Jx0GIXSAbUCNhuviJ3IXPa5dhCl4AMX9DGNaX8rASQIDAQABo1MwUTAdBgNVHQ4EFgQUEc0a+j1nZ5knjxetB2dx1qPMEnswHwYDVR0jBBgwFoAUEc0a+j1nZ5knjxetB2dx1qPMEnswDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAANg2NmJPah7GWKXt769inNxApXeDrEUHF8L1jLPzMC35LTtw0FV902Kyohw7sNRHqiHO9yAgyyMxr3DaHLIS6FG0o1K43yZBwrUhNnZHZ93ynmNCxLswj3yswT5a5dxHkhRJrmxuPVtUPmjr5UtHSIXjUWSTC13iXfZgp9efZHB41eKi+0y0yr9ltzJPbPfZ0H36tsFYcYWcBuKW5rSQL9xahRI6aHniTRORxLPCKUxNjzDW7nEgwzoAPl+oMmp1YXHi4Y78cEguRlhZXAOsy7W66O1v0Afzn4F/U5t3E3+QRw82rRe44/z7gNsE0lu9d6Q+Wt98A4Yc3EWvyK5qlg==</ds:X509Certificate>\n</ds:X509Data>\n</ds:KeyInfo>\n</md:KeyDescriptor>\n</md:IDPSSODescriptor>\n</md:EntityDescriptor>",
+    "headers": {
+      "Content-Type": "application/xml"
+    }
+  }
+}

@@ -1,219 +1,275 @@
 package it.smartcommunitylab.aac.saml;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
+import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
+import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
+import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import it.smartcommunitylab.aac.model.PersistenceMode;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
+import java.security.KeyFactory;
 import java.security.PrivateKey;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * This test is aimed at validating if a configuration map will yield a valid
- * and corresponding SamlProviderConfiguration.
+ * and corresponding SamlProviderConfiguration, including the appropriate
+ * Relying Party Registration.
  */
+@SpringBootTest
+@EnableWireMock({
+        @ConfigureWireMock(name="idp-server", property="idp-server-url.example", stubLocation = "saml")
+})
 public class SamlIdentityProviderConfigurationTest {
 
-    private static final int IDP_METADATA_MOCK_PORT = 51994;
-    private static final String MOCK_METADATA_ENDPOINT = "metadata";
-    private static final String IDP_METADATA_EXAMPLE_FP = "saml/saml-idp-metadata-example.xml";
-    private static final String expProviderId = "ProviderTestId";
-    private static final String expEntityID = String.format("http://localhost:8080/auth/saml/metadata/%s", expProviderId);
+    @InjectWireMock("idp-server")
+    private WireMockServer mockIdPServer;
+
+    @Autowired
+    private Environment env;
+
+    private static final String PROVIDER_ID = "ProviderTestId";
+    private static final String ENTITY_ID = String.format("http://localhost:8080/auth/saml/metadata/%s", PROVIDER_ID);
 
     // key pair generated with openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout privateKey.key -out certificate.crt, using openssl version 1.1.1n
-    private static final String expSigningKey = "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC2cpj1zbjBsr4NtvLa+3j8Kb1mwcHlRNwMjPrZQ1fVAFNKuSRgGU87aMavSxFUmQMNy8PEEb+X2IxgNt36JDIHqK6IaEiqOsdzUDXwbHGroFIM5utl6mD4zVqbuPt371QPMNPQUHLLb8QEnwLEeKSIlKLaNmCFeEvEykOSwbrtDxMLIa4Yw2SAvpynMrhSkmDxNzqbZSNPJ41/siSK9rsdNEF/S7pycz+QGXA3/DPkg/hLh+wyjVhBtV4fu6w/B7dyeQpeF5eNUD/wF0B01dxOEcXKWjsiDm/pU2EodX3+lwpPEnw9pDnvKbRdEbTb9Ise0cteDOG7NRg4lUb3DojZAgMBAAECggEAPNSqsVH9JwAMpA/6mw67gP/9uXQizOmPoNOkk6oDb+5i1wgx26S0qS8/B5U02wsFXKUyyX3Nbrhx3WaNzmghEjKotqxmhfOBKq50vYu6vql+kfSwSdPCr1HwwvkDRzLRyRrTlKIuFCxYo93Mk2tSGIPOZIk612WLhbqWmyjixUTv0aVr1h6/CYOwXObPo0fCTHEa5YqHtIwAKxyv1woslZE/Ler7nNOZdAX6hu4tI0LGSTrGBMc9NkiP7O4CMO1AddaYXx7D33JWF03OS6EurAGLUkZNjF+A/PmzMUroiLQp8mND6Io2hrx2sfMuMqAyEBgCM+gZt+bUIqI7HqB08QKBgQDqcpjVf68CLSiQpeStE5oGuYRHH1ay6ii1KMzcpGPIAhGqOybNZ/MDUJbaUkk0C6XdE8aIY/wdX3UcctnO7bwViKxoj4nexuJ0aV5CECAv3IyvBP7pZGAMrvp67R/xe892an58eagpe9rhd3nRzDwIFE2HQ+y+cp8FXbQSOd4e7QKBgQDHOECE9AKZCSvPbY5VW8Y/ztmz5Vcq02JllS2UPlMUebHRg8g2my/9vMr4cG2tPwqVn51QdTJkNfBgWl6KrPo3KJ5LQSezkiOj1nACcSJqUViTvpnlHd3X/ifU/IBrLygJiRxv0SDTz3y7jecVW/ZE38bjycaQW1Yv/I7e8lAoHQKBgGXUKl+o2qmWVaUl+MHX3rGHCFYf3XdOTyoIM5qt6AzqISQQFxVmTd2lti/TR6pMWNlCCpwY2Vskp+gYVlQTW/r6Zu/vUFGrjpZDYcZN3L0NDSnDgLh8eV9o7LBRp+sp/H0RWijUal7CRdpiG04tZ/GWZ+oVbZF2lW0uOtUjvz8tAoGBAKrJ1sYkSnXYHu7dBUC4ROU+9/P5kRjtz1U25rRIGgFbss3jJClsMWBeEcOa3uu/N9u90qe/UUwH0eNIlfRdBsVy1QG/AcI4bsVueOgfBVoQEtfWdyisyhr5kDxPm+hHrRM/sFlL99Cd+Fjx9kGhbSbukRuHR+tJ4kGRSwpmwcEhAoGBANZ8V4Rjs2/6ORLLwwHPcInV8j/gHFQT1ikiPHteBOcyC5Dv5Gd+wy6yuckTraqTcgbbjP19ViQoWO5chroAnUj+KoSkoxeZ0+KKJ4x1yAetmuf27mkLydO5Q8pYBzrDcQF2xEELn3BWXA/+h3MFWV0D+UPNbmZqr7XhwHzTVjOl";
-    private static final String expSigningCertificate = "MIIDPzCCAiegAwIBAgIUfZ2mNcS2uxM6CBTdJRpOcPwjNH0wDQYJKoZIhvcNAQELBQAwLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMB4XDTIzMDkyNzA5MTgwMVoXDTI0MDkyNjA5MTgwMVowLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtnKY9c24wbK+Dbby2vt4/Cm9ZsHB5UTcDIz62UNX1QBTSrkkYBlPO2jGr0sRVJkDDcvDxBG/l9iMYDbd+iQyB6iuiGhIqjrHc1A18Gxxq6BSDObrZepg+M1am7j7d+9UDzDT0FByy2/EBJ8CxHikiJSi2jZghXhLxMpDksG67Q8TCyGuGMNkgL6cpzK4UpJg8Tc6m2UjTyeNf7Ikiva7HTRBf0u6cnM/kBlwN/wz5IP4S4fsMo1YQbVeH7usPwe3cnkKXheXjVA/8BdAdNXcThHFylo7Ig5v6VNhKHV9/pcKTxJ8PaQ57ym0XRG02/SLHtHLXgzhuzUYOJVG9w6I2QIDAQABo1MwUTAdBgNVHQ4EFgQUDvOK5Dy+4lkO0lQo5r8hjxXpRxQwHwYDVR0jBBgwFoAUDvOK5Dy+4lkO0lQo5r8hjxXpRxQwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAhTPaUkGAbepVzlTNyRD71MLeNUuKjVg5vNQj3kyQWiUo1lgudu/D0Aq74qeY2Dtsp7VoFuKOZFXuu0HmSCNbn9qE3Z8De8NVdBTBHqfXw6C2fD3DQbq/VxrfzXz9sWP28SCoN3MBpIqoUvqP+KqlpuaTM8ZJRtumSNaZ11LY2jlnJ2wKTBfBOjTux3Y4WCzMp4Zx/bu7ArpiK9j3UvYkqOvvgYT8MlHdE9X/jo9avjdqQaJ0YyPm4kNyLP5Uzfbfse/x3ymt1LPU/jInbGe+JOr6DFTnti0w6dZp4KiNhuTNoUnqwSG0KZe1rncwW3CsVxYwxd6BYAKkKV5sb73C0Q==";
+    private static final String SIGN_PRIV_KEY = "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC2cpj1zbjBsr4NtvLa+3j8Kb1mwcHlRNwMjPrZQ1fVAFNKuSRgGU87aMavSxFUmQMNy8PEEb+X2IxgNt36JDIHqK6IaEiqOsdzUDXwbHGroFIM5utl6mD4zVqbuPt371QPMNPQUHLLb8QEnwLEeKSIlKLaNmCFeEvEykOSwbrtDxMLIa4Yw2SAvpynMrhSkmDxNzqbZSNPJ41/siSK9rsdNEF/S7pycz+QGXA3/DPkg/hLh+wyjVhBtV4fu6w/B7dyeQpeF5eNUD/wF0B01dxOEcXKWjsiDm/pU2EodX3+lwpPEnw9pDnvKbRdEbTb9Ise0cteDOG7NRg4lUb3DojZAgMBAAECggEAPNSqsVH9JwAMpA/6mw67gP/9uXQizOmPoNOkk6oDb+5i1wgx26S0qS8/B5U02wsFXKUyyX3Nbrhx3WaNzmghEjKotqxmhfOBKq50vYu6vql+kfSwSdPCr1HwwvkDRzLRyRrTlKIuFCxYo93Mk2tSGIPOZIk612WLhbqWmyjixUTv0aVr1h6/CYOwXObPo0fCTHEa5YqHtIwAKxyv1woslZE/Ler7nNOZdAX6hu4tI0LGSTrGBMc9NkiP7O4CMO1AddaYXx7D33JWF03OS6EurAGLUkZNjF+A/PmzMUroiLQp8mND6Io2hrx2sfMuMqAyEBgCM+gZt+bUIqI7HqB08QKBgQDqcpjVf68CLSiQpeStE5oGuYRHH1ay6ii1KMzcpGPIAhGqOybNZ/MDUJbaUkk0C6XdE8aIY/wdX3UcctnO7bwViKxoj4nexuJ0aV5CECAv3IyvBP7pZGAMrvp67R/xe892an58eagpe9rhd3nRzDwIFE2HQ+y+cp8FXbQSOd4e7QKBgQDHOECE9AKZCSvPbY5VW8Y/ztmz5Vcq02JllS2UPlMUebHRg8g2my/9vMr4cG2tPwqVn51QdTJkNfBgWl6KrPo3KJ5LQSezkiOj1nACcSJqUViTvpnlHd3X/ifU/IBrLygJiRxv0SDTz3y7jecVW/ZE38bjycaQW1Yv/I7e8lAoHQKBgGXUKl+o2qmWVaUl+MHX3rGHCFYf3XdOTyoIM5qt6AzqISQQFxVmTd2lti/TR6pMWNlCCpwY2Vskp+gYVlQTW/r6Zu/vUFGrjpZDYcZN3L0NDSnDgLh8eV9o7LBRp+sp/H0RWijUal7CRdpiG04tZ/GWZ+oVbZF2lW0uOtUjvz8tAoGBAKrJ1sYkSnXYHu7dBUC4ROU+9/P5kRjtz1U25rRIGgFbss3jJClsMWBeEcOa3uu/N9u90qe/UUwH0eNIlfRdBsVy1QG/AcI4bsVueOgfBVoQEtfWdyisyhr5kDxPm+hHrRM/sFlL99Cd+Fjx9kGhbSbukRuHR+tJ4kGRSwpmwcEhAoGBANZ8V4Rjs2/6ORLLwwHPcInV8j/gHFQT1ikiPHteBOcyC5Dv5Gd+wy6yuckTraqTcgbbjP19ViQoWO5chroAnUj+KoSkoxeZ0+KKJ4x1yAetmuf27mkLydO5Q8pYBzrDcQF2xEELn3BWXA/+h3MFWV0D+UPNbmZqr7XhwHzTVjOl";
+    private static final String SIGN_CERTIFICATE = "MIIDPzCCAiegAwIBAgIUfZ2mNcS2uxM6CBTdJRpOcPwjNH0wDQYJKoZIhvcNAQELBQAwLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMB4XDTIzMDkyNzA5MTgwMVoXDTI0MDkyNjA5MTgwMVowLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtnKY9c24wbK+Dbby2vt4/Cm9ZsHB5UTcDIz62UNX1QBTSrkkYBlPO2jGr0sRVJkDDcvDxBG/l9iMYDbd+iQyB6iuiGhIqjrHc1A18Gxxq6BSDObrZepg+M1am7j7d+9UDzDT0FByy2/EBJ8CxHikiJSi2jZghXhLxMpDksG67Q8TCyGuGMNkgL6cpzK4UpJg8Tc6m2UjTyeNf7Ikiva7HTRBf0u6cnM/kBlwN/wz5IP4S4fsMo1YQbVeH7usPwe3cnkKXheXjVA/8BdAdNXcThHFylo7Ig5v6VNhKHV9/pcKTxJ8PaQ57ym0XRG02/SLHtHLXgzhuzUYOJVG9w6I2QIDAQABo1MwUTAdBgNVHQ4EFgQUDvOK5Dy+4lkO0lQo5r8hjxXpRxQwHwYDVR0jBBgwFoAUDvOK5Dy+4lkO0lQo5r8hjxXpRxQwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAhTPaUkGAbepVzlTNyRD71MLeNUuKjVg5vNQj3kyQWiUo1lgudu/D0Aq74qeY2Dtsp7VoFuKOZFXuu0HmSCNbn9qE3Z8De8NVdBTBHqfXw6C2fD3DQbq/VxrfzXz9sWP28SCoN3MBpIqoUvqP+KqlpuaTM8ZJRtumSNaZ11LY2jlnJ2wKTBfBOjTux3Y4WCzMp4Zx/bu7ArpiK9j3UvYkqOvvgYT8MlHdE9X/jo9avjdqQaJ0YyPm4kNyLP5Uzfbfse/x3ymt1LPU/jInbGe+JOr6DFTnti0w6dZp4KiNhuTNoUnqwSG0KZe1rncwW3CsVxYwxd6BYAKkKV5sb73C0Q==";
+    private static final String KEY_PAIR_ALGORITHM = "RSA";
 
-    private static final String expCryptKey = null;
-    private static final String expCryptCertificate = null;
+    /*-- config for automatic discovery param --*/
+    private static final String IDP_METADATA_ENDPOINT = "/metadata";
+    private String IDP_METADATA_URL; // NOTE: variable evaluated at runtime using environment properties
 
-    /*-- automatic discovery param --*/
-    private static final String expIdpMetadataUrl = String.format("http://127.0.0.1:%s/%s", Integer.valueOf(IDP_METADATA_MOCK_PORT).toString(), MOCK_METADATA_ENDPOINT);
-    /*-- manual discovery params start --*/
-    private static final String expIdpEntityId = "http://toy-web-sso.it/toyservice/metadata";
-    private static final String expWebSsoUrl = "http://toy-web-sso.it/toyservice/ssourl";
-    private static final String expWebLogoutUrl = "http://toy-web-sso.it/toyservice/logout";
-    private static final Boolean expSignAuthNRequest = true;
-    private static final String expVerificationCertificate = "MIIDPzCCAiegAwIBAgIUfxQng0AcL1XU2Ry/B0CX4DdpXWcwDQYJKoZIhvcNAQELBQAwLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMB4XDTIzMDkyODA5NDMyOVoXDTI0MDkyNzA5NDMyOVowLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4G9prMo3UhIJquYw1oFjz4gBGzO8HLS//sJuZ7SIRu2tytc8eG890Mo1EFdSojUKzcH4+R94u6LwfmQLJ1eJEYDlSHB9lI1bfhVISCRWF7G2I7bS4d9eHXwizuVU7/DQZhSUMaOorR3KTYVXcNxatX8eSyqF9LDd86K5lkKRQ9c7Mm70KJR2skpL8enUHxc15v1jSyexagM3Job/p1XkYPRtD1vZuYVjHncp6B9H7S/UBvdqnQoJr9tzNtDpXo8xsZjQXkcuetvV+mc/LZczp9PlflMzaZafOpNWMxuxFad2Jx0GIXSAbUCNhuviJ3IXPa5dhCl4AMX9DGNaX8rASQIDAQABo1MwUTAdBgNVHQ4EFgQUEc0a+j1nZ5knjxetB2dx1qPMEnswHwYDVR0jBBgwFoAUEc0a+j1nZ5knjxetB2dx1qPMEnswDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAANg2NmJPah7GWKXt769inNxApXeDrEUHF8L1jLPzMC35LTtw0FV902Kyohw7sNRHqiHO9yAgyyMxr3DaHLIS6FG0o1K43yZBwrUhNnZHZ93ynmNCxLswj3yswT5a5dxHkhRJrmxuPVtUPmjr5UtHSIXjUWSTC13iXfZgp9efZHB41eKi+0y0yr9ltzJPbPfZ0H36tsFYcYWcBuKW5rSQL9xahRI6aHniTRORxLPCKUxNjzDW7nEgwzoAPl+oMmp1YXHi4Y78cEguRlhZXAOsy7W66O1v0Afzn4F/U5t3E3+QRw82rRe44/z7gNsE0lu9d6Q+Wt98A4Yc3EWvyK5qlg==";
-    private static final String expSsoServiceBinding = "http://toy-web-sso.it/toyservice/ssobinding";
+    /*-- config for manual discovery params start --*/
+    private static final String IDP_ENTITY_ID = "http://toy-web-sso.invalid/toyservice/metadata";
+    private static final String IDP_WEB_SSO_URL = "http://toy-web-sso.invalid/toyservice/ssourl";
+    private static final String IDP_WEB_LOGOUT_URL = "http://toy-web-sso.invalid/toyservice/logout";
+    private static final Boolean IDP_SIGN_AUTHN_REQUEST = true;
+    private static final String IDP_VERIFICATION_CERTIFICATE = "MIIDPzCCAiegAwIBAgIUfxQng0AcL1XU2Ry/B0CX4DdpXWcwDQYJKoZIhvcNAQELBQAwLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMB4XDTIzMDkyODA5NDMyOVoXDTI0MDkyNzA5NDMyOVowLzELMAkGA1UEBhMCSVQxDzANBgNVBAgMBlRyZW50bzEPMA0GA1UEBwwGVHJlbnRvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4G9prMo3UhIJquYw1oFjz4gBGzO8HLS//sJuZ7SIRu2tytc8eG890Mo1EFdSojUKzcH4+R94u6LwfmQLJ1eJEYDlSHB9lI1bfhVISCRWF7G2I7bS4d9eHXwizuVU7/DQZhSUMaOorR3KTYVXcNxatX8eSyqF9LDd86K5lkKRQ9c7Mm70KJR2skpL8enUHxc15v1jSyexagM3Job/p1XkYPRtD1vZuYVjHncp6B9H7S/UBvdqnQoJr9tzNtDpXo8xsZjQXkcuetvV+mc/LZczp9PlflMzaZafOpNWMxuxFad2Jx0GIXSAbUCNhuviJ3IXPa5dhCl4AMX9DGNaX8rASQIDAQABo1MwUTAdBgNVHQ4EFgQUEc0a+j1nZ5knjxetB2dx1qPMEnswHwYDVR0jBBgwFoAUEc0a+j1nZ5knjxetB2dx1qPMEnswDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAANg2NmJPah7GWKXt769inNxApXeDrEUHF8L1jLPzMC35LTtw0FV902Kyohw7sNRHqiHO9yAgyyMxr3DaHLIS6FG0o1K43yZBwrUhNnZHZ93ynmNCxLswj3yswT5a5dxHkhRJrmxuPVtUPmjr5UtHSIXjUWSTC13iXfZgp9efZHB41eKi+0y0yr9ltzJPbPfZ0H36tsFYcYWcBuKW5rSQL9xahRI6aHniTRORxLPCKUxNjzDW7nEgwzoAPl+oMmp1YXHi4Y78cEguRlhZXAOsy7W66O1v0Afzn4F/U5t3E3+QRw82rRe44/z7gNsE0lu9d6Q+Wt98A4Yc3EWvyK5qlg==";
+    private static final String IDP_SSO_SERVICE_BINDING_LOCATION = "http://toy-web-sso.invalid/toyservice/ssobinding";
+    private static final Saml2MessageBinding IDP_SSO_BINDING_TYPE = Saml2MessageBinding.REDIRECT;
     /*-- manual discovery end --*/
 
-    private static final String expNameIDFormat = null;
-    private static final Boolean expNameIDAllowCreate = null;
-    private static final Boolean expForceAuth = null;
-    private static final Boolean expIsPassive = null;
-    private static final HashSet<String> expAuthnContextClasses = null;
-    private static final String expAuthnContextComparison = null;
-    private static final String expUserNameAttributeName = null;
+    private static final boolean TRUST_EMAIL_ADDRESS = true;
+    private static final boolean ALWAYS_TRUST_EMAIL_ADDRESS = true;
+    private static final boolean REQUIRE_EMAIL_ADDRESS = false;
 
+    private static final String AUTHORITY = "saml";
+    private static final Saml2MessageBinding RPR_ASSERTION_CONSUMER_BINDING = Saml2MessageBinding.POST;
+    private static final String RPR_ASSERTION_CONSUMER_LOCATION = String.format("{baseUrl}/auth/%s/sso/{registrationId}", AUTHORITY);
 
-    private static final Boolean expTrustEmailAddress = true;
-    private static final Boolean expAlwaysTrustEmailAddress = true;
-    private static final Boolean expRequireEmailAddress = false;
+    /*
+     Identity Provider (SAML assessing party) metadata templates and values - involved when doing relying party registration, automatic assessing party discovery from metadata url
+     This template was inspired from the following source/reference:
+     https://github.com/spring-projects/spring-security/blob/main/saml2/saml2-service-provider/src/test/java/org/springframework/security/saml2/provider/service/registration/OpenSamlMetadataRelyingPartyRegistrationConverterTests.java
+     The filled template is used to produce the stub response, available in the mapping folder
+     NOTE: Spring Security will validate that the (filled) template is well formed
+     NOTE: references, marked as (N), with N positive integer, are used as helpers/reference when filling the template
+     */
+    private static final String ASSERTING_PARTY_METADATA_TEMPLATE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<md:EntityDescriptor xmlns:md=\"urn:oasis:names:tc:SAML:2.0:metadata\" xmlns:alg=\"urn:oasis:names:tc:SAML:metadata:algsupport\" "
+            + "entityID=\"%s\" ID=\"_bf133aac099b99b3d81286e1a341f2d34188043a77fe15bf4bf1487dae9b2ea3\">\n" //(1)
+            + "<md:IDPSSODescriptor WantAuthnRequestsSigned=\"%s\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n" //(2)
+            + "<md:SingleSignOnService Binding=\"%s\" Location=\"%s\"/>\n" // (3), (4)
+            + "<md:SingleLogoutService Binding=\"%s\" Location=\"%s\"/>\n" // (5), (6)
+            + "<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>\n"
+            + "<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>\n"
+            + "<md:KeyDescriptor use=\"%s\">\n" // (7)
+            + "<ds:KeyInfo xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n" + "<ds:X509Data>\n"
+            + "<ds:X509Certificate>%s</ds:X509Certificate>\n" // (8)
+            + "</ds:X509Data>\n" + "</ds:KeyInfo>\n"
+            + "</md:KeyDescriptor>\n"
+            + "</md:IDPSSODescriptor>\n"
+            + "</md:EntityDescriptor>";
+    private static final String ASSERTING_PARTY_ENTITY_ID = "https://idp.identityserver.invalid";
+    private static final boolean ASSERTING_PARTY_WANT_AUTHN_SIGNED = true;
+    private static final Saml2MessageBinding ASSERTING_PARTY_SSO_CONSUMER_BINDING = Saml2MessageBinding.REDIRECT;
+    private static final String ASSERTING_PARTY_SSO_BINDING_LOCATION = "https://idp.identityserver.invalid/saml/sso";
+    private static final String ASSESSING_PARTY_KEY_USAGE = "signing";
 
-    private static final String expAuthority = "saml";
-    private static final Saml2MessageBinding expRPRAssertionConsumerBinding = Saml2MessageBinding.POST;
-    private static final String expRPRAssertionConsumerLocation = String.format("{baseUrl}/auth/%s/sso/{registrationId}", expAuthority);
+    /**
+     * Definition of IdP metadata returned when asking for automating assenssing party initialization in relying party registration
+     * @return a string representing the xml of the IdP metadata
+     */
+    private String evaluateIdpMetadata() {
+        // utility method used to define the body of the xml metadat resporse when asking for assessing party metadata
+        return String.format(ASSERTING_PARTY_METADATA_TEMPLATE,
+                ASSERTING_PARTY_ENTITY_ID,                      // (1)
+                ASSERTING_PARTY_WANT_AUTHN_SIGNED,              // (2)
+                ASSERTING_PARTY_SSO_CONSUMER_BINDING.getUrn(),  // (3)
+                ASSERTING_PARTY_SSO_BINDING_LOCATION,           // (4)
+                ASSERTING_PARTY_SSO_CONSUMER_BINDING.getUrn(),  // (5)
+                ASSERTING_PARTY_SSO_BINDING_LOCATION,           // (6)
+                ASSESSING_PARTY_KEY_USAGE,                      // (7)
+                IDP_VERIFICATION_CERTIFICATE                    // (8)
+                );
+    }
+
+    @PostConstruct
+    private void postConstruct() {
+        IDP_METADATA_URL = env.getProperty("idp-server-url.example") + IDP_METADATA_ENDPOINT;
+    }
+
     /**
      *
      * @return an hardcoded saml identity provider configuration map (this mock the user provided map)
      */
-    private Map<String, Serializable> buildRawConfigurationMap(boolean withAutomaticDiscovery) {
+    private Map<String, Serializable> buildRawConfigurationMapAutoDiscovery() {
         Map<String, Serializable> rawCfgMap = new HashMap<>();
         rawCfgMap.put("type", SamlIdentityProviderConfigMap.RESOURCE_TYPE);
-        rawCfgMap.put("entityId", expEntityID);
-        rawCfgMap.put("signingKey", expSigningKey);
-        rawCfgMap.put("signingCertificate", expSigningCertificate);
-        rawCfgMap.put("cryptKey", expCryptKey);
-        rawCfgMap.put("cryptCertificate", expCryptCertificate);
-        if (withAutomaticDiscovery) {
-            rawCfgMap.put("idpMetadataUrl", expIdpMetadataUrl);
-            rawCfgMap.put("idpEntityId", null);
-            rawCfgMap.put("webSsoUrl", null);
-            rawCfgMap.put("webLogoutUrl", null);
-            rawCfgMap.put("signAuthNRequest", null);
-            rawCfgMap.put("verificationCertificate", null);
-            rawCfgMap.put("ssoServiceBinding", null);
-        } else {
-            rawCfgMap.put("idpMetadataUrl", null);
-            rawCfgMap.put("idpEntityId", expIdpEntityId);
-            rawCfgMap.put("webSsoUrl", expWebSsoUrl);
-            rawCfgMap.put("webLogoutUrl", expWebLogoutUrl);
-            rawCfgMap.put("signAuthNRequest", expSignAuthNRequest);
-            rawCfgMap.put("verificationCertificate", expVerificationCertificate);
-            rawCfgMap.put("ssoServiceBinding", expSsoServiceBinding);
-        }
-        rawCfgMap.put("nameIDFormat", expNameIDFormat);
-        rawCfgMap.put("nameIDAllowCreate", expNameIDAllowCreate);
-        rawCfgMap.put("forceAuthn", expForceAuth);
-        rawCfgMap.put("isPassive", expIsPassive);
-        rawCfgMap.put("authnContextClasses", expAuthnContextClasses);
-        rawCfgMap.put("authnContextComparison", expAuthnContextComparison);
-        rawCfgMap.put("userNameAttributeName", expUserNameAttributeName);
-        rawCfgMap.put("trustEmailAddress", expTrustEmailAddress);
-        rawCfgMap.put("alwaysTrustEmailAddress", expAlwaysTrustEmailAddress);
-        rawCfgMap.put("requireEmailAddress", expRequireEmailAddress);
+        rawCfgMap.put("entityId", ENTITY_ID);
+        rawCfgMap.put("signingKey", SIGN_PRIV_KEY);
+        rawCfgMap.put("signingCertificate", SIGN_CERTIFICATE);
+        rawCfgMap.put("cryptKey", null);
+        rawCfgMap.put("cryptCertificate", null);
+        rawCfgMap.put("idpMetadataUrl", IDP_METADATA_URL);
+        rawCfgMap.put("idpEntityId", null);
+        rawCfgMap.put("webSsoUrl", null);
+        rawCfgMap.put("webLogoutUrl", null);
+        rawCfgMap.put("signAuthNRequest", null);
+        rawCfgMap.put("verificationCertificate", null);
+        rawCfgMap.put("ssoServiceBinding", null);
+        rawCfgMap.put("nameIDFormat", null);
+        rawCfgMap.put("nameIDAllowCreate", null);
+        rawCfgMap.put("forceAuthn", null);
+        rawCfgMap.put("isPassive", null);
+        rawCfgMap.put("authnContextClasses", null);
+        rawCfgMap.put("authnContextComparison", null);
+        rawCfgMap.put("userNameAttributeName", null);
+        rawCfgMap.put("trustEmailAddress", TRUST_EMAIL_ADDRESS);
+        rawCfgMap.put("alwaysTrustEmailAddress", ALWAYS_TRUST_EMAIL_ADDRESS);
+        rawCfgMap.put("requireEmailAddress", REQUIRE_EMAIL_ADDRESS);
         return  rawCfgMap;
     }
 
-    private ConfigurableIdentityProvider getDefaultConfigurableIdentityProvider() {
-        return new ConfigurableIdentityProvider(expAuthority, expProviderId, "toyRealmName");
-    }
-
-    private IdentityProviderSettingsMap getDefaultIdentityProviderSettingsMap() {
-        Map<String, Serializable> rawSettingsMap = new HashMap<>();
-        rawSettingsMap.put("type", IdentityProviderSettingsMap.RESOURCE_TYPE);
-        rawSettingsMap.put("linkable", true);
-        rawSettingsMap.put("persistence", PersistenceMode.REPOSITORY);
-        rawSettingsMap.put("events", "full");
-        rawSettingsMap.put("position", 0);
-        IdentityProviderSettingsMap idProvSettingsMap = new IdentityProviderSettingsMap();
-        idProvSettingsMap.setConfiguration(rawSettingsMap);
-
-        return idProvSettingsMap;
-    }
-
     /**
-     * Fetch the Saml Identity Provider metadata from a example file and yields it as string
-     * @return Saml identity provider metadata as string
-     * @throws Exception when the file is not found or not valid
+     *
+     * @return an hardcoded saml identity provider configuration map (this mock the user provided map)
      */
-    private String fetchIdpMetadataExample() throws Exception {
-        InputStream idpMetadataStream = getClass().getClassLoader().getResourceAsStream(IDP_METADATA_EXAMPLE_FP);
-        Assertions.assertThat(idpMetadataStream).isNotNull();
-        String idpMetadataValueAsBody;
-        try (
-                InputStreamReader idpMetadataReader = new InputStreamReader(idpMetadataStream);
-                BufferedReader buffer = new BufferedReader(idpMetadataReader)) {
-            idpMetadataValueAsBody = buffer.lines().collect(Collectors.joining(System.lineSeparator()));
-        }
-        return idpMetadataValueAsBody;
-    }
-
-    private static WireMockServer buildMockIdpServer (String serverMetadataResponseBody) {
-        // this method defines a mock idp server designed to mock an IDP metadata request
-        WireMockServer wireMockServer = new WireMockServer(IDP_METADATA_MOCK_PORT);
-        wireMockServer.stubFor(get(urlEqualTo("/"+ MOCK_METADATA_ENDPOINT))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/samlmetadata+xml;charset=utf-8")
-                        .withBody(serverMetadataResponseBody)
-                )
-        );
-        return wireMockServer;
+    private Map<String, Serializable> buildRawConfigurationMapManualDiscovery() {
+        Map<String, Serializable> rawCfgMap = new HashMap<>();
+        rawCfgMap.put("type", SamlIdentityProviderConfigMap.RESOURCE_TYPE);
+        rawCfgMap.put("entityId", ENTITY_ID);
+        rawCfgMap.put("signingKey", SIGN_PRIV_KEY);
+        rawCfgMap.put("signingCertificate", SIGN_CERTIFICATE);
+        rawCfgMap.put("cryptKey", null);
+        rawCfgMap.put("cryptCertificate", null);
+        rawCfgMap.put("idpMetadataUrl", null);
+        rawCfgMap.put("idpEntityId", IDP_ENTITY_ID);
+        rawCfgMap.put("webSsoUrl", IDP_WEB_SSO_URL);
+        rawCfgMap.put("webLogoutUrl", IDP_WEB_LOGOUT_URL);
+        rawCfgMap.put("signAuthNRequest", IDP_SIGN_AUTHN_REQUEST);
+        rawCfgMap.put("verificationCertificate", IDP_VERIFICATION_CERTIFICATE);
+        rawCfgMap.put("ssoServiceBinding", IDP_SSO_SERVICE_BINDING_LOCATION);
+        rawCfgMap.put("nameIDFormat", null);
+        rawCfgMap.put("nameIDAllowCreate", null);
+        rawCfgMap.put("forceAuthn", null);
+        rawCfgMap.put("isPassive", null);
+        rawCfgMap.put("authnContextClasses", null);
+        rawCfgMap.put("authnContextComparison", null);
+        rawCfgMap.put("userNameAttributeName", null);
+        rawCfgMap.put("trustEmailAddress", TRUST_EMAIL_ADDRESS);
+        rawCfgMap.put("alwaysTrustEmailAddress", ALWAYS_TRUST_EMAIL_ADDRESS);
+        rawCfgMap.put("requireEmailAddress", REQUIRE_EMAIL_ADDRESS);
+        return  rawCfgMap;
     }
 
     /**
      * This test checks if the configuration map used to create a saml configuration matches the
      * actual information in the saml configuration map object.
+     * This case tests the type of map involved when the assessing party metadata is automatically
+     * discovered (from a known location) during the relying party registration.
      * @throws Exception
      */
     @Test
-    public void validateSamlConfigMapCreation() throws Exception {
-        List<Boolean> metadataDiscoveryCases = Arrays.asList(true, false);
-        for (Boolean metadataCase : metadataDiscoveryCases) {
-            Map<String, Serializable> rawCfgMap = buildRawConfigurationMap(metadataCase);
-            SamlIdentityProviderConfigMap idpCfgMap = new SamlIdentityProviderConfigMap();
-            idpCfgMap.setConfiguration(rawCfgMap);
+    public void validateSamlConfigMapAutoDiscoveryCreation() throws Exception {
+        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapAutoDiscovery();
+        SamlIdentityProviderConfigMap idpCfgMap = new SamlIdentityProviderConfigMap();
+        idpCfgMap.setConfiguration(rawCfgMap);
 
-            Assertions.assertThat(idpCfgMap.getEntityId()).isEqualTo(rawCfgMap.get("entityId"));
-            Assertions.assertThat(idpCfgMap.getSigningKey()).isEqualTo(rawCfgMap.get("signingKey"));
-            Assertions.assertThat(idpCfgMap.getSigningCertificate()).isEqualTo(rawCfgMap.get("signingCertificate"));
-            Assertions.assertThat(idpCfgMap.getCryptKey()).isEqualTo(rawCfgMap.get("cryptKey"));
-            Assertions.assertThat(idpCfgMap.getCryptCertificate()).isEqualTo(rawCfgMap.get("cryptCertificate"));
+        assertThat(idpCfgMap.getEntityId()).isEqualTo(rawCfgMap.get("entityId"));
+        assertThat(idpCfgMap.getSigningKey()).isEqualTo(rawCfgMap.get("signingKey"));
+        assertThat(idpCfgMap.getSigningCertificate()).isEqualTo(rawCfgMap.get("signingCertificate"));
+        assertThat(idpCfgMap.getCryptKey()).isEqualTo(rawCfgMap.get("cryptKey"));
+        assertThat(idpCfgMap.getCryptCertificate()).isEqualTo(rawCfgMap.get("cryptCertificate"));
 
-            Assertions.assertThat(idpCfgMap.getIdpMetadataUrl()).isEqualTo(rawCfgMap.get("idpMetadataUrl"));
-            Assertions.assertThat(idpCfgMap.getIdpEntityId()).isEqualTo(rawCfgMap.get("idpEntityId"));
-            Assertions.assertThat(idpCfgMap.getWebSsoUrl()).isEqualTo(rawCfgMap.get("webSsoUrl"));
-            Assertions.assertThat(idpCfgMap.getWebLogoutUrl()).isEqualTo(rawCfgMap.get("webLogoutUrl"));
-            Assertions.assertThat(idpCfgMap.getSignAuthNRequest()).isEqualTo(rawCfgMap.get("signAuthNRequest"));
-            Assertions.assertThat(idpCfgMap.getVerificationCertificate()).isEqualTo(rawCfgMap.get("verificationCertificate"));
-            Assertions.assertThat(idpCfgMap.getSsoServiceBinding()).isEqualTo(rawCfgMap.get("ssoServiceBinding"));
+        assertThat(idpCfgMap.getIdpMetadataUrl()).isEqualTo(rawCfgMap.get("idpMetadataUrl"));
+        assertThat(idpCfgMap.getIdpEntityId()).isEqualTo(rawCfgMap.get("idpEntityId"));
+        assertThat(idpCfgMap.getWebSsoUrl()).isEqualTo(rawCfgMap.get("webSsoUrl"));
+        assertThat(idpCfgMap.getWebLogoutUrl()).isEqualTo(rawCfgMap.get("webLogoutUrl"));
+        assertThat(idpCfgMap.getSignAuthNRequest()).isEqualTo(rawCfgMap.get("signAuthNRequest"));
+        assertThat(idpCfgMap.getVerificationCertificate()).isEqualTo(rawCfgMap.get("verificationCertificate"));
+        assertThat(idpCfgMap.getSsoServiceBinding()).isEqualTo(rawCfgMap.get("ssoServiceBinding"));
 
-            Assertions.assertThat(idpCfgMap.getNameIDFormat()).isEqualTo(rawCfgMap.get("nameIDFormat"));
-            Assertions.assertThat(idpCfgMap.getNameIDAllowCreate()).isEqualTo(rawCfgMap.get("nameIDAllowCreate"));
-            Assertions.assertThat(idpCfgMap.getForceAuthn()).isEqualTo(rawCfgMap.get("forceAuthn"));
-            Assertions.assertThat(idpCfgMap.getIsPassive()).isEqualTo(rawCfgMap.get("isPassive"));
-            Assertions.assertThat(idpCfgMap.getAuthnContextClasses()).isEqualTo(rawCfgMap.get("authnContextClasses"));
-            Assertions.assertThat(idpCfgMap.getAuthnContextComparison()).isEqualTo(rawCfgMap.get("authnContextComparison"));
-            Assertions.assertThat(idpCfgMap.getUserNameAttributeName()).isEqualTo(rawCfgMap.get("userNameAttributeName"));
+        assertThat(idpCfgMap.getNameIDFormat()).isEqualTo(rawCfgMap.get("nameIDFormat"));
+        assertThat(idpCfgMap.getNameIDAllowCreate()).isEqualTo(rawCfgMap.get("nameIDAllowCreate"));
+        assertThat(idpCfgMap.getForceAuthn()).isEqualTo(rawCfgMap.get("forceAuthn"));
+        assertThat(idpCfgMap.getIsPassive()).isEqualTo(rawCfgMap.get("isPassive"));
+        assertThat(idpCfgMap.getAuthnContextClasses()).isEqualTo(rawCfgMap.get("authnContextClasses"));
+        assertThat(idpCfgMap.getAuthnContextComparison()).isEqualTo(rawCfgMap.get("authnContextComparison"));
+        assertThat(idpCfgMap.getUserNameAttributeName()).isEqualTo(rawCfgMap.get("userNameAttributeName"));
 
-            Assertions.assertThat(idpCfgMap.getTrustEmailAddress()).isEqualTo(rawCfgMap.get("trustEmailAddress"));
-            Assertions.assertThat(idpCfgMap.getAlwaysTrustEmailAddress()).isEqualTo(rawCfgMap.get("alwaysTrustEmailAddress"));
-            Assertions.assertThat(idpCfgMap.getRequireEmailAddress()).isEqualTo(rawCfgMap.get("requireEmailAddress"));
-        }
+        assertThat(idpCfgMap.getTrustEmailAddress()).isEqualTo(rawCfgMap.get("trustEmailAddress"));
+        assertThat(idpCfgMap.getAlwaysTrustEmailAddress()).isEqualTo(rawCfgMap.get("alwaysTrustEmailAddress"));
+        assertThat(idpCfgMap.getRequireEmailAddress()).isEqualTo(rawCfgMap.get("requireEmailAddress"));
     }
 
     /**
-     * This tests checks if s saml configuration map matches the content of the given saml configuration
+     * This test checks if the configuration map used to create a saml configuration matches the
+     * actual information in the saml configuration map object.
+     * This case tests the type of map involved when the assessing party metadata is manually assigned
+     * during the relying party registration.
      * @throws Exception
      */
     @Test
-    public void validateSamlIdentityProviderConfigCreation() throws Exception {
+    public void validateSamlConfigMapManualDiscoveryCreation() throws Exception {
+        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapManualDiscovery();
+        SamlIdentityProviderConfigMap idpCfgMap = new SamlIdentityProviderConfigMap();
+        idpCfgMap.setConfiguration(rawCfgMap);
 
-        // Create (hardcoded) configuration map to be used for initialization
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMap(true);
-        SamlIdentityProviderConfigMap idProvCfgMap = new SamlIdentityProviderConfigMap();
-        idProvCfgMap.setConfiguration(rawCfgMap);
+        assertThat(idpCfgMap.getEntityId()).isEqualTo(rawCfgMap.get("entityId"));
+        assertThat(idpCfgMap.getSigningKey()).isEqualTo(rawCfgMap.get("signingKey"));
+        assertThat(idpCfgMap.getSigningCertificate()).isEqualTo(rawCfgMap.get("signingCertificate"));
+        assertThat(idpCfgMap.getCryptKey()).isEqualTo(rawCfgMap.get("cryptKey"));
+        assertThat(idpCfgMap.getCryptCertificate()).isEqualTo(rawCfgMap.get("cryptCertificate"));
 
-        ConfigurableIdentityProvider cip = getDefaultConfigurableIdentityProvider();
-        IdentityProviderSettingsMap idProvSettingMap = getDefaultIdentityProviderSettingsMap();
+        assertThat(idpCfgMap.getIdpMetadataUrl()).isEqualTo(rawCfgMap.get("idpMetadataUrl"));
+        assertThat(idpCfgMap.getIdpEntityId()).isEqualTo(rawCfgMap.get("idpEntityId"));
+        assertThat(idpCfgMap.getWebSsoUrl()).isEqualTo(rawCfgMap.get("webSsoUrl"));
+        assertThat(idpCfgMap.getWebLogoutUrl()).isEqualTo(rawCfgMap.get("webLogoutUrl"));
+        assertThat(idpCfgMap.getSignAuthNRequest()).isEqualTo(rawCfgMap.get("signAuthNRequest"));
+        assertThat(idpCfgMap.getVerificationCertificate()).isEqualTo(rawCfgMap.get("verificationCertificate"));
+        assertThat(idpCfgMap.getSsoServiceBinding()).isEqualTo(rawCfgMap.get("ssoServiceBinding"));
 
-        SamlIdentityProviderConfig IdPCfg = new SamlIdentityProviderConfig(cip, idProvSettingMap, idProvCfgMap);
-        Assertions.assertThat(IdPCfg.getEntityId()).isEqualTo(expEntityID);
+        assertThat(idpCfgMap.getNameIDFormat()).isEqualTo(rawCfgMap.get("nameIDFormat"));
+        assertThat(idpCfgMap.getNameIDAllowCreate()).isEqualTo(rawCfgMap.get("nameIDAllowCreate"));
+        assertThat(idpCfgMap.getForceAuthn()).isEqualTo(rawCfgMap.get("forceAuthn"));
+        assertThat(idpCfgMap.getIsPassive()).isEqualTo(rawCfgMap.get("isPassive"));
+        assertThat(idpCfgMap.getAuthnContextClasses()).isEqualTo(rawCfgMap.get("authnContextClasses"));
+        assertThat(idpCfgMap.getAuthnContextComparison()).isEqualTo(rawCfgMap.get("authnContextComparison"));
+        assertThat(idpCfgMap.getUserNameAttributeName()).isEqualTo(rawCfgMap.get("userNameAttributeName"));
+
+        assertThat(idpCfgMap.getTrustEmailAddress()).isEqualTo(rawCfgMap.get("trustEmailAddress"));
+        assertThat(idpCfgMap.getAlwaysTrustEmailAddress()).isEqualTo(rawCfgMap.get("alwaysTrustEmailAddress"));
+        assertThat(idpCfgMap.getRequireEmailAddress()).isEqualTo(rawCfgMap.get("requireEmailAddress"));
     }
+
 
     /**
      * This test checks that a RelyingPartyRegistration contains information matching the saml configuration (with automatic idp metadata discovery)
@@ -222,57 +278,51 @@ public class SamlIdentityProviderConfigurationTest {
     @Test
     public void validateRelyingPartyRegistrationAutomatic() throws Exception {
 
-        boolean automaticDiscoverySetting = true;
-        // Create (hardcoded) configuration map to be used for initialization
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMap(automaticDiscoverySetting);
+        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapAutoDiscovery();
         SamlIdentityProviderConfigMap idProvCfgMap = new SamlIdentityProviderConfigMap();
         idProvCfgMap.setConfiguration(rawCfgMap);
 
-        ConfigurableIdentityProvider cip = getDefaultConfigurableIdentityProvider();
-        IdentityProviderSettingsMap idProvSettingMap = getDefaultIdentityProviderSettingsMap();
+        ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(AUTHORITY, PROVIDER_ID, "toyRealmName");
+        IdentityProviderSettingsMap idProvSettingMap = new IdentityProviderSettingsMap();
 
         SamlIdentityProviderConfig idProvCfg = new SamlIdentityProviderConfig(cip, idProvSettingMap, idProvCfgMap);
-        // Run mock server to locally catch the identity provider metadata request.
-        String IdpMetadata = fetchIdpMetadataExample();
-        WireMockServer mockIdpServer = buildMockIdpServer(IdpMetadata);
-        mockIdpServer.start();
 
-        // check that the obtained saml Identity Provider matches the obtained map
         RelyingPartyRegistration rpRegistration = idProvCfg.getRelyingPartyRegistration();
-        mockIdpServer.stop();
 
-        Assertions.assertThat(rpRegistration.getEntityId()).isEqualTo(expEntityID);
-        Assertions.assertThat(rpRegistration.getRegistrationId()).isEqualTo(expProviderId);
-        Assertions.assertThat(rpRegistration.getSigningX509Credentials().size()).isEqualTo(1);
-        for (Saml2X509Credential credential : rpRegistration.getSigningX509Credentials()) {
-            // NOTE: these assertions currently assume that there is only one x509credential(s) -> for-loop is trivial
-            // NOTE: if there is more than one x509credential(s), iteration order would NOT be guaranteed as we are iterating on a Set
+        // check that the registration happened and setted relying party expected values
+        assertThat(rpRegistration).isNotNull();
+        assertThat(rpRegistration.getEntityId()).isEqualTo(ENTITY_ID);
+        assertThat(rpRegistration.getRegistrationId()).isEqualTo(PROVIDER_ID);
+        assertThat(rpRegistration.getSigningX509Credentials().size()).isEqualTo(1);
+        Saml2X509Credential credential = rpRegistration.getSigningX509Credentials().iterator().next();
+        assertThat(credential).isNotNull();
 
-            // check private information
-            PrivateKey obtPrivateKey = credential.getPrivateKey();
-            String obtPrivKeyb64Enc = Base64.getEncoder().encodeToString(obtPrivateKey.getEncoded());
-            Assertions.assertThat(obtPrivKeyb64Enc).isEqualTo(expSigningKey);
+        // check private information
+        PrivateKey obtainedPrivateKey = credential.getPrivateKey();
+        // NOTE: key parsing approach inspired by https://github.com/spring-projects/spring-security/blob/main/saml2/saml2-service-provider/src/test/java/org/springframework/security/saml2/provider/service/registration/OpenSamlMetadataRelyingPartyRegistrationConverterTests.java#L189
+        InputStream keyStream = new ByteArrayInputStream(Base64.getDecoder().decode(SIGN_PRIV_KEY.getBytes()));
+        PrivateKey expectedPrivateKey = KeyFactory.getInstance(KEY_PAIR_ALGORITHM).generatePrivate(new PKCS8EncodedKeySpec(keyStream.readAllBytes()));
+        assertThat(obtainedPrivateKey).isEqualTo(expectedPrivateKey);
 
-            // check public information (certificate)
-            X509Certificate obtCertificate = credential.getCertificate();
-            String obtCertificateB64enc = Base64.getEncoder().encodeToString(obtCertificate.getEncoded());
-            Assertions.assertThat(obtCertificateB64enc).isEqualTo(expSigningCertificate);
-        }
-        Assertions.assertThat(rpRegistration.getAssertionConsumerServiceLocation()).isEqualTo(expRPRAssertionConsumerLocation);
-        Assertions.assertThat(rpRegistration.getAssertionConsumerServiceBinding()).isEqualTo(expRPRAssertionConsumerBinding);
+        // check public information (certificate)
+        X509Certificate obtainedCertificate = credential.getCertificate();
+        // NOTE: certificate parsing approach inspired by https://github.com/spring-projects/spring-security/blob/main/saml2/saml2-service-provider/src/test/java/org/springframework/security/saml2/provider/service/registration/OpenSamlMetadataRelyingPartyRegistrationConverterTests.java#L189
+        InputStream certificateStream = new ByteArrayInputStream(Base64.getDecoder().decode(SIGN_CERTIFICATE.getBytes()));
+        X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(certificateStream);
+        assertThat(obtainedCertificate).isEqualTo(expectedSigningCertificate);
 
+        assertThat(rpRegistration.getAssertionConsumerServiceLocation()).isEqualTo(RPR_ASSERTION_CONSUMER_LOCATION);
+        assertThat(rpRegistration.getAssertionConsumerServiceBinding()).isEqualTo(RPR_ASSERTION_CONSUMER_BINDING);
+
+        // check that the assessing party public signing information was occrrectly registered
         RelyingPartyRegistration.AssertingPartyDetails partyDetails =  rpRegistration.getAssertingPartyDetails();
+        assertThat(partyDetails).isNotNull();
         // sentinel value(s) used to check if auto configuration at least fetched data from the correct location
         // This is a simplified approach. A deep and complete analysis will eventually be delegated to a second test
-        String expIdPEntityId = "https://idp.identityserver";
-        boolean expWantAuthNRequestSigned=true;
-        String expSSOLocation = "https://idp.identityserver/saml/sso";
-        Saml2MessageBinding expSSOBinding = Saml2MessageBinding.REDIRECT;
-
-        Assertions.assertThat(partyDetails.getEntityId()).isEqualTo(expIdPEntityId);
-        Assertions.assertThat(partyDetails.getSingleSignOnServiceLocation()).isEqualTo(expSSOLocation);
-        Assertions.assertThat(partyDetails.getSingleSignOnServiceBinding()).isEqualTo(expSSOBinding);
-        Assertions.assertThat(partyDetails.getWantAuthnRequestsSigned()).isEqualTo(expWantAuthNRequestSigned);
+        assertThat(partyDetails.getEntityId()).isEqualTo(ASSERTING_PARTY_ENTITY_ID);
+        assertThat(partyDetails.getSingleSignOnServiceLocation()).isEqualTo(ASSERTING_PARTY_SSO_BINDING_LOCATION);
+        assertThat(partyDetails.getSingleSignOnServiceBinding()).isEqualTo(ASSERTING_PARTY_SSO_CONSUMER_BINDING);
+        assertThat(partyDetails.getWantAuthnRequestsSigned()).isEqualTo(ASSERTING_PARTY_WANT_AUTHN_SIGNED);
     }
 
     /**
@@ -282,39 +332,47 @@ public class SamlIdentityProviderConfigurationTest {
     @Test
     public void validateRelyingPartyRegistrationManual() throws Exception {
 
-        boolean automaticDiscoverySetting = false;
-        // Create (hardcoded) configuration map to be used for initialization
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMap(automaticDiscoverySetting);
+        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapManualDiscovery();
         SamlIdentityProviderConfigMap idProvCfgMap = new SamlIdentityProviderConfigMap();
         idProvCfgMap.setConfiguration(rawCfgMap);
 
-        ConfigurableIdentityProvider cip = getDefaultConfigurableIdentityProvider();
-        IdentityProviderSettingsMap idProvSettingMap = getDefaultIdentityProviderSettingsMap();
+        ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(AUTHORITY, PROVIDER_ID, "toyRealmName");
+        IdentityProviderSettingsMap idProvSettingMap = new IdentityProviderSettingsMap();
 
         SamlIdentityProviderConfig idProvCfg = new SamlIdentityProviderConfig(cip, idProvSettingMap, idProvCfgMap);
 
-        // check that the obtained saml Identity Provider matches the obtained map
         RelyingPartyRegistration rpRegistration = idProvCfg.getRelyingPartyRegistration();
-        Assertions.assertThat(rpRegistration.getEntityId()).isEqualTo(expEntityID);
-        Assertions.assertThat(rpRegistration.getRegistrationId()).isEqualTo(expProviderId);
-        Assertions.assertThat(rpRegistration.getSigningX509Credentials().size()).isEqualTo(1);
-        Assertions.assertThat(rpRegistration.getAssertionConsumerServiceLocation()).isEqualTo(expRPRAssertionConsumerLocation);
-        Assertions.assertThat(rpRegistration.getAssertionConsumerServiceBinding()).isEqualTo(expRPRAssertionConsumerBinding);
+
+        // check that the registration happened and setted relying party expected values
+        assertThat(rpRegistration).isNotNull();
+        assertThat(rpRegistration.getEntityId()).isEqualTo(ENTITY_ID);
+        assertThat(rpRegistration.getRegistrationId()).isEqualTo(PROVIDER_ID);
+        assertThat(rpRegistration.getAssertionConsumerServiceLocation()).isEqualTo(RPR_ASSERTION_CONSUMER_LOCATION);
+        assertThat(rpRegistration.getAssertionConsumerServiceBinding()).isEqualTo(RPR_ASSERTION_CONSUMER_BINDING);
+        assertThat(rpRegistration.getSigningX509Credentials().size()).isEqualTo(1);
 
         RelyingPartyRegistration.AssertingPartyDetails partyDetails =  rpRegistration.getAssertingPartyDetails();
-        Assertions.assertThat(partyDetails.getEntityId()).isEqualTo(expIdpEntityId);
-        Assertions.assertThat(partyDetails.getSingleSignOnServiceLocation()).isEqualTo(expWebSsoUrl);
-        Assertions.assertThat(partyDetails.getWantAuthnRequestsSigned()).isEqualTo(expSignAuthNRequest);
-//        Assertions.assertThat(partyDetails.getSingleLogoutServiceLocation()).isEqualTo(expWebLogoutUrl);
-        Assertions.assertThat(partyDetails.getVerificationX509Credentials().size()).isEqualTo(1);
-        Assertions.assertThat(partyDetails.getEncryptionX509Credentials().size()).isEqualTo(0); // nessuna credenziale di cifratura fornita
-        for (Saml2X509Credential credential : partyDetails.getVerificationX509Credentials()) {
-            Assertions.assertThat(credential.getPrivateKey()).isNull();
-            X509Certificate obtCertificate = credential.getCertificate();
-            String obtCertificateB64enc = Base64.getEncoder().encodeToString(obtCertificate.getEncoded());
 
-            Assertions.assertThat(obtCertificateB64enc).isEqualTo(expVerificationCertificate);
-        }
+        // check that the registration setted minimal asserting party expected values
+        assertThat(partyDetails).isNotNull();
+        assertThat(partyDetails.getEntityId()).isEqualTo(IDP_ENTITY_ID);
+        assertThat(partyDetails.getSingleSignOnServiceLocation()).isEqualTo(IDP_WEB_SSO_URL);
+        assertThat(partyDetails.getWantAuthnRequestsSigned()).isEqualTo(IDP_SIGN_AUTHN_REQUEST);
+//        Assertions.assertThat(partyDetails.getSingleLogoutServiceLocation()).isEqualTo(expWebLogoutUrl);
+        assertThat(partyDetails.getVerificationX509Credentials().size()).isEqualTo(1);
+        assertThat(partyDetails.getEncryptionX509Credentials().size()).isEqualTo(0); // nessuna credenziale di cifratura fornita
+
+        // check that the assessing party public signing information was occrrectly registered
+        Saml2X509Credential credential = partyDetails.getVerificationX509Credentials().iterator().next();
+        assertThat(credential).isNotNull();
+        assertThat(credential.getPrivateKey()).isNull();
+        X509Certificate obtainedCertificate = credential.getCertificate();
+        assertThat(obtainedCertificate).isNotNull();
+        InputStream certificateStream = new ByteArrayInputStream(Base64.getDecoder().decode(IDP_VERIFICATION_CERTIFICATE.getBytes()));
+        X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(certificateStream);
+        assertThat(obtainedCertificate).isEqualTo(expectedSigningCertificate);
+
+
     }
 }
 

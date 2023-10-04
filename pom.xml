@@ -176,10 +176,17 @@
 			<version>${postgresql.version}</version>
 		</dependency>
 
+<!--		<dependency>-->
+<!--			<groupId>com.github.tomakehurst</groupId>-->
+<!--			<artifactId>wiremock</artifactId>-->
+<!--			<version>1.58</version>-->
+<!--			<scope>test</scope>-->
+<!--		</dependency>-->
+
 		<dependency>
-			<groupId>com.github.tomakehurst</groupId>
-			<artifactId>wiremock</artifactId>
-			<version>1.58</version>
+			<groupId>com.maciejwalkowiak.spring</groupId>
+			<artifactId>wiremock-spring-boot</artifactId>
+			<version>1.0.1</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -367,6 +374,12 @@
 			<groupId>com.yubico</groupId>
 			<artifactId>webauthn-server-core</artifactId>
 			<version>${yubico.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.13.0</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
