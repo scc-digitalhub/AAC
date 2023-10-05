@@ -43,6 +43,7 @@ import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 import { JSONSchemaFormInput } from '../components/JsonSchemaFormInput';
+import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 export const AppEdit = () => {
     const params = useParams();
@@ -58,7 +59,7 @@ export const AppEdit = () => {
     );
 };
 
-const schemaOAuthClient = {
+const schemaOAuthClient: RJSFSchema = {
     type: 'object',
     properties: {
         authenticationMethods: {
@@ -174,7 +175,7 @@ const schemaOAuthClient = {
     },
 };
 
-const uiSchemaOAuthClient = {
+const uiSchemaOAuthClient: UiSchema = {
     // 'ui:submitButtonOptions': {
     //     submitText: 'Confirm Details',
     //     norender: false,
