@@ -1,9 +1,9 @@
 import { useInput, InputProps } from 'react-admin';
-// import Form from '@rjsf/mui';
+import Form from '@rjsf/mui';
 import validator from '@rjsf/validator-ajv8';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
-import { Theme as MuiTheme } from '@rjsf/mui';
-import { withTheme } from '@rjsf/core';
+// import { Theme as MuiTheme } from '@rjsf/mui';
+// import { withTheme } from '@rjsf/core';
 
 export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
     const { schema, uiSchema, onBlur, onChange } = props;
@@ -22,7 +22,7 @@ export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
         field.onChange(data);
     };
 
-    const Form = withTheme(MuiTheme);
+    // const Form = withTheme(MuiTheme);
 
     return (
         <Form
