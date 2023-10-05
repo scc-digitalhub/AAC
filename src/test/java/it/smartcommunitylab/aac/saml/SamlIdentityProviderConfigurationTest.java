@@ -1,6 +1,9 @@
 package it.smartcommunitylab.aac.saml;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
 import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
@@ -34,7 +37,7 @@ import java.util.*;
  */
 @SpringBootTest
 @EnableWireMock({
-        @ConfigureWireMock(name="idp-server", property="idp-server-url.example", stubLocation = "saml")
+        @ConfigureWireMock(name="idp-server", property="idp-server-url.example")
 })
 public class SamlIdentityProviderConfigurationTest {
 
@@ -66,10 +69,6 @@ public class SamlIdentityProviderConfigurationTest {
     private static final Saml2MessageBinding IDP_SSO_BINDING_TYPE = Saml2MessageBinding.REDIRECT;
     /*-- manual discovery end --*/
 
-    private static final boolean TRUST_EMAIL_ADDRESS = true;
-    private static final boolean ALWAYS_TRUST_EMAIL_ADDRESS = true;
-    private static final boolean REQUIRE_EMAIL_ADDRESS = false;
-
     private static final String AUTHORITY = "saml";
     private static final Saml2MessageBinding RPR_ASSERTION_CONSUMER_BINDING = Saml2MessageBinding.POST;
     private static final String RPR_ASSERTION_CONSUMER_LOCATION = String.format("{baseUrl}/auth/%s/sso/{registrationId}", AUTHORITY);
@@ -89,7 +88,7 @@ public class SamlIdentityProviderConfigurationTest {
             + "<md:SingleSignOnService Binding=\"%s\" Location=\"%s\"/>\n" // (3), (4)
             + "<md:SingleLogoutService Binding=\"%s\" Location=\"%s\"/>\n" // (5), (6)
             + "<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>\n"
-            + "<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>\n"
+            //+ "<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>\n"
             + "<md:KeyDescriptor use=\"%s\">\n" // (7)
             + "<ds:KeyInfo xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n" + "<ds:X509Data>\n"
             + "<ds:X509Certificate>%s</ds:X509Certificate>\n" // (8)
@@ -103,34 +102,86 @@ public class SamlIdentityProviderConfigurationTest {
     private static final String ASSERTING_PARTY_SSO_BINDING_LOCATION = "https://idp.identityserver.invalid/saml/sso";
     private static final String ASSESSING_PARTY_KEY_USAGE = "signing";
 
-    /**
-     * Definition of IdP metadata returned when asking for automating assenssing party initialization in relying party registration
-     * @return a string representing the xml of the IdP metadata
-     */
-    private String evaluateIdpMetadata() {
-        // utility method used to define the body of the xml metadat resporse when asking for assessing party metadata
-        return String.format(ASSERTING_PARTY_METADATA_TEMPLATE,
-                ASSERTING_PARTY_ENTITY_ID,                      // (1)
-                ASSERTING_PARTY_WANT_AUTHN_SIGNED,              // (2)
-                ASSERTING_PARTY_SSO_CONSUMER_BINDING.getUrn(),  // (3)
-                ASSERTING_PARTY_SSO_BINDING_LOCATION,           // (4)
-                ASSERTING_PARTY_SSO_CONSUMER_BINDING.getUrn(),  // (5)
-                ASSERTING_PARTY_SSO_BINDING_LOCATION,           // (6)
-                ASSESSING_PARTY_KEY_USAGE,                      // (7)
-                IDP_VERIFICATION_CERTIFICATE                    // (8)
-                );
-    }
-
     @PostConstruct
     private void postConstruct() {
         IDP_METADATA_URL = env.getProperty("idp-server-url.example") + IDP_METADATA_ENDPOINT;
     }
 
+
     /**
-     *
-     * @return an hardcoded saml identity provider configuration map (this mock the user provided map)
+     * This test checks if the configuration map used to create a saml configuration matches the
+     * actual information in the saml configuration map object.
+     * @throws Exception
      */
-    private Map<String, Serializable> buildRawConfigurationMapAutoDiscovery() {
+    @Test
+    public void validateSamlConfigMapAutoDiscoveryCreation() throws Exception {
+
+        // manually set the configuration map that will be used to build the config map
+        Map<String, Serializable> rawCfgMap = new HashMap<>();
+        rawCfgMap.put("type", SamlIdentityProviderConfigMap.RESOURCE_TYPE);
+        rawCfgMap.put("entityId", ENTITY_ID);
+        rawCfgMap.put("signingKey", SIGN_PRIV_KEY);
+        rawCfgMap.put("signingCertificate", SIGN_CERTIFICATE);
+        rawCfgMap.put("cryptKey", "ToyPEMbase64PrivateKeyValue");
+        rawCfgMap.put("cryptCertificate", "Toyx509PublicKeyCertificate(s)");
+        rawCfgMap.put("idpMetadataUrl", IDP_METADATA_URL);
+        rawCfgMap.put("idpEntityId", "ToyIdPEntityManualDiscovery");
+        rawCfgMap.put("webSsoUrl", "toyWebSsoUrlManualDiscovery");
+        rawCfgMap.put("webLogoutUrl", "toyWebLougoutUrlManualDiscovery");
+        rawCfgMap.put("signAuthNRequest", true);
+        rawCfgMap.put("verificationCertificate", "ToyVerificationCertificateForManualDiscovery");
+        rawCfgMap.put("ssoServiceBinding", "ToySsoServiceBindingManual");
+        rawCfgMap.put("nameIDFormat", "toy:name:id:format");
+        rawCfgMap.put("nameIDAllowCreate", true);
+        rawCfgMap.put("forceAuthn", true);
+        rawCfgMap.put("isPassive", true);
+        HashSet<String> toySetContexts = new HashSet<String>();
+        toySetContexts.add("ToyOneAuthnContextClasses");
+        rawCfgMap.put("authnContextClasses", toySetContexts);
+        rawCfgMap.put("authnContextComparison", "ToyAuthnContextComparison");
+        rawCfgMap.put("userNameAttributeName", "MyAttributes");
+        rawCfgMap.put("trustEmailAddress", true);
+        rawCfgMap.put("alwaysTrustEmailAddress", true);
+        rawCfgMap.put("requireEmailAddress", true);
+
+        SamlIdentityProviderConfigMap idpCfgMap = new SamlIdentityProviderConfigMap();
+        idpCfgMap.setConfiguration(rawCfgMap);
+
+        assertThat(idpCfgMap.getEntityId()).isEqualTo(rawCfgMap.get("entityId"));
+        assertThat(idpCfgMap.getSigningKey()).isEqualTo(rawCfgMap.get("signingKey"));
+        assertThat(idpCfgMap.getSigningCertificate()).isEqualTo(rawCfgMap.get("signingCertificate"));
+        assertThat(idpCfgMap.getCryptKey()).isEqualTo(rawCfgMap.get("cryptKey"));
+        assertThat(idpCfgMap.getCryptCertificate()).isEqualTo(rawCfgMap.get("cryptCertificate"));
+
+        assertThat(idpCfgMap.getIdpMetadataUrl()).isEqualTo(rawCfgMap.get("idpMetadataUrl"));
+        assertThat(idpCfgMap.getIdpEntityId()).isEqualTo(rawCfgMap.get("idpEntityId"));
+        assertThat(idpCfgMap.getWebSsoUrl()).isEqualTo(rawCfgMap.get("webSsoUrl"));
+        assertThat(idpCfgMap.getWebLogoutUrl()).isEqualTo(rawCfgMap.get("webLogoutUrl"));
+        assertThat(idpCfgMap.getSignAuthNRequest()).isEqualTo(rawCfgMap.get("signAuthNRequest"));
+        assertThat(idpCfgMap.getVerificationCertificate()).isEqualTo(rawCfgMap.get("verificationCertificate"));
+        assertThat(idpCfgMap.getSsoServiceBinding()).isEqualTo(rawCfgMap.get("ssoServiceBinding"));
+
+        assertThat(idpCfgMap.getNameIDFormat()).isEqualTo(rawCfgMap.get("nameIDFormat"));
+        assertThat(idpCfgMap.getNameIDAllowCreate()).isEqualTo(rawCfgMap.get("nameIDAllowCreate"));
+        assertThat(idpCfgMap.getForceAuthn()).isEqualTo(rawCfgMap.get("forceAuthn"));
+        assertThat(idpCfgMap.getIsPassive()).isEqualTo(rawCfgMap.get("isPassive"));
+        assertThat(idpCfgMap.getAuthnContextClasses()).isEqualTo(rawCfgMap.get("authnContextClasses"));
+        assertThat(idpCfgMap.getAuthnContextComparison()).isEqualTo(rawCfgMap.get("authnContextComparison"));
+        assertThat(idpCfgMap.getUserNameAttributeName()).isEqualTo(rawCfgMap.get("userNameAttributeName"));
+
+        assertThat(idpCfgMap.getTrustEmailAddress()).isEqualTo(rawCfgMap.get("trustEmailAddress"));
+        assertThat(idpCfgMap.getAlwaysTrustEmailAddress()).isEqualTo(rawCfgMap.get("alwaysTrustEmailAddress"));
+        assertThat(idpCfgMap.getRequireEmailAddress()).isEqualTo(rawCfgMap.get("requireEmailAddress"));
+    }
+
+    /**
+     * This test checks that a RelyingPartyRegistration contains information matching the saml configuration (with automatic idp metadata discovery)
+     * @throws Exception
+     */
+    @Test
+    public void validateRelyingPartyRegistrationAutomatic() throws Exception {
+
+        // manually set the Saml configuration (case: assessing party details automatically resolved from metadata discovery)
         Map<String, Serializable> rawCfgMap = new HashMap<>();
         rawCfgMap.put("type", SamlIdentityProviderConfigMap.RESOURCE_TYPE);
         rawCfgMap.put("entityId", ENTITY_ID);
@@ -138,7 +189,7 @@ public class SamlIdentityProviderConfigurationTest {
         rawCfgMap.put("signingCertificate", SIGN_CERTIFICATE);
         rawCfgMap.put("cryptKey", null);
         rawCfgMap.put("cryptCertificate", null);
-        rawCfgMap.put("idpMetadataUrl", IDP_METADATA_URL);
+        rawCfgMap.put("idpMetadataUrl", IDP_METADATA_URL); // url checked for automatic relying party registration
         rawCfgMap.put("idpEntityId", null);
         rawCfgMap.put("webSsoUrl", null);
         rawCfgMap.put("webLogoutUrl", null);
@@ -152,133 +203,29 @@ public class SamlIdentityProviderConfigurationTest {
         rawCfgMap.put("authnContextClasses", null);
         rawCfgMap.put("authnContextComparison", null);
         rawCfgMap.put("userNameAttributeName", null);
-        rawCfgMap.put("trustEmailAddress", TRUST_EMAIL_ADDRESS);
-        rawCfgMap.put("alwaysTrustEmailAddress", ALWAYS_TRUST_EMAIL_ADDRESS);
-        rawCfgMap.put("requireEmailAddress", REQUIRE_EMAIL_ADDRESS);
-        return  rawCfgMap;
-    }
+        rawCfgMap.put("trustEmailAddress", null);
+        rawCfgMap.put("alwaysTrustEmailAddress", null);
+        rawCfgMap.put("requireEmailAddress", null);
 
-    /**
-     *
-     * @return an hardcoded saml identity provider configuration map (this mock the user provided map)
-     */
-    private Map<String, Serializable> buildRawConfigurationMapManualDiscovery() {
-        Map<String, Serializable> rawCfgMap = new HashMap<>();
-        rawCfgMap.put("type", SamlIdentityProviderConfigMap.RESOURCE_TYPE);
-        rawCfgMap.put("entityId", ENTITY_ID);
-        rawCfgMap.put("signingKey", SIGN_PRIV_KEY);
-        rawCfgMap.put("signingCertificate", SIGN_CERTIFICATE);
-        rawCfgMap.put("cryptKey", null);
-        rawCfgMap.put("cryptCertificate", null);
-        rawCfgMap.put("idpMetadataUrl", null);
-        rawCfgMap.put("idpEntityId", IDP_ENTITY_ID);
-        rawCfgMap.put("webSsoUrl", IDP_WEB_SSO_URL);
-        rawCfgMap.put("webLogoutUrl", IDP_WEB_LOGOUT_URL);
-        rawCfgMap.put("signAuthNRequest", IDP_SIGN_AUTHN_REQUEST);
-        rawCfgMap.put("verificationCertificate", IDP_VERIFICATION_CERTIFICATE);
-        rawCfgMap.put("ssoServiceBinding", IDP_SSO_SERVICE_BINDING_LOCATION);
-        rawCfgMap.put("nameIDFormat", null);
-        rawCfgMap.put("nameIDAllowCreate", null);
-        rawCfgMap.put("forceAuthn", null);
-        rawCfgMap.put("isPassive", null);
-        rawCfgMap.put("authnContextClasses", null);
-        rawCfgMap.put("authnContextComparison", null);
-        rawCfgMap.put("userNameAttributeName", null);
-        rawCfgMap.put("trustEmailAddress", TRUST_EMAIL_ADDRESS);
-        rawCfgMap.put("alwaysTrustEmailAddress", ALWAYS_TRUST_EMAIL_ADDRESS);
-        rawCfgMap.put("requireEmailAddress", REQUIRE_EMAIL_ADDRESS);
-        return  rawCfgMap;
-    }
+        // set the IdP metadata XML returned by the idp server and used for automatic relying party registration
+        String idpMetadata = String.format(ASSERTING_PARTY_METADATA_TEMPLATE,
+                ASSERTING_PARTY_ENTITY_ID,                      // (1)
+                ASSERTING_PARTY_WANT_AUTHN_SIGNED,              // (2)
+                ASSERTING_PARTY_SSO_CONSUMER_BINDING.getUrn(),  // (3)
+                ASSERTING_PARTY_SSO_BINDING_LOCATION,           // (4)
+                ASSERTING_PARTY_SSO_CONSUMER_BINDING.getUrn(),  // (5)
+                ASSERTING_PARTY_SSO_BINDING_LOCATION,           // (6)
+                ASSESSING_PARTY_KEY_USAGE,                      // (7)
+                IDP_VERIFICATION_CERTIFICATE                    // (8)
+        );
+        mockIdPServer.stubFor(
+                get(urlEqualTo(IDP_METADATA_ENDPOINT)).willReturn(aResponse()
+                                .withStatus(200)
+                                .withHeader("Content-Type", "application/xml")
+                                .withBody(idpMetadata)
+                        )
+        );
 
-    /**
-     * This test checks if the configuration map used to create a saml configuration matches the
-     * actual information in the saml configuration map object.
-     * This case tests the type of map involved when the assessing party metadata is automatically
-     * discovered (from a known location) during the relying party registration.
-     * @throws Exception
-     */
-    @Test
-    public void validateSamlConfigMapAutoDiscoveryCreation() throws Exception {
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapAutoDiscovery();
-        SamlIdentityProviderConfigMap idpCfgMap = new SamlIdentityProviderConfigMap();
-        idpCfgMap.setConfiguration(rawCfgMap);
-
-        assertThat(idpCfgMap.getEntityId()).isEqualTo(rawCfgMap.get("entityId"));
-        assertThat(idpCfgMap.getSigningKey()).isEqualTo(rawCfgMap.get("signingKey"));
-        assertThat(idpCfgMap.getSigningCertificate()).isEqualTo(rawCfgMap.get("signingCertificate"));
-        assertThat(idpCfgMap.getCryptKey()).isEqualTo(rawCfgMap.get("cryptKey"));
-        assertThat(idpCfgMap.getCryptCertificate()).isEqualTo(rawCfgMap.get("cryptCertificate"));
-
-        assertThat(idpCfgMap.getIdpMetadataUrl()).isEqualTo(rawCfgMap.get("idpMetadataUrl"));
-        assertThat(idpCfgMap.getIdpEntityId()).isEqualTo(rawCfgMap.get("idpEntityId"));
-        assertThat(idpCfgMap.getWebSsoUrl()).isEqualTo(rawCfgMap.get("webSsoUrl"));
-        assertThat(idpCfgMap.getWebLogoutUrl()).isEqualTo(rawCfgMap.get("webLogoutUrl"));
-        assertThat(idpCfgMap.getSignAuthNRequest()).isEqualTo(rawCfgMap.get("signAuthNRequest"));
-        assertThat(idpCfgMap.getVerificationCertificate()).isEqualTo(rawCfgMap.get("verificationCertificate"));
-        assertThat(idpCfgMap.getSsoServiceBinding()).isEqualTo(rawCfgMap.get("ssoServiceBinding"));
-
-        assertThat(idpCfgMap.getNameIDFormat()).isEqualTo(rawCfgMap.get("nameIDFormat"));
-        assertThat(idpCfgMap.getNameIDAllowCreate()).isEqualTo(rawCfgMap.get("nameIDAllowCreate"));
-        assertThat(idpCfgMap.getForceAuthn()).isEqualTo(rawCfgMap.get("forceAuthn"));
-        assertThat(idpCfgMap.getIsPassive()).isEqualTo(rawCfgMap.get("isPassive"));
-        assertThat(idpCfgMap.getAuthnContextClasses()).isEqualTo(rawCfgMap.get("authnContextClasses"));
-        assertThat(idpCfgMap.getAuthnContextComparison()).isEqualTo(rawCfgMap.get("authnContextComparison"));
-        assertThat(idpCfgMap.getUserNameAttributeName()).isEqualTo(rawCfgMap.get("userNameAttributeName"));
-
-        assertThat(idpCfgMap.getTrustEmailAddress()).isEqualTo(rawCfgMap.get("trustEmailAddress"));
-        assertThat(idpCfgMap.getAlwaysTrustEmailAddress()).isEqualTo(rawCfgMap.get("alwaysTrustEmailAddress"));
-        assertThat(idpCfgMap.getRequireEmailAddress()).isEqualTo(rawCfgMap.get("requireEmailAddress"));
-    }
-
-    /**
-     * This test checks if the configuration map used to create a saml configuration matches the
-     * actual information in the saml configuration map object.
-     * This case tests the type of map involved when the assessing party metadata is manually assigned
-     * during the relying party registration.
-     * @throws Exception
-     */
-    @Test
-    public void validateSamlConfigMapManualDiscoveryCreation() throws Exception {
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapManualDiscovery();
-        SamlIdentityProviderConfigMap idpCfgMap = new SamlIdentityProviderConfigMap();
-        idpCfgMap.setConfiguration(rawCfgMap);
-
-        assertThat(idpCfgMap.getEntityId()).isEqualTo(rawCfgMap.get("entityId"));
-        assertThat(idpCfgMap.getSigningKey()).isEqualTo(rawCfgMap.get("signingKey"));
-        assertThat(idpCfgMap.getSigningCertificate()).isEqualTo(rawCfgMap.get("signingCertificate"));
-        assertThat(idpCfgMap.getCryptKey()).isEqualTo(rawCfgMap.get("cryptKey"));
-        assertThat(idpCfgMap.getCryptCertificate()).isEqualTo(rawCfgMap.get("cryptCertificate"));
-
-        assertThat(idpCfgMap.getIdpMetadataUrl()).isEqualTo(rawCfgMap.get("idpMetadataUrl"));
-        assertThat(idpCfgMap.getIdpEntityId()).isEqualTo(rawCfgMap.get("idpEntityId"));
-        assertThat(idpCfgMap.getWebSsoUrl()).isEqualTo(rawCfgMap.get("webSsoUrl"));
-        assertThat(idpCfgMap.getWebLogoutUrl()).isEqualTo(rawCfgMap.get("webLogoutUrl"));
-        assertThat(idpCfgMap.getSignAuthNRequest()).isEqualTo(rawCfgMap.get("signAuthNRequest"));
-        assertThat(idpCfgMap.getVerificationCertificate()).isEqualTo(rawCfgMap.get("verificationCertificate"));
-        assertThat(idpCfgMap.getSsoServiceBinding()).isEqualTo(rawCfgMap.get("ssoServiceBinding"));
-
-        assertThat(idpCfgMap.getNameIDFormat()).isEqualTo(rawCfgMap.get("nameIDFormat"));
-        assertThat(idpCfgMap.getNameIDAllowCreate()).isEqualTo(rawCfgMap.get("nameIDAllowCreate"));
-        assertThat(idpCfgMap.getForceAuthn()).isEqualTo(rawCfgMap.get("forceAuthn"));
-        assertThat(idpCfgMap.getIsPassive()).isEqualTo(rawCfgMap.get("isPassive"));
-        assertThat(idpCfgMap.getAuthnContextClasses()).isEqualTo(rawCfgMap.get("authnContextClasses"));
-        assertThat(idpCfgMap.getAuthnContextComparison()).isEqualTo(rawCfgMap.get("authnContextComparison"));
-        assertThat(idpCfgMap.getUserNameAttributeName()).isEqualTo(rawCfgMap.get("userNameAttributeName"));
-
-        assertThat(idpCfgMap.getTrustEmailAddress()).isEqualTo(rawCfgMap.get("trustEmailAddress"));
-        assertThat(idpCfgMap.getAlwaysTrustEmailAddress()).isEqualTo(rawCfgMap.get("alwaysTrustEmailAddress"));
-        assertThat(idpCfgMap.getRequireEmailAddress()).isEqualTo(rawCfgMap.get("requireEmailAddress"));
-    }
-
-
-    /**
-     * This test checks that a RelyingPartyRegistration contains information matching the saml configuration (with automatic idp metadata discovery)
-     * @throws Exception
-     */
-    @Test
-    public void validateRelyingPartyRegistrationAutomatic() throws Exception {
-
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapAutoDiscovery();
         SamlIdentityProviderConfigMap idProvCfgMap = new SamlIdentityProviderConfigMap();
         idProvCfgMap.setConfiguration(rawCfgMap);
 
@@ -320,9 +267,14 @@ public class SamlIdentityProviderConfigurationTest {
         // sentinel value(s) used to check if auto configuration at least fetched data from the correct location
         // This is a simplified approach. A deep and complete analysis will eventually be delegated to a second test
         assertThat(partyDetails.getEntityId()).isEqualTo(ASSERTING_PARTY_ENTITY_ID);
+        assertThat(partyDetails.getWantAuthnRequestsSigned()).isEqualTo(ASSERTING_PARTY_WANT_AUTHN_SIGNED);
         assertThat(partyDetails.getSingleSignOnServiceLocation()).isEqualTo(ASSERTING_PARTY_SSO_BINDING_LOCATION);
         assertThat(partyDetails.getSingleSignOnServiceBinding()).isEqualTo(ASSERTING_PARTY_SSO_CONSUMER_BINDING);
-        assertThat(partyDetails.getWantAuthnRequestsSigned()).isEqualTo(ASSERTING_PARTY_WANT_AUTHN_SIGNED);
+        assertThat(partyDetails.getSingleLogoutServiceBinding()).isEqualTo(ASSERTING_PARTY_SSO_CONSUMER_BINDING);
+        assertThat(partyDetails.getSingleLogoutServiceResponseLocation()).isEqualTo(ASSERTING_PARTY_SSO_BINDING_LOCATION);
+        Collection<Saml2X509Credential> partyDetailsVerificationCredentials = partyDetails.getVerificationX509Credentials();
+        assertThat(partyDetailsVerificationCredentials).isNotNull();
+        assertThat(partyDetailsVerificationCredentials.size()).isEqualTo(1); // we do not check that credentials (7), (8) were parsed correctly as this task was delegated to spring
     }
 
     /**
@@ -332,7 +284,32 @@ public class SamlIdentityProviderConfigurationTest {
     @Test
     public void validateRelyingPartyRegistrationManual() throws Exception {
 
-        Map<String, Serializable> rawCfgMap = buildRawConfigurationMapManualDiscovery();
+        // manually set the Saml configuration (case: assessing party details manually resolved from configg map values)
+        Map<String, Serializable> rawCfgMap = new HashMap<>();
+        rawCfgMap.put("type", SamlIdentityProviderConfigMap.RESOURCE_TYPE);
+        rawCfgMap.put("entityId", ENTITY_ID);
+        rawCfgMap.put("signingKey", SIGN_PRIV_KEY);
+        rawCfgMap.put("signingCertificate", SIGN_CERTIFICATE);
+        rawCfgMap.put("cryptKey", null);
+        rawCfgMap.put("cryptCertificate", null);
+        rawCfgMap.put("idpMetadataUrl", null);
+        rawCfgMap.put("idpEntityId", IDP_ENTITY_ID);
+        rawCfgMap.put("webSsoUrl", IDP_WEB_SSO_URL);
+        rawCfgMap.put("webLogoutUrl", IDP_WEB_LOGOUT_URL);
+        rawCfgMap.put("signAuthNRequest", IDP_SIGN_AUTHN_REQUEST);
+        rawCfgMap.put("verificationCertificate", IDP_VERIFICATION_CERTIFICATE);
+        rawCfgMap.put("ssoServiceBinding", IDP_SSO_SERVICE_BINDING_LOCATION);
+        rawCfgMap.put("nameIDFormat", null);
+        rawCfgMap.put("nameIDAllowCreate", null);
+        rawCfgMap.put("forceAuthn", null);
+        rawCfgMap.put("isPassive", null);
+        rawCfgMap.put("authnContextClasses", null);
+        rawCfgMap.put("authnContextComparison", null);
+        rawCfgMap.put("userNameAttributeName", null);
+        rawCfgMap.put("trustEmailAddress", null);
+        rawCfgMap.put("alwaysTrustEmailAddress", null);
+        rawCfgMap.put("requireEmailAddress", null);
+
         SamlIdentityProviderConfigMap idProvCfgMap = new SamlIdentityProviderConfigMap();
         idProvCfgMap.setConfiguration(rawCfgMap);
 
@@ -371,8 +348,5 @@ public class SamlIdentityProviderConfigurationTest {
         InputStream certificateStream = new ByteArrayInputStream(Base64.getDecoder().decode(IDP_VERIFICATION_CERTIFICATE.getBytes()));
         X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(certificateStream);
         assertThat(obtainedCertificate).isEqualTo(expectedSigningCertificate);
-
-
     }
 }
-
