@@ -20,20 +20,16 @@ export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
     };
 
     return (
-        <>
-            <Form
-                schema={schema}
-                uiSchema={uiSchema}
-                formData={field.value}
-                validator={validator}
-                onChange={(e: any) => update(e.formData)}
-                omitExtraData={true}
-            >
-                <div>
-                    <button hidden type="submit"></button>
-                </div>
-            </Form>
-        </>
+        <Form
+            schema={schema}
+            uiSchema={uiSchema}
+            formData={field.value}
+            validator={validator}
+            onChange={(e: any) => update(e.formData)}
+            omitExtraData={true}
+        >
+            <></>
+        </Form>
     );
 };
 
