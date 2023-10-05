@@ -1,6 +1,7 @@
 import { useInput, InputProps } from 'react-admin';
 import Form from '@rjsf/mui';
 import validator from '@rjsf/validator-ajv8';
+import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
     const { schema, uiSchema, onBlur, onChange } = props;
@@ -34,6 +35,6 @@ export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
 };
 
 export type JSONSchemaFormatInputProps = InputProps & {
-    schema?: any;
-    uiSchema?: any;
+    schema: RJSFSchema;
+    uiSchema: UiSchema;
 };
