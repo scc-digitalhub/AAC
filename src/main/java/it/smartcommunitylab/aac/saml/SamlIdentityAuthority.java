@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -42,6 +43,9 @@ public class SamlIdentityAuthority
     implements ApplicationEventPublisherAware {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SAML + "/";
+
+    //user entity service
+    private final UserEntityService userEntityService;
 
     // saml account service
     private final UserAccountService<SamlUserAccount> accountService;
@@ -58,20 +62,24 @@ public class SamlIdentityAuthority
 
     @Autowired
     public SamlIdentityAuthority(
+        UserEntityService userEntityService,
         UserAccountService<SamlUserAccount> userAccountService,
         ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
     ) {
-        this(SystemKeys.AUTHORITY_SAML, userAccountService, registrationRepository);
+        this(SystemKeys.AUTHORITY_SAML, userEntityService, userAccountService, registrationRepository);
     }
 
     public SamlIdentityAuthority(
         String authorityId,
+        UserEntityService userEntityService,
         UserAccountService<SamlUserAccount> userAccountService,
         ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
     ) {
         super(authorityId, registrationRepository);
+        Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(userAccountService, "account service is mandatory");
 
+        this.userEntityService = userEntityService;
         this.accountService = userAccountService;
 
         this.relyingPartyRegistrationRepository = new SamlRelyingPartyRegistrationRepository(registrationRepository);
@@ -115,7 +123,14 @@ public class SamlIdentityAuthority
     public SamlIdentityProvider buildProvider(SamlIdentityProviderConfig config) {
         String id = config.getProvider();
 
-        SamlIdentityProvider idp = new SamlIdentityProvider(authorityId, id, accountService, config, config.getRealm());
+        SamlIdentityProvider idp = new SamlIdentityProvider(
+            authorityId,
+            id,
+            userEntityService,
+            accountService,
+            config,
+            config.getRealm()
+        );
 
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);

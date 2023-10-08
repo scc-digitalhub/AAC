@@ -63,8 +63,30 @@ public class OIDCUserResolver
         OIDCIdentityProviderConfig config,
         String realm
     ) {
-        super(authority, providerId, userEntityService, userAccountService, config.getRepositoryId(), realm);
+        this(
+            authority,
+            providerId,
+            userEntityService,
+            userAccountService,
+            config.getRepositoryId(),
+            config.isLinkable(),
+            realm
+        );
         Assert.notNull(config, "provider config is mandatory");
+        this.setResolve(config.isLinkable());
+    }
+
+    public OIDCUserResolver(
+        String authority,
+        String providerId,
+        UserEntityService userEntityService,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        String repositoryId,
+        boolean isLinkable,
+        String realm
+    ) {
+        super(authority, providerId, userEntityService, userAccountService, repositoryId, realm);
+        this.setResolve(isLinkable);
     }
 
     @Transactional(readOnly = true)

@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.users.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,13 +23,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccountsResourceContext;
-import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.model.UserAttributesResourceContext;
 import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.credentials.model.UserCredentialsResourceContext;
 import it.smartcommunitylab.aac.groups.model.UserGroupsResourceContext;
 import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.roles.model.UserRolesResourceContext;
 import it.smartcommunitylab.aac.templates.model.Language;
 import java.util.Collection;
 import java.util.Collections;
@@ -58,7 +56,8 @@ public class User
         UserAccountsResourceContext,
         UserIdentitiesResourceContext,
         UserCredentialsResourceContext,
-        UserGroupsResourceContext {
+        UserGroupsResourceContext,
+        UserRolesResourceContext {
 
     @NotBlank
     private final String userId;
@@ -91,6 +90,9 @@ public class User
 
     private String loginIp;
     private String loginProvider;
+
+    //TODO remove
+    private Boolean tosAccepted;
 
     // authorities in AAC
     // these are either global or realm scoped
@@ -238,6 +240,14 @@ public class User
         this.loginProvider = loginProvider;
     }
 
+    public Boolean getTosAccepted() {
+        return tosAccepted;
+    }
+
+    public void setTosAccepted(Boolean tosAccepted) {
+        this.tosAccepted = tosAccepted;
+    }
+
     /*
      * User Resources
      * also unpack/repack by type
@@ -257,15 +267,6 @@ public class User
     // public List<UserResource> getResources(String type) {
     //     return resources.get(type);
     // }
-
-    @JsonIgnore
-    public void setResources(String type, List<UserResource> resources) {
-        if (this.resources == null) {
-            this.resources = new HashMap<>();
-        }
-
-        this.resources.put(type, resources);
-    }
 
     /*
      * Authorities
@@ -303,9 +304,17 @@ public class User
         return SystemKeys.RESOURCE_USER;
     }
 
+    /*
+     * Resource context
+     */
+
     @JsonIgnore
     @Override
     public Map<String, List<? extends Resource>> getResources() {
+        if (this.resources == null) {
+            this.resources = new HashMap<>();
+        }
+
         return resources;
     }
 }

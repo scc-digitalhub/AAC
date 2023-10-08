@@ -167,7 +167,9 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
             String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
@@ -182,6 +184,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 null,
                 null
@@ -242,7 +245,9 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
             String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
@@ -257,6 +262,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 accessToken,
                 null
@@ -316,7 +322,9 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
             String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
@@ -331,6 +339,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 null,
                 code
@@ -395,7 +404,9 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
             String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
@@ -410,6 +421,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 accessToken,
                 code
@@ -446,6 +458,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         OAuth2Authentication authentication,
         OAuth2Request request,
         UserDetails userDetails,
+        User user,
         OAuth2ClientDetails oauth2ClientDetails,
         OAuth2AccessToken accessToken,
         String code
@@ -463,7 +476,6 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         ClientDetails clientDetails = clientService.loadClient(clientId);
 
         // build user claims
-        User user = new User(userDetails);
         Map<String, Object> userClaims = new HashMap<>();
         // check if client wants all claims from accessToken in idTokens
         if (

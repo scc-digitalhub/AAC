@@ -19,9 +19,14 @@ package it.smartcommunitylab.aac.attributes.model;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
 import java.util.Collection;
+import java.util.List;
 
 public interface UserAttributesResourceContext extends ResourceContext {
     default Collection<UserAttributes> getAttributes() {
         return getResources(SystemKeys.RESOURCE_ATTRIBUTES);
+    }
+
+    default void setAttributes(List<UserAttributes> attributes) {
+        setResources(SystemKeys.RESOURCE_ATTRIBUTES, attributes);
     }
 }

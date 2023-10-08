@@ -115,7 +115,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
 
             if (user != null && realmEntity != null && realmEntity.getTosConfiguration().isEnableTOS()) {
                 // Refuse.
-                if (user.getTosAccepted() != null && !user.isTosAccepted()) {
+                if (user.getTosAccepted() != null && !Boolean.TRUE.equals(user.getTosAccepted())) {
                     // check session is empty
                     if (
                         request.getSession().getAttribute(TOS_STATUS) != null &&
@@ -131,7 +131,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
                     request.setAttribute(RealmAwareAuthenticationEntryPoint.REALM_URI_VARIABLE_NAME, user.getRealm());
                     this.redirectStrategy.sendRedirect(request, response, refuseUrl);
                     return;
-                } else if (user.getTosAccepted() != null && user.isTosAccepted()) { // Approve
+                } else if (user.getTosAccepted() != null && Boolean.TRUE.equals(user.getTosAccepted())) { // Approve
                     // if accepted in current session
                     if (
                         request.getSession().getAttribute(TOS_STATUS) != null &&

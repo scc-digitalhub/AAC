@@ -147,9 +147,10 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
 
-            JWT idToken = createIdToken(request, accessToken, userDetails, clientDetails, oauth2ClientDetails);
+            JWT idToken = createIdToken(request, accessToken, userDetails, clientDetails, oauth2ClientDetails, user);
 
             token.setIdToken(idToken);
 
@@ -168,7 +169,8 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         OAuth2AccessToken accessToken,
         UserDetails userDetails,
         ClientDetails clientDetails,
-        OAuth2ClientDetails oauth2ClientDetails
+        OAuth2ClientDetails oauth2ClientDetails,
+        User user
     ) throws NoSuchResourceException, InvalidDefinitionException, SystemException {
         logger.trace("access token used for oidc is " + accessToken);
 
@@ -189,7 +191,6 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
         //                clientDetails, scopes,
         //                resourceIds);
 
-        User user = new User(userDetails);
         Map<String, Serializable> userClaims = new HashMap<>();
 
         // check if client wants all claims from accessToken in idTokens

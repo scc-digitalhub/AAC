@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,20 +44,22 @@ public class SamlIdentityProvider
     private final SamlAccountPrincipalConverter principalConverter;
     private final SamlAttributeProvider attributeProvider;
     private final SamlAuthenticationProvider authenticationProvider;
-    private final SamlSubjectResolver subjectResolver;
+    private final SamlUserResolver userResolver;
 
     public SamlIdentityProvider(
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<SamlUserAccount> userAccountService,
         SamlIdentityProviderConfig config,
         String realm
     ) {
-        this(SystemKeys.AUTHORITY_SAML, providerId, userAccountService, config, realm);
+        this(SystemKeys.AUTHORITY_SAML, providerId, userEntityService, userAccountService, config, realm);
     }
 
     public SamlIdentityProvider(
         String authority,
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<SamlUserAccount> userAccountService,
         SamlIdentityProviderConfig config,
         String realm
@@ -73,7 +76,8 @@ public class SamlIdentityProvider
         this.attributeProvider = new SamlAttributeProvider(authority, providerId, config, realm);
         this.authenticationProvider =
             new SamlAuthenticationProvider(authority, providerId, userAccountService, config, realm);
-        this.subjectResolver = new SamlSubjectResolver(authority, providerId, userAccountService, config, realm);
+        this.userResolver =
+            new SamlUserResolver(authority, providerId, userEntityService, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null) {
@@ -124,8 +128,8 @@ public class SamlIdentityProvider
     }
 
     @Override
-    public SamlSubjectResolver getSubjectResolver() {
-        return subjectResolver;
+    public SamlUserResolver getUserResolver() {
+        return userResolver;
     }
 
     @Override

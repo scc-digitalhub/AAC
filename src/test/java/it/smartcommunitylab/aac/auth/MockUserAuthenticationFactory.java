@@ -113,7 +113,7 @@ public class MockUserAuthenticationFactory implements WithSecurityContextFactory
             );
 
             // resolve
-            Subject subject = idp.getSubjectResolver().resolveByAccountId(username);
+            Subject subject = idp.getUserResolver().resolveByAccountId(username);
             // UserIdentity identity = idp.convertIdentity(principal, userId);
             // Collection<UserAttributes> attributeSets = Collections.emptyList();
 

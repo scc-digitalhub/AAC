@@ -80,36 +80,17 @@ public class WebAuthnCredentialsController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities
-        Set<UserIdentity> identities = user
-            .getIdentities()
-            .stream()
-            .filter(i -> (i instanceof InternalUserIdentity))
-            .collect(Collectors.toSet());
-
-        // pick matching by uuid
-        UserIdentity identity = identities
-            .stream()
-            .filter(i -> i.getAccount().getUuid().equals(uuid))
-            .findFirst()
-            .orElse(null);
-        if (identity == null) {
-            throw new IllegalArgumentException("error.invalid_user");
-        }
-
         logger.debug(
             "manage credentials for {} with provider {}",
             StringUtils.trimAllWhitespace(uuid),
             StringUtils.trimAllWhitespace(providerId)
         );
 
-        UserAccount account = identity.getAccount();
-
         // fetch provider
         WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
         // for internal username is accountId
-        String username = account.getAccountId();
+        String username = user.getUsername();
 
         // build model for this account
         model.addAttribute("providerId", providerId);

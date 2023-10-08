@@ -19,9 +19,14 @@ package it.smartcommunitylab.aac.groups.model;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
 import java.util.Collection;
+import java.util.List;
 
 public interface UserGroupsResourceContext extends ResourceContext {
     default Collection<UserGroup> getGroups() {
         return getResources(SystemKeys.RESOURCE_GROUP);
+    }
+
+    default void setGroups(List<UserGroup> groups) {
+        setResources(SystemKeys.RESOURCE_GROUP, groups);
     }
 }

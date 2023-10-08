@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -38,6 +39,9 @@ public class InternalIdentityProviderAuthority
     extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
+
+    //user entity service
+    private final UserEntityService userEntityService;
 
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
@@ -50,6 +54,7 @@ public class InternalIdentityProviderAuthority
     private ResourceEntityService resourceService;
 
     public InternalIdentityProviderAuthority(
+        UserEntityService userEntityService,
         UserAccountService<InternalUserAccount> userAccountService,
         InternalUserConfirmKeyService confirmKeyService,
         ProviderConfigRepository<InternalIdentityProviderConfig> registrationRepository
@@ -58,7 +63,9 @@ public class InternalIdentityProviderAuthority
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(confirmKeyService, "confirm key service is mandatory");
         Assert.notNull(registrationRepository, "config repository is mandatory");
+        Assert.notNull(userEntityService, "user service is mandatory");
 
+        this.userEntityService = userEntityService;
         this.accountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
 
@@ -82,6 +89,7 @@ public class InternalIdentityProviderAuthority
     protected InternalIdentityProvider buildProvider(InternalIdentityProviderConfig config) {
         InternalIdentityProvider idp = new InternalIdentityProvider(
             config.getProvider(),
+            userEntityService,
             accountService,
             confirmKeyService,
             config,

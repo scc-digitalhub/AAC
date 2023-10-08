@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.identity.model;
+package it.smartcommunitylab.aac.roles.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
 import java.util.Collection;
 import java.util.List;
 
-public interface UserIdentitiesResourceContext extends ResourceContext {
-    default Collection<UserIdentity> getIdentities() {
-        return getResources(SystemKeys.RESOURCE_IDENTITY);
+public interface UserRolesResourceContext extends ResourceContext {
+    default Collection<UserRole> getRoles() {
+        return getResources(SystemKeys.RESOURCE_ROLE);
     }
 
-    default void setIdentities(List<UserIdentity> identities) {
-        setResources(SystemKeys.RESOURCE_IDENTITY, identities);
+    default void setRoles(List<UserRole> roles) {
+        setResources(SystemKeys.RESOURCE_ROLE, roles);
     }
 }

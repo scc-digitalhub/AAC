@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityFilterProvider;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProvider;
@@ -41,6 +42,9 @@ public class WebAuthnIdentityAuthority
 
     public static final String AUTHORITY_URL = "/auth/webauthn/";
 
+    //user entity service
+    private final UserEntityService userEntityService;
+
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
 
@@ -54,6 +58,7 @@ public class WebAuthnIdentityAuthority
     private ResourceEntityService resourceService;
 
     public WebAuthnIdentityAuthority(
+        UserEntityService userEntityService,
         UserAccountService<InternalUserAccount> userAccountService,
         WebAuthnJpaUserCredentialsService credentialsService,
         WebAuthnLoginRpService rpService,
@@ -65,7 +70,9 @@ public class WebAuthnIdentityAuthority
         Assert.notNull(credentialsService, "credentials service is mandatory");
         Assert.notNull(rpService, "webauthn rp service is mandatory");
         Assert.notNull(requestStore, "webauthn request store is mandatory");
+        Assert.notNull(userEntityService, "user service is mandatory");
 
+        this.userEntityService = userEntityService;
         this.accountService = userAccountService;
         this.credentialsService = credentialsService;
 
@@ -88,6 +95,7 @@ public class WebAuthnIdentityAuthority
     public WebAuthnIdentityProvider buildProvider(WebAuthnIdentityProviderConfig config) {
         WebAuthnIdentityProvider idp = new WebAuthnIdentityProvider(
             config.getProvider(),
+            userEntityService,
             accountService,
             credentialsService,
             config,

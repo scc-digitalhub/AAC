@@ -49,6 +49,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private String events;
     private Integer position;
     private String template;
+    private String[] resolvableFields;
 
     @SafeString
     private String notes;
@@ -94,6 +95,12 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
 
     public void setTemplate(String template) {
         this.template = template;
+    public String[] getResolvableFields() {
+        return resolvableFields;
+    }
+
+    public void setResolvableFields(String[] resolvableFields) {
+        this.resolvableFields = resolvableFields;
     }
 
     public String getNotes() {
