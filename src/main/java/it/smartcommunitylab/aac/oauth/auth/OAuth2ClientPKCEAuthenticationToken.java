@@ -32,16 +32,10 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
 
     private String code;
 
-    public OAuth2ClientPKCEAuthenticationToken(
-        String clientId,
-        String code,
-        String codeVerifier,
-        String authenticationMethod
-    ) {
+    public OAuth2ClientPKCEAuthenticationToken(String clientId, String code, String codeVerifier) {
         super(clientId);
         this.codeVerifier = codeVerifier;
         this.code = code;
-        this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
@@ -49,13 +43,11 @@ public class OAuth2ClientPKCEAuthenticationToken extends OAuth2ClientAuthenticat
         String clientId,
         String code,
         String codeVerifier,
-        String authenticationMethod,
         Collection<? extends GrantedAuthority> authorities
     ) {
         super(clientId, authorities);
         this.codeVerifier = codeVerifier;
         this.code = code;
-        this.authenticationMethod = authenticationMethod;
     }
 
     @Override

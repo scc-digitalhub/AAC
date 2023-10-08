@@ -112,7 +112,7 @@ public class UserApprovalEndpoint implements InitializingBean {
             model.put("key", key);
 
             UserAuthentication userAuth = (UserAuthentication) authentication;
-            UserDetails userDetails = userAuth.getUser();
+            UserDetails userDetails = userAuth.getUserDetails();
 
             String clientId = authorizationRequest.getClientId();
             OAuth2ClientDetails clientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);

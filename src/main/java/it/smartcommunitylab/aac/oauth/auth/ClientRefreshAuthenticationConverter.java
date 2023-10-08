@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.oauth.auth;
 
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -76,6 +75,6 @@ public class ClientRefreshAuthenticationConverter extends OAuth2ClientAuthentica
         }
 
         // return our authRequest
-        return new OAuth2ClientRefreshAuthenticationToken(clientId, refreshToken, AuthenticationMethod.NONE.getValue());
+        return new OAuth2ClientRefreshAuthenticationToken(clientId, refreshToken);
     }
 }

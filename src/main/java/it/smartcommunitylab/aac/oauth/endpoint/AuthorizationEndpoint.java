@@ -195,7 +195,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
 
         UserAuthentication userAuth = (UserAuthentication) authentication;
-        UserDetails userDetails = userAuth.getUser();
+        UserDetails userDetails = userAuth.getUserDetails();
 
         String realm = SystemKeys.REALM_COMMON;
         if (realmKey.isPresent()) {

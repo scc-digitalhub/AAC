@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.clients.auth.ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.provider.PeekableAuthorizationCodeServices;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -67,7 +68,7 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
     }
 
     @Override
-    public ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(
             OAuth2ClientPKCEAuthenticationToken.class,
             authentication,
@@ -78,7 +79,6 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
         String clientId = authRequest.getPrincipal();
         String code = authRequest.getCode();
         String codeVerifier = authRequest.getCodeVerifier();
-        String authenticationMethod = authRequest.getAuthenticationMethod();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(code) || !StringUtils.hasText(codeVerifier)) {
             throw new BadCredentialsException("missing required parameters in request");
@@ -89,8 +89,8 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
             OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
             // check if client can authenticate with this scheme
-            if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
-                this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
+            if (!client.getAuthenticationMethods().contains(AuthenticationMethod.NONE.getValue())) {
+                this.logger.debug("Failed to authenticate since client can not use scheme");
                 throw new BadCredentialsException("invalid authentication");
             }
 
@@ -149,7 +149,6 @@ public class OAuth2ClientPKCEAuthenticationProvider extends ClientAuthentication
                 clientId,
                 code,
                 codeVerifier,
-                authenticationMethod,
                 authorities
             );
 

@@ -102,7 +102,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             request.setApproved(true);
         }
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
         String subjectId = userDetails.getUserId();
 
         OAuth2ClientDetails clientDetails;
@@ -306,7 +306,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
         String clientId = request.getClientId();
         Set<String> requestedScopes = request.getScope();
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
         OAuth2ClientDetails clientDetails;
         try {
             clientDetails = oauthClientDetailsService.loadClientByClientId(clientId);
@@ -381,7 +381,7 @@ public class ApprovalStoreUserApprovalHandler implements UserApprovalHandler, In
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
         String subjectId = userDetails.getUserId();
 
         // Get the approved scopes

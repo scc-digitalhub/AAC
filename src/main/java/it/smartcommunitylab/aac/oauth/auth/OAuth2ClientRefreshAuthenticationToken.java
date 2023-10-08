@@ -30,22 +30,19 @@ public class OAuth2ClientRefreshAuthenticationToken extends OAuth2ClientAuthenti
 
     private String refreshToken;
 
-    public OAuth2ClientRefreshAuthenticationToken(String clientId, String refreshToken, String authenticationMethod) {
+    public OAuth2ClientRefreshAuthenticationToken(String clientId, String refreshToken) {
         super(clientId);
         this.refreshToken = refreshToken;
-        this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
     public OAuth2ClientRefreshAuthenticationToken(
         String clientId,
         String refreshToken,
-        String authenticationMethod,
         Collection<? extends GrantedAuthority> authorities
     ) {
         super(clientId, authorities);
         this.refreshToken = refreshToken;
-        this.authenticationMethod = authenticationMethod;
     }
 
     @Override

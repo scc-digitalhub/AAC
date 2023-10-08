@@ -111,7 +111,7 @@ public class DevRealmController {
 
     @GetMapping("/realms")
     public Collection<Realm> myRealms(@NotNull UserAuthentication userAuth) throws NoSuchRealmException {
-        UserDetails user = userAuth.getUser();
+        UserDetails user = userAuth.getUserDetails();
         Collection<Realm> realms = user
             .getRealms()
             .stream()

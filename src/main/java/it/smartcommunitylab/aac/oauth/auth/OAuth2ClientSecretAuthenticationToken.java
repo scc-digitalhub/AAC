@@ -29,6 +29,7 @@ public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthentic
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private String credentials;
+    private String authenticationMethod;
 
     public OAuth2ClientSecretAuthenticationToken(String clientId, String clientSecret, String authenticationMethod) {
         super(clientId);
@@ -61,5 +62,9 @@ public class OAuth2ClientSecretAuthenticationToken extends OAuth2ClientAuthentic
     public void eraseCredentials() {
         super.eraseCredentials();
         this.credentials = null;
+    }
+
+    public String getAuthenticationMethod() {
+        return authenticationMethod;
     }
 }

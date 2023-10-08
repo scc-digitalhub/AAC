@@ -28,26 +28,19 @@ public class OAuth2ClientJwtAssertionAuthenticationToken extends OAuth2ClientAut
 
     private String clientAssertion;
 
-    public OAuth2ClientJwtAssertionAuthenticationToken(
-        String clientId,
-        String clientAssertion,
-        String authenticationMethod
-    ) {
+    public OAuth2ClientJwtAssertionAuthenticationToken(String clientId, String clientAssertion) {
         super(clientId);
         this.clientAssertion = clientAssertion;
-        this.authenticationMethod = authenticationMethod;
         setAuthenticated(false);
     }
 
     public OAuth2ClientJwtAssertionAuthenticationToken(
         String clientId,
         String clientAssertion,
-        String authenticationMethod,
         Collection<? extends GrantedAuthority> authorities
     ) {
         super(clientId, authorities);
         this.clientAssertion = clientAssertion;
-        this.authenticationMethod = authenticationMethod;
     }
 
     public String getClientAssertion() {

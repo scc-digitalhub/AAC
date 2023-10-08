@@ -62,9 +62,6 @@ public class ClientJwtAssertionAuthenticationConverter extends OAuth2ClientAuthe
         String clientId = request.getParameter(OAuth2ParameterNames.CLIENT_ID);
         String clientAssertion = request.getParameter(OAuth2ParameterNames.CLIENT_ASSERTION);
 
-        // let provider evaluate auth method from assertion
-        String authenticationMethod = null;
-
         // validate parameters are *not* empty
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(clientAssertion)) {
             // throw oauth2 exception
@@ -72,6 +69,6 @@ public class ClientJwtAssertionAuthenticationConverter extends OAuth2ClientAuthe
         }
 
         // return our authRequest
-        return new OAuth2ClientJwtAssertionAuthenticationToken(clientId, clientAssertion, authenticationMethod);
+        return new OAuth2ClientJwtAssertionAuthenticationToken(clientId, clientAssertion);
     }
 }

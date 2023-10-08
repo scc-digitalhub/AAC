@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.clients;
 
 import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
 import it.smartcommunitylab.aac.clients.auth.ClientAuthenticationProvider;
+import it.smartcommunitylab.aac.clients.auth.DefaultClientAuthenticationToken;
 import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
@@ -91,7 +92,13 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
         String clientId = auth.getClientId();
         try {
             ClientDetails clientDetails = clientService.loadClient(clientId);
-            auth.setClient(clientDetails);
+
+
+            //create auth token
+            DefaultClientAuthenticationToken token = new DefaultClientAuthenticationToken() {
+                
+            };
+            auth.setClientDetails(clientDetails);
 
             return auth;
         } catch (NoSuchClientException e) {

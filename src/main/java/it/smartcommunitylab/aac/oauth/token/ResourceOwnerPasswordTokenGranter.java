@@ -165,9 +165,11 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
         if (scopeRegistry != null && clientService != null && userService != null) {
             try {
                 UserDetails userDetails = null;
+                User user = null;
                 Authentication userAuth = authentication.getUserAuthentication();
                 if (userAuth != null && (userAuth instanceof UserAuthentication)) {
-                    userDetails = ((UserAuthentication) userAuth).getUser();
+                    userDetails = ((UserAuthentication) userAuth).getUserDetails();
+                    user = ((UserAuthentication) userAuth).getUser();
                 } else {
                     throw new UnauthorizedUserException("invalid user");
                 }
@@ -189,12 +191,7 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
                             continue;
                         }
 
-                        Approval approval = sa.approveUserScope(
-                            s,
-                            translateUser(userDetails, sa.getRealm()),
-                            clientDetails,
-                            scopes
-                        );
+                        Approval approval = sa.approveUserScope(s, user, clientDetails, scopes);
 
                         if (approval != null) {
                             if (!approval.isApproved()) {
@@ -209,14 +206,6 @@ public class ResourceOwnerPasswordTokenGranter extends AbstractTokenGranter {
                 throw new InvalidClientException("Invalid client");
             }
         }
-    }
-
-    private User translateUser(UserDetails userDetails, String realm) {
-        if (userService != null) {
-            return userService.getUser(userDetails, realm);
-        }
-
-        return new User(userDetails);
     }
 
     public void setClientService(ClientDetailsService clientService) {

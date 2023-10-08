@@ -57,7 +57,7 @@ public class OAuth2ClientSecretAuthenticationProvider extends ClientAuthenticati
     }
 
     @Override
-    public ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(
             OAuth2ClientSecretAuthenticationToken.class,
             authentication,

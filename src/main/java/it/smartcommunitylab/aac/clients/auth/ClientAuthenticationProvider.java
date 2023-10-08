@@ -26,7 +26,7 @@ public abstract class ClientAuthenticationProvider implements AuthenticationProv
     protected ClientDetailsService clientService;
 
     @Override
-    public abstract ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException;
+    public abstract Authentication authenticate(Authentication authentication) throws AuthenticationException;
 
     public void setClientService(ClientDetailsService clientService) {
         this.clientService = clientService;
