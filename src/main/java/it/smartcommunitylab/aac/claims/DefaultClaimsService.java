@@ -160,8 +160,8 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
                 if (!scopes.contains(Config.SCOPE_USER_ROLE)) {
                     user.setAuthorities(null);
-                    user.setRealmRoles(null);
-                    user.setSpaceRoles(null);
+                    user.setRoles(null);
+                    // user.setSpaceRoles(null);
                 }
 
                 ClaimsSet cs = ce.extractUserClaims(scope, user, client, scopes, extensions);
@@ -186,8 +186,8 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
 
                 if (!scopes.contains(Config.SCOPE_USER_ROLE)) {
                     user.setAuthorities(null);
-                    user.setRealmRoles(null);
-                    user.setSpaceRoles(null);
+                    user.setRoles(null);
+                    // user.setSpaceRoles(null);
                 }
 
                 ClaimsSet cs = ce.extractUserClaims(resourceId, user, client, scopes, extensions);

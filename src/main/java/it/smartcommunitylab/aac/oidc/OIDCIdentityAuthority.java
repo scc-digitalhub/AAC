@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -39,6 +40,9 @@ public class OIDCIdentityAuthority
     extends AbstractIdentityProviderAuthority<OIDCIdentityProvider, OIDCUserIdentity, OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OIDC + "/";
+
+    //user entity service
+    private final UserEntityService userEntityService;
 
     // oidc account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -55,20 +59,24 @@ public class OIDCIdentityAuthority
 
     @Autowired
     public OIDCIdentityAuthority(
+        UserEntityService userEntityService,
         UserAccountService<OIDCUserAccount> userAccountService,
         ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository
     ) {
-        this(SystemKeys.AUTHORITY_OIDC, userAccountService, registrationRepository);
+        this(SystemKeys.AUTHORITY_OIDC, userEntityService, userAccountService, registrationRepository);
     }
 
     public OIDCIdentityAuthority(
         String authorityId,
+        UserEntityService userEntityService,
         UserAccountService<OIDCUserAccount> userAccountService,
         ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository
     ) {
         super(authorityId, registrationRepository);
+        Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(userAccountService, "account service is mandatory");
 
+        this.userEntityService = userEntityService;
         this.accountService = userAccountService;
         this.clientRegistrationRepository = new OIDCClientRegistrationRepository(registrationRepository);
 
@@ -100,7 +108,14 @@ public class OIDCIdentityAuthority
     public OIDCIdentityProvider buildProvider(OIDCIdentityProviderConfig config) {
         String id = config.getProvider();
 
-        OIDCIdentityProvider idp = new OIDCIdentityProvider(authorityId, id, accountService, config, config.getRealm());
+        OIDCIdentityProvider idp = new OIDCIdentityProvider(
+            authorityId,
+            id,
+            userEntityService,
+            accountService,
+            config,
+            config.getRealm()
+        );
 
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);

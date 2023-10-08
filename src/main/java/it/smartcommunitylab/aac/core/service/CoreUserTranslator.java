@@ -31,11 +31,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  * This class should be extended to fetch destination realm properties/attributes to be used by services
  *
  */
+@Deprecated
 public class CoreUserTranslator implements UserTranslator {
 
     @Override
     public User translate(User user, String realm) {
-        User result = new User(user.getUserId(), user.getSource());
+        User result = new User(user.getUserId(), user.getRealm());
         result.setRealm(realm);
 
         // pass only username+email
@@ -80,8 +81,8 @@ public class CoreUserTranslator implements UserTranslator {
             .collect(Collectors.toList());
         result.setAuthorities(authorities);
 
-        // all roles
-        result.setSpaceRoles(user.getSpaceRoles());
+        // // all roles
+        // result.setSpaceRoles(user.getSpaceRoles());
 
         return result;
     }

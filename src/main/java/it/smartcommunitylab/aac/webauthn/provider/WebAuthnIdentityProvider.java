@@ -29,7 +29,8 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
+import it.smartcommunitylab.aac.internal.provider.InternalUserResolver;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
@@ -53,10 +54,11 @@ public class WebAuthnIdentityProvider
     private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<WebAuthnUserAuthenticatedPrincipal> attributeProvider;
-    private final InternalSubjectResolver subjectResolver;
+    private final InternalUserResolver userResolver;
 
     public WebAuthnIdentityProvider(
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<InternalUserAccount> userAccountService,
         WebAuthnJpaUserCredentialsService userCredentialsService,
         WebAuthnIdentityProviderConfig config,
@@ -107,7 +109,16 @@ public class WebAuthnIdentityProvider
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
+        this.userResolver =
+            new InternalUserResolver(
+                SystemKeys.AUTHORITY_WEBAUTHN,
+                providerId,
+                userEntityService,
+                userAccountService,
+                config.getRepositoryId(),
+                config.isLinkable(),
+                realm
+            );
     }
 
     public void setResourceService(ResourceEntityService resourceService) {
@@ -147,8 +158,8 @@ public class WebAuthnIdentityProvider
     }
 
     @Override
-    public InternalSubjectResolver getSubjectResolver() {
-        return subjectResolver;
+    public InternalUserResolver getUserResolver() {
+        return userResolver;
     }
 
     @Override
@@ -170,12 +181,12 @@ public class WebAuthnIdentityProvider
         return identity;
     }
 
-    @Override
-    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        // // remove all credentials - disabled
-        // credentialsService.deleteCredentialsByUsername(username);
-        // do not remove account because we are NOT authoritative
-    }
+    // @Override
+    // public void deleteIdentity(String userId, String username) throws NoSuchUserException {
+    //     // // remove all credentials - disabled
+    //     // credentialsService.deleteCredentialsByUsername(username);
+    //     // do not remove account because we are NOT authoritative
+    // }
 
     @Override
     public String getAuthenticationUrl() {

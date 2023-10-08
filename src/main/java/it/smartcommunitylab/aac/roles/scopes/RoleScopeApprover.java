@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.scope;
+package it.smartcommunitylab.aac.roles.scopes;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.Collections;
@@ -71,7 +72,7 @@ public class RoleScopeApprover implements ScopeApprover {
             return null;
         }
 
-        Set<String> userRoles = user.getRealmRoles().stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
+        Set<String> userRoles = user.getRoles().stream().map(r -> r.getRole()).collect(Collectors.toSet());
 
         boolean approved = false;
         if (requireAll) {

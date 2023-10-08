@@ -28,11 +28,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotBlank;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Describe a user in a reduced form, used for processing and profile
  * generation.
+ *
+ * TODO refactor
  *
  * @author raman
  *
@@ -46,37 +47,38 @@ public class UserProfile {
     @NotBlank
     private final String subjectId;
 
-    // describes the realm responsible for this user
-    private final String source;
-
-    // realm describes the current user for the given realm
+    // realm
     private String realm;
 
     // basic profile
     private String username;
 
-    // roles are translated as authorities
-    private Set<String> authorities;
-
+    private Set<String> groups;
     private Set<String> roles;
-    private Set<String> spaceRoles;
+    // private Set<String> spaceRoles;
 
     // attributes are exposed as sets to keep identifiers private
     private Set<AttributeSet> attributes;
 
     public UserProfile() {
         this.subjectId = null;
-        this.source = null;
+        this.realm = null;
     }
 
     public UserProfile(User user) {
         this.subjectId = user.getUserId();
-        this.source = user.getSource();
         this.realm = user.getRealm();
         this.username = user.getUsername();
 
-        setAuthorities(user.getAuthorities());
-        setRoles(user.getRealmRoles());
+        Set<String> groups = user.getGroups() != null
+            ? user.getGroups().stream().map(g -> g.getGroup()).collect(Collectors.toSet())
+            : null;
+        setGroups(groups);
+
+        Set<String> roles = user.getRoles() != null
+            ? user.getRoles().stream().map(r -> r.getRole()).collect(Collectors.toSet())
+            : null;
+        setRoles(roles);
         setAttributes(user.getAttributes());
     }
 
@@ -96,16 +98,12 @@ public class UserProfile {
         this.username = username;
     }
 
-    public Set<String> getAuthorities() {
-        return authorities;
+    public Set<String> getGroups() {
+        return groups;
     }
 
-    public void setAuthorities(Set<String> authorities) {
-        this.authorities = authorities;
-    }
-
-    public void setAuthorities(Collection<GrantedAuthority> authorities) {
-        this.authorities = authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toSet());
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
     }
 
     public Set<String> getRoles() {
@@ -120,17 +118,17 @@ public class UserProfile {
         this.roles = roles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
     }
 
-    public Set<String> getSpaceRoles() {
-        return spaceRoles;
-    }
+    // public Set<String> getSpaceRoles() {
+    //     return spaceRoles;
+    // }
 
-    public void setSpaceRoles(Set<String> spaceRoles) {
-        this.spaceRoles = roles;
-    }
+    // public void setSpaceRoles(Set<String> spaceRoles) {
+    //     this.spaceRoles = roles;
+    // }
 
-    public void setSpaceRoles(Collection<SpaceRole> spaceRoles) {
-        this.spaceRoles = spaceRoles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
-    }
+    // public void setSpaceRoles(Collection<SpaceRole> spaceRoles) {
+    //     this.spaceRoles = spaceRoles.stream().map(r -> r.getAuthority()).collect(Collectors.toSet());
+    // }
 
     public Set<AttributeSet> getAttributes() {
         return attributes;
@@ -146,9 +144,5 @@ public class UserProfile {
 
     public String getSubjectId() {
         return subjectId;
-    }
-
-    public String getSource() {
-        return source;
     }
 }

@@ -24,6 +24,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import org.springframework.util.StringUtils;
 
+@Deprecated
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)

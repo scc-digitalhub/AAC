@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.IOException;
 import java.net.URI;
@@ -178,7 +179,7 @@ public class EndSessionEndpoint {
         } else {
             // we are logged in, need to prompt the user before we log out
             // display the log out confirmation page
-            UserDetails userDetails = userAuth.getUser();
+            User userDetails = userAuth.getUser();
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername())
                 ? userDetails.getUsername()

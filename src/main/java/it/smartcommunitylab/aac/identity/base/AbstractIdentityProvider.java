@@ -79,7 +79,7 @@ public abstract class AbstractIdentityProvider<
         Assert.notNull(getAccountProvider(), "account provider is mandatory");
         Assert.notNull(getAccountService(), "account service is mandatory");
         Assert.notNull(getAttributeProvider(), "attribute provider is mandatory");
-        Assert.notNull(getSubjectResolver(), "subject provider is mandatory");
+        Assert.notNull(getUserResolver(), "user resolver is mandatory");
     }
 
     // @Override

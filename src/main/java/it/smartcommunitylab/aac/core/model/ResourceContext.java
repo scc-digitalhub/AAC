@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.core.model;
 
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.springframework.util.Assert;
@@ -30,7 +30,17 @@ public interface ResourceContext {
     }
 
     @SuppressWarnings("unchecked")
-    default <T extends Resource> T getResources(String type) {
-        return !hasResources(type) ? null : (T) getResources().get(type);
+    default <T extends Resource> List<T> getResources(String type) {
+        Assert.notNull(type, "type cannot be null");
+        return !hasResources(type) ? Collections.emptyList() : (List<T>) getResources().get(type);
+    }
+
+    default void setResources(String type, List<? extends Resource> resources) {
+        Assert.notNull(type, "type cannot be null");
+        if (resources == null && hasResources(type)) {
+            getResources().remove(type);
+        } else {
+            getResources().put(type, resources);
+        }
     }
 }

@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
 
+@Deprecated
 public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
     public static final String SPACES_EXTENSIONS_KEY = "aac.roles.spaces_selection";
@@ -61,7 +62,8 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
         Map<String, Serializable> extensions
     ) throws InvalidDefinitionException, SystemException {
         // we get roles from user, it should be up-to-date
-        Set<SpaceRole> roles = user.getSpaceRoles();
+        // Set<SpaceRole> roles = user.getSpaceRoles();
+        Set<SpaceRole> roles = Collections.emptySet();
 
         // filter context if specified by client
         if (StringUtils.hasText(client.getHookUniqueSpaces())) {

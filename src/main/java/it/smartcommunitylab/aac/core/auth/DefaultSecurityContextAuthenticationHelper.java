@@ -70,7 +70,7 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
             return null;
         }
 
-        return auth.getUser();
+        return auth.getUserDetails();
     }
 
     @Override
@@ -107,7 +107,7 @@ public class DefaultSecurityContextAuthenticationHelper implements Authenticatio
             return null;
         }
 
-        return auth.getClient();
+        return auth.getClientDetails();
     }
 
     /*

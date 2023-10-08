@@ -28,6 +28,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +48,11 @@ public class InternalIdentityProvider
     private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<InternalUserAuthenticatedPrincipal> attributeProvider;
-    private final InternalSubjectResolver subjectResolver;
+    private final InternalUserResolver userResolver;
 
     public InternalIdentityProvider(
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<InternalUserAccount> userAccountService,
         InternalUserConfirmKeyService confirmKeyService,
         InternalIdentityProviderConfig config,
@@ -76,7 +78,7 @@ public class InternalIdentityProvider
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
+        this.userResolver = new InternalUserResolver(providerId, userEntityService, userAccountService, config, realm);
     }
 
     public void setResourceService(ResourceEntityService resourceService) {
@@ -109,8 +111,8 @@ public class InternalIdentityProvider
     }
 
     @Override
-    public InternalSubjectResolver getSubjectResolver() {
-        return subjectResolver;
+    public InternalUserResolver getUserResolver() {
+        return userResolver;
     }
 
     @Override
@@ -203,11 +205,11 @@ public class InternalIdentityProvider
         return identity;
     }
 
-    @Override
-    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        // call super to remove account
-        super.deleteIdentity(userId, username);
-    }
+    // @Override
+    // public void deleteIdentity(String userId, String username) throws NoSuchUserException {
+    //     // call super to remove account
+    //     super.deleteIdentity(userId, username);
+    // }
 
     @Override
     public String getAuthenticationUrl() {

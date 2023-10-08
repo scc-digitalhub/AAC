@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,9 @@ public class PasswordIdentityAuthority
     extends AbstractIdentityProviderAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfig, PasswordIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
+
+    //user entity service
+    private final UserEntityService userEntityService;
 
     // internal account service
     private final UserAccountService<InternalUserAccount> accountService;
@@ -58,6 +62,7 @@ public class PasswordIdentityAuthority
     private ResourceEntityService resourceService;
 
     public PasswordIdentityAuthority(
+        UserEntityService userEntityService,
         UserAccountService<InternalUserAccount> userAccountService,
         InternalPasswordJpaUserCredentialsService passwordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
@@ -65,7 +70,9 @@ public class PasswordIdentityAuthority
         super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(passwordService, "password service is mandatory");
+        Assert.notNull(userEntityService, "user service is mandatory");
 
+        this.userEntityService = userEntityService;
         this.accountService = userAccountService;
         this.passwordService = passwordService;
 
@@ -103,6 +110,7 @@ public class PasswordIdentityAuthority
     public PasswordIdentityProvider buildProvider(PasswordIdentityProviderConfig config) {
         PasswordIdentityProvider idp = new PasswordIdentityProvider(
             config.getProvider(),
+            userEntityService,
             accountService,
             passwordService,
             config,

@@ -369,7 +369,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
         // ask the IdP to resolve for persisted accounts
         // TODO handle subject as UserSubject
-        SubjectResolver<? extends UserAccount> resolver = idp.getSubjectResolver();
+        SubjectResolver<? extends UserAccount> resolver = idp.getUserResolver();
         Subject s = resolver.resolveByPrincipalId(principalId);
         if (s != null) {
             // principal is associated to a persisted account linked to a user
@@ -393,7 +393,7 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
             Collection<IdentityProvider<?, ?, ?, ?, ?>> idps = fetchIdentityProviders(realm);
             // first result is ok
             for (IdentityProvider<?, ?, ?, ?, ?> i : idps) {
-                Subject ss = i.getSubjectResolver().resolveByEmailAddress(principal.getEmailAddress());
+                Subject ss = i.getUserResolver().resolveByEmailAddress(principal.getEmailAddress());
                 if (ss != null) {
                     subjectId = ss.getSubjectId();
                     logger.debug("linked subject for identity to " + subjectId);

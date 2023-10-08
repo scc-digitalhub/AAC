@@ -41,14 +41,14 @@ public class ExpiredUserAuthenticationFilter extends OncePerRequestFilter {
         if (userAuth != null) {
             logger.debug("check user authentication for expired tokens for " + userAuth.getSubjectId());
             // prune expired
-            // TODO ask reauth for these
-            Set<ExtendedAuthenticationToken> tokens = userAuth.getAuthentications();
-            for (ExtendedAuthenticationToken token : tokens) {
-                if (token.isExpired()) {
-                    logger.debug("purge expired token for " + token.getName());
-                    userAuth.eraseAuthentication(token);
-                }
-            }
+            // TODO re-evaluate, for now pruning is disabled
+            // Set<ExtendedAuthenticationToken> tokens = userAuth.getAuthentications();
+            // for (ExtendedAuthenticationToken token : tokens) {
+            //     if (token.isExpired()) {
+            //         logger.debug("purge expired token for " + token.getName());
+            //         userAuth.eraseAuthentication(token);
+            //     }
+            // }
 
             if (userAuth.getAuthentications().isEmpty() || userAuth.isExpired()) {
                 logger.debug("user authentication has no valid tokens for " + userAuth.getSubjectId());
