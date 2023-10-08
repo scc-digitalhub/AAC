@@ -69,7 +69,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
 
         // fetch details
         String clientId = authorizationRequest.getClientId();
@@ -119,7 +119,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
                 throw new InvalidRequestException("approval requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
 
             // fetch details
             String clientId = authorizationRequest.getClientId();
@@ -163,7 +163,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
 
         // fetch details
         String clientId = authorizationRequest.getClientId();
@@ -192,7 +192,8 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
 
     private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
         User user = userService.getUser(userDetails);
-        Set<SpaceRole> roles = user.getSpaceRoles();
+        // Set<SpaceRole> roles = user.getSpaceRoles();
+        Set<SpaceRole> roles = Collections.emptySet();
 
         // filter and flatmap everything under context
         Set<String> spaces = roles

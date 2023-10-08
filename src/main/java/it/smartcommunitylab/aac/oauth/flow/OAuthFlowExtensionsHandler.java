@@ -73,11 +73,11 @@ public class OAuthFlowExtensionsHandler implements UserApprovalHandler {
 
             // check if userAuth is present
             if (userAuth != null && userAuth instanceof UserAuthentication) {
-                userDetails = ((UserAuthentication) userAuth).getUser();
+                userDetails = ((UserAuthentication) userAuth).getUserDetails();
                 if (userService != null) {
                     user = userService.getUser(userDetails, realm);
                 } else {
-                    user = new User(userDetails);
+                    user = ((UserAuthentication) userAuth).getUser();
                 }
             }
 

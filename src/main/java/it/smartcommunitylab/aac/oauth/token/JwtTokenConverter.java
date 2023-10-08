@@ -104,7 +104,7 @@ public class JwtTokenConverter implements TokenEnhancer {
             logger.debug("fetch user via authentication");
             Authentication userAuth = authentication.getUserAuthentication();
             if (userAuth != null && (userAuth instanceof UserAuthentication)) {
-                userDetails = ((UserAuthentication) userAuth).getUser();
+                userDetails = ((UserAuthentication) userAuth).getUserDetails();
             }
 
             JWT jwt = buildJWT(request, token, userDetails, clientDetails);

@@ -137,7 +137,6 @@ public class User
         this.userId = userId;
         this.realm = realm;
         this.authorities = Collections.emptySet();
-        this.resources = Collections.emptyMap();
     }
 
     public String getUserId() {

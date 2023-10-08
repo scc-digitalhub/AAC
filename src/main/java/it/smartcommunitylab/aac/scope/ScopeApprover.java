@@ -39,9 +39,11 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 public interface ScopeApprover {
     public String getRealm();
 
+    //TODO add userDetails model
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
         throws InvalidDefinitionException, SystemException;
 
+    //TODO add client model
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
         throws InvalidDefinitionException, SystemException;
 }
