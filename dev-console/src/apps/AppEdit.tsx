@@ -222,7 +222,7 @@ const AppTabComponent = () => {
                     <TextField source="scopes" />
                     <EditSetting />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="OAuth2">
+                {/* <TabbedShowLayout.Tab label="OAuth2">
                     <Typography variant="h5" sx={{ mr: 2 }}>
                         OAuth2.0 Configuration
                     </Typography>
@@ -231,8 +231,8 @@ const AppTabComponent = () => {
                     </Typography>
                     <TextField source="clientId" />
                     <EditOAuthSetting />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="OAuth2 JSON schema form">
+                </TabbedShowLayout.Tab> */}
+                <TabbedShowLayout.Tab label="OAuth2">
                     <Typography variant="h5" sx={{ mr: 2 }}>
                         OAuth2.0 Configuration
                     </Typography>
