@@ -22,6 +22,8 @@ import { AppShow } from './apps/AppShow';
 import { AppCreate } from './apps/AppCreate';
 import { AppEdit } from './apps/AppEdit';
 import { IdpList } from './idps/IdpList';
+import { IdpCreate } from './idps/IdpCreate';
+import { i18nProvider } from './i18nProvider';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -97,7 +99,7 @@ const App = () => (
     <Admin
         dataProvider={dataProvider}
         authProvider={authProvider}
-        // i18nProvider={i18nProvider}
+        i18nProvider={i18nProvider}
         // dashboard={UserDashboard}
         layout={MyLayout}
         theme={myTheme}
@@ -133,6 +135,7 @@ const App = () => (
         </Resource>
         <Resource name="idps">
             <Route path="/r/:realmId/*" element={<IdpList />} />
+            <Route path="/r/:realmId/create/*" element={<IdpCreate />} />
         </Resource>
         <Resource name="roles">
             <Route path="/r/:realmId/*" element={<DebugList />} />

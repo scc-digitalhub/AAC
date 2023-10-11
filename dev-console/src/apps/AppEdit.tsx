@@ -42,7 +42,7 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
-import { JSONSchemaFormInput } from '../components/JsonSchemaFormInput';
+import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 export const AppEdit = () => {
@@ -595,7 +595,7 @@ const EditOAuthJsonSchemaForm = () => {
             queryOptions={options}
         >
             <SimpleForm toolbar={<MyToolbar />}>
-                <JSONSchemaFormInput
+                <JsonSchemaFormInput
                     source="configuration"
                     schema={schemaOAuthClient}
                     uiSchema={uiSchemaOAuthClient}

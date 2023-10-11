@@ -1,29 +1,43 @@
 import polyglotI18nProvider from 'ra-i18n-polyglot';
-import { TranslationMessages } from 'react-admin';
-// import englishMessages from './i18n/en';
-// import italianMessages from './i18n/it';
-// import germanMessages from './i18n/de';
-// import spanishMessages from './i18n/en';
-// import latvianMessages from './i18n/en';
+import englishMessages from 'ra-language-english';
+import italianMessages from '@dslab/ra-language-italian';
 
-const messages: Record<string, TranslationMessages> = {
-    // en: englishMessages,
-    // it: italianMessages,
-    // de: germanMessages,
-    // es: spanishMessages,
-    // lv: latvianMessages,
+const customItalian = {
+    ...italianMessages,
+    resources: {
+        apps: {
+            fields: {
+                name: 'Nome app',
+                configuration: {
+                    subjectType: 'Tipo soggetto',
+                },
+            },
+        },
+    },
 };
 
-export default polyglotI18nProvider(
-    (locale: string) => {
-        return messages[locale];
+const customEnglish = {
+    ...englishMessages,
+    resources: {
+        apps: {
+            fields: {
+                name: 'Name',
+                configuration: {
+                    subjectType: 'Subject type',
+                },
+            },
+        },
     },
-    'en',
+};
+
+console.log(customItalian);
+
+export const i18nProvider = polyglotI18nProvider(
+    locale => (locale === 'it' ? customItalian : customEnglish),
+
+    'en', // default locale
     [
-        { locale: 'en', name: 'EN' },
-        { locale: 'it', name: 'IT' },
-        // { locale: 'lv', name: 'LV' },
-        // { locale: 'es', name: 'ES' },
-        { locale: 'de', name: 'DE' },
+        { locale: 'en', name: 'English' },
+        { locale: 'it', name: 'Italiano' },
     ]
 );
