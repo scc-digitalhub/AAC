@@ -118,7 +118,7 @@ const ExportIdpButton = () => {
     const realmId = params.realmId;
     const to =
         process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/idps/${realmId}/${record.id}/export`;
+        `/idps/${realmId}/${record.provider}/export`;
     const handleExport = (data: any) => {
         window.open(to, '_blank');
     };

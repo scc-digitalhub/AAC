@@ -5,14 +5,11 @@ import {
     TopToolbar,
     CreateButton,
     Pagination,
-    BulkActionsToolbar,
-    BulkDeleteButton,
     RecordContextProvider,
     SearchInput,
     EditButton,
-    DeleteWithConfirmButton,
+    useRedirect,
 } from 'react-admin';
-import { useRedirect } from 'react-admin';
 import {
     List as MList,
     ListItem,
