@@ -1,38 +1,16 @@
 import './App.css';
-import {
-    Admin,
-    Resource,
-    ListGuesser,
-    defaultTheme,
-    CustomRoutes,
-} from 'react-admin';
+import { Admin, Resource, defaultTheme, CustomRoutes } from 'react-admin';
 import { Route } from 'react-router-dom';
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
-// import i18nProvider from './i18nProvider';
 import MyLayout from './components/layout';
 
 import 'typeface-titillium-web';
 import 'typeface-roboto-mono';
 
-import GroupIcon from '@mui/icons-material/Group';
-import AccountBoxIcon from '@mui/icons-material/AccountBox';
-import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import AppShortcutIcon from '@mui/icons-material/AppShortcut';
-
 import UserDashboard from './pages/dashboard';
-import { ConnectionsPage } from './pages/connections';
-import { SecurityPage } from './pages/security';
-import { CredentialsPage } from './pages/credentials';
-import { AccountsPage } from './pages/accounts';
-import { AccountEdit } from './resources/accounts';
 
-import { PasswordCreate, PasswordEdit } from './resources/password';
-import { WebAuthnCreate, WebAuthnEdit } from './resources/webauthn';
-import { ProfilesPage } from './pages/profiles';
 import { LoginPage } from './pages/login';
-import myrealms from './myrealms';
-import myaudit from './audit';
 import { AuditList } from './audit/AuditList';
 import { DebugList } from './components/DebugList';
 import { AppList } from './apps/AppList';
@@ -43,6 +21,7 @@ import { AttributeSetList } from './attributeset/AttributeSetList';
 import { AppShow } from './apps/AppShow';
 import { AppCreate } from './apps/AppCreate';
 import { AppEdit } from './apps/AppEdit';
+import { IdpList } from './idps/IdpList';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -153,7 +132,7 @@ const App = () => (
             <Route path="/r/:realmId/*" element={<DebugList />} />
         </Resource>
         <Resource name="idps">
-            <Route path="/r/:realmId/*" element={<DebugList />} />
+            <Route path="/r/:realmId/*" element={<IdpList />} />
         </Resource>
         <Resource name="roles">
             <Route path="/r/:realmId/*" element={<DebugList />} />
