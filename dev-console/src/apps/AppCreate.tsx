@@ -1,5 +1,4 @@
 import {
-    BooleanInput,
     CreateBase,
     Form,
     SelectInput,
@@ -18,12 +17,8 @@ export const AppCreate = () => {
     const redirect = useRedirect();
 
     const transform = (data: any) => {
-        {
-            console.log(data);
-            let body = createApp(data, params.realmId);
-            console.log(body);
-            return body;
-        }
+        let body = createApp(data, params.realmId);
+        return body;
     };
 
     const onSuccess = (data: any) => {
