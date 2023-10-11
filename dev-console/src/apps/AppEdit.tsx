@@ -594,11 +594,7 @@ const EditOAuthJsonSchemaForm = () => {
             mutationOptions={{ ...options, onSuccess }}
             queryOptions={options}
         >
-            <SimpleForm
-                resource="posts"
-                record={record}
-                toolbar={<MyToolbar />}
-            >
+            <SimpleForm toolbar={<MyToolbar />}>
                 <JSONSchemaFormInput
                     source="configuration"
                     schema={schemaOAuthClient}
