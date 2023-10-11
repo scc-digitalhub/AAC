@@ -41,7 +41,8 @@ export const AppList = () => {
                     <ShowAppButton />
                     <EditAppButton />
                     <CustomDeleteButtonDialog
-                        realmId={params.realmId}
+                        rootId={params.realmId}
+                        property="id"
                         title="Client App Deletion"
                         resourceName="Client Application"
                         registeredResource="apps"

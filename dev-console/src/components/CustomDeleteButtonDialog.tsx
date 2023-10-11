@@ -7,7 +7,6 @@ import {
     useNotify,
     useRecordContext,
     useRedirect,
-    useRefresh,
     useStore,
 } from 'react-admin';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,6 +19,8 @@ import React from 'react';
  * <Confirm
  *     isOpen={true}
  *     title="Item title"
+ *     property="Property in record to perform deletion on"
+ *     rootId='name of parent resource'
  *     resourceName="Item name"
  *     registeredResource="resource id registered in Apps.tsx file"
  *     redirectUrl="url to redirect after delete"
@@ -29,7 +30,6 @@ export const CustomDeleteButtonDialog = (params: any) => {
     const redirect = useRedirect();
     const record = useRecordContext();
     const notify = useNotify();
-    const refresh = useRefresh();
     const [open, setOpen] = React.useState(false);
     const [disabledeletebutton, setDisableDeleteButton] =
         useStore('delete.disabled');
@@ -41,7 +41,10 @@ export const CustomDeleteButtonDialog = (params: any) => {
 
     const [deleteOne, { isLoading }] = useDelete(
         params.registeredResource,
-        { id: record.id, meta: { realmId: params.realmId } },
+        {
+            id: record[`${params.property}`],
+            meta: { rootId: `${params.rootId}` },
+        },
         {
             onSuccess: () => {
                 notify(params.resourceName + ` deleted successfully`);
@@ -53,7 +56,7 @@ export const CustomDeleteButtonDialog = (params: any) => {
     let title = params.title;
 
     const handleDialogClose = () => setOpen(false);
-    const handleConfirm = (data: any) => {
+    const handleConfirm = () => {
         deleteOne();
         setOpen(false);
     };
@@ -92,7 +95,7 @@ const DialogContent = (params: any) => {
     const [disabledeletebutton, setDisableDeleteButton] =
         useStore('delete.disabled');
 
-    const idValidation = (value: any, allValues: any) => {
+    const idValidation = (value: any) => {
         if (value === params.id) {
             setDisableDeleteButton(false);
         } else {

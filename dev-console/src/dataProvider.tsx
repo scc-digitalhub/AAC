@@ -150,7 +150,7 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             let url = `${apiUrl}/${resource}`;
 
             if (resource !== 'myrealms') {
-                const realmId = params.meta.realmId;
+                const realmId = params.meta.rootId;
                 url = url + '/' + realmId;
             }
 
