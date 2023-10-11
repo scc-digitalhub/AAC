@@ -42,11 +42,12 @@ export const IdpList = () => {
                     <ShowIdpButton />
                     <EditIdpButton />
                     <CustomDeleteButtonDialog
-                        realmId={params.realmId}
-                        title="Client App Deletion"
-                        resourceName="Client Application"
-                        registeredResource="apps"
-                        redirectUrl={`/apps/r/${params.realmId}`}
+                        rootId={params.realmId}
+                        property="provider"
+                        title="IDP Deletion"
+                        resourceName="Identity Provider"
+                        registeredResource="idps"
+                        redirectUrl={`/idps/r/${params.realmId}`}
                     />
                     <ExportIdpButton />
                 </Datagrid>

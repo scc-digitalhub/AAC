@@ -37,7 +37,8 @@ const RealmListContent = () => {
                     <RecordContextProvider key={realm.id} value={realm}>
                         <ListItem>
                             <ListItemText
-                                primary={`${realm.name}`}
+                                primary={`${realm.slug}`}
+                                secondary={`${realm.name}`}
                             ></ListItemText>
                             {realm.slug !== 'system' && (
                                 <EditButton
@@ -47,7 +48,8 @@ const RealmListContent = () => {
                             )}
                             {realm.slug !== 'system' && (
                                 <CustomDeleteButtonDialog
-                                    realmId={realm.slug}
+                                    rootId={realm.slug}
+                                    property="slug"
                                     title="Realm Deletion"
                                     resourceName="Realm"
                                     registeredResource="myrealms"
