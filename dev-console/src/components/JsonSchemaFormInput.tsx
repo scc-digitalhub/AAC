@@ -8,11 +8,7 @@ import { RJSFSchema, UiSchema } from '@rjsf/utils';
 export const JSONSchemaFormInput = (props: JSONSchemaFormatInputProps) => {
     const { schema, uiSchema, onBlur, onChange } = props;
 
-    const {
-        field,
-        fieldState: { isTouched, error },
-        formState: { isSubmitted },
-    } = useInput({
+    const { field } = useInput({
         onChange,
         onBlur,
         ...props,
