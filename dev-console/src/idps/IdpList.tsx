@@ -25,6 +25,7 @@ import {
     useListContext,
     useRecordContext,
     SaveButton,
+    BooleanInput,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
@@ -75,9 +76,12 @@ const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
 const IdpListActions = () => {
     const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
+    const options = {
+        meta: { realmId: params.realmId, import: false, resetId: false },
+    };
     const [open, setOpen] = React.useState(false);
     const to = `/idps/r/${params.realmId}/create`;
+    const importTo = `/idps/r/${params.realmId}/import`;
     const handleClick = () => {
         setOpen(true);
     };
@@ -85,8 +89,10 @@ const IdpListActions = () => {
         setOpen(false);
     };
     const transform = (data: any) => {
-        // let body = createApp(data, params.realmId);
-        // return body;
+        options.meta.import = true;
+        options.meta.resetId = data.resetId;
+        data = data.yamlInput;
+        return data;
     };
 
     const onSuccess = (data: any) => {
@@ -102,7 +108,12 @@ const IdpListActions = () => {
                 sx={{ marginLeft: 2 }}
                 to={to}
             />
-            <Button variant="contained" label="Import" onClick={handleClick}>
+            <Button
+                variant="contained"
+                label="Import"
+                onClick={handleClick}
+                to={importTo}
+            >
                 {<ImportExportIcon />}
             </Button>
             <Dialog
@@ -137,6 +148,12 @@ const IdpListActions = () => {
                                     mode="yaml"
                                     theme="github"
                                 ></AceEditorInput>
+                            </Box>
+                            <Box>
+                                <BooleanInput
+                                    label="Reset ID(s)"
+                                    source="resetId"
+                                />
                             </Box>
                         </SimpleForm>
                     </Create>
