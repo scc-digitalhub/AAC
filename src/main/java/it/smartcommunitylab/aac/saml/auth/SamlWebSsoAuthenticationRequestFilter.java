@@ -22,7 +22,6 @@ import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.servlet.FilterChain;
@@ -60,7 +59,6 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private final String authorityId;
 
     private final RequestMatcher requestMatcher;
-
     private final Saml2AuthenticationRequestContextResolver authenticationRequestContextResolver;
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
     //    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
@@ -218,8 +216,8 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private static Saml2AuthenticationRequestFactory getRequestFactory(
         ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository
     ) {
-        org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory factory =
-            new org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationRequestFactory();
+        org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationRequestFactory factory =
+            new org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationRequestFactory();
         factory.setAuthenticationRequestContextConverter(
             new SamlAuthenticationRequestContextConverter(registrationRepository)
         );

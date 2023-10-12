@@ -32,7 +32,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -40,7 +39,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
-import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
@@ -61,7 +60,7 @@ public class SamlAuthenticationProvider
 
     private final String usernameAttributeName;
 
-    private final OpenSamlAuthenticationProvider openSamlProvider;
+    private final OpenSaml4AuthenticationProvider openSamlProvider;
 
     private String customMappingFunction;
     private ScriptExecutionService executionService;
@@ -98,7 +97,7 @@ public class SamlAuthenticationProvider
                 : SUBJECT_ATTRIBUTE;
 
         // build a default saml provider with a clock skew of 5 minutes
-        openSamlProvider = new OpenSamlAuthenticationProvider();
+        openSamlProvider = new OpenSaml4AuthenticationProvider();
         //        openSamlProvider.setAssertionValidator(OpenSamlAuthenticationProvider
         //                .createDefaultAssertionValidator(assertionToken -> {
         //                    Map<String, Object> params = new HashMap<>();
