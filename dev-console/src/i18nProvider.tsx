@@ -39,5 +39,6 @@ export const i18nProvider = polyglotI18nProvider(
     [
         { locale: 'en', name: 'English' },
         { locale: 'it', name: 'Italiano' },
-    ]
+    ],
+    { allowMissing: true }
 );
