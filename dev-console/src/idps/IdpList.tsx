@@ -1,5 +1,6 @@
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
 import {
     Box,
     Dialog,
@@ -26,10 +27,15 @@ import {
     useRecordContext,
     SaveButton,
     BooleanInput,
+    useDelete,
+    useUpdate,
+    useNotify,
+    useRefresh,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { Refresh } from '@mui/icons-material';
 
 export const IdpList = () => {
     const params = useParams();
@@ -55,7 +61,7 @@ export const IdpList = () => {
                     <TextField source="name" />
                     <TextField source="authority" />
                     <TextField source="provider" />
-                    <EnableIdpButton />
+                    {<EnableIdpButton />}
                     <EditIdpButton />
                     <CustomDeleteButtonDialog
                         rootId={params.realmId}
@@ -76,6 +82,7 @@ const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
 const IdpListActions = () => {
     const params = useParams();
+    const notify = useNotify();
     const options = {
         meta: { realmId: params.realmId, import: false, resetId: false },
     };
@@ -97,7 +104,6 @@ const IdpListActions = () => {
 
     const onSuccess = (data: any) => {
         notify(`Provider imported successfully`);
-        // redirect(`/apps/r/${params.realmId}`);
     };
 
     return (
@@ -179,16 +185,58 @@ const Empty = () => {
 const EnableIdpButton = () => {
     const record = useRecordContext();
     const params = useParams();
+    const notify = useNotify();
+    const refresh = useRefresh();
     const realmId = params.realmId;
-    const to = `/idps/r/${realmId}/${record.id}`;
+    const [disable] = useDelete(
+        'idps',
+        {
+            id: record.provider + '/status',
+            meta: { rootId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(record.id + ` disabled successfully`);
+                refresh();
+            },
+        }
+    );
+    const [enable] = useUpdate(
+        'idps',
+        {
+            id: record.provider + '/status',
+            data: record,
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(record.id + ` enabled successfully`);
+                refresh();
+            },
+        }
+    );
+
     if (!record) return null;
     return (
         <>
-            <Button
-                to={to}
-                label="Enable"
-                startIcon={<PlayArrowIcon />}
-            ></Button>
+            {record.enabled && (
+                <Button
+                    onClick={() => {
+                        disable();
+                    }}
+                    label="Disable"
+                    startIcon={<StopIcon />}
+                ></Button>
+            )}
+            {!record.enabled && (
+                <Button
+                    onClick={() => {
+                        enable();
+                    }}
+                    label="Enable"
+                    startIcon={<PlayArrowIcon />}
+                ></Button>
+            )}
         </>
     );
 };
@@ -223,9 +271,6 @@ const ExportIdpButton = () => {
         </>
     );
 };
-function notify(arg0: string) {
-    throw new Error('Function not implemented.');
-}
 
 const ImportToolbar = () => (
     <Toolbar>
