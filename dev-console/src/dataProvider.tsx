@@ -132,16 +132,28 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         updateMany: (resource, params) => provider.updateMany(resource, params),
         create: (resource, params) => {
             let url = `${apiUrl}/${resource}`;
+            let headers = {
+                'Content-type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            };
+            let body: any;
             if (resource !== 'myrealms') {
                 const realmId = params.meta.realmId;
                 url = url + '/' + realmId;
             }
+            if (params.meta.import) {
+                let formData = new FormData();
+                formData.append('yaml', JSON.stringify(params.data));
+                body = formData;
+                headers['Content-type'] = 'multipart/form-data';
+                url = url + '?reset=' + params.meta.resetId;
+            } else {
+                body = JSON.stringify(params.data);
+            }
             return httpClient(url, {
                 method: 'POST',
-                body:
-                    typeof params.data === 'string'
-                        ? params.data
-                        : JSON.stringify(params.data),
+                headers: new Headers(headers),
+                body: body,
             }).then(({ json }) => ({
                 data: { ...params.data, id: json.id } as any,
             }));
