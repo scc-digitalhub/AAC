@@ -20,7 +20,6 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import java.time.Instant;
 import java.util.UUID;
-import org.joda.time.DateTime;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
@@ -105,7 +104,7 @@ public class SamlAuthenticationRequestContextConverter
 
         AuthnRequest auth = authnRequestBuilder.buildObject();
         auth.setID("ARQ" + UUID.randomUUID().toString().substring(1));
-        auth.setIssueInstant(new DateTime(now.getEpochSecond() * 1000));
+        auth.setIssueInstant(now);
         auth.setForceAuthn(Boolean.FALSE);
         auth.setIsPassive(Boolean.FALSE);
         auth.setProtocolBinding(protocolBinding);
@@ -142,7 +141,8 @@ public class SamlAuthenticationRequestContextConverter
                 .getRelyingPartyRegistrationAuthnContextClassRefs()
                 .forEach(r -> {
                     AuthnContextClassRef authnContextClassRef = new AuthnContextClassRefBuilder().buildObject();
-                    authnContextClassRef.setAuthnContextClassRef(r);
+                    authnContextClassRef.setURI(r);
+//                    authnContextClassRef.setAuthnContextClassRef(r);
                     requestAuthnContext.getAuthnContextClassRefs().add(authnContextClassRef);
                 });
 
