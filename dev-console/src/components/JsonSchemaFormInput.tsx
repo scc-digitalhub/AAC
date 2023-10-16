@@ -5,7 +5,6 @@ import {
     InputProps,
 } from 'react-admin';
 import validator from '@rjsf/validator-ajv8';
-import React from 'react';
 import { RJSFSchema, UiSchema, GenericObjectType } from '@rjsf/utils';
 import { Form } from '@rjsf/mui';
 

@@ -7,5 +7,5 @@ export default {
     list: AppList,
     show: AppShow,
     create: AppCreate,
-    edit: AppEdit
+    edit: AppEdit,
 };
