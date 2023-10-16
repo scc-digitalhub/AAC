@@ -1,29 +1,12 @@
-import * as React from 'react';
 import {
-    ShowBase,
     TextField,
-    ReferenceField,
-    ReferenceManyField,
-    ReferenceArrayField,
     useRecordContext,
-    useRedirect,
     LinearProgress,
     Labeled,
     DateField,
     FieldTitle,
-    RichTextField,
 } from 'react-admin';
-import {
-    Box,
-    Dialog,
-    DialogContent,
-    Typography,
-    Divider,
-    Stack,
-    Grid,
-    Chip,
-} from '@mui/material';
-import { format } from 'date-fns';
+import { Box, Typography, Stack, Grid, Chip } from '@mui/material';
 
 export const AuditDetails = () => {
     const record = useRecordContext();

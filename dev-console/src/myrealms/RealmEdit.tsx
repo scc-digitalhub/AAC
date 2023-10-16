@@ -10,7 +10,6 @@ import {
 } from 'react-admin';
 import { Card, CardContent, Box, Divider } from '@mui/material';
 import { useParams } from 'react-router';
-import React from 'react';
 
 export const RealmEdit = () => {
     const notify = useNotify();
