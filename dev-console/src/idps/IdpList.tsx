@@ -35,7 +35,6 @@ import {
 import { useParams } from 'react-router-dom';
 import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
-import { Refresh } from '@mui/icons-material';
 
 export const IdpList = () => {
     const params = useParams();
