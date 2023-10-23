@@ -135,7 +135,6 @@ public class SamlRequestRedirectBindingTest {
                 nameIdFormat = cfgIdP.getConfiguration().get("nameIDFormat").toString(); // urn:oasis:names:tc:SAML:2.0:nameid-format:transient
                 cfgIdP.getConfiguration().get("trustEmailAddress"); // true
 
-                // TODO: valuta altre configurazioni necessarie per saml-test
             }
         });
     }
@@ -268,7 +267,6 @@ public class SamlRequestRedirectBindingTest {
         assertThat(samlRequest.getDestination()).isEqualTo(samlWebSsoUrl);
         assertThat(samlRequest.getAssertionConsumerServiceURL()).isEqualTo(consumerUrl);
         assertThat(samlRequest.isForceAuthn()).isEqualTo(forceAuthn);
-        // TODO: check su dove si può tirare fuori l'ID ARQecb1f34-ba53-4c75-bb21-6cb759d97054
 
         assertThat(samlRequest.getIssuer().getValue()).isEqualTo(issuerUrl);
         Set<String> obtainedAuthnContextClassRefs = new HashSet<>();
