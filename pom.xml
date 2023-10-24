@@ -375,12 +375,7 @@
 			<artifactId>webauthn-server-core</artifactId>
 			<version>${yubico.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.13.0</version>
-			<scope>test</scope>
-		</dependency>
+
 	</dependencies>
 
 	<!-- <profiles> -->
