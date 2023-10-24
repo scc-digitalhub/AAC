@@ -33,7 +33,8 @@ update-backend-cache-image:
     - docker build -f Dockerfile-cache -t $CONTAINER_CACHE_IMAGE .
     - docker push $CONTAINER_CACHE_IMAGE
   rules:
-    - changes:
+    - if: $CI_COMMIT_REF_NAME == "4.x" && $CI_COMMIT_REF_NAME == "4.x-plaform"
+      changes:
       - pom.xml
       - user-console/yarn.lock
       - user-console/package.json
@@ -77,6 +78,10 @@ gemnasium-maven-dependency_scanning:
      - if: '$CI_COMMIT_REF_NAME == "master"'
 
 gemnasium-dependency_scanning:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
+
+gemnasium-python-dependency_scanning:
   rules:
      - if: '$CI_COMMIT_REF_NAME == "master"'
 
