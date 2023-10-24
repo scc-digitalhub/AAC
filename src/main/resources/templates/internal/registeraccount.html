@@ -56,7 +56,7 @@
             <div class="col-md-12 form-group">
                <label th:text="#{field.email} + '*: '"></label>
                <input type="text" class="form-control" th:field="*{email}"
-                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" />
+                  pattern="[\w.+~-]+@[\w.+-]+\.[a-zA-Z]{2,}$" />
                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
                </div>
             </div>
