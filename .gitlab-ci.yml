@@ -97,7 +97,7 @@ deploy-dev:
   stage: deploy
   image: smartcommunitylab/kubectl-alpine:latest
   environment:
-    name: platform-new
+    name: dslab
   script:
     - echo "deploy backend"
     - kubectl -n aac-dev set image deployments/aac-dev aac=$CONTAINER_IMAGE --record=true
