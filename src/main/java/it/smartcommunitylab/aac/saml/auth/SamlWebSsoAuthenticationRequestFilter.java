@@ -121,7 +121,8 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
             context.getRelyingPartyRegistration().getRegistrationId(),
             context.getIssuer(),
-            context.getRelayState()
+            context.getRelayState(),
+            null
         );
 
         // persist request if relayState is set
@@ -131,17 +132,18 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
 
         RelyingPartyRegistration relyingParty = context.getRelyingPartyRegistration();
         if (relyingParty.getAssertingPartyDetails().getSingleSignOnServiceBinding() == Saml2MessageBinding.REDIRECT) {
-            sendRedirect(response, context);
+            sendRedirect(response, context, ctx);
         } else {
-            sendPost(response, context);
+            sendPost(response, context, ctx);
         }
         logger.debug("sent request");
     }
 
-    private void sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context)
+    private void sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context, SerializableSaml2AuthenticationRequestContext serializedContext)
         throws IOException {
         Saml2RedirectAuthenticationRequest authenticationRequest =
             this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
+        serializedContext.setSamlAuthenticationRequest(authenticationRequest);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
             authenticationRequest.getAuthenticationRequestUri()
         );
@@ -163,9 +165,10 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         }
     }
 
-    private void sendPost(HttpServletResponse response, Saml2AuthenticationRequestContext context) throws IOException {
+    private void sendPost(HttpServletResponse response, Saml2AuthenticationRequestContext context, SerializableSaml2AuthenticationRequestContext serializedContext) throws IOException {
         Saml2PostAuthenticationRequest authenticationRequest =
             this.authenticationRequestFactory.createPostAuthenticationRequest(context);
+        serializedContext.setSamlAuthenticationRequest(authenticationRequest);
         String html = createSamlPostRequestFormData(authenticationRequest);
         response.setContentType(MediaType.TEXT_HTML_VALUE);
         response.getWriter().write(html);
