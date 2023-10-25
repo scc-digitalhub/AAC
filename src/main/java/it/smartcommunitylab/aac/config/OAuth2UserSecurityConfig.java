@@ -108,9 +108,13 @@ public class OAuth2UserSecurityConfig {
         http
             .requestMatcher(getRequestMatcher())
             //.authorizeRequests().anyRequest().authenticated().and()
-            .authorizeRequests(authorizeRequests -> authorizeRequests
-                .antMatchers(END_SESSION_ENDPOINT).permitAll()
-                .anyRequest().hasAnyAuthority(Config.R_USER))
+            .authorizeRequests(authorizeRequests ->
+                authorizeRequests
+                    .antMatchers(END_SESSION_ENDPOINT)
+                    .permitAll()
+                    .anyRequest()
+                    .hasAnyAuthority(Config.R_USER)
+            )
             .exceptionHandling()
             .authenticationEntryPoint(
                 authEntryPoint(loginPath, authorityService, idpProviderService, clientDetailsService)
