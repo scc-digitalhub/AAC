@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.saml.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
+
+import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.util.Assert;
 
 public class SerializableSaml2AuthenticationRequestContext implements Serializable {
@@ -27,11 +29,13 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
     private String relyingPartyRegistrationId;
     private String issuer;
     private String relayState;
+    private AbstractSaml2AuthenticationRequest samlAuthenticationRequest;
 
     public SerializableSaml2AuthenticationRequestContext(
         String relyingPartyRegistrationId,
         String issuer,
-        String relayState
+        String relayState,
+        AbstractSaml2AuthenticationRequest samlAuthenticationRequest
     ) {
         Assert.hasText(relyingPartyRegistrationId, "relyingPartyRegistrationId is required");
         Assert.hasText(relayState, "relayState is required");
@@ -40,10 +44,11 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
         this.relyingPartyRegistrationId = relyingPartyRegistrationId;
         this.issuer = issuer;
         this.relayState = relayState;
+        this.samlAuthenticationRequest = samlAuthenticationRequest;
     }
 
     protected SerializableSaml2AuthenticationRequestContext() {
-        this((String) null, (String) null, (String) null);
+        this((String) null, (String) null, (String) null, (AbstractSaml2AuthenticationRequest) null);
     }
 
     public String getRelyingPartyRegistrationId() {
@@ -68,5 +73,13 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
 
     public void setRelayState(String relayState) {
         this.relayState = relayState;
+    }
+
+    public AbstractSaml2AuthenticationRequest getSamlAuthenticationRequest() {
+        return samlAuthenticationRequest;
+    }
+
+    public void setSamlAuthenticationRequest(AbstractSaml2AuthenticationRequest samlAuthenticationRequest) {
+        this.samlAuthenticationRequest = samlAuthenticationRequest;
     }
 }
