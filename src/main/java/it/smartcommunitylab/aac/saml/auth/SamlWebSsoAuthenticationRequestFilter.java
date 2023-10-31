@@ -33,10 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestFactory;
-import org.springframework.security.saml2.provider.service.authentication.Saml2PostAuthenticationRequest;
-import org.springframework.security.saml2.provider.service.authentication.Saml2RedirectAuthenticationRequest;
+import org.springframework.security.saml2.provider.service.authentication.*;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
@@ -131,19 +128,21 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         }
 
         RelyingPartyRegistration relyingParty = context.getRelyingPartyRegistration();
+        AbstractSaml2AuthenticationRequest samlRequest;
         if (relyingParty.getAssertingPartyDetails().getSingleSignOnServiceBinding() == Saml2MessageBinding.REDIRECT) {
-            sendRedirect(response, context, ctx);
+            samlRequest = sendRedirect(response, context);
         } else {
-            sendPost(response, context, ctx);
+            samlRequest = sendPost(response, context);
         }
+        // persist (abstract) authentication request as per required by OpenSaml4AuthenticationProvider
+        ctx.setSamlAuthenticationRequest(samlRequest);
         logger.debug("sent request");
     }
 
-    private void sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context, SerializableSaml2AuthenticationRequestContext serializedContext)
+    private AbstractSaml2AuthenticationRequest sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context)
         throws IOException {
         Saml2RedirectAuthenticationRequest authenticationRequest =
             this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
-        serializedContext.setSamlAuthenticationRequest(authenticationRequest);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
             authenticationRequest.getAuthenticationRequestUri()
         );
@@ -153,6 +152,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         addParameter("Signature", authenticationRequest.getSignature(), uriBuilder);
         String redirectUrl = uriBuilder.build(true).toUriString();
         response.sendRedirect(redirectUrl);
+        return authenticationRequest;
     }
 
     private void addParameter(String name, String value, UriComponentsBuilder builder) {
@@ -165,13 +165,13 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         }
     }
 
-    private void sendPost(HttpServletResponse response, Saml2AuthenticationRequestContext context, SerializableSaml2AuthenticationRequestContext serializedContext) throws IOException {
+    private AbstractSaml2AuthenticationRequest sendPost(HttpServletResponse response, Saml2AuthenticationRequestContext context) throws IOException {
         Saml2PostAuthenticationRequest authenticationRequest =
             this.authenticationRequestFactory.createPostAuthenticationRequest(context);
-        serializedContext.setSamlAuthenticationRequest(authenticationRequest);
         String html = createSamlPostRequestFormData(authenticationRequest);
         response.setContentType(MediaType.TEXT_HTML_VALUE);
         response.getWriter().write(html);
+        return authenticationRequest;
     }
 
     private String createSamlPostRequestFormData(Saml2PostAuthenticationRequest authenticationRequest) {
