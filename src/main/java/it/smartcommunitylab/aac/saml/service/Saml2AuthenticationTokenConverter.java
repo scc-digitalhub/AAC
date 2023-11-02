@@ -1,11 +1,11 @@
 /*
- * Copyright 2002-2022 the original author or authors.
+ * Copyright 2023 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,8 +37,16 @@ import org.springframework.security.saml2.provider.service.web.RelyingPartyRegis
 import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.util.Assert;
 
+/**
+ * A custom Saml2AuthenticationConverter, where the AbstractSaml2AuthenticationRequest loader was
+ * changed compared to the default equivalent Spring Security class.
+ *
+ * @author Josh Cummings
+ * @author Thomas Chiozzi
+ * @since 5.4
+ */
 public final class Saml2AuthenticationTokenConverter implements AuthenticationConverter {
-    private static Base64 BASE64;
+    private static  Base64 BASE64 = new Base64(0, new byte[] { '\n' }, false, CodecPolicy.STRICT);
     private final Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver;
     private final Function<HttpServletRequest, AbstractSaml2AuthenticationRequest> loader;
 
@@ -64,7 +72,7 @@ public final class Saml2AuthenticationTokenConverter implements AuthenticationCo
     private static Converter<HttpServletRequest, RelyingPartyRegistration> adaptToConverter(RelyingPartyRegistrationResolver relyingPartyRegistrationResolver) {
         Assert.notNull(relyingPartyRegistrationResolver, "relyingPartyRegistrationResolver cannot be null");
         return (request) -> {
-            return relyingPartyRegistrationResolver.resolve(request, (String)null);
+            return relyingPartyRegistrationResolver.resolve(request, null);
         };
     }
 
