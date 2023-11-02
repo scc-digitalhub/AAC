@@ -24,7 +24,6 @@
 		<yarn.version>v1.21.1</yarn.version>
 		<postgresql.version>42.3.8</postgresql.version>
 		<mysql.version>8.0.33</mysql.version>
-<!--		<spring-security.version>5.8.7</spring-security.version>-->
 		<opensaml.version>4.1.1</opensaml.version>
 		<profile.authorization />
 	</properties>
