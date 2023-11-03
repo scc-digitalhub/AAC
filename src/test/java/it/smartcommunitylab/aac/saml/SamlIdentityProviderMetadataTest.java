@@ -1,8 +1,18 @@
 package it.smartcommunitylab.aac.saml;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import java.io.*;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
+import java.util.List;
 import net.shibboleth.utilities.java.support.xml.ParserPool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,26 +31,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.EnabledIf;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.io.*;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class SamlIdentityProviderMetadataTest {
-
     static {
         OpenSamlInitializationService.initialize();
     }
@@ -55,9 +52,9 @@ public class SamlIdentityProviderMetadataTest {
     private final ParserPool parserPool = registry.getParserPool();
 
     // hard-coded in test since they are hard-coded in the actual configuration
-    public final static String BASE_URL = "http://localhost";
-    public final static String METADATA_PATH = "/auth/saml/metadata/";
-    public final static String SSO_PATH = "/auth/saml/sso/";
+    public static final String BASE_URL = "http://localhost";
+    public static final String METADATA_PATH = "/auth/saml/metadata/";
+    public static final String SSO_PATH = "/auth/saml/sso/";
 
     private String signingIdpMetadataUrl;
     private String signingIdpSigningCertificate;
@@ -73,37 +70,36 @@ public class SamlIdentityProviderMetadataTest {
 
     @BeforeEach
     public void readConfiguration() {
-        config.getRealms().forEach(realm -> {
-            if (realm.getRealm().getSlug().equals("saml-test")) {
-                List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
-                assertThat(idps.size()).isEqualTo(2);
+        config
+            .getRealms()
+            .forEach(realm -> {
+                if (realm.getRealm().getSlug().equals("saml-test")) {
+                    List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
+                    assertThat(idps.size()).isEqualTo(2);
 
-                ConfigurableIdentityProvider idp1 = idps.get(0);
-                signingIdpMetadataUrl = BASE_URL + METADATA_PATH + idp1.getProvider();
-                signingIdpAssertionConsumerServiceLocation = BASE_URL + SSO_PATH + idp1.getProvider();
+                    ConfigurableIdentityProvider idp1 = idps.get(0);
+                    signingIdpMetadataUrl = BASE_URL + METADATA_PATH + idp1.getProvider();
+                    signingIdpAssertionConsumerServiceLocation = BASE_URL + SSO_PATH + idp1.getProvider();
 
-                SamlIdentityProviderConfigMap config1 = new SamlIdentityProviderConfigMap();
-                config1.setConfiguration(idp1.getConfiguration());
-                signingIdpSigningCertificate = config1.getSigningCertificate();
-                signingIdpEntityId = config1.getEntityId() != null ? config1.getEntityId() : signingIdpMetadataUrl;
+                    SamlIdentityProviderConfigMap config1 = new SamlIdentityProviderConfigMap();
+                    config1.setConfiguration(idp1.getConfiguration());
+                    signingIdpSigningCertificate = config1.getSigningCertificate();
+                    signingIdpEntityId = config1.getEntityId() != null ? config1.getEntityId() : signingIdpMetadataUrl;
 
-                ConfigurableIdentityProvider idp2 = idps.get(1);
-                signingAndCryptIdpMetadataUrl = BASE_URL + METADATA_PATH + idp2.getProvider();
+                    ConfigurableIdentityProvider idp2 = idps.get(1);
+                    signingAndCryptIdpMetadataUrl = BASE_URL + METADATA_PATH + idp2.getProvider();
 
-                SamlIdentityProviderConfigMap config2 = new SamlIdentityProviderConfigMap();
-                config2.setConfiguration(idp2.getConfiguration());
-                signingAndCryptIdpSigningCertificate = config2.getSigningCertificate();
-                signingAndCryptIdpCryptCertificate = config2.getCryptCertificate();
-            }
-        });
+                    SamlIdentityProviderConfigMap config2 = new SamlIdentityProviderConfigMap();
+                    config2.setConfiguration(idp2.getConfiguration());
+                    signingAndCryptIdpSigningCertificate = config2.getSigningCertificate();
+                    signingAndCryptIdpCryptCertificate = config2.getCryptCertificate();
+                }
+            });
     }
 
     @Test
     public void metadataIsAvailable() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // content is available
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
@@ -115,10 +111,7 @@ public class SamlIdentityProviderMetadataTest {
     @EnabledIf("false")
     @Test
     public void metadataContentTypeIsCorrect() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // content type is samlmetadata+xml
         assertEquals(res.getResponse().getContentType(), "application/samlmetadata+xml");
@@ -126,10 +119,7 @@ public class SamlIdentityProviderMetadataTest {
 
     @Test
     public void metadataIsWellFormed() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // parse XML
         String xml = res.getResponse().getContentAsString();
@@ -146,7 +136,7 @@ public class SamlIdentityProviderMetadataTest {
 
         // root element must be EntityDescriptor
         assertTrue(xmlObject instanceof EntityDescriptor);
-        EntityDescriptor descriptor = (EntityDescriptor)xmlObject;
+        EntityDescriptor descriptor = (EntityDescriptor) xmlObject;
 
         assertThat(descriptor.getEntityID()).isNotNull();
 
@@ -166,10 +156,7 @@ public class SamlIdentityProviderMetadataTest {
 
     @Test
     public void checkAssertionConsumerServiceAttributesValue() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // parse XML
         String xml = res.getResponse().getContentAsString();
@@ -178,22 +165,20 @@ public class SamlIdentityProviderMetadataTest {
 
         Unmarshaller unmarshaller = registry.getUnmarshallerFactory().getUnmarshaller(element);
         assertThat(unmarshaller).isNotNull();
-        EntityDescriptor descriptor = (EntityDescriptor)unmarshaller.unmarshall(element);
+        EntityDescriptor descriptor = (EntityDescriptor) unmarshaller.unmarshall(element);
 
         List<AssertionConsumerService> assertionConsumerServices = descriptor
-                .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
-                .getAssertionConsumerServices();
+            .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
+            .getAssertionConsumerServices();
 
         assertThat(assertionConsumerServices.get(0).getBinding()).isEqualTo(Saml2MessageBinding.POST.getUrn());
-        assertThat(assertionConsumerServices.get(0).getLocation()).isEqualTo(signingIdpAssertionConsumerServiceLocation);
+        assertThat(assertionConsumerServices.get(0).getLocation())
+            .isEqualTo(signingIdpAssertionConsumerServiceLocation);
     }
 
     @Test
     public void checkEntityIdValue() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // parse XML
         String xml = res.getResponse().getContentAsString();
@@ -202,7 +187,7 @@ public class SamlIdentityProviderMetadataTest {
 
         Unmarshaller unmarshaller = registry.getUnmarshallerFactory().getUnmarshaller(element);
         assertThat(unmarshaller).isNotNull();
-        EntityDescriptor descriptor = (EntityDescriptor)unmarshaller.unmarshall(element);
+        EntityDescriptor descriptor = (EntityDescriptor) unmarshaller.unmarshall(element);
 
         assertThat(descriptor.getEntityID()).isEqualTo(signingIdpEntityId);
     }
@@ -211,10 +196,7 @@ public class SamlIdentityProviderMetadataTest {
     @EnabledIf("false")
     @Test
     public void onlySigningCertificateIsPresent() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // parse XML
         String xml = res.getResponse().getContentAsString();
@@ -223,11 +205,11 @@ public class SamlIdentityProviderMetadataTest {
 
         Unmarshaller unmarshaller = registry.getUnmarshallerFactory().getUnmarshaller(element);
         assertThat(unmarshaller).isNotNull();
-        EntityDescriptor descriptor = (EntityDescriptor)unmarshaller.unmarshall(element);
+        EntityDescriptor descriptor = (EntityDescriptor) unmarshaller.unmarshall(element);
 
         List<KeyDescriptor> keyDescriptors = descriptor
-                .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
-                .getKeyDescriptors();
+            .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
+            .getKeyDescriptors();
 
         // only one KeyDescriptor element with use "signing" must exist
         assertThat(keyDescriptors.size()).isEqualTo(1);
@@ -236,25 +218,33 @@ public class SamlIdentityProviderMetadataTest {
         assertThat(keyDescriptor.getUse()).isEqualTo(UsageType.SIGNING);
 
         // metadata certificate must be equal to idp configuration certificate
-        List<org.opensaml.xmlsec.signature.X509Certificate> certificates = keyDescriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates();
+        List<org.opensaml.xmlsec.signature.X509Certificate> certificates = keyDescriptor
+            .getKeyInfo()
+            .getX509Datas()
+            .get(0)
+            .getX509Certificates();
         assertThat(certificates.size()).isEqualTo(1);
         String metadataSigningCertificate = certificates.get(0).getValue();
         assertThat(metadataSigningCertificate).isNotNull();
 
-        InputStream metadataSigningCertificateStream =
-                new ByteArrayInputStream(Base64.getDecoder().decode(metadataSigningCertificate.getBytes()));
-        X509Certificate metadataSigningCertificateX509 =
-                (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(metadataSigningCertificateStream);
+        InputStream metadataSigningCertificateStream = new ByteArrayInputStream(
+            Base64.getDecoder().decode(metadataSigningCertificate.getBytes())
+        );
+        X509Certificate metadataSigningCertificateX509 = (X509Certificate) CertificateFactory
+            .getInstance("X.509")
+            .generateCertificate(metadataSigningCertificateStream);
 
         String strippedIdpSigningCertificate = signingIdpSigningCertificate
-                .replace(BEGIN_CERT,"")
-                .replace(END_CERT,"")
-                .replace("\n", "");
+            .replace(BEGIN_CERT, "")
+            .replace(END_CERT, "")
+            .replace("\n", "");
 
-        InputStream idpSigningCertificateStream =
-                new ByteArrayInputStream(Base64.getDecoder().decode(strippedIdpSigningCertificate.getBytes()));
-        X509Certificate idpSigningCertificateX509 =
-                (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(idpSigningCertificateStream);
+        InputStream idpSigningCertificateStream = new ByteArrayInputStream(
+            Base64.getDecoder().decode(strippedIdpSigningCertificate.getBytes())
+        );
+        X509Certificate idpSigningCertificateX509 = (X509Certificate) CertificateFactory
+            .getInstance("X.509")
+            .generateCertificate(idpSigningCertificateStream);
 
         assertThat(metadataSigningCertificateX509).isEqualTo(idpSigningCertificateX509);
     }
@@ -263,10 +253,7 @@ public class SamlIdentityProviderMetadataTest {
     @EnabledIf("false")
     @Test
     public void bothSigningAndEncryptionCertificatesArePresent() throws Exception {
-        MvcResult res = this.mockMvc
-                .perform(get(signingAndCryptIdpMetadataUrl))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult res = this.mockMvc.perform(get(signingAndCryptIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
 
         // parse XML
         String xml = res.getResponse().getContentAsString();
@@ -275,11 +262,11 @@ public class SamlIdentityProviderMetadataTest {
 
         Unmarshaller unmarshaller = registry.getUnmarshallerFactory().getUnmarshaller(element);
         assertThat(unmarshaller).isNotNull();
-        EntityDescriptor descriptor = (EntityDescriptor)unmarshaller.unmarshall(element);
+        EntityDescriptor descriptor = (EntityDescriptor) unmarshaller.unmarshall(element);
 
         List<KeyDescriptor> keyDescriptors = descriptor
-                .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
-                .getKeyDescriptors();
+            .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
+            .getKeyDescriptors();
 
         // two KeyDescriptor elements respectively with use "signing" and "encryption" must exist
         assertThat(keyDescriptors.size()).isEqualTo(2);
@@ -291,48 +278,64 @@ public class SamlIdentityProviderMetadataTest {
         assertThat(cryptKeyDescriptor.getUse()).isEqualTo(UsageType.ENCRYPTION);
 
         // metadata signing certificate must be equal to idp configuration signing certificate
-        List<org.opensaml.xmlsec.signature.X509Certificate> signingCertificates = signingKeyDescriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates();
+        List<org.opensaml.xmlsec.signature.X509Certificate> signingCertificates = signingKeyDescriptor
+            .getKeyInfo()
+            .getX509Datas()
+            .get(0)
+            .getX509Certificates();
         assertThat(signingCertificates.size()).isEqualTo(1);
         String metadataSigningCertificate = signingCertificates.get(0).getValue();
         assertThat(metadataSigningCertificate).isNotNull();
 
-        InputStream metadataSigningCertificateStream =
-                new ByteArrayInputStream(Base64.getDecoder().decode(metadataSigningCertificate.getBytes()));
-        X509Certificate metadataSigningCertificateX509 =
-                (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(metadataSigningCertificateStream);
+        InputStream metadataSigningCertificateStream = new ByteArrayInputStream(
+            Base64.getDecoder().decode(metadataSigningCertificate.getBytes())
+        );
+        X509Certificate metadataSigningCertificateX509 = (X509Certificate) CertificateFactory
+            .getInstance("X.509")
+            .generateCertificate(metadataSigningCertificateStream);
 
         String strippedIdpSigningCertificate = signingAndCryptIdpSigningCertificate
-                .replace(BEGIN_CERT,"")
-                .replace(END_CERT,"")
-                .replace("\n", "");
+            .replace(BEGIN_CERT, "")
+            .replace(END_CERT, "")
+            .replace("\n", "");
 
-        InputStream idpSigningCertificateStream =
-                new ByteArrayInputStream(Base64.getDecoder().decode(strippedIdpSigningCertificate.getBytes()));
-        X509Certificate idpSigningCertificateX509 =
-                (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(idpSigningCertificateStream);
+        InputStream idpSigningCertificateStream = new ByteArrayInputStream(
+            Base64.getDecoder().decode(strippedIdpSigningCertificate.getBytes())
+        );
+        X509Certificate idpSigningCertificateX509 = (X509Certificate) CertificateFactory
+            .getInstance("X.509")
+            .generateCertificate(idpSigningCertificateStream);
 
         assertThat(metadataSigningCertificateX509).isEqualTo(idpSigningCertificateX509);
 
         // metadata crypt certificate must be equal to idp configuration crypt certificate
-        List<org.opensaml.xmlsec.signature.X509Certificate> cryptCertificates = cryptKeyDescriptor.getKeyInfo().getX509Datas().get(0).getX509Certificates();
+        List<org.opensaml.xmlsec.signature.X509Certificate> cryptCertificates = cryptKeyDescriptor
+            .getKeyInfo()
+            .getX509Datas()
+            .get(0)
+            .getX509Certificates();
         assertThat(cryptCertificates.size()).isEqualTo(1);
         String metadataCryptCertificate = cryptCertificates.get(0).getValue();
         assertThat(metadataCryptCertificate).isNotNull();
 
-        InputStream metadataCryptCertificateStream =
-                new ByteArrayInputStream(Base64.getDecoder().decode(metadataCryptCertificate.getBytes()));
-        X509Certificate metadataCryptCertificateX509 =
-                (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(metadataCryptCertificateStream);
+        InputStream metadataCryptCertificateStream = new ByteArrayInputStream(
+            Base64.getDecoder().decode(metadataCryptCertificate.getBytes())
+        );
+        X509Certificate metadataCryptCertificateX509 = (X509Certificate) CertificateFactory
+            .getInstance("X.509")
+            .generateCertificate(metadataCryptCertificateStream);
 
         String strippedIdpCryptCertificate = signingAndCryptIdpCryptCertificate
-                .replace(BEGIN_CERT,"")
-                .replace(END_CERT,"")
-                .replace("\n", "");
+            .replace(BEGIN_CERT, "")
+            .replace(END_CERT, "")
+            .replace("\n", "");
 
-        InputStream idpCryptCertificateStream =
-                new ByteArrayInputStream(Base64.getDecoder().decode(strippedIdpCryptCertificate.getBytes()));
-        X509Certificate idpCryptCertificateX509 =
-                (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(idpCryptCertificateStream);
+        InputStream idpCryptCertificateStream = new ByteArrayInputStream(
+            Base64.getDecoder().decode(strippedIdpCryptCertificate.getBytes())
+        );
+        X509Certificate idpCryptCertificateX509 = (X509Certificate) CertificateFactory
+            .getInstance("X.509")
+            .generateCertificate(idpCryptCertificateStream);
 
         assertThat(metadataCryptCertificateX509).isEqualTo(idpCryptCertificateX509);
     }
