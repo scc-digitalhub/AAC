@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.saml.service;
 
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
@@ -46,32 +45,40 @@ import org.springframework.util.Assert;
  * @since 5.4
  */
 public final class Saml2AuthenticationTokenConverter implements AuthenticationConverter {
-    private static  Base64 BASE64 = new Base64(0, new byte[] { '\n' }, false, CodecPolicy.STRICT);
+
+    private static Base64 BASE64 = new Base64(0, new byte[] { '\n' }, false, CodecPolicy.STRICT);
     private final Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver;
     private final Function<HttpServletRequest, AbstractSaml2AuthenticationRequest> loader;
 
     /** @deprecated */
     @Deprecated
-    public Saml2AuthenticationTokenConverter(Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver) {
+    public Saml2AuthenticationTokenConverter(
+        Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver
+    ) {
         Assert.notNull(relyingPartyRegistrationResolver, "relyingPartyRegistrationResolver cannot be null");
         this.relyingPartyRegistrationResolver = relyingPartyRegistrationResolver;
-        HttpSessionSaml2AuthenticationRequestRepository httpSessionRepository = new HttpSessionSaml2AuthenticationRequestRepository();
-        this.loader = (request) -> {
-            SerializableSaml2AuthenticationRequestContext requestContext = httpSessionRepository.loadAuthenticationRequest(request);
-            if (requestContext == null) {
-                return null;
-            }
-            return requestContext.getSamlAuthenticationRequest();
-        };
+        HttpSessionSaml2AuthenticationRequestRepository httpSessionRepository =
+            new HttpSessionSaml2AuthenticationRequestRepository();
+        this.loader =
+            request -> {
+                SerializableSaml2AuthenticationRequestContext requestContext =
+                    httpSessionRepository.loadAuthenticationRequest(request);
+                if (requestContext == null) {
+                    return null;
+                }
+                return requestContext.getSamlAuthenticationRequest();
+            };
     }
 
     public Saml2AuthenticationTokenConverter(RelyingPartyRegistrationResolver relyingPartyRegistrationResolver) {
         this(adaptToConverter(relyingPartyRegistrationResolver));
     }
 
-    private static Converter<HttpServletRequest, RelyingPartyRegistration> adaptToConverter(RelyingPartyRegistrationResolver relyingPartyRegistrationResolver) {
+    private static Converter<HttpServletRequest, RelyingPartyRegistration> adaptToConverter(
+        RelyingPartyRegistrationResolver relyingPartyRegistrationResolver
+    ) {
         Assert.notNull(relyingPartyRegistrationResolver, "relyingPartyRegistrationResolver cannot be null");
-        return (request) -> {
+        return request -> {
             return relyingPartyRegistrationResolver.resolve(request, null);
         };
     }
@@ -98,14 +105,19 @@ public final class Saml2AuthenticationTokenConverter implements AuthenticationCo
     }
 
     private String inflateIfRequired(HttpServletRequest request, byte[] b) {
-        return HttpMethod.GET.matches(request.getMethod()) ? this.samlInflate(b) : new String(b, StandardCharsets.UTF_8);
+        return HttpMethod.GET.matches(request.getMethod())
+            ? this.samlInflate(b)
+            : new String(b, StandardCharsets.UTF_8);
     }
 
     private byte[] samlDecode(String base64EncodedPayload) {
         try {
             return BASE64.decode(base64EncodedPayload);
         } catch (Exception e) {
-            throw new Saml2AuthenticationException(new Saml2Error("invalid_response", "Failed to decode SAMLResponse"), e);
+            throw new Saml2AuthenticationException(
+                new Saml2Error("invalid_response", "Failed to decode SAMLResponse"),
+                e
+            );
         }
     }
 
@@ -122,6 +134,6 @@ public final class Saml2AuthenticationTokenConverter implements AuthenticationCo
     }
 
     static {
-        BASE64 = new Base64(0, new byte[]{10}, false, CodecPolicy.STRICT);
+        BASE64 = new Base64(0, new byte[] { 10 }, false, CodecPolicy.STRICT);
     }
 }

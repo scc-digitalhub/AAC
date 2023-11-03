@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.saml.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
-
 import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
 import org.springframework.util.Assert;
 

@@ -143,8 +143,10 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         logger.debug("sent request");
     }
 
-    private AbstractSaml2AuthenticationRequest sendRedirect(HttpServletResponse response, Saml2AuthenticationRequestContext context)
-        throws IOException {
+    private AbstractSaml2AuthenticationRequest sendRedirect(
+        HttpServletResponse response,
+        Saml2AuthenticationRequestContext context
+    ) throws IOException {
         Saml2RedirectAuthenticationRequest authenticationRequest =
             this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
@@ -169,7 +171,10 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         }
     }
 
-    private AbstractSaml2AuthenticationRequest sendPost(HttpServletResponse response, Saml2AuthenticationRequestContext context) throws IOException {
+    private AbstractSaml2AuthenticationRequest sendPost(
+        HttpServletResponse response,
+        Saml2AuthenticationRequestContext context
+    ) throws IOException {
         Saml2PostAuthenticationRequest authenticationRequest =
             this.authenticationRequestFactory.createPostAuthenticationRequest(context);
         String html = createSamlPostRequestFormData(authenticationRequest);

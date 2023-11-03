@@ -142,7 +142,7 @@ public class SamlAuthenticationRequestContextConverter
                 .forEach(r -> {
                     AuthnContextClassRef authnContextClassRef = new AuthnContextClassRefBuilder().buildObject();
                     authnContextClassRef.setAuthnContextClassRef(r);
-//                    authnContextClassRef.setURI(r); // TODO: evaluate this opzione as a possible update from the previous deprecated method usage
+                    //                    authnContextClassRef.setURI(r); // TODO: evaluate this opzione as a possible update from the previous deprecated method usage
                     requestAuthnContext.getAuthnContextClassRefs().add(authnContextClassRef);
                 });
 
