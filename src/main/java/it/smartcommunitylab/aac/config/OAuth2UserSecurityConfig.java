@@ -240,6 +240,6 @@ public class OAuth2UserSecurityConfig {
         AUTHORIZATION_ENDPOINT,
         USER_APPROVAL_ENDPOINT,
         ACCESS_CONFIRMATION_ENDPOINT,
-        END_SESSION_ENDPOINT
+        END_SESSION_ENDPOINT,
     };
 }
