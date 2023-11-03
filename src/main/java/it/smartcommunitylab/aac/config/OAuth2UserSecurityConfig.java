@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.openid.endpoint.EndSessionEndpoint;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
@@ -106,8 +107,14 @@ public class OAuth2UserSecurityConfig {
         // match only user endpoints
         http
             .requestMatcher(getRequestMatcher())
-            //                .authorizeRequests().anyRequest().authenticated().and()
-            .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER))
+            //.authorizeRequests().anyRequest().authenticated().and()
+            .authorizeRequests(authorizeRequests ->
+                authorizeRequests
+                    .antMatchers(END_SESSION_ENDPOINT)
+                    .permitAll()
+                    .anyRequest()
+                    .hasAnyAuthority(Config.R_USER)
+            )
             .exceptionHandling()
             .authenticationEntryPoint(
                 authEntryPoint(loginPath, authorityService, idpProviderService, clientDetailsService)
@@ -118,6 +125,7 @@ public class OAuth2UserSecurityConfig {
             .configurationSource(corsConfigurationSource())
             .and()
             .csrf()
+            .ignoringAntMatchers(AUTHORIZATION_ENDPOINT, END_SESSION_ENDPOINT)
             .and()
             .addFilterBefore(
                 getOAuth2UserFilters(idpProviderService, clientDetailsService, clientService, loginPath),
@@ -226,10 +234,12 @@ public class OAuth2UserSecurityConfig {
     private static final String AUTHORIZATION_ENDPOINT = AuthorizationEndpoint.AUTHORIZATION_URL;
     private static final String USER_APPROVAL_ENDPOINT = UserApprovalEndpoint.APPROVAL_URL;
     private static final String ACCESS_CONFIRMATION_ENDPOINT = UserApprovalEndpoint.ACCESS_CONFIRMATION_URL;
+    private static final String END_SESSION_ENDPOINT = EndSessionEndpoint.END_SESSION_URL;
 
     private static final String[] OAUTH2_USER_URLS = {
         AUTHORIZATION_ENDPOINT,
         USER_APPROVAL_ENDPOINT,
         ACCESS_CONFIRMATION_ENDPOINT,
+        END_SESSION_ENDPOINT,
     };
 }

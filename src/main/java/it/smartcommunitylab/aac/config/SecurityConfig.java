@@ -139,8 +139,6 @@ public class SecurityConfig {
             .permitAll()
             .antMatchers("/-/{realm}/" + LOGINPATH)
             .permitAll()
-            .antMatchers("/endsession")
-            .permitAll()
             .antMatchers("/-/{realm}/" + TERMSPATH)
             .permitAll()
             // whitelist auth providers pages (login,registration etc)
