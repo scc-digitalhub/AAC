@@ -6,6 +6,7 @@
     "homepage": "/console/dev",
     "dependencies": {
         "@dslab/ra-ace-editor": "1.0.0",
+        "@dslab/ra-jsonschema-input": "^1.0.0",
         "@dslab/ra-language-italian": "^1.0.0",
         "@mui/icons-material": "^5.11.0",
         "@mui/material": "^5.11.7",
