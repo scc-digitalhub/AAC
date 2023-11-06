@@ -24,6 +24,7 @@ import { AppEdit } from './apps/AppEdit';
 import { IdpList } from './idps/IdpList';
 import { IdpCreate } from './idps/IdpCreate';
 import { i18nProvider } from './i18nProvider';
+import { IdpEdit } from './idps/IdpEdit';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -115,14 +116,19 @@ const App = () => (
             <Route path="create/*" element={<RealmCreate />} />
             <Route path=":id/edit/*" element={<RealmEdit />} />
         </Resource>
-        <Resource name="audit">
-            <Route path="/r/:realmId/*" element={<AuditList />} />
-        </Resource>
         <Resource name="apps">
             <Route path="/r/:realmId/*" element={<AppList />} />
             <Route path="/r/:realmId/:id" element={<AppShow />} />
             <Route path="/r/:realmId/:id/edit/*" element={<AppEdit />} />
             <Route path="/r/:realmId/create/*" element={<AppCreate />} />
+        </Resource>
+        <Resource name="idps">
+            <Route path="/r/:realmId/*" element={<IdpList />} />
+            <Route path="/r/:realmId/create/*" element={<IdpCreate />} />
+            <Route path="/r/:realmId/:id/edit/*" element={<IdpEdit />} />
+        </Resource>
+        <Resource name="audit">
+            <Route path="/r/:realmId/*" element={<AuditList />} />
         </Resource>
         <Resource name="services">
             <Route path="/r/:realmId/*" element={<DebugList />} />
@@ -132,10 +138,6 @@ const App = () => (
         </Resource>
         <Resource name="groups">
             <Route path="/r/:realmId/*" element={<DebugList />} />
-        </Resource>
-        <Resource name="idps">
-            <Route path="/r/:realmId/*" element={<IdpList />} />
-            <Route path="/r/:realmId/create/*" element={<IdpCreate />} />
         </Resource>
         <Resource name="roles">
             <Route path="/r/:realmId/*" element={<DebugList />} />
