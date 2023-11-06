@@ -131,9 +131,9 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         updateMany: (resource, params) => provider.updateMany(resource, params),
         create: (resource, params) => {
+            let method = `POST`;
             let url = `${apiUrl}/${resource}`;
             let headers = {
-                'Content-type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
             };
             let body: any;
@@ -142,16 +142,16 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 url = url + '/' + realmId;
             }
             if (params.meta.import) {
+                method = `PUT`;
                 let formData = new FormData();
-                formData.append('yaml', JSON.stringify(params.data));
+                formData.append('yaml', String(params.data));
                 body = formData;
-                headers['Content-type'] = 'multipart/form-data';
                 url = url + '?reset=' + params.meta.resetId;
             } else {
                 body = JSON.stringify(params.data);
             }
             return httpClient(url, {
-                method: 'POST',
+                method: method,
                 headers: new Headers(headers),
                 body: body,
             }).then(({ json }) => ({
