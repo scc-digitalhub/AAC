@@ -45,12 +45,8 @@ const RealmListContent = () => {
                             )}
                             {realm.slug !== 'system' && (
                                 <CustomDeleteButtonDialog
-                                    rootId={realm.slug}
-                                    property="slug"
-                                    title="Realm Deletion"
-                                    resourceName="Realm"
-                                    registeredResource="myrealms"
-                                    redirectUrl={`/myrealms`}
+                                    confirmTitle="Realm Deletion"
+                                    redirect={`/myrealms`}
                                 />
                             )}
                             <ManageButton
