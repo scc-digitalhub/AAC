@@ -151,9 +151,6 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
                     this.requestCache.saveRequest(request, response);
                     this.logger.debug("Redirect to {}", targetUrl);
                     this.redirectStrategy.sendRedirect(request, response, targetUrl);
-                    // NOTE: according to Jakarta documentation, https://jakarta.ee/specifications/platform/9/apidocs/jakarta/servlet/filter#doFilter-jakarta.servlet.ServletRequest-jakarta.servlet.ServletResponse-jakarta.servlet.FilterChain-
-                    // [cont.] return blocks the current request - doFilterInternal must abide to the
-                    // [cont.] same contract as doFilter: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/filter/OncePerRequestFilter.html#doFilterInternal(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse,jakarta.servlet.FilterChain)
                     return;
                 }
             }
