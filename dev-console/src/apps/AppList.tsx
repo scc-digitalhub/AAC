@@ -41,12 +41,9 @@ export const AppList = () => {
                     <ShowAppButton />
                     <EditAppButton />
                     <CustomDeleteButtonDialog
-                        rootId={params.realmId}
-                        property="id"
-                        title="Client App Deletion"
-                        resourceName="Client Application"
-                        registeredResource="apps"
-                        redirectUrl={`/apps/r/${params.realmId}`}
+                        mutationOptions={options}
+                        confirmTitle="Client App Deletion"
+                        redirect={`/apps/r/${params.realmId}`}
                     />
                     <ExportAppButton />
                 </Datagrid>

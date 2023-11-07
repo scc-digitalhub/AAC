@@ -371,11 +371,11 @@ const EditToolBarActions = () => {
                 </DialogContent>
             </Dialog>
             <CustomDeleteButtonDialog
-                realmId={params.realmId}
+                // realmId={params.realmId}
                 title="Client App Deletion"
-                resourceName="Client Application"
-                registeredResource="apps"
-                redirectUrl={`/apps/r/${params.realmId}`}
+                // resourceName="Client Application"
+                // registeredResource="apps"
+                // redirectUrl={`/apps/r/${params.realmId}`}
             />
             <ExportAppButton />
         </TopToolbar>

@@ -63,12 +63,12 @@ export const IdpList = () => {
                     {<EnableIdpButton />}
                     <EditIdpButton />
                     <CustomDeleteButtonDialog
-                        rootId={params.realmId}
-                        property="provider"
+                        // rootId={params.realmId}
+                        // property="provider"
                         title="IDP Deletion"
-                        resourceName="Identity Provider"
-                        registeredResource="idps"
-                        redirectUrl={`/idps/r/${params.realmId}`}
+                        // resourceName="Identity Provider"
+                        // registeredResource="idps"
+                        // redirectUrl={`/idps/r/${params.realmId}`}
                     />
                     <ExportIdpButton />
                 </Datagrid>

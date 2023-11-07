@@ -512,7 +512,7 @@ const EditToolBarActions = () => {
                     Inpsect Json
                 </DialogTitle>
                 <DialogContent>
-                    <ShowBase queryOptions={options} id={params.id}>
+                    <EditBase queryOptions={options} id={params.id}>
                         {/* <RichTextField source={body} /> */}
                         <SimpleShowLayout>
                             <Typography>Raw JSON</Typography>
@@ -531,15 +531,13 @@ const EditToolBarActions = () => {
                                 ></AceEditor>
                             </Box>
                         </SimpleShowLayout>
-                    </ShowBase>
+                    </EditBase>
                 </DialogContent>
             </Dialog>
             <CustomDeleteButtonDialog
-                realmId={params.realmId}
-                title="Client App Deletion"
-                resourceName="Client Application"
-                registeredResource="apps"
-                redirectUrl={`/apps/r/${params.realmId}`}
+                mutationOptions={options}
+                confirmTitle="Client App"
+                redirect={`/apps/r/${params.realmId}`}
             />
             <ExportAppButton />
         </TopToolbar>
