@@ -7,6 +7,7 @@ import {
     useNotify,
     useRedirect,
     Toolbar,
+    SaveButton,
 } from 'react-admin';
 import { Card, CardContent, Box, Divider } from '@mui/material';
 import { useParams } from 'react-router';
@@ -80,13 +81,19 @@ const RealmEditContent = () => {
                                 </Box>
                             </Box>
                         </CardContent>
-                        <Toolbar />
+                        <EditRealmsToolbar />
                     </Card>
                 </Form>
             </Box>
         </Box>
     );
 };
+
+const EditRealmsToolbar = (props: any) => (
+    <Toolbar {...props}>
+        <SaveButton />
+    </Toolbar>
+);
 
 function createRealm(data: any): any {
     let body: any = {};
