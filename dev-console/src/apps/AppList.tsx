@@ -10,6 +10,7 @@ import {
     useRecordContext,
     Button,
     EditButton,
+    ExportButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
@@ -56,6 +57,7 @@ const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
 const AppListActions = () => {
     const params = useParams();
+    const options = { realmId: params.realmId };
     const to = `/apps/r/${params.realmId}/create`;
     return (
         <TopToolbar>
@@ -65,6 +67,7 @@ const AppListActions = () => {
                 sx={{ marginLeft: 2 }}
                 to={to}
             />
+            <ExportButton variant="contained" meta={options} />
         </TopToolbar>
     );
 };
