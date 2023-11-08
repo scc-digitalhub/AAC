@@ -1,4 +1,3 @@
-import DeleteIcon from '@mui/icons-material/Delete';
 import {
     Button,
     Confirm,
@@ -8,32 +7,24 @@ import {
     TextInput,
     required,
     useDeleteWithConfirmController,
-    useNotify,
     useRecordContext,
     useResourceContext,
-    useStore,
-    useTranslate,
 } from 'react-admin';
 import ActionDelete from '@mui/icons-material/Delete';
 import { useState } from 'react';
 /**
- * Custom Delete button dialog
+ * Delete with confirm button dialog
  *
  * @example
- * <Confirm
- *     isOpen={true}
- *     title="Item title"
- *     property="Property in record to perform deletion on"
- *     rootId='name of parent resource'
- *     resourceName="Item name"
- *     registeredResource="resource id registered in Apps.tsx file"
- *     redirectUrl="url to redirect after delete"
+ * <DeleteButtonDialog
+ *     confirmTitle="Item title"
+ *     redirect="url to redirect after delete"
  * />
  */
 
 const defaultIcon = <ActionDelete />;
 
-export const CustomDeleteButtonDialog = (
+export const DeleteButtonDialog = (
     props: CustomDeleteWithConfirmButtonProps
 ) => {
     const {
@@ -88,7 +79,7 @@ export const CustomDeleteButtonDialog = (
                     onClick={handleDialogOpen}
                     sx={{ color: 'red' }}
                 >
-                    {<DeleteIcon />}
+                    {<ActionDelete />}
                 </Button>
             </span>
             <Confirm

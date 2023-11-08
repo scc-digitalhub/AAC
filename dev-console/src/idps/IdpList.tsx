@@ -33,7 +33,7 @@ import {
     useRefresh,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
-import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 
 export const IdpList = () => {
@@ -62,7 +62,7 @@ export const IdpList = () => {
                     <TextField source="provider" />
                     {<EnableIdpButton />}
                     <EditIdpButton />
-                    <CustomDeleteButtonDialog
+                    <DeleteButtonDialog
                         // rootId={params.realmId}
                         // property="provider"
                         title="IDP Deletion"

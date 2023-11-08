@@ -41,7 +41,7 @@ import React from 'react';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
-import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 // import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
@@ -534,7 +534,7 @@ const EditToolBarActions = () => {
                     </EditBase>
                 </DialogContent>
             </Dialog>
-            <CustomDeleteButtonDialog
+            <DeleteButtonDialog
                 mutationOptions={options}
                 confirmTitle="Client App"
                 redirect={`/apps/r/${params.realmId}`}

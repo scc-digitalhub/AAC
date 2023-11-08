@@ -19,7 +19,7 @@ import {
     Typography,
 } from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 
 const RealmListContent = () => {
     const { data: realms, isLoading } = useListContext<any>();
@@ -44,7 +44,7 @@ const RealmListContent = () => {
                                 />
                             )}
                             {realm.slug !== 'system' && (
-                                <CustomDeleteButtonDialog
+                                <DeleteButtonDialog
                                     confirmTitle="Realm Deletion"
                                     redirect={`/myrealms`}
                                 />
