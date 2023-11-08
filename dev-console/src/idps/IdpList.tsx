@@ -31,6 +31,7 @@ import {
     useUpdate,
     useNotify,
     useRefresh,
+    ExportButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
@@ -113,6 +114,7 @@ const IdpListActions = () => {
                 sx={{ marginLeft: 2 }}
                 to={to}
             />
+            <ExportButton meta={options.meta} variant="contained" />
             <Button
                 variant="contained"
                 label="Import"

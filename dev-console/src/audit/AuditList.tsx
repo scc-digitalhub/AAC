@@ -28,11 +28,7 @@ export const AuditList = () => {
                 Audit events
             </Typography>
             <Typography variant="h6">Review and inspect events</Typography>
-            <List
-                actions={<ListActions />}
-                queryOptions={options}
-                // filters={RealmFilters}
-            >
+            <List actions={<ListActions />} queryOptions={options}>
                 <Datagrid
                     rowClick="expand"
                     expand={<AuditDetails />}
@@ -47,8 +43,7 @@ export const AuditList = () => {
     );
 };
 
-const RealmFilters = [<SearchInput placeholder="Type" source="q" alwaysOn />];
-
+// https://marmelab.com/react-admin/FilteringTutorial.html#building-a-custom-filter
 const PostFilterButton = () => {
     const { showFilter } = useListContext();
     return (
@@ -92,14 +87,6 @@ const PostFilterForm = () => {
         }
     };
 
-    const dateFormatter = (data: any) => {
-        console.log(typeof data);
-        if (isNaN(data)) {
-            data = new Date(data);
-        }
-        return data;
-    };
-
     const resetFilter = () => {
         setFilters({}, []);
     };
@@ -109,11 +96,7 @@ const PostFilterForm = () => {
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <Box display="inherit" mb={1}>
                     <Box component="span" mr={2}>
-                        <DateInput
-                            helperText={false}
-                            // validate={[required()]}
-                            source="before"
-                        />
+                        <DateInput helperText={false} source="before" />
                     </Box>
                     <Box component="span" mr={2}>
                         <DateInput helperText={false} source="after" />
