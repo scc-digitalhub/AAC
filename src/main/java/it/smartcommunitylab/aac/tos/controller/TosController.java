@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.tos.TosOnAccessFilter;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
@@ -125,12 +126,12 @@ public class TosController {
             throw new NoSuchProviderException("realm not found");
         }
 
-        request.getSession().setAttribute("termsStatus", approveParam);
-
-        if (approveParam.equals("accept")) {
+        if (approveParam.equals(TosOnAccessFilter.TOS_APRROVED)) {
+            request.getSession().setAttribute("termsStatus", approveParam);
             logger.debug("terms of service approved");
             userService.acceptTos(user.getSubjectId());
-        } else if (approveParam.equals("reject")) {
+        } else if (approveParam.equals(TosOnAccessFilter.TOS_REFUSED)) {
+            request.getSession().setAttribute("termsStatus", approveParam);
             logger.debug("terms of service rejected");
             userService.rejectTos(user.getSubjectId());
         } else {

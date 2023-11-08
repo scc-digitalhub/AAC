@@ -71,8 +71,8 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
     private final RealmService realmService;
     private final UserService userService;
 
-    private static final String TOS_APRROVED = "Approve";
-    private static final String TOS_REFUSED = "Refuse";
+    public static final String TOS_APRROVED = "accept";
+    public static final String TOS_REFUSED = "reject";
     private static final String TOS_STATUS = "termsStatus";
 
     public TosOnAccessFilter(RealmService realmService, UserService userService) {
