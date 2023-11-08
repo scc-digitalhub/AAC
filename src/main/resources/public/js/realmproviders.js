@@ -1174,10 +1174,9 @@ angular.module('aac.controllers.realmproviders', [])
                 name: provider.name,
                 description: provider.description,
                 enabled: provider.enabled,
-                persistence: provider.persistence,
-                events: provider.events,
-                attributeSets: provider.attributeSets,
+                settings: provider.settings,
                 configuration: configuration
+
             }
 
             RealmProviders.saveAttributeProvider($scope.realm.slug, data)
@@ -1206,16 +1205,19 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.toggleProviderAttributeSet = function (attributeSet) {
+            if(!$scope.ap.settings.attributeSets){
+                $scope.ap.settings.attributeSets = [];
+            }
             if (attributeSet.identifier) {
                 var id = attributeSet.identifier;
-                var setIds = $scope.ap.attributeSets;
-                if ($scope.ap.attributeSets.includes(id)) {
+                var setIds = $scope.ap.settings.attributeSets;
+                if ($scope.ap.settings.attributeSets.includes(id)) {
                     setIds = setIds.filter(i => id != i);
                 } else {
                     setIds.push(id);
                 }
 
-                $scope.ap.attributeSets = setIds;
+                $scope.ap.settings.attributeSets = setIds;
 
             }
         }
