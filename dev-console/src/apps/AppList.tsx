@@ -13,7 +13,7 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
-import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 
 export const AppList = () => {
     const params = useParams();
@@ -40,7 +40,7 @@ export const AppList = () => {
                     <TextField source="id" />
                     <ShowAppButton />
                     <EditAppButton />
-                    <CustomDeleteButtonDialog
+                    <DeleteButtonDialog
                         mutationOptions={options}
                         confirmTitle="Client App Deletion"
                         redirect={`/apps/r/${params.realmId}`}

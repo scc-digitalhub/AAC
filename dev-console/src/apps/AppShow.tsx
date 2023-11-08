@@ -10,7 +10,7 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { CustomDeleteButtonDialog } from '../components/CustomDeleteButtonDialog';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 
 export const AppShow = () => {
     const params = useParams();
