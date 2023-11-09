@@ -36,6 +36,7 @@ import {
 import { useParams } from 'react-router-dom';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { YamlExporter } from '../components/YamlExporter';
 
 export const IdpList = () => {
     const params = useParams();
@@ -52,6 +53,7 @@ export const IdpList = () => {
             </Typography>
             <List
                 empty={<Empty />}
+                exporter={YamlExporter}
                 actions={<IdpListActions />}
                 queryOptions={options}
                 filters={RealmFilters}
