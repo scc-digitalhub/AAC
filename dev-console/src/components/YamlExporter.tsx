@@ -5,7 +5,9 @@ export const YamlExporter = (
     agr2: any,
     resource: any
 ) => {
-    const yaml = YAML.stringify({ resource: data });
+    let dataObj: any = {};
+    dataObj[resource] = data;
+    const yaml = YAML.stringify(dataObj);
     var blob = new Blob([yaml], { type: 'application/yaml' });
     let url = window.URL.createObjectURL(blob);
 
