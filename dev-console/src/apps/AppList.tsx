@@ -15,7 +15,7 @@ import {
 import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-
+import { YamlExporter } from '../components/YamlExporter';
 export const AppList = () => {
     const params = useParams();
     const options = { meta: { realmId: params.realmId } };
@@ -30,6 +30,7 @@ export const AppList = () => {
                 Manage web, mobile, server and IoT applications
             </Typography>
             <List
+                exporter={YamlExporter}
                 empty={<Empty />}
                 actions={<AppListActions />}
                 queryOptions={options}
