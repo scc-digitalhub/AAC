@@ -53,12 +53,14 @@ public class SamlAuthenticationProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String SUBJECT_ATTRIBUTE = "subject";
-    private static final int MAX_PRINCIPALID_LENGTH = 128;
     private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
     private final String repositoryId;
 
     private final String usernameAttributeName;
+
+    // let config set subject attribute name
+    private final String subAttributeName;
 
     private final OpenSaml4AuthenticationProvider openSamlProvider;
 
@@ -95,6 +97,8 @@ public class SamlAuthenticationProvider
             StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
                 ? config.getConfigMap().getUserNameAttributeName()
                 : SUBJECT_ATTRIBUTE;
+
+        this.subAttributeName = config.getSubAttributeName();
 
         // build a default saml provider with a clock skew of 5 minutes
         openSamlProvider = new OpenSaml4AuthenticationProvider();
@@ -204,30 +208,18 @@ public class SamlAuthenticationProvider
         return authentication != null && Saml2AuthenticationToken.class.isAssignableFrom(authentication);
     }
 
-    private String evaluateSubjectId(Saml2AuthenticatedPrincipal samlDetails, String subjectAttributeKey) throws Exception {
-        var targetAttributeValue = samlDetails.getFirstAttribute(subjectAttributeKey);
-        if (targetAttributeValue == null) {
-            String availableAttributes = "[" + String.join(",", samlDetails.getAttributes().keySet()) + "]";
-            String errorMessage = String.format("unable to fetch attribute %s from a principal with the following attributes: %s", subjectAttributeKey, availableAttributes);
-            throw new Exception(errorMessage);
-        }
-        String subject = targetAttributeValue.toString();
-        if (!(StringUtils.hasText(subject))) {
-            String errorMessage = String.format("attribute with name %s is either associated to a null value, is empty, or hash only whitespaces", subjectAttributeKey);
-            throw new Exception(errorMessage);
-        }
-        if ((subject.length() > MAX_PRINCIPALID_LENGTH)) {
-            String errorMessage = String.format("attribute with name %s and value %s (length %d) has a length exceeding maximum allowed length %d", subjectAttributeKey, subject, subject.length(), MAX_PRINCIPALID_LENGTH);
-            throw new Exception(errorMessage);
-        }
-        return subject;
-    }
-
     @Override
     protected SamlUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
         // we need to unpack token and fetch properties from repo
         // note we expect default behavior, if provider has a converter this will break
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
+
+        // subjectId is optionally evaluated from an attribute defined in saml provider configurations
+        String subjectId = StringUtils.hasText(subAttributeName) ? samlDetails.getFirstAttribute(subAttributeName) : samlDetails.getName();
+        if (subjectId == null) {
+            logger.error("Failed to evaluate or obtain the subjectId in the the Saml2AuthenticatedPrincipal");
+            return null; // fail authentication
+        }
 
         // name is always available, by default is subjectId
         String name = samlDetails.getName();
@@ -240,17 +232,6 @@ public class SamlAuthenticationProvider
         // we still don't have userId
         String userId = null;
 
-        // subjectId is optionally evaluated from an attribute defined in provider configurations
-        String subjectId = samlDetails.getName();
-        String subAttributeName = config.getConfigMap().getSubAttributeName();
-        if (StringUtils.hasText(subAttributeName)) {
-            try {
-                subjectId = evaluateSubjectId(samlDetails, subAttributeName);
-            } catch (Exception exc) {
-                logger.error("Failed to evaluate or obtain the principalId in the the Saml2AuthenticatedPrincipal - the following error wa obtained: " + exc.getMessage());
-                return null; // fail authentication
-            }
-        }
 
         // bind principal to ourselves
         SamlUserAuthenticatedPrincipal user = new SamlUserAuthenticatedPrincipal(
