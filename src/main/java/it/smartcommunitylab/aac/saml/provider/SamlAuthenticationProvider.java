@@ -215,7 +215,9 @@ public class SamlAuthenticationProvider
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
 
         // subjectId is optionally evaluated from an attribute defined in saml provider configurations
-        String subjectId = StringUtils.hasText(subAttributeName) ? samlDetails.getFirstAttribute(subAttributeName) : samlDetails.getName();
+        String subjectId = StringUtils.hasText(subAttributeName)
+            ? samlDetails.getFirstAttribute(subAttributeName)
+            : samlDetails.getName();
         if (subjectId == null) {
             logger.error("Failed to evaluate or obtain the subjectId in the the Saml2AuthenticatedPrincipal");
             return null; // fail authentication
@@ -231,7 +233,6 @@ public class SamlAuthenticationProvider
 
         // we still don't have userId
         String userId = null;
-
 
         // bind principal to ourselves
         SamlUserAuthenticatedPrincipal user = new SamlUserAuthenticatedPrincipal(
