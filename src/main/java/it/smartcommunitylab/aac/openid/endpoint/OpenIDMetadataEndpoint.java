@@ -46,7 +46,6 @@ public class OpenIDMetadataEndpoint {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String OPENID_CONFIGURATION_URL = Config.WELL_KNOWN_URL + "/openid-configuration";
-    public static final String WEBFINGER_URL = Config.WELL_KNOWN_URL + "/webfinger";
 
     //keep a local cache
     //TODO refactor when per-realm is supported
