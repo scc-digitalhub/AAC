@@ -229,6 +229,11 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
     }
 
+    public String getSubAttributeName() {
+        String subAttributeName = configMap.getSubAttributeName();
+        return StringUtils.hasText(subAttributeName) ? subAttributeName : null;
+    }
+
     //
     private Saml2X509Credential getVerificationCertificate(String certificate)
         throws CertificateException, IOException {

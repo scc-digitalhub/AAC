@@ -53,12 +53,14 @@ public class SamlAuthenticationProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String SUBJECT_ATTRIBUTE = "subject";
-
     private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
     private final String repositoryId;
 
     private final String usernameAttributeName;
+
+    // let config set subject attribute name
+    private final String subAttributeName;
 
     private final OpenSaml4AuthenticationProvider openSamlProvider;
 
@@ -95,6 +97,8 @@ public class SamlAuthenticationProvider
             StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
                 ? config.getConfigMap().getUserNameAttributeName()
                 : SUBJECT_ATTRIBUTE;
+
+        this.subAttributeName = config.getSubAttributeName();
 
         // build a default saml provider with a clock skew of 5 minutes
         openSamlProvider = new OpenSaml4AuthenticationProvider();
@@ -210,11 +214,14 @@ public class SamlAuthenticationProvider
         // note we expect default behavior, if provider has a converter this will break
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
 
-        // upstream subject identifier
-        //        String subjectId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
-        //                ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
-        //                : samlDetails.getName();
-        String subjectId = samlDetails.getName();
+        // subjectId is optionally evaluated from an attribute defined in saml provider configurations
+        String subjectId = StringUtils.hasText(subAttributeName)
+            ? samlDetails.getFirstAttribute(subAttributeName)
+            : samlDetails.getName();
+        if (subjectId == null) {
+            logger.error("Failed to evaluate or obtain the subjectId in the the Saml2AuthenticatedPrincipal");
+            return null; // fail authentication
+        }
 
         // name is always available, by default is subjectId
         String name = samlDetails.getName();

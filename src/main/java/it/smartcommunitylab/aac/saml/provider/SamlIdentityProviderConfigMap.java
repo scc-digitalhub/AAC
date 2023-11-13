@@ -72,6 +72,8 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
     private Boolean alwaysTrustEmailAddress;
     private Boolean requireEmailAddress;
 
+    private String subAttributeName;
+
     public SamlIdentityProviderConfigMap() {}
 
     public String getSigningKey() {
@@ -250,6 +252,15 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.requireEmailAddress = requireEmailAddress;
     }
 
+    public String getSubAttributeName() {
+        return subAttributeName;
+    }
+
+    public void setSubAttributeName(String subAttributeName) {
+        this.subAttributeName = subAttributeName;
+    }
+
+
     @JsonIgnore
     public void setConfiguration(SamlIdentityProviderConfigMap map) {
         this.signingKey = map.getSigningKey();
@@ -279,6 +290,7 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.requireEmailAddress = map.getRequireEmailAddress();
 
         this.entityId = map.getEntityId();
+        this.subAttributeName = map.getSubAttributeName();
     }
 
     @Override
