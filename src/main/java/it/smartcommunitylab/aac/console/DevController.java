@@ -159,7 +159,7 @@ public class DevController {
     ) throws NoSuchRealmException {
         // hack
         // TODO render proper per realm meta
-        Map<String, Object> metadata = oauth2MetadataEndpoint.getAuthServerMetadata();
+        Map<String, Object> metadata = oauth2MetadataEndpoint.getConfiguration();
         return ResponseEntity.ok(metadata);
     }
 
