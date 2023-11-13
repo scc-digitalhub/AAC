@@ -1575,8 +1575,8 @@ angular.module('aac.controllers.realmusers', [])
             providers
                 .forEach(ap => {
                     var { authority, provider, realm } = ap;
-                    if (ap.authority == 'internal' && ap.attributeSets) {
-                        ap.attributeSets.forEach(s => {
+                    if (ap.authority == 'internal' && ap.settings.attributeSets) {
+                        ap.settings.attributeSets.forEach(s => {
                             //if not present add as editable via this provider
                             var af = attributes.filter(a =>
                                 (a.provider == ap.provider && a.identifier == s));
