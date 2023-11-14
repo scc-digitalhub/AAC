@@ -195,7 +195,7 @@ const EnableIdpButton = () => {
         'idps',
         {
             id: record.provider + '/status',
-            meta: { rootId: realmId },
+            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
