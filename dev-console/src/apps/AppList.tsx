@@ -11,6 +11,7 @@ import {
     Button,
     EditButton,
     ExportButton,
+    useRedirect,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
@@ -89,12 +90,16 @@ const Empty = () => {
 const ShowAppButton = () => {
     const record = useRecordContext();
     const params = useParams();
+    const redirect = useRedirect();
     const realmId = params.realmId;
-    const to = `/apps/r/${realmId}/${record.id}`;
+    const to = '/apps/r/' + realmId + '/' + record.id;
+    const handleClick = () => {
+        redirect(to);
+    };
     if (!record) return null;
     return (
         <>
-            <ShowButton to={to}></ShowButton>
+            <Button onClick={handleClick} label="Show"></Button>
         </>
     );
 };
