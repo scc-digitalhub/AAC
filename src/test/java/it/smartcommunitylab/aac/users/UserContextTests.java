@@ -21,15 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 
 @SpringJUnitWebConfig
 public class UserContextTests {
+
+    private static ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void userContextTest() throws Exception {
@@ -49,5 +53,8 @@ public class UserContextTests {
 
         assertThat(user.getAccounts()).isNotEmpty();
         assertThat(user.getAccounts()).contains(account);
+
+        String value = mapper.writeValueAsString(user);
+        System.out.println(value);
     }
 }
