@@ -128,7 +128,7 @@ public class TosController {
         if (approveParam.equals(TosOnAccessFilter.TOS_APRROVED)) {
             request.getSession().setAttribute("termsStatus", approveParam);
             logger.debug("terms of service approved");
-            userService.acceptTos(user.getSubjectId());
+            userService.acceptTos(user.getUserId());
         } else if (approveParam.equals(TosOnAccessFilter.TOS_REFUSED)) {
             request.getSession().setAttribute("termsStatus", approveParam);
             logger.debug("terms of service rejected");
