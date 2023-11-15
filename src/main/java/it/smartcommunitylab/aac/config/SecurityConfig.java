@@ -179,7 +179,7 @@ public class SecurityConfig {
             //                .and()
             .csrf()
             //                .disable()
-            .ignoringAntMatchers("/logout", "/console/**", "/account/**")
+            .ignoringAntMatchers("/logout", "/console/**", "/account/**", "/files/**")
             .and()
             //                // TODO replace with filterRegistrationBean and explicitely map urls
             //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);
