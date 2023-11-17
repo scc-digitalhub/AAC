@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.model.FileInfo;
+import it.smartcommunitylab.aac.files.persistence.FileDB;
 import it.smartcommunitylab.aac.files.service.FilesStorageService;
 
 @Controller
@@ -38,7 +38,7 @@ public class FilesController {
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			storageService.save(file.getOriginalFilename(), file.getInputStream());
+			storageService.save(file.getOriginalFilename(), file.getContentType(), file.getInputStream());
 			message = "Uploaded the file successfully: " + file.getOriginalFilename();
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 		} catch (Exception e) {
@@ -57,33 +57,31 @@ public class FilesController {
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
-	@GetMapping("/{filename:.+}")
-	public void getFile(@PathVariable String filename, HttpServletResponse res) throws IOException {
-		InputStream is = storageService.load(filename);
-		res.setContentType("application/pdf");
-		res.setHeader("Content-Disposition", "attachment;filename=" + filename);
+	@GetMapping("/{id:.+}")
+	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
+		FileDB fileDB = storageService.readMetaData(id);
+		InputStream is = storageService.load(id);
+		res.setContentType(fileDB.getType());
+		res.setHeader("Content-Disposition", "attachment;filename=" + fileDB.getName());
 		ServletOutputStream out = res.getOutputStream();
 		out.write(is.readAllBytes());
 		out.flush();
 		out.close();
 	}
 
-	@DeleteMapping("/{filename:.+}")
-	public ResponseEntity<ResponseMessage> deleteFile(@PathVariable String filename) {
+	@DeleteMapping("/{id:.+}")
+	public ResponseEntity<ResponseMessage> deleteFile(@PathVariable String id) {
 		String message = "";
-
 		try {
-			boolean existed = storageService.delete(filename);
-
-			if (existed) {
-				message = "Delete the file successfully: " + filename;
+			boolean deleted = storageService.delete(id);
+			if (deleted) {
+				message = "Deleted successfully: " + id;
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 			}
-
 			message = "The file does not exist!";
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage(message));
 		} catch (Exception e) {
-			message = "Could not delete the file: " + filename + ". Error: " + e.getMessage();
+			message = "Could not delete the file: " + id + ". Error: " + e.getMessage();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(message));
 		}
 	}

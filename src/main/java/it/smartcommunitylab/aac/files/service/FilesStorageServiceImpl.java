@@ -3,23 +3,29 @@ package it.smartcommunitylab.aac.files.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
+import it.smartcommunitylab.aac.files.persistence.FileDB;
+import it.smartcommunitylab.aac.files.persistence.FileDBRepository;
+
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
 
 	private final Path root = Paths.get("uploads");
+	@Autowired
+	private FileDBRepository fileDBRepository;
 
 	@Override
 	@PostConstruct
@@ -32,22 +38,23 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	}
 
 	@Override
-	public void save(String filename, InputStream str) { // filename, inputstream
+	public void save(String fileName, String contentType, InputStream str) { // filename, inputstream
 		try {
-			Files.copy(str, this.root.resolve(filename));
+			FileDB fileDB = new FileDB(fileName, contentType);
+			fileDB.setId(generateUuid(fileName));
+			fileDB = fileDBRepository.save(fileDB);
+			Files.copy(str, this.root.resolve(fileDB.getId()));
+			str.close();
 		} catch (Exception e) {
-			if (e instanceof FileAlreadyExistsException) {
-				throw new RuntimeException("A file of that name already exists.");
-			}
-
 			throw new RuntimeException(e.getMessage());
 		}
 	}
 
 	@Override
-	public InputStream load(String filename) {
+	public InputStream load(String id) {
 		try {
-			Path file = root.resolve(filename);
+			FileDB fileDB = fileDBRepository.findOne(id);
+			Path file = root.resolve(fileDB.getId());
 			Resource resource = new UrlResource(file.toUri());
 
 			if (resource.exists() || resource.isReadable()) {
@@ -65,9 +72,11 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	}
 
 	@Override
-	public boolean delete(String filename) {
+	public boolean delete(String id) {
 		try {
-			Path file = root.resolve(filename);
+			FileDB fileDelete = fileDBRepository.findOne(id);
+			Path file = root.resolve(fileDelete.getId());
+			fileDBRepository.delete(fileDelete);
 			return Files.deleteIfExists(file);
 		} catch (IOException e) {
 			throw new RuntimeException("Error: " + e.getMessage());
@@ -86,6 +95,17 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 		} catch (IOException e) {
 			throw new RuntimeException("Could not load the files!");
 		}
+	}
+
+	public String generateUuid(String fileName) {
+		String uuid = UUID.randomUUID().toString().replace("-", "");
+		int hash = fileName.hashCode();
+		return String.valueOf(hash) + uuid;
+	}
+
+	@Override
+	public FileDB readMetaData(String id) {
+		return fileDBRepository.findOne(id);
 	}
 
 }

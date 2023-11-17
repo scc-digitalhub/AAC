@@ -66,6 +66,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "it.smartcommunitylab.aac.templates.persistence",
         "it.smartcommunitylab.aac.users.persistence",
         "it.smartcommunitylab.aac.webauthn.persistence",
+        "it.smartcommunitylab.aac.files.persistence",
     }
 )
 @EnableJpaRepositories(
@@ -88,6 +89,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "it.smartcommunitylab.aac.users.persistence",
         "it.smartcommunitylab.aac.webauthn.persistence",
         "it.smartcommunitylab.aac.repository",
+        "it.smartcommunitylab.aac.files.persistence",
     },
     queryLookupStrategy = QueryLookupStrategy.Key.CREATE_IF_NOT_FOUND
 )
@@ -193,7 +195,8 @@ public class DatabaseConfig {
             "it.smartcommunitylab.aac.services.persistence",
             "it.smartcommunitylab.aac.templates.persistence",
             "it.smartcommunitylab.aac.users.persistence",
-            "it.smartcommunitylab.aac.webauthn.persistence"
+            "it.smartcommunitylab.aac.webauthn.persistence",
+            "it.smartcommunitylab.aac.files.persistence"
         );
         //		bean.setPersistenceUnitManager(null);
 
