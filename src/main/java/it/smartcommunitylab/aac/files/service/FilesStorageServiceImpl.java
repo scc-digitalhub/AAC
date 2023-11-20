@@ -1,13 +1,30 @@
+/*
+ * Copyright 2023 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.files.service;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -15,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 
 import it.smartcommunitylab.aac.files.persistence.FileDB;
 import it.smartcommunitylab.aac.files.persistence.FileDBRepository;
@@ -33,12 +49,12 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 		try {
 			Files.createDirectories(root);
 		} catch (IOException e) {
-			throw new RuntimeException("Could not initialize folder for upload!");
+			throw new IllegalArgumentException("Could not initialize folder for upload!");
 		}
 	}
 
 	@Override
-	public void save(String fileName, String contentType, InputStream str) { // filename, inputstream
+	public void save(String fileName, String contentType, InputStream str) {
 		try {
 			FileDB fileDB = new FileDB(fileName, contentType);
 			fileDB.setId(generateUuid(fileName));
@@ -46,7 +62,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 			Files.copy(str, this.root.resolve(fileDB.getId()));
 			str.close();
 		} catch (Exception e) {
-			throw new RuntimeException(e.getMessage());
+			throw new IllegalArgumentException(e.getMessage());
 		}
 	}
 
@@ -60,12 +76,11 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 			if (resource.exists() || resource.isReadable()) {
 				return resource.getInputStream();
 			} else {
-				throw new RuntimeException("Could not read the file!");
+				throw new FileNotFoundException("Could not read the file!");
 			}
 		} catch (MalformedURLException e) {
-			throw new RuntimeException("Error: " + e.getMessage());
+			throw new IllegalArgumentException("Error: " + e.getMessage());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -79,33 +94,24 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 			fileDBRepository.delete(fileDelete);
 			return Files.deleteIfExists(file);
 		} catch (IOException e) {
-			throw new RuntimeException("Error: " + e.getMessage());
+			throw new IllegalArgumentException("Error: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public void deleteAll() {
-		FileSystemUtils.deleteRecursively(root.toFile());
-	}
-
-	@Override
-	public Stream<Path> loadAll() {
-		try {
-			return Files.walk(this.root, 1).filter(path -> !path.equals(this.root)).map(this.root::relativize);
-		} catch (IOException e) {
-			throw new RuntimeException("Could not load the files!");
-		}
-	}
-
-	public String generateUuid(String fileName) {
-		String uuid = UUID.randomUUID().toString().replace("-", "");
-		int hash = fileName.hashCode();
-		return String.valueOf(hash) + uuid;
+	public List<FileDB> loadAll() {
+		return fileDBRepository.findAll();
 	}
 
 	@Override
 	public FileDB readMetaData(String id) {
 		return fileDBRepository.findOne(id);
+	}
+
+	public String generateUuid(String fileName) {
+		String uuid = UUID.randomUUID().toString().replace("-", "");
+		int hash = fileName.hashCode();
+		return String.valueOf(Math.abs(hash)) + uuid;
 	}
 
 }
