@@ -28,6 +28,8 @@ import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -38,7 +40,7 @@ import it.smartcommunitylab.aac.files.persistence.FileDBRepository;
 
 @Service
 public class FilesStorageServiceImpl implements FilesStorageService {
-
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Path root = Paths.get("uploads");
 	@Autowired
 	private FileDBRepository fileDBRepository;
