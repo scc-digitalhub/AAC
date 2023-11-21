@@ -24,6 +24,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,7 @@ public class FilesController {
 
 	@Autowired
 	FilesStorageService storageService;
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostMapping(path = "/upload")
 	public ResponseEntity<ResponseMessage> uploadFile(
@@ -54,9 +57,11 @@ public class FilesController {
 		try {
 			storageService.save(file.getOriginalFilename(), file.getContentType(), file.getInputStream());
 			message = "Uploaded the file successfully: " + file.getOriginalFilename();
+			logger.debug(message);
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 		} catch (Exception e) {
 			message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
+			logger.debug(message);
 			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
 		}
 	}
@@ -86,12 +91,15 @@ public class FilesController {
 			boolean deleted = storageService.delete(id);
 			if (deleted) {
 				message = "Deleted successfully: " + id;
+				logger.debug(message);
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 			}
 			message = "The file does not exist!";
+			logger.debug(message);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage(message));
 		} catch (Exception e) {
 			message = "Could not delete the file: " + id + ". Error: " + e.getMessage();
+			logger.debug(message);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(message));
 		}
 	}
