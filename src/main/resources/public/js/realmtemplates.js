@@ -131,7 +131,7 @@ angular.module('aac.controllers.realmtemplates', ['ngSanitize'])
         var init = function () {
             RealmData.getTemplatesConfig(slug)
                 .then(function (data) {
-                    $scope.availableLanguages = data.languages;
+                    $scope.availableLanguages = data.settings.languages;
                 })
                 .then(function () {
                     return RealmTemplates.getAuthorities(slug);

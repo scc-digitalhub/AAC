@@ -244,7 +244,8 @@ public class TosUserTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            configMap.getConfiguration()
+            configMap.getConfiguration(),
+            null
         );
     }
 

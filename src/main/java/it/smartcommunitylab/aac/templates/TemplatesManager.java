@@ -24,12 +24,19 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.ConfigurableProviderManager;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.templates.model.Language;
 import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
+import it.smartcommunitylab.aac.templates.service.LanguageService;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,6 +62,9 @@ public class TemplatesManager
 
     @Autowired
     private TemplateService templateService;
+    
+    @Autowired
+    private RealmService realmService;
 
     @Autowired
     private TemplateProviderAuthorityService authorityService;
@@ -92,13 +102,21 @@ public class TemplatesManager
             }
         }
 
-        // check if languages are set, otherwise use default
-        //DISABLED, should merge with default config if needed
-        // if (provider.getLanguages() == null || provider.getLanguages().isEmpty()) {
-        //     provider.setLanguages(new HashSet<>(Arrays.asList(LanguageService.LANGUAGES)));
-        // }
+		TemplateProviderSettingsMap settingsMap = new TemplateProviderSettingsMap();
+		settingsMap.setConfiguration(provider.getSettings());
 
-        return provider;
+		if (settingsMap.getLanguages() == null || settingsMap.getLanguages().isEmpty()) {
+			Realm r = realmService.findRealm(realm);
+			if (r.getLocConfiguration() != null && !r.getLocConfiguration().getConfiguration().isEmpty()) {
+				settingsMap.setLanguages(r.getLocConfiguration().getLanguages());
+			} else {
+				settingsMap.setLanguages(Arrays.asList(LanguageService.LANGUAGES).stream().map(l -> Language.parse(l))
+						.collect(Collectors.toSet()));
+			}
+			provider.setSettings(settingsMap.getConfiguration());
+		}
+
+		return provider;
     }
 
     @Override

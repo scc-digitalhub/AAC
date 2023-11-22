@@ -495,6 +495,12 @@ angular.module('aac.controllers.realm', [])
 
       $scope.saveRealmSettings = function () {
          var data = $scope.realmSettings;
+         var providerSettings = $scope.settingsTemplates;
+         
+         // update realm languages in provider configuration.
+         if (data.locConfiguration != null && data.locConfiguration.languages != null) {
+         	providerSettings.settings.languages = data.locConfiguration.languages;
+         }         
 
          RealmData.updateRealm($scope.realm.slug, data)
             .then(function (res) {
@@ -502,7 +508,7 @@ angular.module('aac.controllers.realm', [])
                $scope['$parent'].refresh();
             })
             .then(function() {
-               return RealmData.setTemplatesConfig(slug, $scope.settingsTemplates);
+               return RealmData.setTemplatesConfig(slug, providerSettings);
             })
             .then(function(data) {
                $scope.reloadTemplatesConfig(data);

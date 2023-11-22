@@ -223,8 +223,13 @@ public class RealmManager {
         if (r.getTosConfiguration() != null) {
             tosConfigMap = r.getTosConfiguration().getConfiguration();
         }
+        
+        Map<String, Serializable> locConfigMap = null;
+        if (r.getLocConfiguration() != null) {
+        	locConfigMap = r.getLocConfiguration().getConfiguration();
+        }
 
-        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap, tosConfigMap);
+        Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap, tosConfigMap, locConfigMap);
 
         return realm;
     }

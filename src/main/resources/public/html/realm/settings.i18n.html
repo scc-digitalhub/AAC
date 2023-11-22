@@ -6,7 +6,7 @@
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label>Languages enabled</label>
                     <select title="Select" multiple="true" data-multiple-separator=""
-                        ng-model="settingsTemplates.languages">
+                        ng-model="realmSettings.locConfiguration.languages">
                         <option ng-repeat="e in availableLanguages" ng-value="e"
                             data-content="<span class='select-pill'><span class='select-pill-text'>{{e}}</span></span>">
                         </option>
