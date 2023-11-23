@@ -35,7 +35,6 @@ import it.smartcommunitylab.aac.templates.service.LanguageService;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderAuthorityService;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -62,7 +61,7 @@ public class TemplatesManager
 
     @Autowired
     private TemplateService templateService;
-    
+
     @Autowired
     private RealmService realmService;
 
@@ -102,21 +101,31 @@ public class TemplatesManager
             }
         }
 
-		TemplateProviderSettingsMap settingsMap = new TemplateProviderSettingsMap();
-		settingsMap.setConfiguration(provider.getSettings());
+        TemplateProviderSettingsMap settingsMap = new TemplateProviderSettingsMap();
+        settingsMap.setConfiguration(provider.getSettings());
 
-		if (settingsMap.getLanguages() == null || settingsMap.getLanguages().isEmpty()) {
-			Realm r = realmService.findRealm(realm);
-			if (r.getLocalizationConfiguration() != null && !r.getLocalizationConfiguration().getConfiguration().isEmpty()) {
-				settingsMap.setLanguages(r.getLocalizationConfiguration().getLanguages());
-			} else {
-				settingsMap.setLanguages(Arrays.asList(LanguageService.LANGUAGES).stream().map(l -> Language.parse(l))
-						.collect(Collectors.toSet()));
-			}
-			provider.setSettings(settingsMap.getConfiguration());
-		}
+        if (settingsMap.getLanguages() == null || settingsMap.getLanguages().isEmpty()) {
+            Realm r = realmService.findRealm(realm);
+            if (
+                r != null &&
+                r.getLocalizationConfiguration() != null &&
+                r.getLocalizationConfiguration().getLanguages() != null
+            ) {
+                settingsMap.setLanguages(r.getLocalizationConfiguration().getLanguages());
+            } else {
+                settingsMap.setLanguages(
+                    Arrays
+                        .asList(LanguageService.LANGUAGES)
+                        .stream()
+                        .map(l -> Language.parse(l))
+                        .collect(Collectors.toSet())
+                );
+            }
 
-		return provider;
+            provider.setSettings(settingsMap.getConfiguration());
+        }
+
+        return provider;
     }
 
     @Override
