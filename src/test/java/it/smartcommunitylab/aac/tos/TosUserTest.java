@@ -29,7 +29,6 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.users.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -244,7 +243,8 @@ public class TosUserTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            configMap.getConfiguration()
+            configMap.getConfiguration(),
+            null
         );
     }
 

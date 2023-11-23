@@ -25,7 +25,6 @@ import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,7 +83,8 @@ public class TosConfigTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'enabled'
@@ -107,7 +107,8 @@ public class TosConfigTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'disabled'
@@ -145,7 +146,8 @@ public class TosConfigTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'enabled'
@@ -168,7 +170,8 @@ public class TosConfigTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'disabled'
@@ -240,7 +243,8 @@ public class TosConfigTest {
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            configMap.getConfiguration()
+            configMap.getConfiguration(),
+            null
         );
     }
 

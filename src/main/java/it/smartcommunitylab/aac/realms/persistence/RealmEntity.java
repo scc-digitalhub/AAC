@@ -72,6 +72,12 @@ public class RealmEntity {
     @Column(name = "tos_configuration_map")
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> tosConfigurationMap;
+    
+	// TODO move to localizationConfigProvider
+	@Lob
+	@Column(name = "localization_configuration_map")
+	@Convert(converter = HashMapConverter.class)
+	private Map<String, Serializable> localizationConfigurationMap;
 
     public String getName() {
         return name;
@@ -136,4 +142,13 @@ public class RealmEntity {
     public void setTosConfigurationMap(Map<String, Serializable> tosConfigurationMap) {
         this.tosConfigurationMap = tosConfigurationMap;
     }
+
+	public Map<String, Serializable> getLocalizationConfigurationMap() {
+		return localizationConfigurationMap;
+	}
+
+	public void setLocalizationConfigurationMap(Map<String, Serializable> localizationConfigurationMap) {
+		this.localizationConfigurationMap = localizationConfigurationMap;
+	}
+	
 }
