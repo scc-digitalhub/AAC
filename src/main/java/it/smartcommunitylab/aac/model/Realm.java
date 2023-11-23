@@ -104,12 +104,13 @@ public class Realm {
     public void setTosConfiguration(TosConfigurationMap tosConfiguration) {
         this.tosConfiguration = tosConfiguration;
     }
-    
-	public LocalizationConfigurationMap getLocConfiguration() {
+
+	public LocalizationConfigurationMap getLocalizationConfiguration() {
 		return localizationConfiguration;
 	}
 
-	public void setLocConfiguration(LocalizationConfigurationMap locConfiguration) {
-		this.localizationConfiguration = locConfiguration;
-	}
+	public void setLocalizationConfiguration(LocalizationConfigurationMap localizationConfiguration) {
+		this.localizationConfiguration = localizationConfiguration;
+	}    
+
 }

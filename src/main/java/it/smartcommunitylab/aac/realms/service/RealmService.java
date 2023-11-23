@@ -265,7 +265,7 @@ public class RealmService implements InitializingBean {
         if (re.getLocalizationConfigurationMap() != null) {
         	locConfigMap.setConfiguration(re.getLocalizationConfigurationMap());
         }
-        r.setLocConfiguration(locConfigMap);
+        r.setLocalizationConfiguration(locConfigMap);
 
         return r;
     }

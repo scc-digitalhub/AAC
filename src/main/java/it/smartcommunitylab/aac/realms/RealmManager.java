@@ -225,8 +225,8 @@ public class RealmManager {
         }
         
         Map<String, Serializable> locConfigMap = null;
-        if (r.getLocConfiguration() != null) {
-        	locConfigMap = r.getLocConfiguration().getConfiguration();
+        if (r.getLocalizationConfiguration() != null) {
+        	locConfigMap = r.getLocalizationConfiguration().getConfiguration();
         }
 
         Realm realm = realmService.updateRealm(slug, name, r.isEditable(), r.isPublic(), oauth2ConfigMap, tosConfigMap, locConfigMap);

@@ -107,8 +107,8 @@ public class TemplatesManager
 
 		if (settingsMap.getLanguages() == null || settingsMap.getLanguages().isEmpty()) {
 			Realm r = realmService.findRealm(realm);
-			if (r.getLocConfiguration() != null && !r.getLocConfiguration().getConfiguration().isEmpty()) {
-				settingsMap.setLanguages(r.getLocConfiguration().getLanguages());
+			if (r.getLocalizationConfiguration() != null && !r.getLocalizationConfiguration().getConfiguration().isEmpty()) {
+				settingsMap.setLanguages(r.getLocalizationConfiguration().getLanguages());
 			} else {
 				settingsMap.setLanguages(Arrays.asList(LanguageService.LANGUAGES).stream().map(l -> Language.parse(l))
 						.collect(Collectors.toSet()));

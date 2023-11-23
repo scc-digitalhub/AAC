@@ -498,8 +498,8 @@ angular.module('aac.controllers.realm', [])
          var providerSettings = $scope.settingsTemplates;
          
          // update realm languages in provider configuration.
-         if (data.locConfiguration != null && data.locConfiguration.languages != null) {
-         	providerSettings.settings.languages = data.locConfiguration.languages;
+         if (data.localizationConfiguration != null && data.localizationConfiguration.languages != null) {
+         	providerSettings.settings.languages = data.localizationConfiguration.languages;
          }         
 
          RealmData.updateRealm($scope.realm.slug, data)
