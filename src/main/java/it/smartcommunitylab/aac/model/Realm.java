@@ -18,9 +18,9 @@ package it.smartcommunitylab.aac.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import it.smartcommunitylab.aac.oauth.model.LocalizationConfigurationMap;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
+import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
+import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -105,12 +105,11 @@ public class Realm {
         this.tosConfiguration = tosConfiguration;
     }
 
-	public LocalizationConfigurationMap getLocalizationConfiguration() {
-		return localizationConfiguration;
-	}
+    public LocalizationConfigurationMap getLocalizationConfiguration() {
+        return localizationConfiguration;
+    }
 
-	public void setLocalizationConfiguration(LocalizationConfigurationMap localizationConfiguration) {
-		this.localizationConfiguration = localizationConfiguration;
-	}    
-
+    public void setLocalizationConfiguration(LocalizationConfigurationMap localizationConfiguration) {
+        this.localizationConfiguration = localizationConfiguration;
+    }
 }

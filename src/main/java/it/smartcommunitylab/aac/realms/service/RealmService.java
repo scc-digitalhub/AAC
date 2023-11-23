@@ -22,11 +22,11 @@ import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.oauth.model.LocalizationConfigurationMap;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import it.smartcommunitylab.aac.realms.persistence.RealmEntity;
 import it.smartcommunitylab.aac.realms.persistence.RealmEntityRepository;
+import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
+import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
@@ -260,10 +260,10 @@ public class RealmService implements InitializingBean {
             tosConfigMap.setConfiguration(re.getTosConfigurationMap());
         }
         r.setTosConfiguration(tosConfigMap);
-        
+
         LocalizationConfigurationMap locConfigMap = new LocalizationConfigurationMap();
         if (re.getLocalizationConfigurationMap() != null) {
-        	locConfigMap.setConfiguration(re.getLocalizationConfigurationMap());
+            locConfigMap.setConfiguration(re.getLocalizationConfigurationMap());
         }
         r.setLocalizationConfiguration(locConfigMap);
 

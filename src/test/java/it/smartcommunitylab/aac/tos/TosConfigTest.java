@@ -25,8 +25,6 @@ import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.oauth.model.LocalizationConfigurationMap;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,7 +74,7 @@ public class TosConfigTest {
 
         TosConfigurationMap tosConfig = realm.getTosConfiguration();
         assertThat(tosConfig).isNotNull();
-        
+
         //update config to enable tos
         tosConfig.setEnableTOS(true);
         Realm realmUpdated = realmService.updateRealm(
