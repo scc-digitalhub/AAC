@@ -20,3 +20,10 @@ CREATE TABLE
         attr_key VARCHAR(256),
         attr_value bytea
     );
+    
+CREATE TABLE
+    IF NOT EXISTS files (
+        id VARCHAR(256),
+        fileinfo_id VARCHAR(256),
+        data bytea
+    );
