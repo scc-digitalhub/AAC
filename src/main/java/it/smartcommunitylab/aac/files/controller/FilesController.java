@@ -40,14 +40,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
-import it.smartcommunitylab.aac.files.service.FilesStorageService;
+import it.smartcommunitylab.aac.files.service.FileInfoService;
+import it.smartcommunitylab.aac.files.store.FileStoreService;
 
 @Controller
 @RequestMapping("/files")
 public class FilesController {
 
-	@Autowired
-	FilesStorageService storageService;
+	@Autowired FileStoreService storageService;
+	
+	@Autowired FileInfoService fileInfoService;
+	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostMapping(path = "/upload")
@@ -68,13 +71,13 @@ public class FilesController {
 
 	@GetMapping("/list")
 	public ResponseEntity<List<FileInfo>> getListFiles() {
-		List<FileInfo> fileInfos = storageService.readAllFileInfo();
+		List<FileInfo> fileInfos = fileInfoService.readAllFileInfo();
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
 	@GetMapping("/{id:.+}")
 	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
-		FileInfo fileInfo = storageService.readFileInfo(id);
+		FileInfo fileInfo = fileInfoService.readFileInfo(id);
 		InputStream is = storageService.load(id);
 		res.setContentType(fileInfo.getType());
 		res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
