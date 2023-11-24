@@ -23,8 +23,6 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -36,16 +34,15 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
-import it.smartcommunitylab.aac.files.persistence.FileDBRepository;
+import it.smartcommunitylab.aac.files.store.FileStoreService;
 
 @Service
-public class FilesStorageServiceImpl implements FilesStorageService {
+public class LocalFileStoreService implements FileStoreService {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Path root = Paths.get("uploads");
 	@Autowired
-	private FileDBRepository fileDBRepository;
+	private FileInfoService fileInfoService;
 
-	@Override
 	@PostConstruct
 	public void init() {
 		try {
@@ -58,10 +55,10 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	@Override
 	public void save(String fileName, String contentType, InputStream str) {
 		try {
-			FileInfo fileDB = new FileInfo(fileName, contentType);
-			fileDB.setId(generateUuid(fileName));
-			fileDB = fileDBRepository.save(fileDB);
-			Files.copy(str, this.root.resolve(fileDB.getId()));
+			FileInfo fileInfo = new FileInfo(fileName, contentType);
+			fileInfo.setId(fileInfoService.generateUuid(fileName));
+			fileInfo = fileInfoService.save(fileInfo);
+			Files.copy(str, this.root.resolve(fileInfo.getId()));
 			str.close();
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e.getMessage());
@@ -71,8 +68,8 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	@Override
 	public InputStream load(String id) {
 		try {
-			FileInfo fileDB = fileDBRepository.findOne(id);
-			Path file = root.resolve(fileDB.getId());
+			FileInfo fileInfo = fileInfoService.readFileInfo(id);
+			Path file = root.resolve(fileInfo.getId());
 			Resource resource = new UrlResource(file.toUri());
 
 			if (resource.exists() || resource.isReadable()) {
@@ -91,29 +88,13 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	@Override
 	public boolean delete(String id) {
 		try {
-			FileInfo fileDelete = fileDBRepository.findOne(id);
+			FileInfo fileDelete = fileInfoService.readFileInfo(id);
 			Path file = root.resolve(fileDelete.getId());
-			fileDBRepository.delete(fileDelete);
+			fileInfoService.delete(fileDelete);
 			return Files.deleteIfExists(file);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Error: " + e.getMessage());
 		}
-	}
-
-	@Override
-	public List<FileInfo> readAllFileInfo() {
-		return fileDBRepository.findAll();
-	}
-
-	@Override
-	public FileInfo readFileInfo(String id) {
-		return fileDBRepository.findOne(id);
-	}
-
-	public String generateUuid(String fileName) {
-		String uuid = UUID.randomUUID().toString().replace("-", "");
-		int hash = fileName.hashCode();
-		return String.valueOf(Math.abs(hash)) + uuid;
 	}
 
 }
