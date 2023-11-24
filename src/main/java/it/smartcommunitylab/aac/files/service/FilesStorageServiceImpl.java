@@ -101,12 +101,12 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	}
 
 	@Override
-	public List<FileInfo> loadAll() {
+	public List<FileInfo> readAllFileInfo() {
 		return fileDBRepository.findAll();
 	}
 
 	@Override
-	public FileInfo readMetaData(String id) {
+	public FileInfo readFileInfo(String id) {
 		return fileDBRepository.findOne(id);
 	}
 

@@ -23,14 +23,14 @@ import it.smartcommunitylab.aac.files.persistence.FileInfo;
 
 public interface FilesStorageService {
 	public void init();
-
+	
 	public void save(String filename, String contentType, InputStream file);
-
+	
 	public InputStream load(String filename);
-
-	public FileInfo readMetaData(String id);
-
+	
 	public boolean delete(String filename);
-
-	public List<FileInfo> loadAll();
+	
+	public FileInfo readFileInfo(String id);
+	
+	public List<FileInfo> readAllFileInfo();
 }
