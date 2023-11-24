@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.files.service;
 import java.io.InputStream;
 import java.util.List;
 
-import it.smartcommunitylab.aac.files.persistence.FileDB;
+import it.smartcommunitylab.aac.files.persistence.FileInfo;
 
 public interface FilesStorageService {
 	public void init();
@@ -28,9 +28,9 @@ public interface FilesStorageService {
 
 	public InputStream load(String filename);
 
-	public FileDB readMetaData(String id);
+	public FileInfo readMetaData(String id);
 
 	public boolean delete(String filename);
 
-	public List<FileDB> loadAll();
+	public List<FileInfo> loadAll();
 }
