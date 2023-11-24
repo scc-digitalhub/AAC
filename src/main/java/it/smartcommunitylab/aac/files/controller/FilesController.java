@@ -41,13 +41,13 @@ import org.springframework.web.multipart.MultipartFile;
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.files.service.FileInfoService;
-import it.smartcommunitylab.aac.files.store.FileStoreService;
+import it.smartcommunitylab.aac.files.store.FileStore;
 
 @Controller
 @RequestMapping("/files")
 public class FilesController {
 
-	@Autowired FileStoreService storageService;
+	@Autowired FileStore storageService;
 	
 	@Autowired FileInfoService fileInfoService;
 	
