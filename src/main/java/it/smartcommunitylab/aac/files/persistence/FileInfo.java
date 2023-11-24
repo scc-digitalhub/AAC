@@ -21,17 +21,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "files")
-public class FileDB {
+@Table(name = "files_info")
+public class FileInfo {
 	@Id
 	private String id;
 	private String name;
 	private String type;
 
-	public FileDB() {
+	public FileInfo() {
 	}
 
-	public FileDB(String name, String type) {
+	public FileInfo(String name, String type) {
 		this.name = name;
 		this.type = type;
 	}

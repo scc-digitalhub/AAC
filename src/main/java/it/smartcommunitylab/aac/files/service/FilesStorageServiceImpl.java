@@ -35,7 +35,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
-import it.smartcommunitylab.aac.files.persistence.FileDB;
+import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.files.persistence.FileDBRepository;
 
 @Service
@@ -58,7 +58,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	@Override
 	public void save(String fileName, String contentType, InputStream str) {
 		try {
-			FileDB fileDB = new FileDB(fileName, contentType);
+			FileInfo fileDB = new FileInfo(fileName, contentType);
 			fileDB.setId(generateUuid(fileName));
 			fileDB = fileDBRepository.save(fileDB);
 			Files.copy(str, this.root.resolve(fileDB.getId()));
@@ -71,7 +71,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	@Override
 	public InputStream load(String id) {
 		try {
-			FileDB fileDB = fileDBRepository.findOne(id);
+			FileInfo fileDB = fileDBRepository.findOne(id);
 			Path file = root.resolve(fileDB.getId());
 			Resource resource = new UrlResource(file.toUri());
 
@@ -91,7 +91,7 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	@Override
 	public boolean delete(String id) {
 		try {
-			FileDB fileDelete = fileDBRepository.findOne(id);
+			FileInfo fileDelete = fileDBRepository.findOne(id);
 			Path file = root.resolve(fileDelete.getId());
 			fileDBRepository.delete(fileDelete);
 			return Files.deleteIfExists(file);
@@ -101,12 +101,12 @@ public class FilesStorageServiceImpl implements FilesStorageService {
 	}
 
 	@Override
-	public List<FileDB> loadAll() {
+	public List<FileInfo> loadAll() {
 		return fileDBRepository.findAll();
 	}
 
 	@Override
-	public FileDB readMetaData(String id) {
+	public FileInfo readMetaData(String id) {
 		return fileDBRepository.findOne(id);
 	}
 

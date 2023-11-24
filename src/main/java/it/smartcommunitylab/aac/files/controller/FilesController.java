@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
-import it.smartcommunitylab.aac.files.persistence.FileDB;
+import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.files.service.FilesStorageService;
 
 @Controller
@@ -67,14 +67,14 @@ public class FilesController {
 	}
 
 	@GetMapping("/list")
-	public ResponseEntity<List<FileDB>> getListFiles() {
-		List<FileDB> fileInfos = storageService.loadAll();
+	public ResponseEntity<List<FileInfo>> getListFiles() {
+		List<FileInfo> fileInfos = storageService.loadAll();
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
 	@GetMapping("/{id:.+}")
 	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
-		FileDB fileDB = storageService.readMetaData(id);
+		FileInfo fileDB = storageService.readMetaData(id);
 		InputStream is = storageService.load(id);
 		res.setContentType(fileDB.getType());
 		res.setHeader("Content-Disposition", "attachment;filename=" + fileDB.getName());
