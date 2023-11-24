@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.files.service;
+package it.smartcommunitylab.aac.files.store;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,10 +34,10 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
-import it.smartcommunitylab.aac.files.store.FileStoreService;
+import it.smartcommunitylab.aac.files.service.FileInfoService;
 
 @Service
-public class LocalFileStoreService implements FileStoreService {
+public class LocalFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Path root = Paths.get("uploads");
 	@Autowired

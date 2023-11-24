@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.files.store;
 
 import java.io.InputStream;
 
-public interface FileStoreService {
+public interface FileStore {
 	
 	public void save(String filename, String contentType, InputStream file);
 	
