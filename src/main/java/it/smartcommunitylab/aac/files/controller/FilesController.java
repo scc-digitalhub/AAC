@@ -68,16 +68,16 @@ public class FilesController {
 
 	@GetMapping("/list")
 	public ResponseEntity<List<FileInfo>> getListFiles() {
-		List<FileInfo> fileInfos = storageService.loadAll();
+		List<FileInfo> fileInfos = storageService.readAllFileInfo();
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
 	@GetMapping("/{id:.+}")
 	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
-		FileInfo fileDB = storageService.readMetaData(id);
+		FileInfo fileInfo = storageService.readFileInfo(id);
 		InputStream is = storageService.load(id);
-		res.setContentType(fileDB.getType());
-		res.setHeader("Content-Disposition", "attachment;filename=" + fileDB.getName());
+		res.setContentType(fileInfo.getType());
+		res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
 		ServletOutputStream out = res.getOutputStream();
 		out.write(is.readAllBytes());
 		out.flush();
