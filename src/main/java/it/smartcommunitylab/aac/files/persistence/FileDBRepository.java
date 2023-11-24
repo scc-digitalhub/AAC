@@ -21,6 +21,6 @@ import org.springframework.stereotype.Repository;
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 @Repository
-public interface FileDBRepository extends CustomJpaRepository<FileDB, String> {
+public interface FileDBRepository extends CustomJpaRepository<FileInfo, String> {
 
 }
