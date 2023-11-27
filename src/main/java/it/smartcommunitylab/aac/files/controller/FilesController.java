@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.files.controller;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -79,12 +80,16 @@ public class FilesController {
 	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
 		FileInfo fileInfo = fileInfoService.readFileInfo(id);
 		InputStream is = storageService.load(id);
-		res.setContentType(fileInfo.getType());
-		res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
-		ServletOutputStream out = res.getOutputStream();
-		out.write(is.readAllBytes());
-		out.flush();
-		out.close();
+		if (is != null) {
+			res.setContentType(fileInfo.getType());
+			res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
+			ServletOutputStream out = res.getOutputStream();
+			out.write(is.readAllBytes());
+			out.flush();
+			out.close();	
+		} else {
+			throw new FileNotFoundException("Could not read the file!");
+		}
 	}
 
 	@DeleteMapping("/{id:.+}")
