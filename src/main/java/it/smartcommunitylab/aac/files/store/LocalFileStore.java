@@ -26,18 +26,12 @@ import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
-import it.smartcommunitylab.aac.files.service.FileInfoService;
 
 public class LocalFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private final Path root = Paths.get("data/uploads");
-	@Autowired
-	private FileInfoService fileInfoService;
 
 	public LocalFileStore() {
 		try {
@@ -48,12 +42,9 @@ public class LocalFileStore implements FileStore {
 	}
 
 	@Override
-	public void save(String fileName, String contentType, InputStream str) {
+	public void save(String id, InputStream str) {
 		try {
-			FileInfo fileInfo = new FileInfo(fileName, contentType);
-			fileInfo.setId(fileInfoService.generateUuid(fileName));
-			fileInfo = fileInfoService.save(fileInfo);
-			Files.copy(str, this.root.resolve(fileInfo.getId()));
+			Files.copy(str, this.root.resolve(id));
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e.getMessage());
 		}
@@ -62,13 +53,12 @@ public class LocalFileStore implements FileStore {
 	@Override
 	public InputStream load(String id) {
 		try {
-			FileInfo fileInfo = fileInfoService.readFileInfo(id);
-			Path file = root.resolve(fileInfo.getId());
+			Path file = root.resolve(id);
 			Resource resource = new UrlResource(file.toUri());
-
 			if (resource.exists() || resource.isReadable()) {
 				return resource.getInputStream();
 			} else {
+				logger.error("Could not read the file!");
 				throw new FileNotFoundException("Could not read the file!");
 			}
 		} catch (MalformedURLException e) {
@@ -82,9 +72,7 @@ public class LocalFileStore implements FileStore {
 	@Override
 	public boolean delete(String id) {
 		try {
-			FileInfo fileDelete = fileInfoService.readFileInfo(id);
-			Path file = root.resolve(fileDelete.getId());
-			fileInfoService.delete(fileDelete);
+			Path file = root.resolve(id);
 			return Files.deleteIfExists(file);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Error: " + e.getMessage());
