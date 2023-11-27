@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.files.controller;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,9 +60,11 @@ public class FilesController {
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			storageService.save(file.getOriginalFilename(), file.getContentType(), file.getInputStream());
+			FileInputStream isr = (FileInputStream) file.getInputStream();
+			storageService.save(file.getOriginalFilename(), file.getContentType(), isr);
 			message = "Uploaded the file successfully: " + file.getOriginalFilename();
 			logger.debug(message);
+			isr.close();
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 		} catch (Exception e) {
 			message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
@@ -86,7 +89,8 @@ public class FilesController {
 			ServletOutputStream out = res.getOutputStream();
 			out.write(is.readAllBytes());
 			out.flush();
-			out.close();	
+			out.close();
+			is.close();
 		} else {
 			throw new FileNotFoundException("Could not read the file!");
 		}
