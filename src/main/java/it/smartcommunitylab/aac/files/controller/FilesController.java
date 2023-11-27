@@ -49,10 +49,12 @@ import it.smartcommunitylab.aac.files.store.FileStore;
 @RequestMapping("/files")
 public class FilesController {
 
-	@Autowired FileStore storageService;
-	
-	@Autowired FileInfoService fileInfoService;
-	
+	@Autowired
+	FileStore storageService;
+
+	@Autowired
+	FileInfoService fileInfoService;
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostMapping(path = "/upload")
@@ -61,8 +63,12 @@ public class FilesController {
 		String message = "";
 		try {
 			FileInputStream isr = (FileInputStream) file.getInputStream();
-			storageService.save(file.getOriginalFilename(), file.getContentType(), isr);
-			message = "Uploaded the file successfully: " + file.getOriginalFilename();
+			FileInfo fileInfo = new FileInfo(file.getOriginalFilename(), file.getContentType());
+			String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
+			fileInfo.setId(fileInfoId);
+			storageService.save(fileInfoId, isr);
+			fileInfo = fileInfoService.save(fileInfo);			
+			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
 			isr.close();
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
@@ -81,9 +87,9 @@ public class FilesController {
 
 	@GetMapping("/{id:.+}")
 	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
-		FileInfo fileInfo = fileInfoService.readFileInfo(id);
 		InputStream is = storageService.load(id);
 		if (is != null) {
+			FileInfo fileInfo = fileInfoService.readFileInfo(id);
 			res.setContentType(fileInfo.getType());
 			res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
 			ServletOutputStream out = res.getOutputStream();
@@ -102,6 +108,8 @@ public class FilesController {
 		try {
 			boolean deleted = storageService.delete(id);
 			if (deleted) {
+				FileInfo fileInfoObj = fileInfoService.readFileInfo(id);
+				fileInfoService.delete(fileInfoObj);
 				message = "Deleted successfully: " + id;
 				logger.debug(message);
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));

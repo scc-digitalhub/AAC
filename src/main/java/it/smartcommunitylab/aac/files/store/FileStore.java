@@ -20,10 +20,10 @@ import java.io.InputStream;
 
 public interface FileStore {
 	
-	public void save(String filename, String contentType, InputStream file);
+	public void save(String id, InputStream file);
 	
-	public InputStream load(String filename);
+	public InputStream load(String id);
 	
-	public boolean delete(String filename);	
+	public boolean delete(String id);	
 
 }

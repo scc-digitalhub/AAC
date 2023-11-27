@@ -33,16 +33,12 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
 import org.springframework.util.Assert;
-
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
-import it.smartcommunitylab.aac.files.service.FileInfoService;
 
 public class AutoJdbcFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -54,8 +50,6 @@ public class AutoJdbcFileStore implements FileStore {
 	private String insertFileSql = DEFAULT_INSERT_STATEMENT;
 	private String deleteFileSql = DEFAULT_DELETE_STATEMENT;
 
-	@Autowired
-	private FileInfoService fileInfoService;
 	private final JdbcTemplate jdbcTemplate;
 	private final RowMapper<Pair<String, Optional<Serializable>>> rowMapper = new FileRowMapper();
 
@@ -90,14 +84,10 @@ public class AutoJdbcFileStore implements FileStore {
 	}
 
 	@Override
-	public void save(String fileName, String contentType, InputStream str) {
-		FileInfo fileInfo = new FileInfo(fileName, contentType);
-		String fileInfoId = fileInfoService.generateUuid(fileName);
-		fileInfo.setId(fileInfoId);
-		fileInfo = fileInfoService.save(fileInfo);
+	public void save(String id, InputStream str) {
 		try {
 			jdbcTemplate.update(insertFileSql,
-					new Object[] { UUID.randomUUID(), fileInfoId, new SqlLobValue(str.readAllBytes()) },
+					new Object[] { UUID.randomUUID(), id, new SqlLobValue(str.readAllBytes()) },
 					new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB });
 		} catch (DataAccessException | IOException e) {
 			logger.error(e.getMessage());
@@ -117,8 +107,6 @@ public class AutoJdbcFileStore implements FileStore {
 
 	@Override
 	public boolean delete(String id) {
-		FileInfo fileInfoObj = fileInfoService.readFileInfo(id);
-		fileInfoService.delete(fileInfoObj);
 		deleteFileDB(id);
 		return true;
 	}
