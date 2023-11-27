@@ -34,7 +34,8 @@ jdbc:
 persistence:
    repository:
       providerConfig: memory
-   
+   files:
+      store: filesystem   
    
 # AAC ADMIN USER PASSWORD
 admin:
