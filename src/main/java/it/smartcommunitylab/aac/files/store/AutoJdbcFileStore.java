@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.files.store;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -24,24 +26,28 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
-import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.util.Assert;
 
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.files.service.FileInfoService;
 
 public class AutoJdbcFileStore implements FileStore {
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 	private static final String DEFAULT_SELECT_STATEMENT = "select id, fileinfo_id, data from files where  fileinfo_id = ?";
-	private static final String DEFAULT_INSERT_STATEMENT = "insert into files (id, fileinfo_id, data) values (?, ?, ?, ?)";
+	private static final String DEFAULT_INSERT_STATEMENT = "insert into files (id, fileinfo_id, data) values (?, ?, ?)";
 	private static final String DEFAULT_DELETE_STATEMENT = "delete from files where fileinfo_id = ?";
 
 	private String selectFileSql = DEFAULT_SELECT_STATEMENT;
@@ -62,45 +68,58 @@ public class AutoJdbcFileStore implements FileStore {
 		@Override
 		public Pair<String, Optional<Serializable>> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			String key = rs.getString("fileinfo_id");
-			Serializable value = SerializationUtils.deserialize(rs.getBytes("data"));
+			Serializable value = rs.getBytes("data");
 			return Pair.of(key, Optional.ofNullable(value));
 		}
 	}
 
-	public void addFile(String id, String fileInfoId, Serializable data) {
+	public void addFileDB(String id, String fileInfoId, Serializable data) {
 		jdbcTemplate.update(insertFileSql,
-				new Object[] { id, fileInfoId, new SqlLobValue(SerializationUtils.serialize(data)) },
+				new Object[] { id, fileInfoId, new SqlLobValue((byte[]) data) },
 				new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB });
 	}
 
-	public void deleteFile(String fileInfoId) {
+	public void deleteFileDB(String fileInfoId) {
 		jdbcTemplate.update(deleteFileSql, fileInfoId);
 	}
 
-	public Map<String, Serializable> findFile(String fileInfoId) {
+	public Map<String, Serializable> findFileDB(String fileInfoId) {
 		List<Pair<String, Optional<Serializable>>> list = jdbcTemplate.query(selectFileSql, rowMapper, fileInfoId);
-
 		return list.stream().filter(p -> p.getSecond().isPresent())
 				.collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond().get()));
 	}
 
 	@Override
-	public void save(String filename, String contentType, InputStream file) {
-		// TODO Auto-generated method stub
-
+	public void save(String fileName, String contentType, InputStream str) {
+		FileInfo fileInfo = new FileInfo(fileName, contentType);
+		String fileInfoId = fileInfoService.generateUuid(fileName);
+		fileInfo.setId(fileInfoId);
+		fileInfo = fileInfoService.save(fileInfo);
+		try {
+			jdbcTemplate.update(insertFileSql,
+					new Object[] { UUID.randomUUID(), fileInfoId, new SqlLobValue(str.readAllBytes()) },
+					new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB });
+		} catch (DataAccessException | IOException e) {
+			logger.error(e.getMessage());
+			throw new IllegalArgumentException(e);						
+		}
 	}
 
 	@Override
 	public InputStream load(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		Map<String, Serializable> fileKeyValue = findFileDB(id);
+		if (fileKeyValue == null || fileKeyValue.isEmpty()) {
+			return null;
+		}
+		InputStream is = new ByteArrayInputStream((byte[]) fileKeyValue.get(id));
+		return is;
 	}
 
 	@Override
 	public boolean delete(String id) {
 		FileInfo fileInfoObj = fileInfoService.readFileInfo(id);
 		fileInfoService.delete(fileInfoObj);
-		deleteFile(id);
+		deleteFileDB(id);
 		return true;
 	}
 

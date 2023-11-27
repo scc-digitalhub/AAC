@@ -24,27 +24,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.files.service.FileInfoService;
 
-@Service
 public class LocalFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private final Path root = Paths.get("uploads");
+	private final Path root = Paths.get("data/uploads");
 	@Autowired
 	private FileInfoService fileInfoService;
 
-	@PostConstruct
-	public void init() {
+	public LocalFileStore() {
 		try {
 			Files.createDirectories(root);
 		} catch (IOException e) {
@@ -59,7 +54,6 @@ public class LocalFileStore implements FileStore {
 			fileInfo.setId(fileInfoService.generateUuid(fileName));
 			fileInfo = fileInfoService.save(fileInfo);
 			Files.copy(str, this.root.resolve(fileInfo.getId()));
-			str.close();
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e.getMessage());
 		}
