@@ -46,6 +46,9 @@ public class DefaultAttribute implements Attribute {
     @JsonProperty("multiple")
     private Boolean isMultiple;
 
+    @JsonProperty("required")
+    private Boolean isRequired = false;
+
     public String getKey() {
         return key;
     }
@@ -84,6 +87,15 @@ public class DefaultAttribute implements Attribute {
 
     public void setIsMultiple(Boolean isMultiple) {
         this.isMultiple = isMultiple;
+    }
+
+    @Override
+    public Boolean getIsRequired() {
+        return isRequired;
+    }
+
+    public void setIsRequired(Boolean required) {
+        isRequired = required;
     }
 
     @Override

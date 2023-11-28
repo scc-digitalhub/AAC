@@ -50,6 +50,10 @@ public class InternalAttributeProviderConfig
         return configMap.getUsermode() != null ? configMap.getUsermode().booleanValue() : false;
     }
 
+    public boolean getAskAtLogin() {
+        return configMap.getAskAtLogin() != null ? configMap.getAskAtLogin() : false;
+    }
+
     /**
      * Private constructor for JPA and other serialization tools.
      *

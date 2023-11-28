@@ -288,6 +288,7 @@ angular.module('aac.controllers.realmattributesets', [])
                     a.type = attr.type;
                     a.multiple = attr.multiple;
                     a.name = attr.name;
+                    a.required = attr.required;
                     a.description = attr.description;
                 } else {
                     attributes.push(attr);

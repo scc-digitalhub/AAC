@@ -51,7 +51,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class TosOnAccessFilter extends OncePerRequestFilter {
 
-    private final RequestMatcher termsManagedRequestMatcher = new AntPathRequestMatcher("/terms/**");
+    public static final String TERMS_URL_PATTERN = "/terms/**";
+    private final RequestMatcher termsManagedRequestMatcher = new AntPathRequestMatcher(TERMS_URL_PATTERN);
     static final String[] SKIP_URLS = {
         "/api/**",
         "/html/**",
@@ -60,6 +61,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
         "/fonts/**",
         "/italia/**",
         "/i18n/**",
+        "/hook/attributes/**", // TODO: implement a rule that can be used for all hooks different than "myself" (here myself=TOS)
     };
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

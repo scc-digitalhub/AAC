@@ -40,6 +40,7 @@ public class InternalAttributeProviderConfigMap extends AbstractConfigMap {
         SystemKeys.AUTHORITY_INTERNAL;
 
     private Boolean usermode;
+    private Boolean askAtLogin;
 
     public InternalAttributeProviderConfigMap() {}
 
@@ -49,6 +50,14 @@ public class InternalAttributeProviderConfigMap extends AbstractConfigMap {
 
     public void setUsermode(Boolean usermode) {
         this.usermode = usermode;
+    }
+
+    public Boolean getAskAtLogin() {
+        return askAtLogin;
+    }
+
+    public void setAskAtLogin(Boolean askAtLogin) {
+        this.askAtLogin = askAtLogin;
     }
 
     public void setConfiguration(InternalAttributeProviderConfigMap map) {

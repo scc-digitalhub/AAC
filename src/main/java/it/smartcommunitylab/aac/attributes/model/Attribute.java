@@ -39,4 +39,6 @@ public interface Attribute extends Serializable {
     public String getDescription();
 
     public Boolean getIsMultiple();
+
+    public Boolean getIsRequired();
 }
