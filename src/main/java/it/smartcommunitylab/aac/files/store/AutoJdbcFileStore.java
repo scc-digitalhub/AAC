@@ -89,8 +89,7 @@ public class AutoJdbcFileStore implements FileStore {
 			jdbcTemplate.update(insertFileSql,
 					new Object[] { UUID.randomUUID(), id, new SqlLobValue(str.readAllBytes()) },
 					new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB });
-		} catch (DataAccessException | IOException e) {
-			logger.error(e.getMessage());
+		} catch (Exception e) {
 			throw new IllegalArgumentException(e);						
 		}
 	}
@@ -101,8 +100,7 @@ public class AutoJdbcFileStore implements FileStore {
 		if (fileKeyValue == null || fileKeyValue.isEmpty()) {
 			return null;
 		}
-		InputStream is = new ByteArrayInputStream((byte[]) fileKeyValue.get(id));
-		return is;
+		return new ByteArrayInputStream((byte[]) fileKeyValue.get(id));
 	}
 
 	@Override

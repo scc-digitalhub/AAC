@@ -67,7 +67,7 @@ public class FilesController {
 			String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
 			fileInfo.setId(fileInfoId);
 			storageService.save(fileInfoId, isr);
-			fileInfo = fileInfoService.save(fileInfo);			
+			fileInfoService.save(fileInfo);			
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
 			isr.close();
