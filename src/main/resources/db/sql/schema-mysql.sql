@@ -25,5 +25,5 @@ CREATE TABLE
     IF NOT EXISTS files (
         id VARCHAR(256),
         fileinfo_id VARCHAR(256),
-        data BLOB
+        data LONGBLOB
     );
