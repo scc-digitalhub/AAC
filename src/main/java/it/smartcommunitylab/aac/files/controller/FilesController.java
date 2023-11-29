@@ -57,7 +57,7 @@ public class FilesController {
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			fileManagerService.save(file);
+			fileManagerService.saveFile(file);
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
@@ -70,8 +70,7 @@ public class FilesController {
 
 	@GetMapping("/list")
 	public ResponseEntity<List<FileInfo>> getListFiles() {
-		List<FileInfo> fileInfos = fileManagerService.readFilesInfo();
-		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
+		return ResponseEntity.status(HttpStatus.OK).body(fileManagerService.readFileInfo());
 	}
 
 	@GetMapping("/{id:.+}")
