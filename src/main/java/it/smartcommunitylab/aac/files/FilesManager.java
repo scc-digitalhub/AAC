@@ -49,35 +49,38 @@ public class FilesManager {
 	@Autowired
 	private RealmService realmService;
 
-	public void save(@Valid MultipartFile file) throws IOException {
-		FileInputStream isr = (FileInputStream) file.getInputStream();
-		FileInfo fileInfo = new FileInfo(file.getOriginalFilename(), file.getContentType());
-		String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
-		fileInfo.setId(fileInfoId);
-		storageService.save(fileInfoId, isr);
+	public void saveFileInfo(FileInfo fileInfo) {
 		fileInfoService.save(fileInfo);
-		isr.close();
-	}
-
-	public List<FileInfo> readFilesInfo() {
-		return fileInfoService.readAllFileInfo();
-	}
-
-	public InputStream getFile(String id) {
-		return storageService.load(id);
 	}
 
 	public FileInfo getFileInfo(String id) {
 		return fileInfoService.readFileInfo(id);
 	}
 
-	public boolean deleteFile(String id) {
-		return storageService.delete(id);
-
+	public List<FileInfo> readFileInfo() {
+		return fileInfoService.readAllFileInfo();
 	}
 
 	public void deleteFileInfo(FileInfo fileInfoObj) {
 		fileInfoService.delete(fileInfoObj);
+	}
+
+	public void saveFile(@Valid MultipartFile file) throws IOException {
+		FileInputStream isr = (FileInputStream) file.getInputStream();
+		FileInfo fileInfo = new FileInfo(file.getOriginalFilename(), file.getContentType());
+		String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
+		fileInfo.setId(fileInfoId);
+		storageService.save(fileInfoId, isr);
+		saveFileInfo(fileInfo);
+		isr.close();
+	}
+
+	public InputStream getFile(String id) {
+		return storageService.load(id);
+	}
+
+	public boolean deleteFile(String id) {
+		return storageService.delete(id);
 	}
 
 }
