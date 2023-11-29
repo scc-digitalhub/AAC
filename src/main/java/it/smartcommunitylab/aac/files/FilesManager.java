@@ -35,7 +35,6 @@ import it.smartcommunitylab.aac.files.store.FileStore;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 
 @Service
-//@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class FilesManager {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -65,7 +64,7 @@ public class FilesManager {
 		fileInfoService.delete(fileInfoObj);
 	}
 
-	public void saveFile(@Valid MultipartFile file) throws IOException {
+	public void saveFile(MultipartFile file) throws IOException {
 		FileInputStream isr = (FileInputStream) file.getInputStream();
 		FileInfo fileInfo = new FileInfo(file.getOriginalFilename(), file.getContentType());
 		String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
