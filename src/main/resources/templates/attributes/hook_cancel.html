@@ -67,12 +67,18 @@
                     </div>
                     <!--            user options-->
                     <form th:action="@{/hook/attributes/cancel}" method="post">
+                        <div th:object="${setId}">
+                            <input type="hidden" th:name="setId" th:value="${setId}">
+                        </div>
+                        <div th:object="${providerId}">
+                            <input type="hidden" th:name="providerId" th:value="${providerId}">
+                        </div>
                         <div class="row">
                             <div class="col-6 text-right">
-                                <button class="btn btn-primary" th:name="reLoginAction" th:value="continue" th:text="#{action.continue}">(Covered) Yes</button>
+                                <button class="btn btn-primary" th:name="action" th:value="undo" th:text="#{action.continue}">(Covered) Yes</button>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-danger" th:name="reLoginAction" th:value="logout" th:text="#{action.logout}">(Covered) Logout</button>
+                                <button class="btn btn-danger" th:name="action" th:value="logout" th:text="#{action.logout}">(Covered) Logout</button>
                             </div>
                         </div>
                     </form>

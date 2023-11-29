@@ -202,6 +202,7 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
                             String redirectFormUri =
                                 HOOK_ATTRIBUTES_BASE_URI +
                                 String.format("/edit/%s/%s", attProvider.getProvider(), attSet.getIdentifier());
+                            logger.debug("Redirect to form filling page {}", redirectFormUri);
                             redirectStrategy.sendRedirect(request, response, redirectFormUri);
                             return;
                         }

@@ -70,7 +70,6 @@
                     </div>
 
                     <form action="#" th:action="${formSubmissionUrl}" th:object="${newAttributesRegistration}" method="post">
-                        <!--                  TODO: supportare errore multilingua-->
                         <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="${error}">
                             Error text</div>
                         <input th:name="*{identifier}" type="hidden" th:value="*{identifier}">
@@ -83,12 +82,11 @@
                             <div th:switch="*{attributes[__${itemStat.index}__].type}">
                                 <div th:case="checkbox">
                                     <div>
-                                        <!--                              TODO: fixme: non viene registrata la spunta in alcuni casi (da null a true)-->
                                         <input th:name="'attributes['+__${itemStat.index}__+'].value'"
                                                type="checkbox"
                                                th:checked="${attr.value}"
                                                th:value="true">
-                                        <label th:for="${#ids.next('attr')}" th:text="${attr.name}"/>
+                                        <label th:for="${#ids.next('attr')}" th:text="${attr.isRequired} ? ${attr.name} + ' (*) ' : ${attr.name} + ' '"/>
                                     </div>
                                     <small th:if="*{attributes[__${itemStat.index}__].description != null}"
                                            th:text="*{attributes[__${itemStat.index}__].description}"></small>
@@ -130,7 +128,7 @@
                         </div>
 
                         <div>
-                            <!--                  TODO: (1) cose carine (2) supportare multilingua-->
+                            <!--                  TODO: (1) cose carine?-->
                             <hr>
                             <small>Fields labelled with (*) are mandatory.</small>
                             <hr>

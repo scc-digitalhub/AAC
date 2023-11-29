@@ -17,6 +17,7 @@ import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import java.io.Serializable;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -24,12 +25,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +45,7 @@ public class AskAtLoginAttributeController {
     public static final String HOOK_ACTION = "/attributes";
     public static final String HOOK_ATTRIBUTES_BASE_URI = HOOK_BASE + HOOK_ACTION;
     public static final String HOOK_ATTRIBUTES_FORM_URI = "/edit/{providerId}/{setId}";
+    public static final String HOOK_ATTRIBUTES_FORM_FORMAT = "/edit/%s/%s";
     public static final String HOOK_ATTRIBUTES_CANCEL_URI = "/cancel";
     private final Logger logger = LoggerFactory.getLogger(getClass()); // TODO: [chiedere a Matteo] cosa loggo?
     private InternalAttributeAuthority internalAuthority;
@@ -206,27 +211,48 @@ public class AskAtLoginAttributeController {
     }
 
     @GetMapping(HOOK_ATTRIBUTES_CANCEL_URI)
-    public String registrationAttributesCancel() throws Exception {
+    public String registrationAttributesCancel(
+            @RequestParam(name="providerId", required=false) String providerId,
+            @RequestParam(name="setId", required=false) String setId,
+            Model model
+    ) throws Exception {
         UserDetails currentUser = authHelper.getUserDetails(); // fetch current user from security context
         if (currentUser == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user"); // TODO: handle this exception properly
+        }
+        if (StringUtils.hasText("providerId")) {
+            model.addAttribute("providerId", providerId);
+        } else {
+            model.addAttribute("providerId", "");
+        }
+        if (StringUtils.hasText("setId")) {
+            model.addAttribute("setId", setId);
+        } else {
+            model.addAttribute("setId", "");
         }
         return "attributes/hook_cancel";
     }
 
     @PostMapping(HOOK_ATTRIBUTES_CANCEL_URI)
     public String registrationAttributesCancelConfirm(
-        @RequestParam(required = false, defaultValue = "confirm") String reLoginAction,
+        @RequestParam(required = false, defaultValue = "undo") String action,
+        @ModelAttribute("providerId") String providerId,
+        @ModelAttribute("setId") String setId,
         HttpServletRequest req
     ) throws Exception {
         UserDetails currentUser = authHelper.getUserDetails(); // fetch current user from security context
         if (currentUser == null) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
-        if (reLoginAction.equals("continue")) {
-            return "redirect:/login";
+        if (action.equals("undo")) {
+            // TODO: use Uri Builder
+            String redirectUrl = "/";
+            if (StringUtils.hasText(providerId) && StringUtils.hasText(setId)) {
+                redirectUrl = HOOK_ATTRIBUTES_BASE_URI + String.format(HOOK_ATTRIBUTES_FORM_FORMAT, providerId, setId);
+            }
+            return "redirect:" + redirectUrl;
         }
-        // In general this flow is reached when reLoginAction.equals("logout"), but we assign this as default behaviour for any value other than "continue"
+        // In general this flow is reached when action.equals("logout"), but we assign this as default behaviour for any value other than "continue"
         if (req.getAttribute(AskAtLoginAttributeFilter.ATTRIBUTE_SET_STATE) != null) {
             req.removeAttribute(AskAtLoginAttributeFilter.ATTRIBUTE_SET_STATE);
         }
@@ -249,7 +275,16 @@ public class AskAtLoginAttributeController {
             "formSubmissionUrl",
             HOOK_ATTRIBUTES_BASE_URI + String.format("/edit/%s/%s", providerId, setDefinition.getIdentifier())
         );
-        model.addAttribute("formCancellationUrl", HOOK_ATTRIBUTES_BASE_URI + HOOK_ATTRIBUTES_CANCEL_URI);
+        String formCancelUrl;
+        try {
+            URIBuilder cancelUrlBuilder = new URIBuilder(HOOK_ATTRIBUTES_BASE_URI + HOOK_ATTRIBUTES_CANCEL_URI);
+            cancelUrlBuilder.addParameter("providerId", providerId);
+            cancelUrlBuilder.addParameter("setId", setDefinition.getIdentifier());
+            formCancelUrl = cancelUrlBuilder.build().toString();
+        } catch (URISyntaxException e) {
+            formCancelUrl = HOOK_ATTRIBUTES_BASE_URI + HOOK_ATTRIBUTES_CANCEL_URI;
+        }
+        model.addAttribute("formCancellationUrl", formCancelUrl);
     }
 
     /**
