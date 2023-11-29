@@ -16,13 +16,20 @@
 
 package it.smartcommunitylab.aac.files;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.files.service.FileInfoService;
 import it.smartcommunitylab.aac.files.store.FileStore;
 import it.smartcommunitylab.aac.realms.service.RealmService;
@@ -41,5 +48,36 @@ public class FilesManager {
 
 	@Autowired
 	private RealmService realmService;
+
+	public void save(@Valid MultipartFile file) throws IOException {
+		FileInputStream isr = (FileInputStream) file.getInputStream();
+		FileInfo fileInfo = new FileInfo(file.getOriginalFilename(), file.getContentType());
+		String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
+		fileInfo.setId(fileInfoId);
+		storageService.save(fileInfoId, isr);
+		fileInfoService.save(fileInfo);
+		isr.close();
+	}
+
+	public List<FileInfo> readFilesInfo() {
+		return fileInfoService.readAllFileInfo();
+	}
+
+	public InputStream getFile(String id) {
+		return storageService.load(id);
+	}
+
+	public FileInfo getFileInfo(String id) {
+		return fileInfoService.readFileInfo(id);
+	}
+
+	public boolean deleteFile(String id) {
+		return storageService.delete(id);
+
+	}
+
+	public void deleteFileInfo(FileInfo fileInfoObj) {
+		fileInfoService.delete(fileInfoObj);
+	}
 
 }

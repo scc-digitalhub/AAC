@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.files.controller;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,20 +39,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import it.smartcommunitylab.aac.files.FilesManager;
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
-import it.smartcommunitylab.aac.files.service.FileInfoService;
-import it.smartcommunitylab.aac.files.store.FileStore;
 
 @Controller
 @RequestMapping("/files")
 public class FilesController {
 
 	@Autowired
-	FileStore storageService;
-
-	@Autowired
-	FileInfoService fileInfoService;
+	FilesManager fileManagerService;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -62,15 +57,9 @@ public class FilesController {
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			FileInputStream isr = (FileInputStream) file.getInputStream();
-			FileInfo fileInfo = new FileInfo(file.getOriginalFilename(), file.getContentType());
-			String fileInfoId = fileInfoService.generateUuid(file.getOriginalFilename());
-			fileInfo.setId(fileInfoId);
-			storageService.save(fileInfoId, isr);
-			fileInfoService.save(fileInfo);			
+			fileManagerService.save(file);
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
-			isr.close();
 			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
 		} catch (Exception e) {
 			message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
@@ -81,15 +70,15 @@ public class FilesController {
 
 	@GetMapping("/list")
 	public ResponseEntity<List<FileInfo>> getListFiles() {
-		List<FileInfo> fileInfos = fileInfoService.readAllFileInfo();
+		List<FileInfo> fileInfos = fileManagerService.readFilesInfo();
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
 	@GetMapping("/{id:.+}")
 	public void getFile(@PathVariable String id, HttpServletResponse res) throws IOException {
-		InputStream is = storageService.load(id);
+		InputStream is = fileManagerService.getFile(id);
 		if (is != null) {
-			FileInfo fileInfo = fileInfoService.readFileInfo(id);
+			FileInfo fileInfo = fileManagerService.getFileInfo(id);
 			res.setContentType(fileInfo.getType());
 			res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
 			ServletOutputStream out = res.getOutputStream();
@@ -106,10 +95,10 @@ public class FilesController {
 	public ResponseEntity<ResponseMessage> deleteFile(@PathVariable String id) {
 		String message = "";
 		try {
-			boolean deleted = storageService.delete(id);
+			boolean deleted = fileManagerService.deleteFile(id);
 			if (deleted) {
-				FileInfo fileInfoObj = fileInfoService.readFileInfo(id);
-				fileInfoService.delete(fileInfoObj);
+				FileInfo fileInfoObj = fileManagerService.getFileInfo(id);
+				fileManagerService.deleteFileInfo(fileInfoObj);
 				message = "Deleted successfully: " + id;
 				logger.debug(message);
 				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
