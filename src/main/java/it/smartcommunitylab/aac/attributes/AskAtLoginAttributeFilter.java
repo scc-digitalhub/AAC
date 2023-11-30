@@ -1,7 +1,6 @@
 package it.smartcommunitylab.aac.attributes;
 
-import static it.smartcommunitylab.aac.attributes.controller.AskAtLoginAttributeController.HOOK_ATTRIBUTES_BASE_URI;
-import static it.smartcommunitylab.aac.attributes.controller.AskAtLoginAttributeController.HOOK_BASE;
+import static it.smartcommunitylab.aac.attributes.controller.AskAtLoginAttributeController.*;
 import static it.smartcommunitylab.aac.tos.TosOnAccessFilter.TERMS_URL_PATTERN;
 
 import it.smartcommunitylab.aac.attributes.model.Attribute;
@@ -38,7 +37,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
 
-    public static final String ATTRIBUTES_URL_PATTERN = HOOK_ATTRIBUTES_BASE_URI + "/**";
+    public static final String ATTRIBUTE_SET_COMPLETE = "COMPLETE";
+    public static final String ATTRIBUTE_SET_CANCELED = "CANCELED";
+    public static final String ATTRIBUTE_SET_STATE = "hookAttributeSingleSetState"; // this state is evaluated by the associated Controller
     static final String[] SKIP_URLS = {
         "/api/**",
         "/html/**",
@@ -56,14 +57,10 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
     private final RequestMatcher skipHooksMatcher = new AntPathRequestMatcher(HOOK_BASE + "/**"); // TODO: eventually move to an appropriate class for shared hook utils
 
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-    private final RequestCache requestCache; // NOTE the state of which attribute are already requested is stored as attribute in the HTTP request
+    private final RequestCache requestCache;
     private final UserService userService;
     private final InternalAttributeAuthority attributeAuthority;
     private final AttributeService attributeService;
-
-    public static final String ATTRIBUTE_SET_COMPLETE = "COMPLETE";
-    public static final String ATTRIBUTE_SET_CANCELED = "CANCELED";
-    public static final String ATTRIBUTE_SET_STATE = "hookAttributeSingleSetState"; // this state is evaluated by the associated Controller
 
     public AskAtLoginAttributeFilter(
         UserService userService,
@@ -204,7 +201,7 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
                             // TODO: use an UrlBuilder
                             String redirectFormUri =
                                 HOOK_ATTRIBUTES_BASE_URI +
-                                String.format("/edit/%s/%s", attProvider.getProvider(), attSet.getIdentifier());
+                                String.format(HOOK_ATTRIBUTES_FORM_FORMAT, attProvider.getProvider(), attSet.getIdentifier());
                             logger.debug("Redirect to form filling page {}", redirectFormUri);
                             redirectStrategy.sendRedirect(request, response, redirectFormUri);
                             return;
