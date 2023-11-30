@@ -14,57 +14,52 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.oidcfed.provider;
+package it.smartcommunitylab.aac.openidfed.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod;
+import com.nimbusds.openid.connect.sdk.SubjectType;
+import com.nimbusds.openid.connect.sdk.federation.registration.ClientRegistrationType;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
+public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
 
-    private static final long serialVersionUID = SystemKeys.AAC_OIDC_SERIAL_VERSION;
+    private static final long serialVersionUID = SystemKeys.AAC_OPENIDFED_SERIAL_VERSION;
 
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_CONFIG +
         SystemKeys.ID_SEPARATOR +
         SystemKeys.RESOURCE_IDENTITY_PROVIDER +
         SystemKeys.ID_SEPARATOR +
-        SystemKeys.AUTHORITY_OIDC;
+        SystemKeys.AUTHORITY_OPENIDFED;
 
     private String clientId;
-    private String clientSecret;
-    private String clientJwk;
+    private String clientJwks;
     private String clientName;
 
-    private AuthenticationMethod clientAuthenticationMethod;
-    private Boolean enablePkce;
+    private ClientAuthenticationMethod clientAuthenticationMethod;
 
     private String scope;
     private String userNameAttributeName;
-    private String subAttributeName;
     private Boolean trustEmailAddress;
     private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
 
-    // explicit config
-    private String authorizationUri;
-    private String tokenUri;
-    private String jwkSetUri;
-    private String userInfoUri;
-
     // autoconfiguration support from well-known
+    //issuerUri is required for openid fed
     private String issuerUri;
 
     // session control
@@ -72,7 +67,17 @@ public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
     private Boolean respectTokenExpiration;
     private Set<PromptMode> promptMode;
 
-    public OIDCFedIdentityProviderConfigMap() {}
+    // oidc-fed
+    private ClientRegistrationType clientRegistrationType;
+
+    private String federationJwks;
+    private Set<String> acrValues;
+    private Set<String> authorityHints;
+    private String trustMarks;
+    private SubjectType subjectType;
+
+    private String organizationName;
+    private List<String> contacts;
 
     public String getClientId() {
         return clientId;
@@ -82,20 +87,12 @@ public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.clientId = clientId;
     }
 
-    public String getClientSecret() {
-        return clientSecret;
+    public String getClientJwks() {
+        return clientJwks;
     }
 
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
-
-    public String getClientJwk() {
-        return clientJwk;
-    }
-
-    public void setClientJwk(String clientJwk) {
-        this.clientJwk = clientJwk;
+    public void setClientJwks(String clientJwks) {
+        this.clientJwks = clientJwks;
     }
 
     public String getClientName() {
@@ -106,20 +103,28 @@ public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.clientName = clientName;
     }
 
-    public AuthenticationMethod getClientAuthenticationMethod() {
+    public ClientAuthenticationMethod getClientAuthenticationMethod() {
         return clientAuthenticationMethod;
     }
 
-    public void setClientAuthenticationMethod(AuthenticationMethod clientAuthenticationMethod) {
+    public void setClientAuthenticationMethod(ClientAuthenticationMethod clientAuthenticationMethod) {
         this.clientAuthenticationMethod = clientAuthenticationMethod;
     }
 
-    public Boolean getEnablePkce() {
-        return enablePkce;
+    public String getOrganizationName() {
+        return organizationName;
     }
 
-    public void setEnablePkce(Boolean enablePkce) {
-        this.enablePkce = enablePkce;
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
+    public ClientRegistrationType getClientRegistrationType() {
+        return clientRegistrationType;
+    }
+
+    public void setClientRegistrationType(ClientRegistrationType clientRegistrationType) {
+        this.clientRegistrationType = clientRegistrationType;
     }
 
     public String getScope() {
@@ -136,14 +141,6 @@ public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
 
     public void setUserNameAttributeName(String userNameAttributeName) {
         this.userNameAttributeName = userNameAttributeName;
-    }
-
-    public String getSubAttributeName() {
-        return subAttributeName;
-    }
-
-    public void setSubAttributeName(String subAttributeName) {
-        this.subAttributeName = subAttributeName;
     }
 
     public Boolean getTrustEmailAddress() {
@@ -168,38 +165,6 @@ public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
 
     public void setRequireEmailAddress(Boolean requireEmailAddress) {
         this.requireEmailAddress = requireEmailAddress;
-    }
-
-    public String getAuthorizationUri() {
-        return authorizationUri;
-    }
-
-    public void setAuthorizationUri(String authorizationUri) {
-        this.authorizationUri = authorizationUri;
-    }
-
-    public String getTokenUri() {
-        return tokenUri;
-    }
-
-    public void setTokenUri(String tokenUri) {
-        this.tokenUri = tokenUri;
-    }
-
-    public String getJwkSetUri() {
-        return jwkSetUri;
-    }
-
-    public void setJwkSetUri(String jwkSetUri) {
-        this.jwkSetUri = jwkSetUri;
-    }
-
-    public String getUserInfoUri() {
-        return userInfoUri;
-    }
-
-    public void setUserInfoUri(String userInfoUri) {
-        this.userInfoUri = userInfoUri;
     }
 
     public String getIssuerUri() {
@@ -234,48 +199,97 @@ public class OIDCFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.promptMode = promptMode;
     }
 
+    public String getFederationJwks() {
+        return federationJwks;
+    }
+
+    public void setFederationJwks(String federationJwks) {
+        this.federationJwks = federationJwks;
+    }
+
+    public Set<String> getAcrValues() {
+        return acrValues;
+    }
+
+    public void setAcrValues(Set<String> acrValues) {
+        this.acrValues = acrValues;
+    }
+
+    public Set<String> getAuthorityHints() {
+        return authorityHints;
+    }
+
+    public void setAuthorityHints(Set<String> authorityHints) {
+        this.authorityHints = authorityHints;
+    }
+
+    public String getTrustMarks() {
+        return trustMarks;
+    }
+
+    public void setTrustMarks(String trustMarks) {
+        this.trustMarks = trustMarks;
+    }
+
+    public SubjectType getSubjectType() {
+        return subjectType;
+    }
+
+    public void setSubjectType(SubjectType subjectType) {
+        this.subjectType = subjectType;
+    }
+
+    public List<String> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(List<String> contacts) {
+        this.contacts = contacts;
+    }
+
     @JsonIgnore
-    public void setConfiguration(OIDCFedIdentityProviderConfigMap map) {
+    public void setConfiguration(final OpenIdFedIdentityProviderConfigMap map) {
         this.clientId = map.getClientId();
-        this.clientSecret = map.getClientSecret();
-        this.clientJwk = map.getClientJwk();
+        this.clientJwks = map.getClientJwks();
         this.clientName = map.getClientName();
 
         this.clientAuthenticationMethod = map.getClientAuthenticationMethod();
-        this.enablePkce = map.getEnablePkce();
         this.scope = map.getScope();
         this.userNameAttributeName = map.getUserNameAttributeName();
-        this.subAttributeName = map.getSubAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
 
-        // explicit config
-        this.authorizationUri = map.getAuthorizationUri();
-        this.tokenUri = map.getTokenUri();
-        this.jwkSetUri = map.getJwkSetUri();
-        this.userInfoUri = map.getUserInfoUri();
-
-        // autoconfiguration support from well-known
+        // issuer
         this.issuerUri = map.getIssuerUri();
 
         // session
         this.propagateEndSession = map.getPropagateEndSession();
         this.respectTokenExpiration = map.getRespectTokenExpiration();
         this.promptMode = map.getPromptMode();
+
+        //oidcfed
+        this.federationJwks = map.getFederationJwks();
+        this.acrValues = map.getAcrValues();
+        this.authorityHints = map.getAuthorityHints();
+        this.trustMarks = map.getTrustMarks();
+        this.subjectType = map.getSubjectType();
+
+        this.organizationName = map.getOrganizationName();
+        this.contacts = map.getContacts();
     }
 
     @Override
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        OIDCFedIdentityProviderConfigMap map = mapper.convertValue(props, OIDCFedIdentityProviderConfigMap.class);
+        OpenIdFedIdentityProviderConfigMap map = mapper.convertValue(props, OpenIdFedIdentityProviderConfigMap.class);
 
         setConfiguration(map);
     }
 
     @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
-        return schemaGen.generateSchema(OIDCFedIdentityProviderConfigMap.class);
+        return schemaGen.generateSchema(OpenIdFedIdentityProviderConfigMap.class);
     }
 }

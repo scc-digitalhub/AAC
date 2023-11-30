@@ -30,6 +30,7 @@ public class SystemKeys {
     public static final long AAC_APPLE_SERIAL_VERSION = 420L;
     public static final long AAC_WEBAUTHN_SERIAL_VERSION = 420L;
     public static final long AAC_INTERNAL_SERIAL_VERSION = 420L;
+    public static final long AAC_OPENIDFED_SERIAL_VERSION = 500L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";
@@ -50,6 +51,7 @@ public class SystemKeys {
     public static final String AUTHORITY_PASSWORD = "password";
     public static final String AUTHORITY_TEMPLATE = "template";
     public static final String AUTHORITY_TOS = "tos";
+    public static final String AUTHORITY_OPENIDFED = "openidfed";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";
