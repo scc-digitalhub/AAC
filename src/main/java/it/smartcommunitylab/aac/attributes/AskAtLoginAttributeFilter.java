@@ -52,19 +52,18 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
         "/error",
     };
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final RequestMatcher hookAttributesMatcher = new AntPathRequestMatcher(ATTRIBUTES_URL_PATTERN);
     private final RequestMatcher skippedUrlMatcher = buildSkipUrlsMatcher();
-    private final RequestMatcher skipOtherHooksMatcher = buildSkipOtherHooksMatcher(); // TODO: eventually move to an appropriate class for shared hook utils
+    private final RequestMatcher skipHooksMatcher = new AntPathRequestMatcher(HOOK_BASE + "/**"); // TODO: eventually move to an appropriate class for shared hook utils
 
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-    private final RequestCache requestCache = new HttpSessionRequestCache(); // NOTE the state of which attribute are already requested is stored as attribute in the HTTP request
+    private final RequestCache requestCache; // NOTE the state of which attribute are already requested is stored as attribute in the HTTP request
     private final UserService userService;
     private final InternalAttributeAuthority attributeAuthority;
     private final AttributeService attributeService;
 
     public static final String ATTRIBUTE_SET_COMPLETE = "COMPLETE";
     public static final String ATTRIBUTE_SET_CANCELED = "CANCELED";
-    public static final String ATTRIBUTE_SET_STATE = "askAtLoginSetState"; // the state is used to store the information provided in the controller in the current session
+    public static final String ATTRIBUTE_SET_STATE = "hookAttributeSingleSetState"; // this state is evaluated by the associated Controller
 
     public AskAtLoginAttributeFilter(
         UserService userService,
@@ -74,13 +73,7 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
         this.userService = userService;
         this.attributeService = attributeService;
         this.attributeAuthority = attributeAuthority;
-    }
-
-    private RequestMatcher buildSkipOtherHooksMatcher() {
-        // this matcher will match /hook/** but NOT /hook/attributes/**, i.e. it will match "/hook/**" AND (NOT "/hook/attributes/**")
-        RequestMatcher baseHookMatcher = new AntPathRequestMatcher(HOOK_BASE + "/**");
-        RequestMatcher attributesMatcher = new AntPathRequestMatcher(ATTRIBUTES_URL_PATTERN);
-        return new AndRequestMatcher(baseHookMatcher, new NegatedRequestMatcher(attributesMatcher));
+        this.requestCache = new HttpSessionRequestCache();
     }
 
     private RequestMatcher buildSkipUrlsMatcher() {
@@ -91,7 +84,12 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
         return new OrRequestMatcher(antMatchers);
     }
 
-    private boolean isUserAuthenticated() {
+    /**
+     * Requires processing when:
+     *  1. user is authenticated
+     * @return true is filter requires processing, false otherwise
+     */
+    private boolean requiresProcessing() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (!(auth instanceof UserAuthentication)) {
             return false;
@@ -110,12 +108,7 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
-        if (
-            skippedUrlMatcher.matches(request) ||
-            skipOtherHooksMatcher.matches(request) ||
-            hookAttributesMatcher.matches(request) ||
-            !isUserAuthenticated()
-        ) {
+        if (skippedUrlMatcher.matches(request) || skipHooksMatcher.matches(request) || !requiresProcessing()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -128,7 +121,32 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
             return;
         }
         User user = userService.findUser(userAuth.getSubjectId());
-        // check if there is at least one attribute in at least one set in at least one provider that should be asked to user
+
+        // handle completion of a previous set
+        SavedRequest formerRequest = requestCache.getRequest(request, response);
+        String hookState = (String) request.getSession().getAttribute(ATTRIBUTE_SET_STATE);
+        if (formerRequest != null) {
+            if ((hookState != null) && (hookState.equals(ATTRIBUTE_SET_COMPLETE))) {
+                // state: an attribute set was evaluated in this session
+                request.getSession().removeAttribute(ATTRIBUTE_SET_STATE);
+                String redirectUrl = formerRequest.getRedirectUrl();
+                logger.debug("recovered request from cache");
+                requestCache.removeRequest(request, response);
+                redirectStrategy.sendRedirect(request, response, redirectUrl);
+                return;
+            }
+            if ((hookState != null) && (hookState.equals(ATTRIBUTE_SET_CANCELED))) {
+                // an operation to complete an attribute was canceled in this session - clear security context
+                request.getSession().removeAttribute(ATTRIBUTE_SET_STATE); // cancel attribute otherwise the user is stuck in his decision for all the current session
+                requestCache.removeRequest(request, response);
+                SecurityContextHolder.clearContext();
+                redirectStrategy.sendRedirect(request, response, "/logout");
+                return;
+            }
+            // no behaviour defined for cached filled but missing state
+        }
+
+        // check if there is one attribute in at least one set in at least one provider that should be asked to user
         for (InternalAttributeService attProvider : attributeProviders) {
             boolean canAskSetsToUser = attProvider.getConfig().isUsermode() && attProvider.getConfig().getAskAtLogin();
             if (canAskSetsToUser) {
@@ -136,8 +154,8 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
                     .getConfig()
                     .getAttributeSets()
                     .stream()
-                    .sorted()
-                    .toList(); // sorted lexicographically
+                    .sorted() // sorted lexicographically
+                    .toList();
                 for (String setId : providerSpecificAttributeSets) {
                     // fetch set definition
                     AttributeSet attSet = null;
@@ -145,11 +163,11 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
                         attSet = attributeService.getAttributeSet(setId);
                     } catch (NoSuchAttributeSetException e) {
                         logger.error(
-                            "Failed to find or fetch attribute set with id " +
-                            setId +
-                            ":obtained error with message: " +
-                            e.getMessage() +
-                            " - skipped filter"
+                            String.format(
+                                "Failed to find or fetch attribute set with id %s: obtained error with message: %s - skipped filter",
+                                setId,
+                                e.getMessage()
+                            )
                         );
                         filterChain.doFilter(request, response);
                         return;
@@ -162,11 +180,11 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
                     } catch (NoSuchAttributeSetException e) {
                         // go on and assume that value set is empty
                         logger.warn(
-                            "Failed to find or fetch attribute values with id " +
-                            attSet.getIdentifier() +
-                            " for user " +
-                            user.getSubjectId() +
-                            " -  using empty set instead"
+                            String.format(
+                                "Failed to find or fetch attribute values with id %s for user %s",
+                                attSet.getIdentifier(),
+                                user.getSubjectId()
+                            )
                         );
                     }
                     if (attValues != null) {
@@ -181,23 +199,8 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
                     // iterate on the attribute set to check if there is at least 1 non-evaluated mandatory attribute which can be asked to user
                     for (Attribute att : attSet.getAttributes()) {
                         if (att.getIsRequired() && currentAttributeValuesMap.get(att.getKey()) == null) {
-                            if (
-                                request.getSession().getAttribute(ATTRIBUTE_SET_STATE) != null &&
-                                request.getSession().getAttribute(ATTRIBUTE_SET_STATE).equals(ATTRIBUTE_SET_CANCELED)
-                            ) {
-                                // the user decided to cancel attribute evaluation in this session
-                                request.getSession().removeAttribute(ATTRIBUTE_SET_STATE); // cancel attribute otherwise the user is stuck in his decision for all the current session
-                                if (requestCache.getRequest(request, response) != null) {
-                                    requestCache.removeRequest(request, response);
-                                }
-                                SecurityContextHolder.clearContext();
-                                redirectStrategy.sendRedirect(request, response, "/logout");
-                                return;
-                            }
-                            // store current session (if necessary) to let user resume authentication after he completes
-                            if (requestCache.getRequest(request, response) == null) {
-                                requestCache.saveRequest(request, response);
-                            }
+                            // ALWAYS store current session to let user resume authentication after he completes
+                            requestCache.saveRequest(request, response);
                             // TODO: use an UrlBuilder
                             String redirectFormUri =
                                 HOOK_ATTRIBUTES_BASE_URI +
@@ -211,19 +214,7 @@ public class AskAtLoginAttributeFilter extends OncePerRequestFilter {
             }
         }
 
-        SavedRequest formerRequest = requestCache.getRequest(request, response);
-        String filterState = (String) request.getSession().getAttribute(ATTRIBUTE_SET_STATE);
-        if ((filterState != null) && (formerRequest != null)) {
-            // the choice was made in this session and we have memory where we were originally going to
-            if (filterState.equals(ATTRIBUTE_SET_CANCELED)) {
-                throw new RuntimeException("Invalid state"); // sanity check, might remove later on
-            }
-            String redirectUrl = formerRequest.getRedirectUrl();
-            requestCache.removeRequest(request, response);
-            redirectStrategy.sendRedirect(request, response, redirectUrl);
-            return;
-        }
-        // go on with the filter chain
+        // No attribute required - go on with the filter chain
         filterChain.doFilter(request, response);
     }
 }

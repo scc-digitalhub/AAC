@@ -61,7 +61,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
         "/fonts/**",
         "/italia/**",
         "/i18n/**",
-        "/hook/attributes/**", // TODO: implement a rule that can be used for all hooks different than "myself" (here myself=TOS)
+        "/hook/**",
     };
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

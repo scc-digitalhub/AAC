@@ -25,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class AskAtLoginAttributeController {
     public static final String HOOK_ATTRIBUTES_FORM_URI = "/edit/{providerId}/{setId}";
     public static final String HOOK_ATTRIBUTES_FORM_FORMAT = "/edit/%s/%s";
     public static final String HOOK_ATTRIBUTES_CANCEL_URI = "/cancel";
-    private final Logger logger = LoggerFactory.getLogger(getClass()); // TODO: [chiedere a Matteo] cosa loggo?
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private InternalAttributeAuthority internalAuthority;
     private AuthenticationHelper authHelper;
     private AttributeService attributeService;
@@ -212,9 +211,9 @@ public class AskAtLoginAttributeController {
 
     @GetMapping(HOOK_ATTRIBUTES_CANCEL_URI)
     public String registrationAttributesCancel(
-            @RequestParam(name="providerId", required=false) String providerId,
-            @RequestParam(name="setId", required=false) String setId,
-            Model model
+        @RequestParam(name = "providerId", required = false) String providerId,
+        @RequestParam(name = "setId", required = false) String setId,
+        Model model
     ) throws Exception {
         UserDetails currentUser = authHelper.getUserDetails(); // fetch current user from security context
         if (currentUser == null) {
