@@ -23,6 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -38,31 +39,21 @@ public class FileInfo {
 	private String mimeType;
 	private String realm;
 	private Long size;
-	
 	// audit.
 	@CreatedDate
 	@Column(name = "created_date")
 	private Date createDate;
-	
 	@LastModifiedDate
 	@Column(name = "last_modified_date")
 	private Date modifiedDate;
-	
 	// todo hash.
 
-	public FileInfo() {
-	}
+	public FileInfo() {}
 
-	public FileInfo(String id, String name, String mimeType, String realm, Long size, Date createDate,
-			Date modifiedDate) {
+	public FileInfo(@NotNull String id, @NotNull String realm) {
 		super();
 		this.id = id;
-		this.name = name;
-		this.mimeType = mimeType;
 		this.realm = realm;
-		this.size = size;
-		this.createDate = createDate;
-		this.modifiedDate = modifiedDate;
 	}
 
 	public String getId() {
@@ -119,6 +110,12 @@ public class FileInfo {
 
 	public void setModifiedDate(Date modifiedDate) {
 		this.modifiedDate = modifiedDate;
+	}
+
+	@Override
+	public String toString() {
+		return "FileInfo [id=" + id + ", name=" + name + ", mimeType=" + mimeType + ", realm=" + realm + ", size="
+				+ size + ", createDate=" + createDate + ", modifiedDate=" + modifiedDate + "]";
 	}
 
 }

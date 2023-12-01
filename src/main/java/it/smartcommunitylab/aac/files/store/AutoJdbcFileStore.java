@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.files.store;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -33,7 +32,6 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -55,6 +53,7 @@ public class AutoJdbcFileStore implements FileStore {
 
 	public AutoJdbcFileStore(DataSource dataSource) {
 		Assert.notNull(dataSource, "DataSource required");
+		logger.debug("Jdbc File Store initialized");
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 

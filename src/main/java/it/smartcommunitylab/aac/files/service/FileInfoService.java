@@ -20,38 +20,79 @@ import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-import it.smartcommunitylab.aac.files.persistence.FileInfoRepository;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
+import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
+import it.smartcommunitylab.aac.files.persistence.FileInfoRepository;
 
 @Service
+@Transactional
 public class FileInfoService {
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	private FileInfoRepository fileInfoRepository;
-	
-	/**
-	 * 
-	 * 5. Generate UUID 
- * 		Its a business of FileInfoService. **
- * 6. CRUD Semantic
- *      create file info pass here
- *      business of fileinfo service, here need actual logic realm again as parameter, check if it exist
- *      if a call is made for create for object which already there it must throw error, write logic before saving
- *      save, update
- *      before saving check if it exist throw exception.
- *      if exist update 
- *      all the logic to manage FileInfo must be inside this service.   
- *      delete takes in put just realm and id if it not null delete else cannot be found. all the checks
- *      define in repository ListByRealm ** check UserEntityService for check.JPA
- *      
- */
-	public List<FileInfo> readAllFileInfo() {
-		return fileInfoRepository.findAll();
+
+	public FileInfoService(FileInfoRepository fileInfoRepository) {
+		Assert.notNull(fileInfoRepository, "fileinfo repository is mandatory");
+		this.fileInfoRepository = fileInfoRepository;
+		logger.debug("fileinfo service initialized");
 	}
-	
-	public List<FileInfo> listByRealm(String realm) {
+
+	public FileInfo createFileInfo(String realm) {
+		return new FileInfo(generateUuid(), realm);
+	}
+
+	public FileInfo addFileInfo(String id, String realm, String fileName, String mimeType, long size)
+			throws AlreadyRegisteredException {
+		logger.debug("Add file for realm {}", String.valueOf(realm));
+		FileInfo exist = fileInfoRepository.findOne(id);
+		if (exist != null) {
+			throw new AlreadyRegisteredException();
+		}
+		// create file.
+		if (id == null || id.isBlank() || id.isEmpty()) {
+			id = generateUuid();
+		}
+		FileInfo f = new FileInfo(id, realm);
+		f.setName(fileName);
+		f.setMimeType(mimeType);
+		f.setSize(size);
+		f = fileInfoRepository.save(f);
+		return f;
+	}
+
+	@Transactional(readOnly = true)
+	public FileInfo getFile(String id) throws NoSuchUserException {
+		logger.debug("Read file id {}", String.valueOf(id));
+		FileInfo f = fileInfoRepository.findOne(id);
+		if (f == null) {
+			throw new NoSuchUserException("no file with id " + id);
+		}
+		return f;
+	}
+
+	@Transactional(readOnly = true)
+	public long countFiles(@NotNull String realm) {
+		return fileInfoRepository.countByRealm(realm);
+	}
+
+	@Transactional(readOnly = true)
+	public List<FileInfo> listFiles(@NotNull String realm) {
+		return fileInfoRepository.findByRealm(realm);
+	}
+
+	public List<FileInfo> readAllFileInfo() {
 		return fileInfoRepository.findAll();
 	}
 
@@ -64,32 +105,31 @@ public class FileInfoService {
 	}
 
 	private String generateUuid() {
-		return UUID.randomUUID().toString().replace("-", "");		
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 
-	public FileInfo addFileInfo(String realm, String id, FileInfo fileInfo) {
-		if (id != null && !id.isBlank() && !id.isEmpty()) {
-			fileInfo.setId(id);
-		} else {
-			fileInfo.setId(generateUuid());	
-		}		
-		fileInfo.setRealm(realm);
-		return fileInfoRepository.save(fileInfo);
-	}
-	
-	public FileInfo updateFileInfo(FileInfo fileInfo) {
-		// if exist.
-		
-		return fileInfoRepository.save(fileInfo);
+	public FileInfo updateFileInfo(String id, String realm, String fileName, String mimeType, Long size)
+			throws NoSuchResourceException, FileNotFoundException {
+		logger.debug("Update file id {}", String.valueOf(id));
+		FileInfo f = readFileInfo(realm, id);
+		if (f == null) {
+			throw new NoSuchResourceException("no file with id " + id);
+		}
+		f.setMimeType(mimeType);
+		f.setName(fileName);
+		f.setSize(size);
+		f = fileInfoRepository.save(f);
+		return f;
 	}
 
 	public boolean deleteFileInfo(String realm, String id) {
+		logger.debug("Delete file id {} for realm {}", String.valueOf(id), String.valueOf(realm));
 		FileInfo blob = fileInfoRepository.findByRealmAndId(realm, id);
 		if (blob != null) {
 			fileInfoRepository.delete(blob);
 			return true;
 		}
-		return false;				
+		return false;
 	}
 
 }

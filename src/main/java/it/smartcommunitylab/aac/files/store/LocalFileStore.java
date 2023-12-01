@@ -40,6 +40,7 @@ public class LocalFileStore implements FileStore {
 
 	public void setPath(String realm) {
 		this.root = Paths.get(basePath + System.getProperty("file.separator") + realm);
+		logger.debug("Local file store initialized,  path set to " + this.root);
 	}
 
 	@Override
