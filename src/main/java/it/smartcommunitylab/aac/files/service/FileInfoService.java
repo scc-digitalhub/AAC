@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.files.service;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,27 +30,66 @@ import it.smartcommunitylab.aac.files.persistence.FileInfo;
 public class FileInfoService {
 	@Autowired
 	private FileInfoRepository fileInfoRepository;
-
+	
+	/**
+	 * 
+	 * 5. Generate UUID 
+ * 		Its a business of FileInfoService. **
+ * 6. CRUD Semantic
+ *      create file info pass here
+ *      business of fileinfo service, here need actual logic realm again as parameter, check if it exist
+ *      if a call is made for create for object which already there it must throw error, write logic before saving
+ *      save, update
+ *      before saving check if it exist throw exception.
+ *      if exist update 
+ *      all the logic to manage FileInfo must be inside this service.   
+ *      delete takes in put just realm and id if it not null delete else cannot be found. all the checks
+ *      define in repository ListByRealm ** check UserEntityService for check.JPA
+ *      
+ */
 	public List<FileInfo> readAllFileInfo() {
 		return fileInfoRepository.findAll();
 	}
-
-	public FileInfo readFileInfo(String id) {
-		return fileInfoRepository.findOne(id);
+	
+	public List<FileInfo> listByRealm(String realm) {
+		return fileInfoRepository.findAll();
 	}
 
-	public String generateUuid(String fileName) {
-		String uuid = UUID.randomUUID().toString().replace("-", "");
-		int hash = fileName.hashCode();
-		return String.valueOf(Math.abs(hash)) + uuid;
+	public FileInfo readFileInfo(String realm, String id) throws FileNotFoundException {
+		FileInfo file = fileInfoRepository.findByRealmAndId(realm, id);
+		if (file != null) {
+			return file;
+		}
+		throw new FileNotFoundException("file not found");
 	}
 
-	public FileInfo save(FileInfo fileInfo) {
+	private String generateUuid() {
+		return UUID.randomUUID().toString().replace("-", "");		
+	}
+
+	public FileInfo addFileInfo(String realm, String id, FileInfo fileInfo) {
+		if (id != null && !id.isBlank() && !id.isEmpty()) {
+			fileInfo.setId(id);
+		} else {
+			fileInfo.setId(generateUuid());	
+		}		
+		fileInfo.setRealm(realm);
+		return fileInfoRepository.save(fileInfo);
+	}
+	
+	public FileInfo updateFileInfo(FileInfo fileInfo) {
+		// if exist.
+		
 		return fileInfoRepository.save(fileInfo);
 	}
 
-	public void delete(FileInfo fileDelete) {
-		fileInfoRepository.delete(fileDelete);		
+	public boolean deleteFileInfo(String realm, String id) {
+		FileInfo blob = fileInfoRepository.findByRealmAndId(realm, id);
+		if (blob != null) {
+			fileInfoRepository.delete(blob);
+			return true;
+		}
+		return false;				
 	}
 
 }

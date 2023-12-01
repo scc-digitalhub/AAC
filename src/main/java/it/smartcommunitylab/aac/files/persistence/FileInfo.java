@@ -16,24 +16,53 @@
 
 package it.smartcommunitylab.aac.files.persistence;
 
+import java.util.Date;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Entity
 @Table(name = "files_info")
+@EntityListeners(AuditingEntityListener.class)
 public class FileInfo {
 	@Id
 	private String id;
 	private String name;
-	private String type;
+	private String mimeType;
+	private String realm;
+	private Long size;
+	
+	// audit.
+	@CreatedDate
+	@Column(name = "created_date")
+	private Date createDate;
+	
+	@LastModifiedDate
+	@Column(name = "last_modified_date")
+	private Date modifiedDate;
+	
+	// todo hash.
 
 	public FileInfo() {
 	}
 
-	public FileInfo(String name, String type) {
+	public FileInfo(String id, String name, String mimeType, String realm, Long size, Date createDate,
+			Date modifiedDate) {
+		super();
+		this.id = id;
 		this.name = name;
-		this.type = type;
+		this.mimeType = mimeType;
+		this.realm = realm;
+		this.size = size;
+		this.createDate = createDate;
+		this.modifiedDate = modifiedDate;
 	}
 
 	public String getId() {
@@ -52,11 +81,44 @@ public class FileInfo {
 		this.name = name;
 	}
 
-	public String getType() {
-		return type;
+	public String getMimeType() {
+		return mimeType;
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public void setMimeType(String mimeType) {
+		this.mimeType = mimeType;
 	}
+
+	public String getRealm() {
+		return realm;
+	}
+
+	public void setRealm(String realm) {
+		this.realm = realm;
+	}
+
+	public Long getSize() {
+		return size;
+	}
+
+	public void setSize(Long size) {
+		this.size = size;
+	}
+
+	public Date getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
+
 }

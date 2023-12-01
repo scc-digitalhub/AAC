@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.files.persistence;
+package it.smartcommunitylab.aac.files;
 
-import java.util.List;
+import org.springframework.stereotype.Service;
 
-import org.springframework.stereotype.Repository;
-
-import it.smartcommunitylab.aac.repository.CustomJpaRepository;
-
-@Repository
-public interface FileInfoRepository extends CustomJpaRepository<FileInfo, String> {
-
-	FileInfo findByRealmAndId(String realm, String id);
-
-	List<FileInfo> findByRealm(String realm);
+@Service
+public class FileManager {
+// handle permission
 }

@@ -26,33 +26,37 @@ import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
 public class LocalFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private final Path root = Paths.get("data/uploads");
 
-	public LocalFileStore() {
-		try {
-			Files.createDirectories(root);
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Could not initialize folder for upload!");
-		}
+	@Value("${persistence.files.path}")
+	private String basePath;
+	
+	private Path root;
+
+	public void setPath(String realm) {
+		this.root = Paths.get(basePath + System.getProperty("file.separator") + realm);
 	}
 
 	@Override
-	public void save(String id, InputStream str) {
+	public void save(String id, String realm, InputStream str, long size) {
 		try {
-			Files.copy(str, this.root.resolve(id));
+			setPath(realm);
+			Files.createDirectories(root);
+			Files.copy(str, root.resolve(id));
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e.getMessage());
 		}
 	}
 
 	@Override
-	public InputStream load(String id) {
+	public InputStream load(String id, String realm) {
 		try {
+			setPath(realm);
 			Path file = root.resolve(id);
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable()) {
@@ -70,8 +74,9 @@ public class LocalFileStore implements FileStore {
 	}
 
 	@Override
-	public boolean delete(String id) {
+	public boolean delete(String id, String realm) {
 		try {
+			setPath(realm);
 			Path file = root.resolve(id);
 			return Files.deleteIfExists(file);
 		} catch (IOException e) {
