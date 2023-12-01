@@ -35,7 +35,7 @@ persistence:
    repository:
       providerConfig: memory
    files:
-      store: jdbc
+      store: filesystem
       path: ./data/uploads
    
 # AAC ADMIN USER PASSWORD
