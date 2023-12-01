@@ -42,9 +42,9 @@ import org.springframework.util.Assert;
 
 public class AutoJdbcFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private static final String DEFAULT_SELECT_STATEMENT = "select id, fileinfo_id, data from files where  fileinfo_id = ?";
-	private static final String DEFAULT_INSERT_STATEMENT = "insert into files (id, fileinfo_id, data) values (?, ?, ?)";
-	private static final String DEFAULT_DELETE_STATEMENT = "delete from files where fileinfo_id = ?";
+	private static final String DEFAULT_SELECT_STATEMENT = "select id, file_id, data, realm, size from files where  file_id = ?";
+	private static final String DEFAULT_INSERT_STATEMENT = "insert into files (id, file_id, data, realm, size) values (?, ?, ?, ?, ?)";
+	private static final String DEFAULT_DELETE_STATEMENT = "delete from files where file_id = ?";
 
 	private String selectFileSql = DEFAULT_SELECT_STATEMENT;
 	private String insertFileSql = DEFAULT_INSERT_STATEMENT;
@@ -61,7 +61,7 @@ public class AutoJdbcFileStore implements FileStore {
 	private static class FileRowMapper implements RowMapper<Pair<String, Optional<Serializable>>> {
 		@Override
 		public Pair<String, Optional<Serializable>> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			String key = rs.getString("fileinfo_id");
+			String key = rs.getString("file_id");
 			Serializable value = rs.getBytes("data");
 			return Pair.of(key, Optional.ofNullable(value));
 		}
@@ -84,18 +84,18 @@ public class AutoJdbcFileStore implements FileStore {
 	}
 
 	@Override
-	public void save(String id, InputStream str) {
+	public void save(String id, String realm, InputStream str, long size) {
 		try {
 			jdbcTemplate.update(insertFileSql,
-					new Object[] { UUID.randomUUID(), id, new SqlLobValue(str.readAllBytes()) },
-					new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB });
+					new Object[] { UUID.randomUUID(), id, new SqlLobValue(str.readAllBytes()), realm, size },
+					new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB, Types.VARCHAR, Types.BIGINT });
 		} catch (Exception e) {
 			throw new IllegalArgumentException(e);						
 		}
 	}
 
 	@Override
-	public InputStream load(String id) {
+	public InputStream load(String id, String realm) {
 		Map<String, Serializable> fileKeyValue = findFileDB(id);
 		if (fileKeyValue == null || fileKeyValue.isEmpty()) {
 			return null;
@@ -104,7 +104,7 @@ public class AutoJdbcFileStore implements FileStore {
 	}
 
 	@Override
-	public boolean delete(String id) {
+	public boolean delete(String id, String realm) {
 		deleteFileDB(id);
 		return true;
 	}

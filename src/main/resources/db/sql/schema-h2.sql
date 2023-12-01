@@ -18,6 +18,8 @@ CREATE TABLE
 CREATE TABLE
     IF NOT EXISTS files (
         id VARCHAR(256),
-        fileinfo_id VARCHAR(256),
-        data LONGBLOB
+        file_id VARCHAR(256),
+        data LONGBLOB,
+        realm VARCHAR(256),
+        size BIGINT
     );
