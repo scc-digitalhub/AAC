@@ -60,7 +60,7 @@ public class FilesController {
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			fileService.addFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
+			fileService.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
 					file.getInputStream());
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
@@ -75,7 +75,7 @@ public class FilesController {
 	@GetMapping("/list")
 	public ResponseEntity<List<FileInfo>> getListFiles(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
-		return ResponseEntity.status(HttpStatus.OK).body(fileService.readFileInfo(realm));
+		return ResponseEntity.status(HttpStatus.OK).body(fileService.readFilesByRealm(realm));
 	}
 
 	@GetMapping("/{id:.+}")
@@ -83,7 +83,7 @@ public class FilesController {
 			@PathVariable String id, HttpServletResponse res) throws IOException {
 		InputStream is = fileService.readFileBlob(realm, id);
 		if (is != null) {
-			FileInfo fileInfo = fileService.getFileInfo(realm, id);
+			FileInfo fileInfo = fileService.readFile(realm, id);
 			res.setContentType(fileInfo.getMimeType());
 			res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
 			ServletOutputStream out = res.getOutputStream();
