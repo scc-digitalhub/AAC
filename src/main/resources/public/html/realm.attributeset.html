@@ -38,6 +38,7 @@
                     <tr>
                         <th>Key</th>
                         <th>Type</th>
+                        <th>Required</th>
                         <th></th>
                     </tr>
                     <tr ng-repeat="attr in attributeSet.attributes">
@@ -47,6 +48,9 @@
                         </td>
                         <td>
                             {{attr.multiple ? ('[' + attr.type +']'): attr.type}}
+                        </td>
+                        <td>
+                            {{attr.required ? 'Yes' : 'No'}}
                         </td>
                         <td class="text-right">
                             <a class="btn btn-xs  btn-danger btn-icon pull-right" ng-if="slug == attributeSet.realm" ng-click="removeAttribute(attr)"><svg
