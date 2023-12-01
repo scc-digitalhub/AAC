@@ -28,4 +28,7 @@ public interface FileInfoRepository extends CustomJpaRepository<FileInfo, String
 	FileInfo findByRealmAndId(String realm, String id);
 
 	List<FileInfo> findByRealm(String realm);
+
+	long countByRealm(String realm);
+	
 }
