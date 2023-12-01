@@ -24,6 +24,8 @@ CREATE TABLE
 CREATE TABLE
     IF NOT EXISTS files (
         id VARCHAR(256),
-        fileinfo_id VARCHAR(256),
-        data bytea
+        file_id VARCHAR(256),
+        data bytea,
+        realm VARCHAR(256),
+        size BIGINT        
     );
