@@ -63,13 +63,12 @@ public class LocalFileStore implements FileStore {
 			if (resource.exists() || resource.isReadable()) {
 				return resource.getInputStream();
 			} else {
-				logger.error("Could not read the file!");
 				throw new FileNotFoundException("Could not read the file!");
 			}
 		} catch (MalformedURLException e) {
 			throw new IllegalArgumentException("Error: " + e.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Could not read the file!");
 		}
 		return null;
 	}
