@@ -66,18 +66,18 @@ public class AutoJdbcFileStore implements FileStore {
 		}
 	}
 
-	public void addFileDB(String id, String fileInfoId, Serializable data) {
+	public void addFileDB(String id, String fileId, Serializable data) {
 		jdbcTemplate.update(insertFileSql,
-				new Object[] { id, fileInfoId, new SqlLobValue((byte[]) data) },
+				new Object[] { id, fileId, new SqlLobValue((byte[]) data) },
 				new int[] { Types.VARCHAR, Types.VARCHAR, Types.BLOB });
 	}
 
-	public void deleteFileDB(String fileInfoId) {
-		jdbcTemplate.update(deleteFileSql, fileInfoId);
+	public void deleteFileDB(String fileId) {
+		jdbcTemplate.update(deleteFileSql, fileId);
 	}
 
-	public Map<String, Serializable> findFileDB(String fileInfoId) {
-		List<Pair<String, Optional<Serializable>>> list = jdbcTemplate.query(selectFileSql, rowMapper, fileInfoId);
+	public Map<String, Serializable> findFileDB(String fileId) {
+		List<Pair<String, Optional<Serializable>>> list = jdbcTemplate.query(selectFileSql, rowMapper, fileId);
 		return list.stream().filter(p -> p.getSecond().isPresent())
 				.collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond().get()));
 	}
