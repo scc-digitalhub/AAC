@@ -34,13 +34,6 @@ import it.smartcommunitylab.aac.files.store.FileStore;
 
 @Service
 public class FileService {
-	/**
-	 *    filehash of the content. * (TODO)
-	 *	 * 	   - hash is on actual bytes no on the name. Just keep it UUID.
-	 * 7. EntityService, UserEnttity
-	 * 9. Manager TODO that will wrap file service and just call the manager instead of service here.
-	 */
-	
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired

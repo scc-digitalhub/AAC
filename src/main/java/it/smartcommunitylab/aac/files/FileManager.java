@@ -16,9 +16,48 @@
 
 package it.smartcommunitylab.aac.files;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
+import it.smartcommunitylab.aac.files.persistence.FileInfo;
+
 @Service
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
 public class FileManager {
-// handle permission
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private FileService fileService;
+
+	public void saveFile(String realm, String originalFilename, String contentType, long size, InputStream inputStream)
+			throws AlreadyRegisteredException, IOException {
+		fileService.saveFile(realm, originalFilename, contentType, size, inputStream);
+	}
+
+	public List<FileInfo> readFilesByRealm(String realm) {
+		return fileService.readFilesByRealm(realm);
+	}
+
+	public InputStream readFileBlob(String realm, String id) {
+		return fileService.readFileBlob(realm, id);
+	}
+
+	public FileInfo readFile(String realm, String id) throws FileNotFoundException {
+		return fileService.readFile(realm, id);
+	}
+
+	public boolean deleteFile(String realm, String id) throws FileNotFoundException {
+		return fileService.deleteFile(realm, id);
+	}
+
 }
