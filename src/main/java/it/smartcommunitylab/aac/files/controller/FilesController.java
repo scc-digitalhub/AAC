@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.files.FileManager;
 import it.smartcommunitylab.aac.files.FileService;
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
@@ -50,7 +51,8 @@ import it.smartcommunitylab.aac.files.persistence.FileInfo;
 public class FilesController {
 
 	@Autowired
-	private FileService fileService;
+//	private FileService fileService;
+	private FileManager fileManager;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -60,7 +62,7 @@ public class FilesController {
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			fileService.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
+			fileManager.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
 					file.getInputStream());
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
@@ -75,15 +77,15 @@ public class FilesController {
 	@GetMapping("/list")
 	public ResponseEntity<List<FileInfo>> getListFiles(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
-		return ResponseEntity.status(HttpStatus.OK).body(fileService.readFilesByRealm(realm));
+		return ResponseEntity.status(HttpStatus.OK).body(fileManager.readFilesByRealm(realm));
 	}
 
 	@GetMapping("/{id:.+}")
 	public void getFile(@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
 			@PathVariable String id, HttpServletResponse res) throws IOException {
-		InputStream is = fileService.readFileBlob(realm, id);
+		InputStream is = fileManager.readFileBlob(realm, id);
 		if (is != null) {
-			FileInfo fileInfo = fileService.readFile(realm, id);
+			FileInfo fileInfo = fileManager.readFile(realm, id);
 			res.setContentType(fileInfo.getMimeType());
 			res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
 			ServletOutputStream out = res.getOutputStream();
@@ -101,7 +103,7 @@ public class FilesController {
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @PathVariable String id) {
 		String message = "";
 		try {
-			boolean deleted = fileService.deleteFile(realm, id);
+			boolean deleted = fileManager.deleteFile(realm, id);
 			if (deleted) {
 				message = "Deleted successfully: " + id;
 				logger.debug(message);
