@@ -110,8 +110,7 @@ public class WebConfig implements WebMvcConfigurer {
             .ignoreAcceptHeader(false)
             .defaultContentType(MediaType.APPLICATION_JSON)
             .mediaType(MediaType.APPLICATION_JSON.getSubtype(), MediaType.APPLICATION_JSON)
-            .mediaType(SystemKeys.MEDIA_TYPE_YML.getSubtype(), SystemKeys.MEDIA_TYPE_YML)
-            .mediaType(SystemKeys.MEDIA_TYPE_YAML.getSubtype(), SystemKeys.MEDIA_TYPE_YAML);
+            .mediaType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML.getSubtype(), SystemKeys.MEDIA_TYPE_APPLICATION_YAML);
     }
 
     /*
@@ -125,7 +124,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter yamlConverter = new MappingJackson2HttpMessageConverter(yamlObjectMapper);
-        yamlConverter.setSupportedMediaTypes(Arrays.asList(SystemKeys.MEDIA_TYPE_YML, SystemKeys.MEDIA_TYPE_YAML));
+        yamlConverter.setSupportedMediaTypes(
+            Arrays.asList(
+                SystemKeys.MEDIA_TYPE_APPLICATION_YAML,
+                SystemKeys.MEDIA_TYPE_TEXT_YAML,
+                SystemKeys.MEDIA_TYPE_APPLICATION_XYAML
+            )
+        );
         converters.add(yamlConverter);
     }
 

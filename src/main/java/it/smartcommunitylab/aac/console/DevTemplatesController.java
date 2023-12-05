@@ -120,9 +120,9 @@ public class DevTemplatesController extends BaseTemplatesController {
                 }
 
                 if (
-                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_TEXT_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_XYAML.toString().equals(file.getContentType())
                 ) {
                     throw new IllegalArgumentException("invalid file");
                 }
@@ -198,7 +198,7 @@ public class DevTemplatesController extends BaseTemplatesController {
         String s = yamlObjectMapper.writeValueAsString(template);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=template-" + template.buildKey() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));

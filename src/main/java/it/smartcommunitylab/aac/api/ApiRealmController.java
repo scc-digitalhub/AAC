@@ -43,18 +43,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @ApiSecurityTag(AdminRealmsScope.SCOPE)
 @Tag(name = "Realms", description = "Manage realms and their configuration")
-@RequestMapping(
-    value = "api",
-    consumes = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE },
-    produces = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE }
-)
+@ApiRequestMapping
 public class ApiRealmController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

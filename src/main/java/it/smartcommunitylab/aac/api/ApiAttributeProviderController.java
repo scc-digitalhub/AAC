@@ -17,21 +17,14 @@
 package it.smartcommunitylab.aac.api;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.attributes.controller.BaseAttributeProviderController;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @ApiSecurityTag(ApiProviderScope.SCOPE)
 @Tag(name = "Attribute Providers", description = "Manage realm attribute providers and their configuration")
-@RequestMapping(
-    value = "api",
-    consumes = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE },
-    produces = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE }
-)
+@ApiRequestMapping
 public class ApiAttributeProviderController extends BaseAttributeProviderController {
 
     /*

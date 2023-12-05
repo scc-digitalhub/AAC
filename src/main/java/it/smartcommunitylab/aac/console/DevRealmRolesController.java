@@ -90,9 +90,9 @@ public class DevRealmRolesController extends BaseRealmRolesController {
                 }
 
                 if (
-                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_TEXT_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_XYAML.toString().equals(file.getContentType())
                 ) {
                     throw new IllegalArgumentException("invalid file");
                 }
@@ -168,7 +168,7 @@ public class DevRealmRolesController extends BaseRealmRolesController {
         String s = yamlObjectMapper.writeValueAsString(role);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=role-" + role.getRole() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));

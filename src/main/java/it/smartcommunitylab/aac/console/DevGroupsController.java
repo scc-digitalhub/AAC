@@ -89,9 +89,9 @@ public class DevGroupsController extends BaseGroupController {
                 }
 
                 if (
-                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_TEXT_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_XYAML.toString().equals(file.getContentType())
                 ) {
                     throw new IllegalArgumentException("invalid file");
                 }
@@ -167,7 +167,7 @@ public class DevGroupsController extends BaseGroupController {
         String s = yamlObjectMapper.writeValueAsString(group);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=group-" + group.getGroup() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));

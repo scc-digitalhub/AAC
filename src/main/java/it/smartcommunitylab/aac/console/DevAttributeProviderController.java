@@ -242,9 +242,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 }
 
                 if (
-                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_TEXT_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_XYAML.toString().equals(file.getContentType())
                 ) {
                     throw new IllegalArgumentException("invalid file");
                 }
@@ -328,7 +328,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=ap-" + provider.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));

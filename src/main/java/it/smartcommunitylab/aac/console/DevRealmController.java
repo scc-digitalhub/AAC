@@ -180,7 +180,7 @@ public class DevRealmController {
         String s = yamlObjectMapper.writeValueAsString(export);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=realm-" + key + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));

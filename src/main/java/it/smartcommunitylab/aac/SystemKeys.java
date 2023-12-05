@@ -128,8 +128,11 @@ public class SystemKeys {
 
     public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30; // 30 days
 
-    public static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
-    public static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
-    public static final MediaType MEDIA_TYPE_XYAML = MediaType.valueOf("application/x-yaml");
-    public static final String MEDIA_TYPE_XYAML_VALUE = "application/x-yaml";
+    public static final MediaType MEDIA_TYPE_APPLICATION_YAML = new MediaType("application", "yaml");
+    public static final MediaType MEDIA_TYPE_TEXT_YAML = new MediaType("text", "yaml");
+    public static final MediaType MEDIA_TYPE_APPLICATION_XYAML = new MediaType("application", "x-yaml");
+
+    public static final String MEDIA_TYPE_APPLICATION_YAML_VALUE = "application/yaml";
+    public static final String MEDIA_TYPE_TEXT_YAML_VALUE = "text/yaml";
+    public static final String MEDIA_TYPE_APPLICATION_XYAML_VALUE = "application/x-yaml";
 }
