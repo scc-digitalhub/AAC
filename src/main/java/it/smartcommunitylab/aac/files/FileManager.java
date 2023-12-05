@@ -41,23 +41,23 @@ public class FileManager {
 
 	public void saveFile(String realm, String originalFilename, String contentType, long size, InputStream inputStream)
 			throws AlreadyRegisteredException, IOException {
-		fileService.saveFile(realm, originalFilename, contentType, size, inputStream);
+		fileService.createFile(realm, originalFilename, contentType, size, inputStream);
 	}
 
 	public List<FileInfo> readFilesByRealm(String realm) {
-		return fileService.readFilesByRealm(realm);
+		return fileService.getFilesByRealm(realm);
 	}
 
 	public InputStream readFileBlob(String realm, String id) {
-		return fileService.readFileBlob(realm, id);
+		return fileService.getFileStream(realm, id);
 	}
 
 	public FileInfo readFile(String realm, String id) throws FileNotFoundException {
-		return fileService.readFile(realm, id);
+		return fileService.getFile(realm, id);
 	}
 
-	public boolean deleteFile(String realm, String id) throws FileNotFoundException {
-		return fileService.deleteFile(realm, id);
+	public void deleteFile(String realm, String id) throws FileNotFoundException {
+		fileService.deleteFile(realm, id);
 	}
 
 }
