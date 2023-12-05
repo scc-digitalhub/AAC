@@ -43,27 +43,8 @@ public class FileService {
 	private FileInfoService fileInfoService;
 
 	/**
-	 * Read single file inside realm.
-	 * @param realm
-	 * @param id
-	 * @return
-	 * @throws FileNotFoundException
-	 */
-	public FileInfo readFile(String realm, String id) throws FileNotFoundException {
-		return fileInfoService.readFileInfo(realm, id);
-	}
-
-	/**
-	 * ReadFiles for realm
-	 * @param realm
-	 * @return
-	 */
-	public List<FileInfo> readFilesByRealm(String realm) {
-		return fileInfoService.listFiles(realm);
-	}
-
-	/**
-	 * Save File.
+	 * Create File.
+	 * 
 	 * @param realm
 	 * @param fileName
 	 * @param mimeType
@@ -72,7 +53,7 @@ public class FileService {
 	 * @throws IOException
 	 * @throws AlreadyRegisteredException
 	 */
-	public void saveFile(String realm, String fileName, String mimeType, long size, InputStream isr)
+	public void createFile(String realm, String fileName, String mimeType, long size, InputStream isr)
 			throws IOException, AlreadyRegisteredException {
 		// generate a new file, always persisted
 		FileInfo f = fileInfoService.createFileInfo(realm);
@@ -89,32 +70,56 @@ public class FileService {
 	}
 
 	/**
-	 * Delete File.
+	 * Get single file inside realm.
+	 * 
 	 * @param realm
 	 * @param id
 	 * @return
 	 * @throws FileNotFoundException
 	 */
-	public boolean deleteFile(String realm, String id) throws FileNotFoundException {
-		FileInfo fileInfo = fileInfoService.readFileInfo(realm, id);
-		if (fileInfo != null) {
-			logger.debug("Delete file blob for realm {} and id ", String.valueOf(realm), String.valueOf(id));
-			fileStore.delete(fileInfo.getId(), realm);
-			return fileInfoService.deleteFileInfo(realm, id);
-		}
-		throw new FileNotFoundException("file not found");
-		
+	public FileInfo getFile(String realm, String id) throws FileNotFoundException {
+		return fileInfoService.readFileInfo(realm, id);
 	}
-	
+
 	/**
-	 * Read FileBlob.
+	 * Get files for realm
+	 * 
+	 * @param realm
+	 * @return
+	 */
+	public List<FileInfo> getFilesByRealm(String realm) {
+		return fileInfoService.listFiles(realm);
+	}
+
+	/**
+	 * Get file stream (FileBlob).
+	 * 
 	 * @param realm
 	 * @param id
 	 * @return
 	 */
-	public InputStream readFileBlob(String realm, String id) {
-		logger.debug("Read file blob for realm {} and id ", String.valueOf(realm), String.valueOf(id));
+	public InputStream getFileStream(String realm, String id) {
+		logger.debug("Read file blob for realm {} and id {} ", String.valueOf(realm), String.valueOf(id));
 		return fileStore.load(id, realm);
+	}
+
+	/**
+	 * Delete File.
+	 * 
+	 * @param realm
+	 * @param id
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	public void deleteFile(String realm, String id) throws FileNotFoundException {
+		FileInfo fileInfo = fileInfoService.readFileInfo(realm, id);
+		if (fileInfo != null) {
+			logger.debug("Delete file blob for realm {} and id {}", String.valueOf(realm), String.valueOf(id));
+			fileStore.delete(fileInfo.getId(), realm);
+			fileInfoService.deleteFileInfo(realm, id);
+		} else {
+			throw new FileNotFoundException("file not found");	
+		}		
 	}
 
 }

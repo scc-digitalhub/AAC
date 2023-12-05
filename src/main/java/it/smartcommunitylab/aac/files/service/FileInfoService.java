@@ -122,14 +122,12 @@ public class FileInfoService {
 		return f;
 	}
 
-	public boolean deleteFileInfo(String realm, String id) {
+	public void deleteFileInfo(String realm, String id) {
 		logger.debug("Delete file id {} for realm {}", String.valueOf(id), String.valueOf(realm));
 		FileInfo blob = fileInfoRepository.findByRealmAndId(realm, id);
 		if (blob != null) {
 			fileInfoRepository.delete(blob);
-			return true;
 		}
-		return false;
 	}
 
 }
