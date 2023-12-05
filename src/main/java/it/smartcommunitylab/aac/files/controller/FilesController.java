@@ -42,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.files.FileManager;
-import it.smartcommunitylab.aac.files.FileService;
 import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 
@@ -51,7 +50,6 @@ import it.smartcommunitylab.aac.files.persistence.FileInfo;
 public class FilesController {
 
 	@Autowired
-//	private FileService fileService;
 	private FileManager fileManager;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -103,18 +101,13 @@ public class FilesController {
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @PathVariable String id) {
 		String message = "";
 		try {
-			boolean deleted = fileManager.deleteFile(realm, id);
-			if (deleted) {
-				message = "Deleted successfully: " + id;
-				logger.debug(message);
-				return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
-			}
-			message = "The file does not exist!";
+			fileManager.deleteFile(realm, id);
+			message = "Deleted successfully: " + id;
 			logger.debug(message);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage(message));
+			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));			
 		} catch (Exception e) {
 			message = "Could not delete the file: " + id + ". Error: " + e.getMessage();
-			logger.debug(message);
+			logger.error(message);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(message));
 		}
 	}
