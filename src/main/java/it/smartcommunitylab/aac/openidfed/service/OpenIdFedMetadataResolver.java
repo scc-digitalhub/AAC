@@ -17,17 +17,11 @@
 package it.smartcommunitylab.aac.openidfed.service;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.oauth2.sdk.GrantType;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.ResponseType;
-import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod;
-import com.nimbusds.openid.connect.sdk.SubjectType;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatementClaimsSet;
@@ -44,19 +38,22 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.stereotype.Service;
+import javax.servlet.http.HttpServletRequest;
 
-@Service
 public class OpenIdFedMetadataResolver {
 
     private static final int VALIDITY_SECONDS = 3600;
 
-    public String resolve(OpenIdFedIdentityProviderConfig config) throws JOSEException, ParseException {
-        EntityStatement statement = generate(config);
+    public String resolveRpMetadata(OpenIdFedIdentityProviderConfig config, HttpServletRequest request)
+        throws JOSEException, ParseException {
+        //TODO extract baseUrl from request
+        String baseUrl = "";
+        EntityStatement statement = generateRpMetadata(config, baseUrl);
         return statement.getSignedStatement().serialize();
     }
 
-    public EntityStatement generate(OpenIdFedIdentityProviderConfig config) throws JOSEException, ParseException {
+    public EntityStatement generateRpMetadata(OpenIdFedIdentityProviderConfig config, String baseUrl)
+        throws JOSEException, ParseException {
         OpenIdFedIdentityProviderConfigMap map = config.getConfigMap();
 
         // The required entity statement parameters
@@ -90,21 +87,49 @@ public class OpenIdFedMetadataResolver {
         // The relying party metadata
         OIDCClientMetadata metadata = new OIDCClientMetadata();
         metadata.setName(map.getClientName());
-        // rpMetadata.setEmailContacts(Collections.singletonList("ops@ligo.org"));
-        metadata.setClientRegistrationTypes(Collections.singletonList(ClientRegistrationType.AUTOMATIC));
-        metadata.setApplicationType(ApplicationType.WEB);
-        metadata.setGrantTypes(new HashSet<>(Arrays.asList(GrantType.AUTHORIZATION_CODE, GrantType.REFRESH_TOKEN)));
-        metadata.setResponseTypes(Collections.singleton(ResponseType.CODE));
+        metadata.setEmailContacts(map.getContacts());
+        metadata.setClientRegistrationTypes(Collections.singletonList(config.getClientRegistrationType()));
+        metadata.setApplicationType(config.getApplicationType());
+        metadata.setGrantTypes(new HashSet<>(config.getGrantTypes()));
+        metadata.setResponseTypes(new HashSet<>(config.getResponseTypes()));
 
         //TODO build
         metadata.setRedirectionURI(URI.create("http://localhost"));
-        metadata.setTokenEndpointAuthMethod(map.getClientAuthenticationMethod());
+        metadata.setTokenEndpointAuthMethod(config.getClientAuthenticationMethod());
 
-        metadata.setJWKSet(clientJwks);
-        metadata.setSubjectType(map.getSubjectType());
+        metadata.setJWKSet(clientJwks.toPublicJWKSet());
+        metadata.setSubjectType(config.getSubjectType());
         claims.setRPMetadata(metadata);
 
         // Sign the entity statement
         return EntityStatement.sign(claims, federationKey);
     }
+
+    /**
+     * Federation entity operations
+     */
+
+    public void fetchEntityConfiguration(String issuer) {}
+
+    public void fetchEntityStatement(String entity, String issuer, String subject) {}
+
+    public void resolveEntityStatement(String entity, String anchor, String subject) {}
+
+    /**
+     * Trust mark operations
+     */
+
+    public void requestTrustMarkStatus(String entity, String id, String subject) {}
+
+    public void requestTrustMarkListing(String entity, String id) {}
+
+    /**
+     * Trust anchor operations
+     */
+    public void resolveTAMetadata(String identifier) {}
+
+    /**
+     * OpenId provider operations
+     */
+    public void resolveOPMetadata(String identifier) {}
 }

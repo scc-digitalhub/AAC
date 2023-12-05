@@ -21,9 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod;
 import com.nimbusds.openid.connect.sdk.SubjectType;
-import com.nimbusds.openid.connect.sdk.federation.registration.ClientRegistrationType;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
@@ -32,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -46,29 +45,27 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         SystemKeys.ID_SEPARATOR +
         SystemKeys.AUTHORITY_OPENIDFED;
 
+    //client settings
     private String clientId;
     private String clientJwks;
     private String clientName;
 
-    private ClientAuthenticationMethod clientAuthenticationMethod;
-
     private String scope;
+
+    // principal settings
     private String userNameAttributeName;
     private Boolean trustEmailAddress;
     private Boolean requireEmailAddress;
     private Boolean alwaysTrustEmailAddress;
-
-    // autoconfiguration support from well-known
-    //issuerUri is required for openid fed
-    private String issuerUri;
 
     // session control
     private Boolean propagateEndSession;
     private Boolean respectTokenExpiration;
     private Set<PromptMode> promptMode;
 
-    // oidc-fed
-    private ClientRegistrationType clientRegistrationType;
+    // openid-fed
+    @NotBlank
+    private String trustAnchor;
 
     private String federationJwks;
     private Set<String> acrValues;
@@ -103,30 +100,6 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.clientName = clientName;
     }
 
-    public ClientAuthenticationMethod getClientAuthenticationMethod() {
-        return clientAuthenticationMethod;
-    }
-
-    public void setClientAuthenticationMethod(ClientAuthenticationMethod clientAuthenticationMethod) {
-        this.clientAuthenticationMethod = clientAuthenticationMethod;
-    }
-
-    public String getOrganizationName() {
-        return organizationName;
-    }
-
-    public void setOrganizationName(String organizationName) {
-        this.organizationName = organizationName;
-    }
-
-    public ClientRegistrationType getClientRegistrationType() {
-        return clientRegistrationType;
-    }
-
-    public void setClientRegistrationType(ClientRegistrationType clientRegistrationType) {
-        this.clientRegistrationType = clientRegistrationType;
-    }
-
     public String getScope() {
         return scope;
     }
@@ -151,14 +124,6 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.trustEmailAddress = trustEmailAddress;
     }
 
-    public Boolean getAlwaysTrustEmailAddress() {
-        return alwaysTrustEmailAddress;
-    }
-
-    public void setAlwaysTrustEmailAddress(Boolean alwaysTrustEmailAddress) {
-        this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
-    }
-
     public Boolean getRequireEmailAddress() {
         return requireEmailAddress;
     }
@@ -167,12 +132,12 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.requireEmailAddress = requireEmailAddress;
     }
 
-    public String getIssuerUri() {
-        return issuerUri;
+    public Boolean getAlwaysTrustEmailAddress() {
+        return alwaysTrustEmailAddress;
     }
 
-    public void setIssuerUri(String issuerUri) {
-        this.issuerUri = issuerUri;
+    public void setAlwaysTrustEmailAddress(Boolean alwaysTrustEmailAddress) {
+        this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
     }
 
     public Boolean getPropagateEndSession() {
@@ -197,6 +162,14 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
 
     public void setPromptMode(Set<PromptMode> promptMode) {
         this.promptMode = promptMode;
+    }
+
+    public String getTrustAnchor() {
+        return trustAnchor;
+    }
+
+    public void setTrustAnchor(String trustAnchor) {
+        this.trustAnchor = trustAnchor;
     }
 
     public String getFederationJwks() {
@@ -239,6 +212,14 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.subjectType = subjectType;
     }
 
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
+    }
+
     public List<String> getContacts() {
         return contacts;
     }
@@ -253,22 +234,18 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.clientJwks = map.getClientJwks();
         this.clientName = map.getClientName();
 
-        this.clientAuthenticationMethod = map.getClientAuthenticationMethod();
         this.scope = map.getScope();
+
         this.userNameAttributeName = map.getUserNameAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
 
-        // issuer
-        this.issuerUri = map.getIssuerUri();
-
-        // session
         this.propagateEndSession = map.getPropagateEndSession();
         this.respectTokenExpiration = map.getRespectTokenExpiration();
         this.promptMode = map.getPromptMode();
 
-        //oidcfed
+        this.trustAnchor = map.getTrustAnchor();
         this.federationJwks = map.getFederationJwks();
         this.acrValues = map.getAcrValues();
         this.authorityHints = map.getAuthorityHints();

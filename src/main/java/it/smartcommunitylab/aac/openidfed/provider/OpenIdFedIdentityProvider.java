@@ -20,7 +20,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
-import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
@@ -28,15 +27,12 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAccountPrincipalConverter;
-import it.smartcommunitylab.aac.oidc.provider.OIDCAccountProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAttributeProvider;
-import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.provider.OIDCLoginProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCSubjectResolver;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class OpenIdFedIdentityProvider
@@ -57,27 +53,35 @@ public class OpenIdFedIdentityProvider
         OpenIdFedIdentityProviderConfig config,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_APPLE, providerId, config, realm);
-        logger.debug("create apple provider  with id {}", String.valueOf(providerId));
+        this(SystemKeys.AUTHORITY_OPENIDFED, providerId, userAccountService, config, realm);
+    }
+
+    public OpenIdFedIdentityProvider(
+        String authority,
+        String providerId,
+        UserAccountService<OIDCUserAccount> userAccountService,
+        OpenIdFedIdentityProviderConfig config,
+        String realm
+    ) {
+        super(authority, providerId, config, realm);
+        logger.debug(
+            "create openid federation provider for authority {} with id {}",
+            String.valueOf(authority),
+            String.valueOf(providerId)
+        );
 
         // build resource providers, we use our providerId to ensure consistency
         OpenIdFedAccountServiceConfigConverter configConverter = new OpenIdFedAccountServiceConfigConverter();
         this.accountService =
             new OpenIdFedAccountService(providerId, userAccountService, configConverter.convert(config), realm);
 
-        this.principalConverter =
-            new OIDCAccountPrincipalConverter(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService, realm);
+        this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
+        this.principalConverter.setAlwaysTrustEmailAddress(config.alwaysTrustEmailAddress());
 
-        this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, realm);
+        this.attributeProvider = new OIDCAttributeProvider(authority, providerId, realm);
         this.subjectResolver =
-            new OIDCSubjectResolver(
-                SystemKeys.AUTHORITY_APPLE,
-                providerId,
-                userAccountService,
-                config.getRepositoryId(),
-                realm
-            );
+            new OIDCSubjectResolver(authority, providerId, userAccountService, config.getRepositoryId(), realm);
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // build custom authenticator
@@ -89,14 +93,14 @@ public class OpenIdFedIdentityProvider
             config.getHookFunctions() != null &&
             StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
         ) {
-            this.authenticationProvider.setCustomMappingFunction(
-                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
-                );
+            // this.authenticationProvider.setCustomMappingFunction(
+            //         config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+            //     );
         }
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
-        this.authenticationProvider.setExecutionService(executionService);
+        // this.authenticationProvider.setExecutionService(executionService);
     }
 
     public void setResourceService(ResourceEntityService resourceService) {
@@ -158,14 +162,6 @@ public class OpenIdFedIdentityProvider
         lp.setDescriptionMap(getDescriptionMap());
 
         lp.setLoginUrl(getAuthenticationUrl());
-
-        // explicitly set apple logo as icon
-        String icon = "logo-apple";
-        String iconUrl = "svg/sprite.svg#" + icon;
-        lp.setIcon(icon);
-        lp.setIconUrl(iconUrl);
-
-        // set position
         lp.setPosition(getConfig().getPosition());
 
         return lp;

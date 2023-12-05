@@ -18,11 +18,20 @@ package it.smartcommunitylab.aac.openidfed.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.oauth2.sdk.GrantType;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import com.nimbusds.openid.connect.sdk.SubjectType;
+import com.nimbusds.openid.connect.sdk.federation.registration.ClientRegistrationType;
+import com.nimbusds.openid.connect.sdk.rp.ApplicationType;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.text.ParseException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -38,7 +47,8 @@ public class OpenIdFedIdentityProviderConfig
 
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
 
-    private transient ClientRegistration clientRegistration;
+    //client registrations built for a given op
+    private transient Map<String, ClientRegistration> clientRegistrations = new HashMap<>();
 
     public OpenIdFedIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_OPENIDFED, provider, realm);
@@ -46,7 +56,6 @@ public class OpenIdFedIdentityProviderConfig
 
     public OpenIdFedIdentityProviderConfig(String authority, String provider, String realm) {
         super(authority, provider, realm, new IdentityProviderSettingsMap(), new OpenIdFedIdentityProviderConfigMap());
-        this.clientRegistration = null;
     }
 
     public OpenIdFedIdentityProviderConfig(
@@ -75,22 +84,17 @@ public class OpenIdFedIdentityProviderConfig
     }
 
     @JsonIgnore
-    public ClientRegistration getClientRegistration() {
-        if (clientRegistration == null) {
-            clientRegistration = toClientRegistration();
-        }
-
-        return clientRegistration;
+    public ClientRegistration getClientRegistration(String issuer) {
+        return clientRegistrations.computeIfAbsent(issuer, this::toClientRegistration);
     }
 
-    private ClientRegistration toClientRegistration() {
-        if (!StringUtils.hasText(configMap.getIssuerUri())) {
+    private ClientRegistration toClientRegistration(String issuerUri) {
+        if (!StringUtils.hasText(issuerUri)) {
             // unsupported
             return null;
         }
 
         //autoconf
-        String issuerUri = configMap.getIssuerUri();
         // remove well-known path if provided by user
         if (issuerUri.endsWith(WELL_KNOWN_CONFIGURATION_OPENID)) {
             issuerUri = issuerUri.substring(0, issuerUri.length() - WELL_KNOWN_CONFIGURATION_OPENID.length());
@@ -166,6 +170,41 @@ public class OpenIdFedIdentityProviderConfig
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    public SubjectType getSubjectType() {
+        return configMap.getSubjectType() != null ? configMap.getSubjectType() : SubjectType.PAIRWISE;
+    }
+
+    /**
+     * Configuration details, set by default
+     */
+
+    public com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod getClientAuthenticationMethod() {
+        //we support only private key
+        return com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod.PRIVATE_KEY_JWT;
+    }
+
+    public ClientRegistrationType getClientRegistrationType() {
+        //we support only automatic
+        return ClientRegistrationType.AUTOMATIC;
+    }
+
+    public ApplicationType getApplicationType() {
+        //we support only web
+        return ApplicationType.WEB;
+    }
+
+    public List<GrantType> getGrantTypes() {
+        //always auth code
+        //TODO add support for refresh
+        return Collections.singletonList(GrantType.AUTHORIZATION_CODE);
+    }
+
+    public List<ResponseType> getResponseTypes() {
+        //only code
+        //TODO support code+idtoken via config, should switch user service from userinfo to idtoken
+        return Collections.singletonList(ResponseType.CODE);
     }
 
     public String getRedirectUrl() {

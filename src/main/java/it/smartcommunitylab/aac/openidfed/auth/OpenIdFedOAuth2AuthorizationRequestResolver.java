@@ -203,7 +203,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             return;
         }
 
-        //we support only automatic registration
+        // we support only automatic registration
         // build jwt with assertions as per
         // https://openid.net/specs/openid-federation-1_0.html#name-authentication-request
         try {
