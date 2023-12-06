@@ -16,40 +16,88 @@
 
 package it.smartcommunitylab.aac.openidfed.auth;
 
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
+import it.smartcommunitylab.aac.openidfed.resolvers.OpenIdProviderResolver;
+import java.util.function.UnaryOperator;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ClientRegistrations;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class OpenIdFedClientRegistrationRepository implements ClientRegistrationRepository {
 
-    // provider configs by id
-    private final ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository;
+    private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
+    private static final String WELL_KNOWN_FEDERATION_OPENID = "/.well-known/openid-federation";
 
-    public OpenIdFedClientRegistrationRepository(
-        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository
-    ) {
-        Assert.notNull(registrationRepository, "provider registration repository can not be null");
-        this.registrationRepository = registrationRepository;
+    // resolver
+    private final OpenIdProviderResolver resolver;
+    private UnaryOperator<String> decoder = value -> (value);
+
+    //TODO loading cache
+
+    public OpenIdFedClientRegistrationRepository(OpenIdFedIdentityProviderConfig config) {
+        Assert.notNull(config, "provider configuration can not be null");
+        this.config = config;
+    }
+
+    public void setDecoder(UnaryOperator<String> decoder) {
+        this.decoder = decoder;
     }
 
     /*
-     * read access as per interface
+     * generate client registrations for every OP identified by registrationId
      */
 
     @Override
     public ClientRegistration findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registration id cannot be empty");
+        //extract entityId from registrationId: base64 encoded
+        String entityId = decoder.apply(registrationId);
+        //fetch metadata for the given entityId
+        return config.getClientRegistration(entityId);
+    }
 
-        // fetch provider registration with matching id
-        OpenIdFedIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(registrationId);
-        if (providerConfig == null) {
+    private ClientRegistration toClientRegistration(String issuerUri) {
+        if (!StringUtils.hasText(issuerUri)) {
+            // unsupported
             return null;
         }
 
-        // build
-        // TODO evaluate loading cache
-        return providerConfig.getClientRegistration();
+        //autoconf
+        // remove well-known path if provided by user
+        if (issuerUri.endsWith(WELL_KNOWN_CONFIGURATION_OPENID)) {
+            issuerUri = issuerUri.substring(0, issuerUri.length() - WELL_KNOWN_CONFIGURATION_OPENID.length());
+        }
+
+        // via builder,
+        // providerId is unique, use as registrationId
+        ClientRegistration.Builder builder = ClientRegistrations.fromIssuerLocation(issuerUri);
+
+        //we support only automatic registration with private keys for now
+        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.PRIVATE_KEY_JWT;
+        builder.clientAuthenticationMethod(clientAuthenticationMethod);
+
+        String[] scope = StringUtils.commaDelimitedListToStringArray(configMap.getScope());
+        builder.scope(scope);
+
+        builder.userNameAttributeName(configMap.getUserNameAttributeName());
+
+        // we support only authCode
+        builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
+        // add our redirect template
+        builder.redirectUri(getRedirectUrl());
+
+        // set client
+        builder.clientId(configMap.getClientId());
+        builder.clientName(configMap.getClientName());
+
+        // re-set registrationId since auto-configuration sets values provided from
+        // issuer
+        builder.registrationId(getProvider());
+
+        return builder.build();
     }
 }

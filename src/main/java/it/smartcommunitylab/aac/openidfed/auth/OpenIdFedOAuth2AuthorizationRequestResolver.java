@@ -78,15 +78,13 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
     public OpenIdFedOAuth2AuthorizationRequestResolver(
         ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository,
-        ClientRegistrationRepository clientRegistrationRepository,
         String authorizationRequestBaseUri
     ) {
-        Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
-        Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
+        Assert.notNull(registrationRepository, "registrationRepository cannot be null");
         Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
 
         this.registrationRepository = registrationRepository;
-        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}");
+        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}/{entityId}");
 
         defaultResolver =
             new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, authorizationRequestBaseUri);
@@ -99,10 +97,12 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
         // resolver providerId and load config
         String providerId = resolveRegistrationId(servletRequest);
-        if (providerId != null) {
+        String entityId = resolveEntityId(servletRequest);
+
+        if (providerId != null && entityId != null) {
             OpenIdFedIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
             // add parameters
-            return extendAuthorizationRequest(request, config);
+            return extendAuthorizationRequest(request, config, entityId);
         }
 
         return null;
@@ -115,10 +115,12 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
         // resolver providerId and load config
         String providerId = resolveRegistrationId(servletRequest);
-        if (providerId != null) {
+        String entityId = resolveEntityId(servletRequest);
+
+        if (providerId != null && entityId != null) {
             OpenIdFedIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
             // add parameters
-            return extendAuthorizationRequest(request, config);
+            return extendAuthorizationRequest(request, config, entityId);
         }
 
         return null;
@@ -131,11 +133,19 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         return null;
     }
 
+    private String resolveEntityId(HttpServletRequest request) {
+        if (this.requestMatcher.matches(request)) {
+            return this.requestMatcher.matcher(request).getVariables().get("entityId");
+        }
+        return null;
+    }
+
     private OAuth2AuthorizationRequest extendAuthorizationRequest(
         OAuth2AuthorizationRequest authRequest,
-        OpenIdFedIdentityProviderConfig config
+        OpenIdFedIdentityProviderConfig config,
+        String entityId
     ) {
-        if (authRequest == null || config == null) {
+        if (authRequest == null || config == null || entityId == null) {
             return null;
         }
 

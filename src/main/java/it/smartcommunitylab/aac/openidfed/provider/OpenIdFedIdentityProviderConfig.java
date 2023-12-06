@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,10 +46,8 @@ public class OpenIdFedIdentityProviderConfig
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + OpenIdFedIdentityProviderConfigMap.RESOURCE_TYPE;
 
-    private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
-
-    //client registrations built for a given op
-    private transient Map<String, ClientRegistration> clientRegistrations = new HashMap<>();
+    @JsonIgnore
+    private OpenIdFedClientRegistrationRepository clientRegistrationRepository;
 
     public OpenIdFedIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_OPENIDFED, provider, realm);
@@ -56,6 +55,7 @@ public class OpenIdFedIdentityProviderConfig
 
     public OpenIdFedIdentityProviderConfig(String authority, String provider, String realm) {
         super(authority, provider, realm, new IdentityProviderSettingsMap(), new OpenIdFedIdentityProviderConfigMap());
+        this.clientRegistrationRepository = new OpenIdFedClientRegistrationRepository(this);
     }
 
     public OpenIdFedIdentityProviderConfig(
@@ -64,6 +64,7 @@ public class OpenIdFedIdentityProviderConfig
         OpenIdFedIdentityProviderConfigMap configMap
     ) {
         super(cp, settingsMap, configMap);
+        this.clientRegistrationRepository = new OpenIdFedClientRegistrationRepository(this);
     }
 
     /**
@@ -81,52 +82,6 @@ public class OpenIdFedIdentityProviderConfig
     public String getRepositoryId() {
         // not configurable, always isolate oidc providers
         return getProvider();
-    }
-
-    @JsonIgnore
-    public ClientRegistration getClientRegistration(String issuer) {
-        return clientRegistrations.computeIfAbsent(issuer, this::toClientRegistration);
-    }
-
-    private ClientRegistration toClientRegistration(String issuerUri) {
-        if (!StringUtils.hasText(issuerUri)) {
-            // unsupported
-            return null;
-        }
-
-        //autoconf
-        // remove well-known path if provided by user
-        if (issuerUri.endsWith(WELL_KNOWN_CONFIGURATION_OPENID)) {
-            issuerUri = issuerUri.substring(0, issuerUri.length() - WELL_KNOWN_CONFIGURATION_OPENID.length());
-        }
-
-        // via builder,
-        // providerId is unique, use as registrationId
-        ClientRegistration.Builder builder = ClientRegistrations.fromIssuerLocation(issuerUri);
-
-        //we support only automatic registration with private keys for now
-        ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.PRIVATE_KEY_JWT;
-        builder.clientAuthenticationMethod(clientAuthenticationMethod);
-
-        String[] scope = StringUtils.commaDelimitedListToStringArray(configMap.getScope());
-        builder.scope(scope);
-
-        builder.userNameAttributeName(configMap.getUserNameAttributeName());
-
-        // we support only authCode
-        builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
-        // add our redirect template
-        builder.redirectUri(getRedirectUrl());
-
-        // set client
-        builder.clientId(configMap.getClientId());
-        builder.clientName(configMap.getClientName());
-
-        // re-set registrationId since auto-configuration sets values provided from
-        // issuer
-        builder.registrationId(getProvider());
-
-        return builder.build();
     }
 
     public boolean trustEmailAddress() {
