@@ -84,6 +84,7 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -108,6 +109,7 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -147,6 +149,7 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -171,6 +174,7 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -244,6 +248,7 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
+            null,
             null
         );
     }

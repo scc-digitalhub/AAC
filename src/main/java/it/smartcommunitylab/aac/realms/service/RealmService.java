@@ -153,7 +153,8 @@ public class RealmService implements InitializingBean {
         boolean isPublic,
         Map<String, Serializable> oauthConfigurationMap,
         Map<String, Serializable> tosConfigurationMap,
-        Map<String, Serializable> locConfigurationMap
+        Map<String, Serializable> locConfigurationMap,
+        Map<String, Serializable> stylesConfigurationMap
     ) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
@@ -171,6 +172,7 @@ public class RealmService implements InitializingBean {
         r.setOAuthConfigurationMap(oauthConfigurationMap);
         r.setTosConfigurationMap(tosConfigurationMap);
         r.setLocalizationConfigurationMap(locConfigurationMap);
+        r.setStylesConfigurationMap(stylesConfigurationMap);
 
         r = realmRepository.save(r);
 
