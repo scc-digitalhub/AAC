@@ -25,11 +25,6 @@ public class StylesConfigurationMap implements ConfigurableProperties {
 	private String customCss;
 	private String logoFileId;
 
-	public StylesConfigurationMap(String customCss, String logoFileId) {
-		this.customCss = customCss;
-		this.logoFileId = logoFileId;
-	}
-
 	public String getCustomCss() {
 		return customCss;
 	}

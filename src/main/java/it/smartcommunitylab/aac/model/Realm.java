@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
+import it.smartcommunitylab.aac.styles.StylesConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
 import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import javax.validation.Valid;
@@ -43,11 +44,13 @@ public class Realm {
     private OAuth2ConfigurationMap oauthConfiguration;
     private TosConfigurationMap tosConfiguration;
     private LocalizationConfigurationMap localizationConfiguration;
+    private StylesConfigurationMap stylesConfiguration;
 
     public Realm() {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
+        this.stylesConfiguration = new StylesConfigurationMap();
     }
 
     public Realm(String slug) {
@@ -55,6 +58,7 @@ public class Realm {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
+        this.stylesConfiguration = new StylesConfigurationMap();
     }
 
     public String getName() {
@@ -120,4 +124,13 @@ public class Realm {
     public void setLocalizationConfiguration(LocalizationConfigurationMap localizationConfiguration) {
         this.localizationConfiguration = localizationConfiguration;
     }
+
+	public StylesConfigurationMap getStylesConfiguration() {
+		return stylesConfiguration;
+	}
+
+	public void setStylesConfiguration(StylesConfigurationMap stylesConfiguration) {
+		this.stylesConfiguration = stylesConfiguration;
+	}    
+    
 }

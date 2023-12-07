@@ -240,6 +240,11 @@ public class RealmManager {
         if (r.getLocalizationConfiguration() != null) {
             localizationConfigMap = r.getLocalizationConfiguration().getConfiguration();
         }
+        
+        Map<String, Serializable> stylesConfigMap = null;
+        if (r.getStylesConfiguration() != null) {
+        	stylesConfigMap = r.getStylesConfiguration().getConfiguration();
+        }
 
         Realm realm = realmService.updateRealm(
             slug,
@@ -249,7 +254,8 @@ public class RealmManager {
             r.isPublic(),
             oauth2ConfigMap,
             tosConfigMap,
-            localizationConfigMap
+            localizationConfigMap,
+            stylesConfigMap
         );
 
         return realm;
