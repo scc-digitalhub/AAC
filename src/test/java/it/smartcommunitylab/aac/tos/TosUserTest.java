@@ -244,6 +244,7 @@ public class TosUserTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
+            null,
             null
         );
     }
