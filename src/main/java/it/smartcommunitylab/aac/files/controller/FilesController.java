@@ -55,20 +55,20 @@ public class FilesController {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostMapping(path = "/upload")
-	public ResponseEntity<ResponseMessage> uploadFile(
+	public ResponseEntity<FileInfo> uploadFile(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			fileManager.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
+			FileInfo f = fileManager.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
 					file.getInputStream());
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));
+			return ResponseEntity.status(HttpStatus.OK).body(f);
 		} catch (Exception e) {
 			message = "Could not upload the file: " + file.getOriginalFilename() + ". Error: " + e.getMessage();
 			logger.debug(message);
-			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(null);
 		}
 	}
 
@@ -76,6 +76,13 @@ public class FilesController {
 	public ResponseEntity<List<FileInfo>> getListFiles(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
 		return ResponseEntity.status(HttpStatus.OK).body(fileManager.readFilesByRealm(realm));
+	}
+	
+	@GetMapping("/{id}/metainfo")
+	public ResponseEntity<FileInfo> getFileInfo(
+			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+			@PathVariable String id) throws FileNotFoundException {
+		return ResponseEntity.status(HttpStatus.OK).body(fileManager.readFile(realm, id));
 	}
 
 	@GetMapping("/{id:.+}")
