@@ -18,11 +18,9 @@ package it.smartcommunitylab.aac.openidfed.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.oidc.auth.ExtendedAuthorizationRequestResolver;
 import it.smartcommunitylab.aac.openidfed.OpenIdFedIdentityAuthority;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import org.springframework.lang.Nullable;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.util.Assert;
 
@@ -36,38 +34,29 @@ public class OpenIdFedRedirectAuthenticationFilter extends OAuth2AuthorizationRe
 
     public static final String DEFAULT_FILTER_URI = OpenIdFedIdentityAuthority.AUTHORITY_URL + "authorize";
 
-    private final String authorityId;
+    private final String authority;
 
     public OpenIdFedRedirectAuthenticationFilter(
-        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository,
-        ClientRegistrationRepository clientRegistrationRepository
+        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository
     ) {
-        this(SystemKeys.AUTHORITY_OPENIDFED, registrationRepository, clientRegistrationRepository, DEFAULT_FILTER_URI);
+        this(SystemKeys.AUTHORITY_OPENIDFED, registrationRepository, DEFAULT_FILTER_URI);
     }
 
     public OpenIdFedRedirectAuthenticationFilter(
         String authority,
         ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository,
-        ClientRegistrationRepository clientRegistrationRepository,
         String filterProcessesUrl
     ) {
         // set openid fed request resolver
-        super(
-            new OpenIdFedOAuth2AuthorizationRequestResolver(
-                registrationRepository,
-                clientRegistrationRepository,
-                filterProcessesUrl
-            )
-        );
+        super(new OpenIdFedOAuth2AuthorizationRequestResolver(registrationRepository, filterProcessesUrl));
         Assert.hasText(authority, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
-        Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
 
-        this.authorityId = authority;
+        this.authority = authority;
     }
 
     @Nullable
     protected String getFilterName() {
-        return getClass().getName() + "." + authorityId;
+        return getClass().getName() + "." + authority;
     }
 }

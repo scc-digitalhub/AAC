@@ -17,15 +17,26 @@
 package it.smartcommunitylab.aac.openidfed.resolvers;
 
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
+import com.nimbusds.openid.connect.sdk.federation.entities.EntityType;
+import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
-import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
 import java.util.List;
+import org.springframework.lang.Nullable;
 
-/**
- * OpenId provider operations
+/*
+ * Federation entity operations
  */
-public interface OpenIdProviderResolver {
-    public OIDCProviderMetadata resolveOpenIdProvider(String trustAnchor, String entityId) throws ResolveException;
+public interface FederationEntityResolver {
+    public FederationEntityMetadata resolveFederationEntityMetadata(String trustAnchor, String entityId)
+        throws ResolveException;
 
-    // public List<EntityID> listOpenIdProviders(String trustAnchor, String entityId) throws ResolveException;
+    public List<EntityID> listFederationEntities(String trustAnchor, String entityId, @Nullable EntityType type)
+        throws ResolveException;
+    //TODO
+    //fetch
+    //resolve
+    //trust_mark_status
+    //trust_mark_list
+    //historical_keys
+
 }

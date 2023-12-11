@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openidfed.service;
+package it.smartcommunitylab.aac.openidfed.resolvers;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -22,7 +22,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
-import it.smartcommunitylab.aac.openidfed.resolvers.EntityStatementResolver;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -86,6 +85,11 @@ public class CachingEntityStatementResolver implements EntityStatementResolver {
     public EntityStatement resolveEntityStatement(String trustAnchor, String entityId) throws ResolveException {
         Pair<String, String> id = Pair.of(trustAnchor, entityId);
         return find(id, 0);
+    }
+
+    public EntityStatement fetchEntityStatement(String entityId) throws ResolveException {
+        //fall-back with no caching
+        return resolver.fetchEntityStatement(entityId);
     }
 
     /*

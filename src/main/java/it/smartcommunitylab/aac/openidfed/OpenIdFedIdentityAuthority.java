@@ -24,7 +24,6 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
-import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedFilterProvider;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProvider;
@@ -45,9 +44,6 @@ public class OpenIdFedIdentityAuthority
 
     // filter provider
     private final OpenIdFedFilterProvider filterProvider;
-
-    // oauth shared services
-    private final OpenIdFedClientRegistrationRepository clientRegistrationRepository;
 
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
@@ -70,11 +66,9 @@ public class OpenIdFedIdentityAuthority
         Assert.notNull(userAccountService, "account service is mandatory");
 
         this.accountService = userAccountService;
-        this.clientRegistrationRepository = new OpenIdFedClientRegistrationRepository(registrationRepository);
 
         // build filter provider
-        this.filterProvider =
-            new OpenIdFedFilterProvider(authorityId, clientRegistrationRepository, registrationRepository);
+        this.filterProvider = new OpenIdFedFilterProvider(authorityId, registrationRepository);
     }
 
     @Autowired

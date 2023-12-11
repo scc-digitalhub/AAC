@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openidfed.resolvers;
+package it.smartcommunitylab.aac.openidfed.service;
 
-import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
-import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
-import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
-import java.util.List;
+import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
+import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
+import javax.servlet.http.HttpServletRequest;
 
-/**
- * OpenId provider operations
- */
-public interface OpenIdProviderResolver {
-    public OIDCProviderMetadata resolveOpenIdProvider(String trustAnchor, String entityId) throws ResolveException;
+public interface OpenIdRpMetadataResolver {
+    public EntityStatement generateEntityStatement(OpenIdFedIdentityProviderConfig config, String baseUrl);
 
-    // public List<EntityID> listOpenIdProviders(String trustAnchor, String entityId) throws ResolveException;
+    public String resolveEntityMetadata(OpenIdFedIdentityProviderConfig config, HttpServletRequest request);
 }

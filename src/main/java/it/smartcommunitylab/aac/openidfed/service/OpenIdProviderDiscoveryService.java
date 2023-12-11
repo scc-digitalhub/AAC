@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package it.smartcommunitylab.aac.openidfed.resolvers;
+package it.smartcommunitylab.aac.openidfed.service;
 
-import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
-import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
+import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
+import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
+import java.util.Collection;
 
-/*
- * Entity operations
- */
-public interface EntityStatementResolver {
-    public EntityStatement resolveEntityStatement(String trustAnchor, String entityId) throws ResolveException;
+public interface OpenIdProviderDiscoveryService {
+    public Collection<String> discoverProviders();
 
-    public EntityStatement fetchEntityStatement(String entityId) throws ResolveException;
+    public OIDCProviderMetadata findProvider(String entityId);
+
+    public FederationEntityMetadata loadProviderMetadata(String entityId);
 }

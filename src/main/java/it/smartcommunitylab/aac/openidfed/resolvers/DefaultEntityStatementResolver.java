@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openidfed.service;
+package it.smartcommunitylab.aac.openidfed.resolvers;
 
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
@@ -22,8 +22,6 @@ import com.nimbusds.openid.connect.sdk.federation.trust.DefaultEntityStatementRe
 import com.nimbusds.openid.connect.sdk.federation.trust.EntityStatementRetriever;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChain;
-import it.smartcommunitylab.aac.openidfed.resolvers.EntityStatementResolver;
-import it.smartcommunitylab.aac.openidfed.resolvers.TrustChainResolver;
 import org.springframework.util.Assert;
 
 public class DefaultEntityStatementResolver implements EntityStatementResolver {
@@ -70,6 +68,8 @@ public class DefaultEntityStatementResolver implements EntityStatementResolver {
         TrustChain chain = trustChainResolver.resolveTrustChain(trustAnchor, entityId);
 
         //return the statement for the leaf
+        //TODO check if policy is evaluated
+        //TODO check if entity signature is validated against published keys
         return chain.getLeafConfiguration();
     }
 }

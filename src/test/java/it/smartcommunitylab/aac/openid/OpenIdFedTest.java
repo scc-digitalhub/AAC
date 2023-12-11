@@ -1,18 +1,26 @@
 package it.smartcommunitylab.aac.openid;
 
+import com.nimbusds.oauth2.sdk.http.HTTPRequest;
+import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+import com.nimbusds.openid.connect.sdk.SubjectType;
+import com.nimbusds.openid.connect.sdk.federation.api.EntityListingRequest;
+import com.nimbusds.openid.connect.sdk.federation.api.EntityListingResponse;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityType;
 import com.nimbusds.openid.connect.sdk.federation.policy.MetadataPolicy;
+import com.nimbusds.openid.connect.sdk.federation.trust.EntityStatementRetriever;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChain;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChainResolver;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChainSet;
-import it.smartcommunitylab.aac.oauth.model.SubjectType;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openidfed.service.OpenIdFedMetadataResolver;
+import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,6 +78,40 @@ public class OpenIdFedTest {
     }
 
     @Test
+    public void opListTest() throws Exception {
+        // The configured federation trust anchor URL
+        EntityID trustAnchor = new EntityID("http://trust-anchor.org:8000");
+        TrustChainResolver resolver = new TrustChainResolver(trustAnchor);
+
+        EntityStatementRetriever retriever = resolver.getEntityStatementRetriever();
+
+        EntityStatement config = retriever.fetchEntityConfiguration(trustAnchor);
+        System.out.println(config.getSignedStatement().getParsedString());
+
+        URI listEndpoint = config.getClaimsSet().getFederationEntityMetadata().getFederationListEndpointURI();
+
+        EntityListingRequest request = new EntityListingRequest(listEndpoint, EntityType.OPENID_PROVIDER);
+        HTTPRequest httpRequest = request.toHTTPRequest();
+        HTTPResponse httpResponse;
+        try {
+            httpResponse = httpRequest.send();
+        } catch (IOException e) {
+            throw new ResolveException(
+                "Couldn't retrieve entity configuration for " + httpRequest.getURL() + ": " + e.getMessage(),
+                e
+            );
+        }
+
+        EntityListingResponse listing = EntityListingResponse.parse(httpResponse);
+        if (!listing.indicatesSuccess()) {
+            throw new ResolveException("error with listing");
+        }
+
+        List<EntityID> list = listing.toSuccessResponse().getEntityListing();
+        list.forEach(e -> System.out.println(e.toString()));
+    }
+
+    @Test
     public void metadataTest() throws Exception {
         OpenIdFedIdentityProviderConfigMap map = new OpenIdFedIdentityProviderConfigMap();
         map.setClientId("https://rp.example.it/");
@@ -80,16 +122,10 @@ public class OpenIdFedTest {
         map.setSubjectType(SubjectType.PAIRWISE);
         map.setAuthorityHints(Collections.singleton("https://registry.agid.gov.it/"));
 
-        map.setAuthorizationUri("authUrl");
-        map.setTokenUri("tokenUrl");
-        map.setUserInfoUri("userInfoUrl");
-
         OpenIdFedIdentityProviderConfig config = new OpenIdFedIdentityProviderConfig("test", "test");
         config.setConfigMap(map);
-
-        OpenIdFedMetadataResolver resolver = new OpenIdFedMetadataResolver();
-        EntityStatement statement = resolver.generate(config);
-        String meta = statement.getSignedStatement().serialize();
-        System.out.println("statement " + meta);
+        // EntityStatement statement = resolver.generate(config);
+        // String meta = statement.getSignedStatement().serialize();
+        // System.out.println("statement " + meta);
     }
 }

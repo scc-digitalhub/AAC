@@ -20,8 +20,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openidfed.OpenIdFedIdentityAuthority;
-import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedLoginAuthenticationFilter;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedMetadataFilter;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedRedirectAuthenticationFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,30 +37,22 @@ import org.springframework.util.Assert;
 public class OpenIdFedFilterProvider implements FilterProvider {
 
     private final String authorityId;
-
-    private final OpenIdFedClientRegistrationRepository clientRegistrationRepository;
     private final ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository;
 
     private AuthenticationManager authManager;
 
-    public OpenIdFedFilterProvider(
-        OpenIdFedClientRegistrationRepository clientRegistrationRepository,
-        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository
-    ) {
-        this(SystemKeys.AUTHORITY_OPENIDFED, clientRegistrationRepository, registrationRepository);
+    public OpenIdFedFilterProvider(ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository) {
+        this(SystemKeys.AUTHORITY_OPENIDFED, registrationRepository);
     }
 
     public OpenIdFedFilterProvider(
         String authorityId,
-        OpenIdFedClientRegistrationRepository clientRegistrationRepository,
         ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository
     ) {
         Assert.hasText(authorityId, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "registration repository is mandatory");
-        Assert.notNull(clientRegistrationRepository, "client registration repository is mandatory");
 
         this.authorityId = authorityId;
-        this.clientRegistrationRepository = clientRegistrationRepository;
         this.registrationRepository = registrationRepository;
     }
 
@@ -79,23 +71,27 @@ public class OpenIdFedFilterProvider implements FilterProvider {
         AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository =
             new HttpSessionOAuth2AuthorizationRequestRepository();
 
+        OpenIdFedMetadataFilter metadataFilter = new OpenIdFedMetadataFilter(
+            authorityId,
+            registrationRepository,
+            buildFilterUrl("metadata/{providerId}")
+        );
+
         //        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
         //                clientRegistrationRepository, OpenIdFedIdentityAuthority.AUTHORITY_URL + "authorize");
         OpenIdFedRedirectAuthenticationFilter redirectFilter = new OpenIdFedRedirectAuthenticationFilter(
             authorityId,
             registrationRepository,
-            clientRegistrationRepository,
             buildFilterUrl("authorize")
         );
         redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 
-        OpenIdFedLoginAuthenticationFilter loginFilter = new OpenIdFedLoginAuthenticationFilter(authorityId,
+        OpenIdFedLoginAuthenticationFilter loginFilter = new OpenIdFedLoginAuthenticationFilter(
+            authorityId,
             registrationRepository,
-            clientRegistrationRepository,
-            buildFilterUrl("login/{registrationId}"),
-
+            buildFilterUrl("login/{providerId}"),
+            null
         );
-
         loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
         // TODO use custom success handler to support auth sagas (disabled for now)
         //        loginFilter.setAuthenticationSuccessHandler(new RequestAwareAuthenticationSuccessHandler();
@@ -106,6 +102,7 @@ public class OpenIdFedFilterProvider implements FilterProvider {
 
         // build composite filterChain
         List<Filter> filters = new ArrayList<>();
+        filters.add(metadataFilter);
         filters.add(loginFilter);
         filters.add(redirectFilter);
 
@@ -121,7 +118,6 @@ public class OpenIdFedFilterProvider implements FilterProvider {
     public Collection<String> getCorsIgnoringAntMatchers() {
         return Arrays.asList(NO_CORS_ENDPOINTS);
     }
-
 
     private String buildFilterUrl(String action) {
         // always use same path building logic for oidc

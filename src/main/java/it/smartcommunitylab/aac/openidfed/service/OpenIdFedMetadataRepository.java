@@ -31,89 +31,89 @@ import org.springframework.util.Assert;
 
 public class OpenIdFedMetadataRepository {
 
-    private static final int DEFAULT_RETRIES = 3;
+    // private static final int DEFAULT_RETRIES = 3;
 
-    private final String trustAnchor;
-    private int maxRetries = DEFAULT_RETRIES;
-    private EntityStatementResolver resolver;
+    // private final String trustAnchor;
+    // private int maxRetries = DEFAULT_RETRIES;
+    // private EntityStatementResolver resolver;
 
-    //loading cache
-    private final LoadingCache<String, EntityStatement> statements = CacheBuilder
-        .newBuilder()
-        .expireAfterWrite(1, TimeUnit.HOURS)
-        .maximumSize(100)
-        .build(
-            new CacheLoader<String, EntityStatement>() {
-                @Override
-                public EntityStatement load(final String id) throws Exception {
-                    if (resolver == null) {
-                        throw new ResolveException("invalid or missing resolver");
-                    }
+    // //loading cache
+    // private final LoadingCache<String, EntityStatement> statements = CacheBuilder
+    //     .newBuilder()
+    //     .expireAfterWrite(1, TimeUnit.HOURS)
+    //     .maximumSize(100)
+    //     .build(
+    //         new CacheLoader<String, EntityStatement>() {
+    //             @Override
+    //             public EntityStatement load(final String id) throws Exception {
+    //                 if (resolver == null) {
+    //                     throw new ResolveException("invalid or missing resolver");
+    //                 }
 
-                    EntityStatement statement = resolver.resolveEntityStatement(trustAnchor, id);
+    //                 EntityStatement statement = resolver.resolveEntityStatement(trustAnchor, id);
 
-                    //evaluate expiration *before usage*
-                    Date now = Date.from(Instant.now());
-                    if (
-                        statement.getClaimsSet().getExpirationTime() != null &&
-                        now.after(statement.getClaimsSet().getExpirationTime())
-                    ) {
-                        throw new ResolveException("invalid (expired) metadata");
-                    }
+    //                 //evaluate expiration *before usage*
+    //                 Date now = Date.from(Instant.now());
+    //                 if (
+    //                     statement.getClaimsSet().getExpirationTime() != null &&
+    //                     now.after(statement.getClaimsSet().getExpirationTime())
+    //                 ) {
+    //                     throw new ResolveException("invalid (expired) metadata");
+    //                 }
 
-                    return statement;
-                }
-            }
-        );
+    //                 return statement;
+    //             }
+    //         }
+    //     );
 
-    public OpenIdFedMetadataRepository(String trustAnchor) {
-        Assert.hasText(trustAnchor, "trust anchor must be set and valid");
-        this.trustAnchor = trustAnchor;
-        this.resolver = new OpenIdFedMetadataResolver();
-    }
+    // public OpenIdFedMetadataRepository(String trustAnchor) {
+    //     Assert.hasText(trustAnchor, "trust anchor must be set and valid");
+    //     this.trustAnchor = trustAnchor;
+    //     this.resolver = new OpenIdFedMetadataResolver();
+    // }
 
-    public void setResolver(EntityStatementResolver resolver) {
-        Assert.notNull(resolver, "resolver can not be null");
-        this.resolver = resolver;
-    }
+    // public void setResolver(EntityStatementResolver resolver) {
+    //     Assert.notNull(resolver, "resolver can not be null");
+    //     this.resolver = resolver;
+    // }
 
-    public void setMaxRetries(int maxRetries) {
-        this.maxRetries = maxRetries;
-    }
+    // public void setMaxRetries(int maxRetries) {
+    //     this.maxRetries = maxRetries;
+    // }
 
-    public EntityStatement findByEntityId(String entityId) {
-        return findByEntityId(entityId, 0);
-    }
+    // public EntityStatement findByEntityId(String entityId) {
+    //     return findByEntityId(entityId, 0);
+    // }
 
-    public EntityStatement findByEntityId(String entityId, int retryCount) {
-        //retry handling
-        if (retryCount > maxRetries) {
-            //max retries exceeded, exit
-            return null;
-        }
-        int count = retryCount + 1;
+    // public EntityStatement findByEntityId(String entityId, int retryCount) {
+    //     //retry handling
+    //     if (retryCount > maxRetries) {
+    //         //max retries exceeded, exit
+    //         return null;
+    //     }
+    //     int count = retryCount + 1;
 
-        //resolve via cache
-        try {
-            EntityStatement statement = statements.get(entityId);
-            if (statement == null) {
-                return null;
-            }
+    //     //resolve via cache
+    //     try {
+    //         EntityStatement statement = statements.get(entityId);
+    //         if (statement == null) {
+    //             return null;
+    //         }
 
-            //evaluate expiration
-            Date now = Date.from(Instant.now());
-            if (
-                statement.getClaimsSet().getExpirationTime() != null &&
-                now.after(statement.getClaimsSet().getExpirationTime())
-            ) {
-                //clean up and resolve again with retry
-                statements.invalidate(now);
-                return findByEntityId(entityId, count);
-            }
+    //         //evaluate expiration
+    //         Date now = Date.from(Instant.now());
+    //         if (
+    //             statement.getClaimsSet().getExpirationTime() != null &&
+    //             now.after(statement.getClaimsSet().getExpirationTime())
+    //         ) {
+    //             //clean up and resolve again with retry
+    //             statements.invalidate(now);
+    //             return findByEntityId(entityId, count);
+    //         }
 
-            return statement;
-        } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
-            return null;
-        }
-    }
+    //         return statement;
+    //     } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
+    //         return null;
+    //     }
+    // }
 }

@@ -364,7 +364,7 @@ angular.module('aac.controllers.realmproviders', [])
             $('#' + $scope.providerAuthority + 'Modal').modal('hide');
 
             // HOOK: OIDC contains scopes to be converted to string
-            if ($scope.providerAuthority === 'oidc' && $scope.provider.scope) {
+            if ($scope.providerAuthority === 'oidc' || $scope.providerAuthority === 'openidfed'  && $scope.provider.scope) {
                 $scope.provider.scope = $scope.provider.scope.map(function (s) { return s.text }).join(',');
             }
             var name = $scope.provider.name;
@@ -665,6 +665,10 @@ angular.module('aac.controllers.realmproviders', [])
             if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap') {
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
+            }
+            if (data.authority == 'openidfed' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap') {
+                var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
+                $scope.openidfedMetadataUrl = metadataUrl;
             }
 
         };

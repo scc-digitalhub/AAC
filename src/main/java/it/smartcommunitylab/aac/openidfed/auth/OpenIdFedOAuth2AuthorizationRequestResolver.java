@@ -28,10 +28,8 @@ import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfig;
-import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
-import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.openidfed.service.DefaultOpenIdRpMetadataResolver;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -46,14 +44,15 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
-import org.springframework.security.oauth2.jose.jws.JwsAlgorithm;
+import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtEncodingException;
@@ -61,20 +60,14 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
-/*
- * Extends spring DefaultOAuth2AuthorizationRequestResolver for OpenId Fed
- *
- * we could also leverage request customizer to accomplish the same
- *
- */
-
+// TODO leverage request customizer in place of rebuilding the request
 public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private static final int DEFAULT_DURATION = 300;
 
-    private final OAuth2AuthorizationRequestResolver defaultResolver;
     private final ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository;
     private final RequestMatcher requestMatcher;
+    private final String authorizationRequestBaseUri;
 
     public OpenIdFedOAuth2AuthorizationRequestResolver(
         ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository,
@@ -84,68 +77,71 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         Assert.hasText(authorizationRequestBaseUri, "authorizationRequestBaseUri cannot be empty");
 
         this.registrationRepository = registrationRepository;
-        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}/{entityId}");
+        this.authorizationRequestBaseUri = authorizationRequestBaseUri;
 
-        defaultResolver =
-            new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, authorizationRequestBaseUri);
+        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{providerId}/{registrationId}");
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest servletRequest) {
-        // let default resolver work
-        OAuth2AuthorizationRequest request = defaultResolver.resolve(servletRequest);
+        //resolve from request
+        String providerId = resolveProviderId(servletRequest);
+        String registrationId = resolveRegistrationId(servletRequest);
 
-        // resolver providerId and load config
-        String providerId = resolveRegistrationId(servletRequest);
-        String entityId = resolveEntityId(servletRequest);
-
-        if (providerId != null && entityId != null) {
-            OpenIdFedIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
-            // add parameters
-            return extendAuthorizationRequest(request, config, entityId);
-        }
-
-        return null;
+        return resolve(servletRequest, providerId, registrationId);
     }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest servletRequest, String clientRegistrationId) {
+        //resolve from request
+        String providerId = resolveProviderId(servletRequest);
+
+        return resolve(servletRequest, providerId, clientRegistrationId);
+    }
+
+    private OAuth2AuthorizationRequest resolve(
+        HttpServletRequest servletRequest,
+        String providerId,
+        String registrationId
+    ) {
+        if (providerId == null || registrationId == null) {
+            return null;
+        }
+
+        //load config
+        OpenIdFedIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
+        if (config == null) {
+            return null;
+        }
+
+        //build a scoped default resolver
+        DefaultOAuth2AuthorizationRequestResolver defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
+            config.getClientRegistrationRepository(),
+            authorizationRequestBaseUri + "/" + providerId
+        );
+
+        //add PKCE
+        defaultResolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+
         // let default resolver work
-        OAuth2AuthorizationRequest request = defaultResolver.resolve(servletRequest, clientRegistrationId);
+        OAuth2AuthorizationRequest request = defaultResolver.resolve(servletRequest);
 
-        // resolver providerId and load config
-        String providerId = resolveRegistrationId(servletRequest);
-        String entityId = resolveEntityId(servletRequest);
-
-        if (providerId != null && entityId != null) {
-            OpenIdFedIdentityProviderConfig config = registrationRepository.findByProviderId(providerId);
-            // add parameters
-            return extendAuthorizationRequest(request, config, entityId);
-        }
-
-        return null;
-    }
-
-    private String resolveRegistrationId(HttpServletRequest request) {
-        if (this.requestMatcher.matches(request)) {
-            return this.requestMatcher.matcher(request).getVariables().get("registrationId");
-        }
-        return null;
-    }
-
-    private String resolveEntityId(HttpServletRequest request) {
-        if (this.requestMatcher.matches(request)) {
-            return this.requestMatcher.matcher(request).getVariables().get("entityId");
-        }
-        return null;
+        // add parameters
+        return extendAuthorizationRequest(servletRequest, request, config, registrationId);
     }
 
     private OAuth2AuthorizationRequest extendAuthorizationRequest(
+        HttpServletRequest servletRequest,
         OAuth2AuthorizationRequest authRequest,
         OpenIdFedIdentityProviderConfig config,
-        String entityId
+        String registrationId
     ) {
-        if (authRequest == null || config == null || entityId == null) {
+        if (authRequest == null || config == null || registrationId == null) {
+            return null;
+        }
+
+        ClientRegistration registration = config.getClientRegistrationRepository().findByRegistrationId(registrationId);
+        if (registration == null) {
             return null;
         }
 
@@ -154,59 +150,39 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             return null;
         }
 
+        //resolve and overwrite clientId
+        String baseUrl = DefaultOpenIdRpMetadataResolver.extractBaseUrl(servletRequest);
+        String clientId = DefaultOpenIdRpMetadataResolver
+            .expandRedirectUri(baseUrl, config.getClientId(), "id")
+            .toString();
+
         // fetch paramers from resolved request
         Map<String, Object> attributes = new HashMap<>(authRequest.getAttributes());
         Map<String, Object> additionalParameters = new HashMap<>(authRequest.getAdditionalParameters());
 
-        //add pkce
-        addPkceParameters(attributes, additionalParameters);
-
-        //build request object
-        addRequestObject(config, attributes, additionalParameters);
+        //add request object
+        addRequestObject(authRequest, config, clientId, registration, attributes, additionalParameters);
 
         // get a builder and reset paramers
         return OAuth2AuthorizationRequest
             .from(authRequest)
+            .clientId(clientId)
             .attributes(attributes)
             .additionalParameters(additionalParameters)
             .build();
     }
 
     /*
-     * add pkce parameters, copy from DefaultOAuth2AuthorizationRequestResolver
-     */
-    private final StringKeyGenerator secureKeyGenerator = new Base64StringKeyGenerator(
-        Base64.getUrlEncoder().withoutPadding(),
-        96
-    );
-
-    private void addPkceParameters(Map<String, Object> attributes, Map<String, Object> additionalParameters) {
-        String codeVerifier = this.secureKeyGenerator.generateKey();
-        attributes.put(PkceParameterNames.CODE_VERIFIER, codeVerifier);
-        try {
-            String codeChallenge = createS256Hash(codeVerifier);
-            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeChallenge);
-            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, "S256");
-        } catch (NoSuchAlgorithmException e) {
-            additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeVerifier);
-        }
-    }
-
-    private static String createS256Hash(String value) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        byte[] digest = md.digest(value.getBytes(StandardCharsets.US_ASCII));
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
-    }
-
-    /*
      * Request object
      */
     private void addRequestObject(
+        OAuth2AuthorizationRequest authRequest,
         OpenIdFedIdentityProviderConfig config,
+        String clientId,
+        ClientRegistration registration,
         Map<String, Object> attributes,
         Map<String, Object> additionalParameters
     ) {
-        OpenIdFedIdentityProviderConfigMap configMap = config.getConfigMap();
         JWK jwk = config.getClientJWK();
 
         if (jwk == null || !jwk.isPrivate()) {
@@ -232,16 +208,36 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             Instant issuedAt = Instant.now();
             Instant expiresAt = issuedAt.plus(Duration.ofSeconds(DEFAULT_DURATION));
 
-            JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(configMap.getClientId())
-                .audience(Collections.singletonList(configMap.getIssuerUri()))
+            JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder()
+                .issuer(clientId)
+                .audience(Collections.singletonList(registration.getProviderDetails().getIssuerUri()))
                 .jwtID(UUID.randomUUID().toString())
                 .issueTime(Date.from(issuedAt))
-                .expirationTime(Date.from(expiresAt))
-                //TODO add trust chain which should be stored in providerConfig
-                .build();
+                .expirationTime(Date.from(expiresAt));
+            //TODO add trust chain which should be stored in providerConfig
+            //TODO add acr_values
 
-            SignedJWT jwt = new SignedJWT(header, claims);
+            //add all request parameters into claims OAuth2ParameterNames
+            claims
+                //oauth2
+                .claim(OAuth2ParameterNames.CLIENT_ID, authRequest.getClientId())
+                .claim(OAuth2ParameterNames.REDIRECT_URI, authRequest.getRedirectUri())
+                .claim(OAuth2ParameterNames.RESPONSE_TYPE, authRequest.getResponseType().getValue())
+                .claim(OAuth2ParameterNames.SCOPE, String.join(" ", authRequest.getScopes()))
+                .claim(OAuth2ParameterNames.STATE, authRequest.getState())
+                //oidc
+                .claim(OidcParameterNames.NONCE, authRequest.getAttributes().get(OidcParameterNames.NONCE))
+                //pkce
+                .claim(
+                    PkceParameterNames.CODE_CHALLENGE,
+                    authRequest.getAttributes().get(PkceParameterNames.CODE_CHALLENGE)
+                )
+                .claim(
+                    PkceParameterNames.CODE_CHALLENGE_METHOD,
+                    authRequest.getAttributes().get(PkceParameterNames.CODE_CHALLENGE_METHOD)
+                );
+
+            SignedJWT jwt = new SignedJWT(header, claims.build());
             jwt.sign(signer);
 
             // add to parameters
@@ -282,5 +278,19 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         }
 
         return jwsAlgorithm == null ? null : JWSAlgorithm.parse(jwsAlgorithm);
+    }
+
+    private String resolveRegistrationId(HttpServletRequest request) {
+        if (this.requestMatcher.matches(request)) {
+            return this.requestMatcher.matcher(request).getVariables().get("registrationId");
+        }
+        return null;
+    }
+
+    private String resolveProviderId(HttpServletRequest request) {
+        if (this.requestMatcher.matches(request)) {
+            return this.requestMatcher.matcher(request).getVariables().get("providerId");
+        }
+        return null;
     }
 }

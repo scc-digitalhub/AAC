@@ -26,9 +26,7 @@ import it.smartcommunitylab.aac.openidfed.OpenIdFedIdentityAuthority;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,10 +35,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -65,14 +60,13 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String DEFAULT_FILTER_URI = OpenIdFedIdentityAuthority.AUTHORITY_URL + "login/{registrationId}";
+    public static final String DEFAULT_FILTER_URI = OpenIdFedIdentityAuthority.AUTHORITY_URL + "login/{providerId}";
     public static final String DEFAULT_EXTERNAL_REQ_STATE = "externalRequestDefaultStateString";
 
     private final RequestMatcher requestMatcher;
     private final String authority;
 
     // we need to load client registration
-    private final ClientRegistrationRepository clientRegistrationRepository;
     private final ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository;
     private AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -80,39 +74,28 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
     private AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository;
 
     public OpenIdFedLoginAuthenticationFilter(
-        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository,
-        ClientRegistrationRepository clientRegistrationRepository
+        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository
     ) {
-        this(
-            SystemKeys.AUTHORITY_OPENIDFED,
-            registrationRepository,
-            clientRegistrationRepository,
-            DEFAULT_FILTER_URI,
-            null
-        );
+        this(SystemKeys.AUTHORITY_OPENIDFED, registrationRepository, DEFAULT_FILTER_URI, null);
     }
 
     public OpenIdFedLoginAuthenticationFilter(
         String authority,
         ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository,
-        ClientRegistrationRepository clientRegistrationRepository,
         String filterProcessingUrl,
         AuthenticationEntryPoint authenticationEntryPoint
     ) {
         super(filterProcessingUrl);
         Assert.hasText(authority, "authority can not be null or empty");
         Assert.notNull(registrationRepository, "provider registration repository cannot be null");
-        Assert.notNull(clientRegistrationRepository, "clientRegistrationRepository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
         Assert.isTrue(
-            filterProcessingUrl.contains("{registrationId}"),
-            "filterProcessesUrl must contain a {registrationId} match variable"
+            filterProcessingUrl.contains("{providerId}"),
+            "filterProcessesUrl must contain a {providerId} match variable"
         );
 
         this.authority = authority;
-
         this.registrationRepository = registrationRepository;
-        this.clientRegistrationRepository = clientRegistrationRepository;
 
         // we need to build a custom requestMatcher to extract variables from url
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
@@ -163,7 +146,7 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
         }
 
         // fetch registrationId
-        String providerId = requestMatcher.matcher(request).getVariables().get("registrationId");
+        String providerId = requestMatcher.matcher(request).getVariables().get("providerId");
 
         // load config, we don't want to handle invalid requests at all
         OpenIdFedIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
@@ -207,16 +190,14 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 
-        // fetch client
+        //recover registrationId from request attributes
         String registrationId = authorizationRequest.getAttribute(OAuth2ParameterNames.REGISTRATION_ID);
-        ClientRegistration clientRegistration = this.clientRegistrationRepository.findByRegistrationId(registrationId);
-        if (clientRegistration == null) {
-            OAuth2Error oauth2Error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST);
-            throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
-        }
 
-        if (!registrationId.equals(providerId)) {
-            // response doesn't belong here...
+        // fetch client
+        ClientRegistration clientRegistration = providerConfig
+            .getClientRegistrationRepository()
+            .findByRegistrationId(registrationId);
+        if (clientRegistration == null) {
             OAuth2Error oauth2Error = new OAuth2Error(OAuth2ErrorCodes.INVALID_REQUEST);
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
@@ -235,18 +216,16 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
         builder.redirectUri(redirectUri);
         builder.state(state);
 
-        // add openid scope to request to satisfy provider
-        Set<String> scopes = new HashSet<>();
-        if (clientRegistration.getScopes() != null) {
-            scopes.addAll(clientRegistration.getScopes());
-        }
-        scopes.add("openid");
-        builder.scopes(scopes);
-
+        //rebuild
         authorizationRequest = builder.build();
 
         // convert request to response
         OAuth2AuthorizationResponse authorizationResponse = convert(params, redirectUri);
+
+        //check if we received an error
+        if (authorizationResponse.getError() != null) {
+            throw new OAuth2AuthenticationException(authorizationResponse.getError());
+        }
 
         // collect info for webauth as additional details
         Object authenticationDetails = this.authenticationDetailsSource.buildDetails(request);

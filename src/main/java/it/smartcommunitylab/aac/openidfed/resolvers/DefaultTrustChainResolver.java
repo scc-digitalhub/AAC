@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openidfed.service;
+package it.smartcommunitylab.aac.openidfed.resolvers;
 
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChain;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChainSet;
-import it.smartcommunitylab.aac.openidfed.resolvers.TrustChainResolver;
 import org.springframework.util.Assert;
 
 public class DefaultTrustChainResolver implements TrustChainResolver {

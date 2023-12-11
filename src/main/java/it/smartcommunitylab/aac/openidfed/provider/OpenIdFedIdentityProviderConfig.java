@@ -28,15 +28,16 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
+import it.smartcommunitylab.aac.openidfed.service.ListingOpenIdProviderDiscoveryService;
+import it.smartcommunitylab.aac.openidfed.service.OpenIdProviderDiscoveryService;
+import it.smartcommunitylab.aac.openidfed.service.StaticOpenIdProviderDiscoveryService;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistrations;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
 
 public class OpenIdFedIdentityProviderConfig
@@ -47,7 +48,10 @@ public class OpenIdFedIdentityProviderConfig
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + OpenIdFedIdentityProviderConfigMap.RESOURCE_TYPE;
 
     @JsonIgnore
-    private OpenIdFedClientRegistrationRepository clientRegistrationRepository;
+    private transient OpenIdProviderDiscoveryService providerService;
+
+    @JsonIgnore
+    private transient OpenIdFedClientRegistrationRepository clientRegistrationRepository;
 
     public OpenIdFedIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_OPENIDFED, provider, realm);
@@ -55,7 +59,6 @@ public class OpenIdFedIdentityProviderConfig
 
     public OpenIdFedIdentityProviderConfig(String authority, String provider, String realm) {
         super(authority, provider, realm, new IdentityProviderSettingsMap(), new OpenIdFedIdentityProviderConfigMap());
-        this.clientRegistrationRepository = new OpenIdFedClientRegistrationRepository(this);
     }
 
     public OpenIdFedIdentityProviderConfig(
@@ -64,7 +67,6 @@ public class OpenIdFedIdentityProviderConfig
         OpenIdFedIdentityProviderConfigMap configMap
     ) {
         super(cp, settingsMap, configMap);
-        this.clientRegistrationRepository = new OpenIdFedClientRegistrationRepository(this);
     }
 
     /**
@@ -77,6 +79,42 @@ public class OpenIdFedIdentityProviderConfig
     @SuppressWarnings("unused")
     private OpenIdFedIdentityProviderConfig() {
         super();
+    }
+
+    public OpenIdProviderDiscoveryService getProviderService() {
+        if (providerService == null) {
+            //build new service based on config
+            if (configMap.getProviders() != null && !configMap.getProviders().isEmpty()) {
+                Set<String> providers = configMap
+                    .getProviders()
+                    .stream()
+                    .map(p -> p.getValue())
+                    .collect(Collectors.toSet());
+                providerService = new StaticOpenIdProviderDiscoveryService(configMap.getTrustAnchor(), providers);
+            } else {
+                providerService = new ListingOpenIdProviderDiscoveryService(configMap.getTrustAnchor());
+            }
+        }
+        return providerService;
+    }
+
+    public OpenIdFedClientRegistrationRepository getClientRegistrationRepository() {
+        if (clientRegistrationRepository == null) {
+            clientRegistrationRepository =
+                new OpenIdFedClientRegistrationRepository(getConfigMap(), getProviderService(), getRedirectUrl());
+        }
+
+        return clientRegistrationRepository;
+    }
+
+    public String getClientId() {
+        //if set use configMap value - note: should match urls
+        if (StringUtils.hasText(configMap.getClientId())) {
+            return configMap.getClientId();
+        }
+
+        //build url as base to be inflated
+        return "{baseUrl}/auth/" + getAuthority() + "/id/" + getProvider();
     }
 
     public String getRepositoryId() {
@@ -162,7 +200,17 @@ public class OpenIdFedIdentityProviderConfig
         return Collections.singletonList(ResponseType.CODE);
     }
 
+    public Set<String> getScopes() {
+        String[] scope = StringUtils.commaDelimitedListToStringArray(configMap.getScope());
+
+        //always add "openid"
+        Set<String> scopes = new HashSet<>(Arrays.asList(scope));
+        scopes.add("openid");
+
+        return scopes;
+    }
+
     public String getRedirectUrl() {
-        return "{baseUrl}/auth/" + getAuthority() + "/{action}/{registrationId}";
+        return "{baseUrl}/auth/" + getAuthority() + "/{action}/" + getProvider();
     }
 }

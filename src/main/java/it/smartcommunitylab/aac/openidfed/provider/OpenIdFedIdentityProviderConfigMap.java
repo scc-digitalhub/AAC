@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.nimbusds.openid.connect.sdk.SubjectType;
+import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
@@ -59,13 +60,13 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
     private Boolean alwaysTrustEmailAddress;
 
     // session control
-    private Boolean propagateEndSession;
     private Boolean respectTokenExpiration;
     private Set<PromptMode> promptMode;
 
     // openid-fed
-    @NotBlank
     private String trustAnchor;
+
+    private Set<EntityID> providers;
 
     private String federationJwks;
     private Set<String> acrValues;
@@ -140,14 +141,6 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.alwaysTrustEmailAddress = alwaysTrustEmailAddress;
     }
 
-    public Boolean getPropagateEndSession() {
-        return propagateEndSession;
-    }
-
-    public void setPropagateEndSession(Boolean propagateEndSession) {
-        this.propagateEndSession = propagateEndSession;
-    }
-
     public Boolean getRespectTokenExpiration() {
         return respectTokenExpiration;
     }
@@ -170,6 +163,14 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
 
     public void setTrustAnchor(String trustAnchor) {
         this.trustAnchor = trustAnchor;
+    }
+
+    public Set<EntityID> getProviders() {
+        return providers;
+    }
+
+    public void setProviders(Set<EntityID> providers) {
+        this.providers = providers;
     }
 
     public String getFederationJwks() {
@@ -241,11 +242,11 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.alwaysTrustEmailAddress = map.getAlwaysTrustEmailAddress();
         this.requireEmailAddress = map.getRequireEmailAddress();
 
-        this.propagateEndSession = map.getPropagateEndSession();
         this.respectTokenExpiration = map.getRespectTokenExpiration();
         this.promptMode = map.getPromptMode();
 
         this.trustAnchor = map.getTrustAnchor();
+        this.providers = map.getProviders();
         this.federationJwks = map.getFederationJwks();
         this.acrValues = map.getAcrValues();
         this.authorityHints = map.getAuthorityHints();
