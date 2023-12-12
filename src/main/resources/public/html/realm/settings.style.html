@@ -5,8 +5,15 @@
             <div class="form-group col">
                 <div class="form-group col">
                     <legend>Custom css</legend>
-                    <div ui-ace="aceOption" ng-model="settingsTemplates.customStyle"></div>
-                  </div>
+                    <div ui-ace="aceOption" ng-model="realmSettings.stylesConfiguration.customCss"></div>
+                </div>
+                <div class="form-group col">
+                    <legend>Logo</legend>
+                    <br />
+                    <div ng-if="!realmSettings.stylesConfiguration.logoFileId">
+                        <input type="file" id="logoFile" name="file" />
+                    </div>
+                </div>
             </div>
         </fieldset>
     </div>
