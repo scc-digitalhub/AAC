@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.realms.persistence.RealmEntity;
 import it.smartcommunitylab.aac.realms.persistence.RealmEntityRepository;
+import it.smartcommunitylab.aac.styles.StylesConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
 import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import java.io.Serializable;
@@ -268,6 +269,12 @@ public class RealmService implements InitializingBean {
             locConfigMap.setConfiguration(re.getLocalizationConfigurationMap());
         }
         r.setLocalizationConfiguration(locConfigMap);
+        
+        StylesConfigurationMap stylesConfigMap = new StylesConfigurationMap();
+        if (re.getStylesConfigurationMap() != null) {
+        	stylesConfigMap.setConfiguration(re.getStylesConfigurationMap());
+        }
+        r.setStylesConfiguration(stylesConfigMap);
 
         return r;
     }
