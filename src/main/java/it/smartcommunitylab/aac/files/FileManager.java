@@ -39,9 +39,9 @@ public class FileManager {
 	@Autowired
 	private FileService fileService;
 
-	public void saveFile(String realm, String originalFilename, String contentType, long size, InputStream inputStream)
+	public FileInfo saveFile(String realm, String originalFilename, String contentType, long size, InputStream inputStream)
 			throws AlreadyRegisteredException, IOException {
-		fileService.createFile(realm, originalFilename, contentType, size, inputStream);
+		return (fileService.createFile(realm, originalFilename, contentType, size, inputStream));
 	}
 
 	public List<FileInfo> readFilesByRealm(String realm) {

@@ -50,10 +50,11 @@ public class FileService {
 	 * @param mimeType
 	 * @param size
 	 * @param isr
+	 * @return 
 	 * @throws IOException
 	 * @throws AlreadyRegisteredException
 	 */
-	public void createFile(String realm, String fileName, String mimeType, long size, InputStream isr)
+	public FileInfo createFile(String realm, String fileName, String mimeType, long size, InputStream isr)
 			throws IOException, AlreadyRegisteredException {
 		// generate a new file, always persisted
 		FileInfo f = fileInfoService.createFileInfo(realm);
@@ -62,6 +63,7 @@ public class FileService {
 			FileInfo file = fileInfoService.addFileInfo(fileId, realm, fileName, mimeType, size);
 			fileStore.save(file.getId(), realm, isr, size);
 			isr.close();
+			return file;
 		} catch (AlreadyRegisteredException e) {
 			// something wrong, stop
 			logger.error("error creating new userfor subject {}", String.valueOf(fileId));
