@@ -647,8 +647,6 @@ angular.module('aac.controllers.realm', [])
                .catch(function (err) {
                   Utils.showError('Failed to invite user: ' + err.data.message);
                });
-
-
          }
       }
 
@@ -708,6 +706,37 @@ angular.module('aac.controllers.realm', [])
          }
       }
 
+      $scope.deleteLogo = function () {
+         let data = $scope.realmSettings;
+         let templatesSettings = $scope.settingsTemplates;
+ 
+         RealmData.deleteLogo($scope.realm.slug, $scope.logoFile.id)
+           .then(function () {
+             data.stylesConfiguration.logoFileId = null;
+             RealmData.updateRealm($scope.realm.slug, data)
+               .then(function (res) {
+                 $scope.reload(res);
+                 $scope["$parent"].refresh();
+               })
+               .then(function () {
+                 return RealmData.setTemplatesConfig(
+                   $scope.realm.slug,
+                   templatesSettings,
+                 );
+               })
+               .then(function (data) {
+                 $scope.reloadTemplatesConfig(data);
+                 Utils.showSuccess();
+               })
+               .catch(function (err) {
+                 Utils.showError(err.data.message);
+               });
+           })
+           .catch(function (err) {
+             Utils.showError("Failed to delete logo file: " + err.data.message);
+           });
+       };
+       
       init();
    })
 
