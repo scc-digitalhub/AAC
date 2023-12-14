@@ -5,8 +5,25 @@
             <div class="form-group col">
                 <div class="form-group col">
                     <legend>Custom css</legend>
-                    <div ui-ace="aceOption" ng-model="settingsTemplates.settings.customStyle"></div>
-                  </div>
+                    <div ui-ace="aceOption" ng-model="realmSettings.stylesConfiguration.customCss"></div>
+                </div>
+                <div class="form-group col">
+                    <legend>Logo</legend>
+                    <br />
+                    <div ng-if="!realmSettings.stylesConfiguration.logoFileId">
+                        <input type="file" id="logoFile" name="file" />
+                    </div>
+                    <div ng-if="realmSettings.stylesConfiguration.logoFileId != null">
+                        <div class="row">
+                            {{logoFile.name}} &nbsp;&nbsp;
+                            <a href="" ng-click="deleteLogo()">
+                                <svg class="icon icon-sm icon-danger">
+                                    <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </fieldset>
     </div>
