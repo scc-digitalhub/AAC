@@ -183,7 +183,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         Map<String, Object> attributes,
         Map<String, Object> additionalParameters
     ) {
-        JWK jwk = config.getClientJWK();
+        JWK jwk = config.getClientSignatureJWK();
 
         if (jwk == null || !jwk.isPrivate()) {
             return;
@@ -220,22 +220,26 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             //add all request parameters into claims OAuth2ParameterNames
             claims
                 //oauth2
-                .claim(OAuth2ParameterNames.CLIENT_ID, authRequest.getClientId())
+                .claim(OAuth2ParameterNames.CLIENT_ID, clientId)
                 .claim(OAuth2ParameterNames.REDIRECT_URI, authRequest.getRedirectUri())
                 .claim(OAuth2ParameterNames.RESPONSE_TYPE, authRequest.getResponseType().getValue())
                 .claim(OAuth2ParameterNames.SCOPE, String.join(" ", authRequest.getScopes()))
                 .claim(OAuth2ParameterNames.STATE, authRequest.getState())
                 //oidc
-                .claim(OidcParameterNames.NONCE, authRequest.getAttributes().get(OidcParameterNames.NONCE))
+                .claim(OidcParameterNames.NONCE, authRequest.getAdditionalParameters().get(OidcParameterNames.NONCE))
                 //pkce
                 .claim(
                     PkceParameterNames.CODE_CHALLENGE,
-                    authRequest.getAttributes().get(PkceParameterNames.CODE_CHALLENGE)
+                    authRequest.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE)
                 )
                 .claim(
                     PkceParameterNames.CODE_CHALLENGE_METHOD,
-                    authRequest.getAttributes().get(PkceParameterNames.CODE_CHALLENGE_METHOD)
+                    authRequest.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD)
                 );
+
+            if (config.getConfigMap().getAcrValues() != null && !config.getConfigMap().getAcrValues().isEmpty()) {
+                claims.claim("acr_values", config.getConfigMap().getAcrValues());
+            }
 
             SignedJWT jwt = new SignedJWT(header, claims.build());
             jwt.sign(signer);

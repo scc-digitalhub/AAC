@@ -25,6 +25,8 @@ import com.nimbusds.openid.connect.sdk.SubjectType;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
+import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import java.io.Serializable;
 import java.util.List;
@@ -73,6 +75,10 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
     private Set<String> authorityHints;
     private String trustMarks;
     private SubjectType subjectType;
+
+    //client settings
+    private JWEAlgorithm userInfoJWEAlg;
+    private EncryptionMethod userInfoJWEEnc;
 
     private String organizationName;
     private List<String> contacts;
@@ -213,6 +219,22 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.subjectType = subjectType;
     }
 
+    public JWEAlgorithm getUserInfoJWEAlg() {
+        return userInfoJWEAlg;
+    }
+
+    public void setUserInfoJWEAlg(JWEAlgorithm userInfoJWEAlg) {
+        this.userInfoJWEAlg = userInfoJWEAlg;
+    }
+
+    public EncryptionMethod getUserInfoJWEEnc() {
+        return userInfoJWEEnc;
+    }
+
+    public void setUserInfoJWEEnc(EncryptionMethod userInfoJWEEnc) {
+        this.userInfoJWEEnc = userInfoJWEEnc;
+    }
+
     public String getOrganizationName() {
         return organizationName;
     }
@@ -252,6 +274,9 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.authorityHints = map.getAuthorityHints();
         this.trustMarks = map.getTrustMarks();
         this.subjectType = map.getSubjectType();
+
+        this.userInfoJWEAlg = map.getUserInfoJWEAlg();
+        this.userInfoJWEEnc = map.getUserInfoJWEEnc();
 
         this.organizationName = map.getOrganizationName();
         this.contacts = map.getContacts();

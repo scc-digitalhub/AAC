@@ -16,7 +16,9 @@
 
 package it.smartcommunitylab.aac.openidfed.service;
 
+import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.oauth2.sdk.ParseException;
@@ -69,7 +71,7 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
         try {
             OpenIdFedIdentityProviderConfigMap map = config.getConfigMap();
             //expand client identifier as url
-            String clientId = expandRedirectUri(baseUrl, config.getClientId(), config.getProvider(), "id").toString();
+            String clientId = expandRedirectUri(baseUrl, config.getClientId(), "id").toString();
 
             // entity statement
             EntityID iss = new EntityID(clientId);
@@ -96,8 +98,7 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             claims.setAuthorityHints(authorities);
 
             // client metadata
-            JWK clientKey = config.getClientJWK();
-            JWKSet clientJwks = new JWKSet(clientKey);
+            JWKSet clientJwks = config.getClientJWKSet();
 
             OIDCClientMetadata metadata = new OIDCClientMetadata();
             metadata.setName(map.getClientName());
@@ -107,6 +108,15 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             metadata.setGrantTypes(new HashSet<>(config.getGrantTypes()));
             metadata.setResponseTypes(new HashSet<>(config.getResponseTypes()));
             metadata.setScope(Scope.parse(config.getScopes()));
+
+            //set JWE algorithms if provided
+            //TODO derive from key if present
+            if (map.getUserInfoJWEAlg() != null) {
+                metadata.setUserInfoJWEAlg(JWEAlgorithm.parse(map.getUserInfoJWEAlg().getValue()));
+            }
+            if (map.getUserInfoJWEEnc() != null) {
+                metadata.setUserInfoJWEEnc(EncryptionMethod.parse(map.getUserInfoJWEEnc().getValue()));
+            }
 
             //use a custom field for client_id because we lack support
             metadata.setCustomField("client_id", clientId);

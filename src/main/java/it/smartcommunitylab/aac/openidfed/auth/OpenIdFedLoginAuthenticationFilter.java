@@ -202,6 +202,10 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 
+        //replace clientId placeholder
+        String clientId = authorizationRequest.getClientId();
+        clientRegistration = ClientRegistration.withClientRegistration(clientRegistration).clientId(clientId).build();
+
         String redirectUri = UriComponentsBuilder
             .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
             .replaceQuery(null)

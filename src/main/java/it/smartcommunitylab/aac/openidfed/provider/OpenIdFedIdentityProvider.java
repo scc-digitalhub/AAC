@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.openidfed.provider;
 
+import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
+import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
@@ -30,7 +32,13 @@ import it.smartcommunitylab.aac.oidc.provider.OIDCAccountPrincipalConverter;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCLoginProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCSubjectResolver;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
+import it.smartcommunitylab.aac.openidfed.model.OpenIdFedLogin;
+import it.smartcommunitylab.aac.openidfed.service.OpenIdProviderDiscoveryService;
+import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -156,14 +164,55 @@ public class OpenIdFedIdentityProvider
     }
 
     @Override
-    public OIDCLoginProvider getLoginProvider() {
-        OIDCLoginProvider lp = new OIDCLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
+    public OpenIdFedLoginProvider getLoginProvider() {
+        OpenIdFedLoginProvider lp = new OpenIdFedLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setTitleMap(getTitleMap());
         lp.setDescriptionMap(getDescriptionMap());
 
         lp.setLoginUrl(getAuthenticationUrl());
         lp.setPosition(getConfig().getPosition());
 
+        //set providers
+        OpenIdFedClientRegistrationRepository repository = config.getClientRegistrationRepository();
+        OpenIdProviderDiscoveryService discoveryService = config.getProviderService();
+        if (repository != null && discoveryService != null) {
+            List<OpenIdFedLogin> entries = discoveryService
+                .discoverProviders()
+                .stream()
+                .map(e -> {
+                    String registrationId = repository.encode(e);
+                    OpenIdFedLogin login = new OpenIdFedLogin(registrationId);
+                    login.setEntityId(e);
+
+                    OIDCProviderMetadata op = discoveryService.findProvider(e);
+                    FederationEntityMetadata meta = discoveryService.loadProviderMetadata(e);
+
+                    String name = StringUtils.hasText(op.getOrganizationName())
+                        ? op.getOrganizationName()
+                        : meta.getOrganizationName();
+
+                    login.setOrganizationName(name);
+
+                    if (
+                        meta.getLogoURI() != null &&
+                        (
+                            meta.getLogoURI().getScheme().equalsIgnoreCase("http") ||
+                            meta.getLogoURI().getScheme().equalsIgnoreCase("https")
+                        )
+                    ) {
+                        try {
+                            login.setLogoUrl(meta.getLogoURI().toURL().toString());
+                        } catch (MalformedURLException e1) {}
+                    }
+
+                    //TODO infer default logos from name
+
+                    return login;
+                })
+                .collect(Collectors.toList());
+
+            lp.setEntries(entries);
+        }
         return lp;
     }
 }

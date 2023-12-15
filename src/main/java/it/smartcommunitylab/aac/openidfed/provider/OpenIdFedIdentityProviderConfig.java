@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.openidfed.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.oauth2.sdk.GrantType;
 import com.nimbusds.oauth2.sdk.ResponseType;
 import com.nimbusds.openid.connect.sdk.SubjectType;
@@ -114,7 +116,7 @@ public class OpenIdFedIdentityProviderConfig
         }
 
         //build url as base to be inflated
-        return "{baseUrl}/auth/" + getAuthority() + "/id/" + getProvider();
+        return "{baseUrl}/auth/" + getAuthority() + "/metadata/" + getProvider();
     }
 
     public String getRepositoryId() {
@@ -138,23 +140,45 @@ public class OpenIdFedIdentityProviderConfig
         return configMap.getRequireEmailAddress() != null ? configMap.getRequireEmailAddress().booleanValue() : false;
     }
 
-    public JWK getClientJWK() {
+    public JWKSet getClientJWKSet() {
         if (!StringUtils.hasText(configMap.getClientJwks())) {
             return null;
         }
 
         // expect a single key as jwk
         try {
-            return JWK.parse(configMap.getClientJwks());
+            return JWKSet.parse(configMap.getClientJwks());
         } catch (ParseException e) {
             return null;
         }
     }
 
+    public JWK getClientSignatureJWK() {
+        return getClientJWKSet() == null
+            ? null
+            : getClientJWKSet()
+                .getKeys()
+                .stream()
+                .filter(k -> k.getKeyUse().equals(KeyUse.SIGNATURE))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public JWK getClientEncryptionJWK() {
+        return getClientJWKSet() == null
+            ? null
+            : getClientJWKSet()
+                .getKeys()
+                .stream()
+                .filter(k -> k.getKeyUse().equals(KeyUse.ENCRYPTION))
+                .findFirst()
+                .orElse(null);
+    }
+
     public JWK getFederationJWK() {
         if (!StringUtils.hasText(configMap.getFederationJwks())) {
             //fall back to client keys
-            return getClientJWK();
+            return getClientSignatureJWK();
         }
 
         // expect a single key as jwk

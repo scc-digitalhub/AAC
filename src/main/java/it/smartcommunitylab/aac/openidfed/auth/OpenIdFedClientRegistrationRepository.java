@@ -29,6 +29,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
+import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -73,6 +75,14 @@ public class OpenIdFedClientRegistrationRepository implements ClientRegistration
         this.encoder = encoder;
     }
 
+    public String encode(String entityId) {
+        return this.encoder.apply(entityId);
+    }
+
+    public String decode(String registrationId) {
+        return this.decoder.apply(registrationId);
+    }
+
     /*
      * generate client registrations for every OP identified by registrationId
      */
@@ -111,7 +121,11 @@ public class OpenIdFedClientRegistrationRepository implements ClientRegistration
         scopes.add("openid");
         builder.scope(scopes);
 
-        builder.userNameAttributeName(configMap.getUserNameAttributeName());
+        //use sub as default userName
+        String userNameAttributeName = StringUtils.hasText(configMap.getUserNameAttributeName())
+            ? configMap.getUserNameAttributeName()
+            : StandardClaimNames.SUB;
+        builder.userNameAttributeName(userNameAttributeName);
 
         // we support only authCode
         builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
