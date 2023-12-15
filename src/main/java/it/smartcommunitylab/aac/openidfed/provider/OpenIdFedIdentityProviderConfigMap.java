@@ -54,6 +54,7 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
     private String clientName;
 
     private String scope;
+    private Set<String> claims;
 
     // principal settings
     private String userNameAttributeName;
@@ -113,6 +114,14 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public Set<String> getClaims() {
+        return claims;
+    }
+
+    public void setClaims(Set<String> claims) {
+        this.claims = claims;
     }
 
     public String getUserNameAttributeName() {
@@ -258,6 +267,7 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.clientName = map.getClientName();
 
         this.scope = map.getScope();
+        this.claims = map.getClaims();
 
         this.userNameAttributeName = map.getUserNameAttributeName();
         this.trustEmailAddress = map.getTrustEmailAddress();

@@ -30,6 +30,7 @@ import com.nimbusds.jwt.SignedJWT;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.service.DefaultOpenIdRpMetadataResolver;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -39,8 +40,11 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
@@ -160,6 +164,9 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         Map<String, Object> attributes = new HashMap<>(authRequest.getAttributes());
         Map<String, Object> additionalParameters = new HashMap<>(authRequest.getAdditionalParameters());
 
+        //add individual claims request
+        addClaimsRequest(authRequest, config, clientId, registration, attributes, additionalParameters);
+
         //add request object
         addRequestObject(authRequest, config, clientId, registration, attributes, additionalParameters);
 
@@ -170,6 +177,37 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             .attributes(attributes)
             .additionalParameters(additionalParameters)
             .build();
+    }
+
+    /*
+     * Indivual claims
+     */
+    private void addClaimsRequest(
+        OAuth2AuthorizationRequest authRequest,
+        OpenIdFedIdentityProviderConfig config,
+        String clientId,
+        ClientRegistration registration,
+        Map<String, Object> attributes,
+        Map<String, Object> additionalParameters
+    ) {
+        Set<String> claims = config.getConfigMap().getClaims();
+        if (claims != null && !claims.isEmpty()) {
+            //build request, we treat every requested claim as `essential`
+            //build for userinfo only, we always read from there
+            Map<String, Object> map = new HashMap<>();
+
+            Map<Object, Object> req = claims
+                .stream()
+                .map(c -> {
+                    Map<String, Serializable> r = Map.of("essential", true);
+                    return Map.entry(c, r);
+                })
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+            map.put("userinfo", req);
+
+            additionalParameters.put("claims", map);
+        }
     }
 
     /*
@@ -226,19 +264,24 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
                 .claim(OAuth2ParameterNames.SCOPE, String.join(" ", authRequest.getScopes()))
                 .claim(OAuth2ParameterNames.STATE, authRequest.getState())
                 //oidc
-                .claim(OidcParameterNames.NONCE, authRequest.getAdditionalParameters().get(OidcParameterNames.NONCE))
+                .claim(OidcParameterNames.NONCE, additionalParameters.get(OidcParameterNames.NONCE))
                 //pkce
                 .claim(
                     PkceParameterNames.CODE_CHALLENGE,
-                    authRequest.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE)
+                    additionalParameters.get(PkceParameterNames.CODE_CHALLENGE)
                 )
                 .claim(
                     PkceParameterNames.CODE_CHALLENGE_METHOD,
-                    authRequest.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD)
+                    additionalParameters.get(PkceParameterNames.CODE_CHALLENGE_METHOD)
                 );
 
             if (config.getConfigMap().getAcrValues() != null && !config.getConfigMap().getAcrValues().isEmpty()) {
                 claims.claim("acr_values", config.getConfigMap().getAcrValues());
+            }
+
+            if (additionalParameters.containsKey("claims")) {
+                //add individual claims also to request obj
+                claims.claim("claims", additionalParameters.get("claims"));
             }
 
             SignedJWT jwt = new SignedJWT(header, claims.build());

@@ -586,14 +586,49 @@ angular.module('aac.controllers.realmproviders', [])
         var initConfiguration = function (authority, config, schema) {
             if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = [];
-                toChips(config.scope).forEach(function (s) {
-                    scopes.push({ 'text': s });
-                });
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
                 $scope.idpOidcScope = scopes;
             }
 
-            if (authority == 'saml') {
+            if (authority == 'openidfed' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap')) {
+                var scopes = [];
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
+                $scope.openidfedScope = scopes;
 
+                var claims = [];
+                if(config.claims) {
+                    config.claims.forEach(function (s) {
+                        claims.push({ 'text': s });
+                    });
+                }
+                $scope.openidfedClaims = claims;
+
+                var authorityHints = [];
+                if(config.authorityHints) {
+                    config.authorityHints.forEach(function (t) {
+                        authorityHints.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedAuthorityHints = authorityHints;      
+                
+                var acrValues = [];
+                if(config.acrValues) {
+                    config.acrValues.forEach(function (t) {
+                        acrValues.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedAcrValues = acrValues;                 
+            }            
+
+            if (authority == 'saml') {
                 var authnContextClasses = [];
                 if (config.authnContextClasses) {
                     config.authnContextClasses.forEach(function (s) {
@@ -616,6 +651,40 @@ angular.module('aac.controllers.realmproviders', [])
                 });
                 config.scope = scopes.join(',');
             }
+            if (authority == 'openidfed' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap')) {
+                console.log('dump',$scope);
+                var scopes = $scope.openidfedScope.map(function (s) {
+                    if ('text' in s) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                config.scope = scopes.join(',');
+
+                var claims = $scope.openidfedClaims.map(function (c) {
+                    if ('text' in c) {
+                        return c.text;
+                    }
+                    return c;
+                });
+                config.claims = claims;               
+
+                var authorityHints = $scope.openidfedAuthorityHints.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.authorityHints = authorityHints;        
+                
+                var acrValues = $scope.openidfedAcrValues.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.acrValues = acrValues;           
+            }            
             if (authority == 'saml') {
                 var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
                     if ('text' in s) {

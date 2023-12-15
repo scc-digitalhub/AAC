@@ -36,12 +36,18 @@
 
         <div class="row">
             <div class="form-group col ">
-                <label for="scope">Scopes*</label>
+                <label for="scope">Scopes</label>
                 <tags-input name="scope" type="text" placeholder="Scopes" ng-model="openidfedScope">
                 </tags-input>
             </div>
         </div>
-
+        <div class="row">
+            <div class="form-group col ">
+                <label for="claims">CLaims</label>
+                <tags-input name="claims" type="text" placeholder="claims" ng-model="openidfedClaims">
+                </tags-input>
+            </div>
+        </div>
 
         <legend class="mb-4">OpenId Federation Configuration</legend>
         <div class="form-group col ">
