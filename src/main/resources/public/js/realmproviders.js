@@ -617,7 +617,15 @@ angular.module('aac.controllers.realmproviders', [])
                         authorityHints.push({ 'text': t });
                     });
                 }
-                $scope.openidfedAuthorityHints = authorityHints;      
+                $scope.openidfedAuthorityHints = authorityHints;   
+                
+                var contacts = [];
+                if(config.contacts) {
+                    config.contacts.forEach(function (t) {
+                        contacts.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedContacts = contacts;                   
                 
                 var acrValues = [];
                 if(config.acrValues) {
@@ -677,6 +685,14 @@ angular.module('aac.controllers.realmproviders', [])
                 });
                 config.authorityHints = authorityHints;        
                 
+                var contacts = $scope.openidfedContacts.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.contacts = contacts;        
+                                
                 var acrValues = $scope.openidfedAcrValues.map(function (t) {
                     if ('text' in t) {
                         return t.text;
