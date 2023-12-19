@@ -172,6 +172,12 @@ public class OpenIdFedIdentityProvider
         lp.setLoginUrl(getAuthenticationUrl());
         lp.setPosition(getConfig().getPosition());
 
+        //template override
+        //TODO validate against supported
+        if (StringUtils.hasText(config.getSettingsMap().getTemplate())) {
+            lp.setTemplate(config.getSettingsMap().getTemplate());
+        }
+
         //set providers
         OpenIdFedClientRegistrationRepository repository = config.getClientRegistrationRepository();
         OpenIdProviderDiscoveryService discoveryService = config.getProviderService();

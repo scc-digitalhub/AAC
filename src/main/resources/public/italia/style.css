@@ -262,3 +262,6 @@ form .invalid-feedback {
    max-width: 160px;
 }
 
+.btn.btn-login.login-cie {
+  background-color: #0053a2;
+}
