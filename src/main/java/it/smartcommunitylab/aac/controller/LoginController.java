@@ -20,7 +20,7 @@ import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.files.FileManager;
+import it.smartcommunitylab.aac.files.FileService;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
@@ -88,7 +88,7 @@ public class LoginController {
     private RealmManager realmManager;
     
     @Autowired
-    private FileManager fileManager;
+	private FileService fileService;
     
     @Autowired
     private ClientDetailsService clientDetailsService;
@@ -348,20 +348,22 @@ public class LoginController {
 	@RequestMapping(value = { "/-/{realm}/logo" }, method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<InputStreamResource> realmLogo(@PathVariable("realm") String realm) throws IOException {
-		Realm re = realmManager.findRealm(realm);
-		if (re != null && re.getStylesConfiguration().getConfiguration().containsKey(LOGOFILE)) {
-			String logoFileId = String.valueOf(re.getStylesConfiguration().getConfiguration().get(LOGOFILE));
-			InputStream isr = fileManager.readFileBlob(realm, logoFileId);
-			FileInfo fileInfo = fileManager.readFile(realm, logoFileId);
-			if (isr != null && fileInfo != null) {				
-				if (logoEtagValue == null) {
-					logoEtagValue = computeWeakEtag(isr);
-				}
-				return ResponseEntity.ok().contentLength(fileInfo.getSize())
-						.contentType(MediaType.parseMediaType(fileInfo.getMimeType()))
-						.cacheControl(CacheControl.maxAge(3600, TimeUnit.SECONDS)).eTag(logoEtagValue)
-						.body(new InputStreamResource(fileManager.readFileBlob(realm, logoFileId)));
+		if (realm != null && !realm.isEmpty()) {
+			Realm re = realmManager.findRealm(realm);
+			if (re != null && re.getStylesConfiguration().getConfiguration().containsKey(LOGOFILE)) {
+				String logoFileId = String.valueOf(re.getStylesConfiguration().getConfiguration().get(LOGOFILE));
+				InputStream isr = fileService.getFileStream(realm, logoFileId);
+				FileInfo fileInfo = fileService.getFile(realm, logoFileId);
+				if (isr != null && fileInfo != null) {
+					if (logoEtagValue == null) {
+						logoEtagValue = computeWeakEtag(isr);
+					}
+					return ResponseEntity.ok().contentLength(fileInfo.getSize())
+							.contentType(MediaType.parseMediaType(fileInfo.getMimeType()))
+							.cacheControl(CacheControl.maxAge(3600, TimeUnit.SECONDS)).eTag(logoEtagValue)
+							.body(new InputStreamResource(fileService.getFileStream(realm, logoFileId)));
 
+				}
 			}
 		}
 		return logo();
