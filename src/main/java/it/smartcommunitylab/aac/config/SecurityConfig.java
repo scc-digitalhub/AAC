@@ -70,6 +70,7 @@ public class SecurityConfig {
     private static final String LOGINPATH = "/login";
     private static final String LOGOUTPATH = "/logout";
     private static final String TERMSPATH = "/terms";
+    private static final String LOGOPATH = "/logo";
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
@@ -140,6 +141,8 @@ public class SecurityConfig {
             .antMatchers("/-/{realm}/" + LOGINPATH)
             .permitAll()
             .antMatchers("/-/{realm}/" + TERMSPATH)
+            .permitAll()
+            .antMatchers("/-/{realm}/" + LOGOPATH)
             .permitAll()
             // whitelist auth providers pages (login,registration etc)
             //                .antMatchers("/auth/**").permitAll()
