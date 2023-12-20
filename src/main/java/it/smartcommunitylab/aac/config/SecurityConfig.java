@@ -71,6 +71,7 @@ public class SecurityConfig {
     private static final String LOGOUTPATH = "/logout";
     private static final String LOGOPATH = "/logo";
     private static final String TERMSPATH = "/terms";
+    private static final String LOGOPATH = "/logo";
 
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;

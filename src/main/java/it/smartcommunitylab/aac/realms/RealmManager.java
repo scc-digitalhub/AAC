@@ -259,7 +259,7 @@ public class RealmManager {
             }        	
         }
 
-        Realm realm = realmService.updateRealm(
+        return realmService.updateRealm(
             slug,
             name,
             email,
@@ -270,8 +270,6 @@ public class RealmManager {
             localizationConfigMap,
             stylesConfigMap
         );
-
-        return realm;
     }
 
     @Transactional(readOnly = true)
