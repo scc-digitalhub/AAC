@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.openidfed.service;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.oauth2.sdk.ParseException;
@@ -108,6 +109,12 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             metadata.setGrantTypes(new HashSet<>(config.getGrantTypes()));
             metadata.setResponseTypes(new HashSet<>(config.getResponseTypes()));
             metadata.setScope(Scope.parse(config.getScopes()));
+
+            //set JWS algorithms supported for responses
+            //default to RSA which is MANDATORY for everyone to support
+            //TODO make configurable
+            metadata.setUserInfoJWSAlg(JWSAlgorithm.RS256);
+            metadata.setIDTokenJWSAlg(JWSAlgorithm.RS256);
 
             //set JWE algorithms if provided
             //TODO derive from key if present
