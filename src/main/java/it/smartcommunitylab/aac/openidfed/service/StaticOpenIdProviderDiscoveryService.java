@@ -50,8 +50,20 @@ public class StaticOpenIdProviderDiscoveryService implements OpenIdProviderDisco
             trustAnchor,
             entities,
             //by default use a caching entity resolver to keep valid statements until *exp*
-            new DefaultOpenIdProviderResolver(DEFAULT_ENTITY_RESOLVER),
-            new DefaultFederationEntityResolver(DEFAULT_ENTITY_RESOLVER)
+            DEFAULT_ENTITY_RESOLVER
+        );
+    }
+
+    public StaticOpenIdProviderDiscoveryService(
+        String trustAnchor,
+        Collection<String> entities,
+        EntityStatementResolver entityStatementResolver
+    ) {
+        this(
+            trustAnchor,
+            entities,
+            new DefaultOpenIdProviderResolver(entityStatementResolver),
+            new DefaultFederationEntityResolver(entityStatementResolver)
         );
     }
 

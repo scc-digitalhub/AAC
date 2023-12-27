@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 public class DefaultEntityStatementResolver implements EntityStatementResolver {
 
-    private final TrustChainResolver trustChainResolver;
+    protected final TrustChainResolver trustChainResolver;
 
     public DefaultEntityStatementResolver() {
         this(new DefaultTrustChainResolver());

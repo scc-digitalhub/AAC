@@ -30,6 +30,8 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
+import it.smartcommunitylab.aac.openidfed.resolvers.CachingEntityStatementResolver;
+import it.smartcommunitylab.aac.openidfed.resolvers.EntityStatementResolver;
 import it.smartcommunitylab.aac.openidfed.service.ListingOpenIdProviderDiscoveryService;
 import it.smartcommunitylab.aac.openidfed.service.OpenIdProviderDiscoveryService;
 import it.smartcommunitylab.aac.openidfed.service.StaticOpenIdProviderDiscoveryService;
@@ -48,6 +50,9 @@ public class OpenIdFedIdentityProviderConfig
     private static final long serialVersionUID = SystemKeys.AAC_OPENIDFED_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + OpenIdFedIdentityProviderConfigMap.RESOURCE_TYPE;
+
+    @JsonIgnore
+    private transient EntityStatementResolver entityStatementResolver;
 
     @JsonIgnore
     private transient OpenIdProviderDiscoveryService providerService;
@@ -83,6 +88,15 @@ public class OpenIdFedIdentityProviderConfig
         super();
     }
 
+    public EntityStatementResolver getEntityStatementResolver() {
+        if (entityStatementResolver == null) {
+            //use a caching resolver to keep track of resolved entities
+            this.entityStatementResolver = new CachingEntityStatementResolver();
+        }
+
+        return entityStatementResolver;
+    }
+
     public OpenIdProviderDiscoveryService getProviderService() {
         if (providerService == null) {
             //build new service based on config
@@ -92,9 +106,15 @@ public class OpenIdFedIdentityProviderConfig
                     .stream()
                     .map(p -> p.getValue())
                     .collect(Collectors.toSet());
-                providerService = new StaticOpenIdProviderDiscoveryService(configMap.getTrustAnchor(), providers);
+                providerService =
+                    new StaticOpenIdProviderDiscoveryService(
+                        configMap.getTrustAnchor(),
+                        providers,
+                        getEntityStatementResolver()
+                    );
             } else {
-                providerService = new ListingOpenIdProviderDiscoveryService(configMap.getTrustAnchor());
+                providerService =
+                    new ListingOpenIdProviderDiscoveryService(configMap.getTrustAnchor(), getEntityStatementResolver());
             }
         }
         return providerService;

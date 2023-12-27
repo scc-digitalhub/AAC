@@ -70,8 +70,15 @@ public class ListingOpenIdProviderDiscoveryService implements OpenIdProviderDisc
         this(
             trustAnchor,
             //by default use a caching entity resolver to keep valid statements until *exp*
-            new DefaultOpenIdProviderResolver(DEFAULT_ENTITY_RESOLVER),
-            new DefaultFederationEntityResolver(DEFAULT_ENTITY_RESOLVER)
+            DEFAULT_ENTITY_RESOLVER
+        );
+    }
+
+    public ListingOpenIdProviderDiscoveryService(String trustAnchor, EntityStatementResolver entityStatementResolver) {
+        this(
+            trustAnchor,
+            new DefaultOpenIdProviderResolver(entityStatementResolver),
+            new DefaultFederationEntityResolver(entityStatementResolver)
         );
     }
 

@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.openidfed.OpenIdFedIdentityAuthority;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedLoginAuthenticationFilter;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedMetadataFilter;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedRedirectAuthenticationFilter;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedResolverFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,6 +78,12 @@ public class OpenIdFedFilterProvider implements FilterProvider {
             buildFilterUrl("metadata/{providerId}")
         );
 
+        OpenIdFedResolverFilter resolveFilter = new OpenIdFedResolverFilter(
+            authorityId,
+            registrationRepository,
+            buildFilterUrl("resolve/{providerId}")
+        );
+
         //        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
         //                clientRegistrationRepository, OpenIdFedIdentityAuthority.AUTHORITY_URL + "authorize");
         OpenIdFedRedirectAuthenticationFilter redirectFilter = new OpenIdFedRedirectAuthenticationFilter(
@@ -103,6 +110,7 @@ public class OpenIdFedFilterProvider implements FilterProvider {
         // build composite filterChain
         List<Filter> filters = new ArrayList<>();
         filters.add(metadataFilter);
+        filters.add(resolveFilter);
         filters.add(loginFilter);
         filters.add(redirectFilter);
 

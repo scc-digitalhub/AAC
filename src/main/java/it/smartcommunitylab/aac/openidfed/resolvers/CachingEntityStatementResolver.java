@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
+import com.nimbusds.openid.connect.sdk.federation.trust.TrustChain;
 import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -29,27 +30,28 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.util.Pair;
 import org.springframework.util.Assert;
 
-public class CachingEntityStatementResolver implements EntityStatementResolver {
+public class CachingEntityStatementResolver extends DefaultEntityStatementResolver {
 
     private static final int DEFAULT_RETRIES = 3;
 
     private int maxRetries = DEFAULT_RETRIES;
-    private final EntityStatementResolver resolver;
 
     //loading cache only for resolved
-    private final LoadingCache<Pair<String, String>, EntityStatement> statements = CacheBuilder
+    private final LoadingCache<Pair<String, String>, TrustChain> chains = CacheBuilder
         .newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS)
         .maximumSize(100)
         .build(
-            new CacheLoader<Pair<String, String>, EntityStatement>() {
+            new CacheLoader<Pair<String, String>, TrustChain>() {
                 @Override
-                public EntityStatement load(final Pair<String, String> id) throws Exception {
-                    if (resolver == null) {
+                public TrustChain load(final Pair<String, String> id) throws Exception {
+                    if (trustChainResolver == null) {
                         throw new ResolveException("invalid or missing resolver");
                     }
 
-                    EntityStatement statement = resolver.resolveEntityStatement(id.getFirst(), id.getSecond());
+                    //resolve a valid trust chain
+                    TrustChain chain = trustChainResolver.resolveTrustChain(id.getFirst(), id.getSecond());
+                    EntityStatement statement = chain.getLeafConfiguration();
 
                     //evaluate expiration *before usage*
                     Date now = Date.from(Instant.now());
@@ -60,18 +62,17 @@ public class CachingEntityStatementResolver implements EntityStatementResolver {
                         throw new ResolveException("invalid (expired) metadata");
                     }
 
-                    return statement;
+                    return chain;
                 }
             }
         );
 
     public CachingEntityStatementResolver() {
-        this(new DefaultEntityStatementResolver());
+        this(new DefaultTrustChainResolver());
     }
 
-    public CachingEntityStatementResolver(EntityStatementResolver resolver) {
-        Assert.notNull(resolver, "entity statement resolver is required");
-        this.resolver = resolver;
+    public CachingEntityStatementResolver(TrustChainResolver trustChainResolver) {
+        super(trustChainResolver);
     }
 
     public void setMaxRetries(int maxRetries) {
@@ -82,21 +83,29 @@ public class CachingEntityStatementResolver implements EntityStatementResolver {
      * Entity ops
      */
 
+    @Override
     public EntityStatement resolveEntityStatement(String trustAnchor, String entityId) throws ResolveException {
+        TrustChain chain = resolvedTrustChain(trustAnchor, entityId);
+        if (chain == null) {
+            return null;
+        }
+
+        //return the statement for the leaf
+        //TODO check if policy is evaluated
+        //TODO check if entity signature is validated against published keys
+        return chain.getLeafConfiguration();
+    }
+
+    public TrustChain resolvedTrustChain(String trustAnchor, String entityId) {
         Pair<String, String> id = Pair.of(trustAnchor, entityId);
         return find(id, 0);
     }
 
-    public EntityStatement fetchEntityStatement(String entityId) throws ResolveException {
-        //fall-back with no caching
-        return resolver.fetchEntityStatement(entityId);
-    }
-
     /*
-     * Cache
+     * Cache trust chains for resolved entities
      */
 
-    private EntityStatement find(Pair<String, String> id, int retryCount) {
+    private TrustChain find(Pair<String, String> id, int retryCount) {
         //retry handling
         if (retryCount > maxRetries) {
             //max retries exceeded, exit
@@ -106,7 +115,8 @@ public class CachingEntityStatementResolver implements EntityStatementResolver {
 
         //resolve via cache
         try {
-            EntityStatement statement = statements.get(id);
+            TrustChain chain = chains.get(id);
+            EntityStatement statement = chain.getLeafConfiguration();
             if (statement == null) {
                 return null;
             }
@@ -118,11 +128,11 @@ public class CachingEntityStatementResolver implements EntityStatementResolver {
                 now.after(statement.getClaimsSet().getExpirationTime())
             ) {
                 //clean up and resolve again with retry
-                statements.invalidate(now);
+                chains.invalidate(id);
                 return find(id, count);
             }
 
-            return statement;
+            return chain;
         } catch (IllegalArgumentException | UncheckedExecutionException | ExecutionException e) {
             return null;
         }
