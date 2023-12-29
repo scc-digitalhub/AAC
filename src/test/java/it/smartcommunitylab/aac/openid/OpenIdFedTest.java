@@ -24,10 +24,13 @@ import com.nimbusds.openid.connect.sdk.federation.trust.TrustChainResolver;
 import com.nimbusds.openid.connect.sdk.federation.trust.TrustChainSet;
 import com.nimbusds.openid.connect.sdk.federation.trust.marks.TrustMarkEntry;
 import com.nimbusds.openid.connect.sdk.rp.ApplicationType;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedOAuth2AuthorizationRequestResolver;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.openidfed.service.DefaultOpenIdRpMetadataResolver;
@@ -198,5 +201,19 @@ public class OpenIdFedTest {
             map.getUserInfoJWEEnc().toString(),
             statement.getClaimsSet().getRPMetadata().getUserInfoJWEEnc().getName()
         );
+    }
+
+    @Test
+    public void authRequestTest() throws Exception {
+        ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository =
+            new InMemoryProviderConfigRepository<>();
+        registrationRepository.addRegistration(providerConfig);
+        OpenIdFedOAuth2AuthorizationRequestResolver resolver = new OpenIdFedOAuth2AuthorizationRequestResolver(
+            registrationRepository,
+            baseUrl
+        );
+
+        //TODO mock an openid provider
+        String url = baseUrl + "/authorize/" + providerConfig.getProvider();
     }
 }

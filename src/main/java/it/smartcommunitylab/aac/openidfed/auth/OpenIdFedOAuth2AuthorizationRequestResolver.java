@@ -28,6 +28,7 @@ import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.openid.common.OidcParameterNames;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.service.DefaultOpenIdRpMetadataResolver;
 import java.io.Serializable;
@@ -49,7 +50,6 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
-import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtEncodingException;
@@ -157,6 +157,9 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         Map<String, Object> attributes = new HashMap<>(authRequest.getAttributes());
         Map<String, Object> additionalParameters = new HashMap<>(authRequest.getAdditionalParameters());
 
+        //add optional params
+        addOidcOptionalParameters(authRequest, config, clientId, registration, attributes, additionalParameters);
+
         //add individual claims request
         addClaimsRequest(authRequest, config, clientId, registration, attributes, additionalParameters);
 
@@ -172,8 +175,35 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             .build();
     }
 
+    private void addOidcOptionalParameters(
+        OAuth2AuthorizationRequest authRequest,
+        OpenIdFedIdentityProviderConfig config,
+        String clientId,
+        ClientRegistration registration,
+        Map<String, Object> attributes,
+        Map<String, Object> additionalParameters
+    ) {
+        if (config.getConfigMap().getAcrValues() != null && !config.getConfigMap().getAcrValues().isEmpty()) {
+            additionalParameters.put(
+                OidcParameterNames.ACR_VALUES,
+                String.join(" ", config.getConfigMap().getAcrValues())
+            );
+        }
+
+        if (config.getConfigMap().getPromptMode() != null && !config.getConfigMap().getPromptMode().isEmpty()) {
+            Set<String> promptModes = config
+                .getConfigMap()
+                .getPromptMode()
+                .stream()
+                .map(p -> p.getValue())
+                .collect(Collectors.toSet());
+
+            additionalParameters.put(OidcParameterNames.PROMPT, String.join(" ", promptModes));
+        }
+    }
+
     /*
-     * Indivual claims
+     * Individual claims
      */
     private void addClaimsRequest(
         OAuth2AuthorizationRequest authRequest,
@@ -199,7 +229,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
             map.put("userinfo", req);
 
-            additionalParameters.put("claims", map);
+            additionalParameters.put(OidcParameterNames.CLAIMS, map);
         }
     }
 
@@ -265,22 +295,26 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
                     additionalParameters.get(PkceParameterNames.CODE_CHALLENGE_METHOD)
                 );
 
-            if (config.getConfigMap().getAcrValues() != null && !config.getConfigMap().getAcrValues().isEmpty()) {
-                claims.claim("acr_values", config.getConfigMap().getAcrValues());
+            //optional OIDC parameters
+            if (additionalParameters.containsKey(OidcParameterNames.ACR_VALUES)) {
+                claims.claim(OidcParameterNames.ACR_VALUES, additionalParameters.get(OidcParameterNames.ACR_VALUES));
+            }
+            if (additionalParameters.containsKey(OidcParameterNames.PROMPT)) {
+                claims.claim(OidcParameterNames.PROMPT, additionalParameters.get(OidcParameterNames.PROMPT));
             }
 
-            if (additionalParameters.containsKey("claims")) {
+            if (additionalParameters.containsKey(OidcParameterNames.CLAIMS)) {
                 //add individual claims also to request obj
-                claims.claim("claims", additionalParameters.get("claims"));
+                claims.claim(OidcParameterNames.CLAIMS, additionalParameters.get(OidcParameterNames.CLAIMS));
             }
 
             SignedJWT jwt = new SignedJWT(header, claims.build());
             jwt.sign(signer);
 
             // add to parameters
-            attributes.put("request", jwt.serialize());
+            attributes.put(OidcParameterNames.REQUEST, jwt.serialize());
             // set as request object
-            additionalParameters.put("request", jwt.serialize());
+            additionalParameters.put(OidcParameterNames.REQUEST, jwt.serialize());
         } catch (JOSEException e) {
             throw new JwtEncodingException("error encoding the jwt with the provided key");
         }
