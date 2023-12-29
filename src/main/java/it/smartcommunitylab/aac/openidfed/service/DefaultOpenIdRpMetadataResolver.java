@@ -22,17 +22,23 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.Scope;
+import com.nimbusds.oauth2.sdk.util.JSONArrayUtils;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatementClaimsSet;
 import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
+import com.nimbusds.openid.connect.sdk.federation.trust.marks.TrustMarkEntry;
 import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
+import groovyjarjarantlr4.v4.parse.ANTLRParser.rulePrequels_return;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfigMap;
 import java.net.URI;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,10 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -55,9 +63,15 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
     private static final int VALIDITY_SECONDS = 3600;
     private int validitySeconds = VALIDITY_SECONDS;
 
+    private RealmAwareUriBuilder realmAwareUriBuilder;
+
     public void setValiditySeconds(int validitySeconds) {
         Assert.isTrue(validitySeconds > 30, "validity must be >=30 seconds");
         this.validitySeconds = validitySeconds;
+    }
+
+    public void setRealmAwareUriBuilder(RealmAwareUriBuilder realmAwareUriBuilder) {
+        this.realmAwareUriBuilder = realmAwareUriBuilder;
     }
 
     public String resolveEntityMetadata(OpenIdFedIdentityProviderConfig config, HttpServletRequest request) {
@@ -83,6 +97,7 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             JWK federationKey = config.getFederationJWK();
             JWKSet federationJwks = new JWKSet(federationKey);
 
+            //authority hints
             List<EntityID> authorities = map.getAuthorityHints() != null
                 ? map.getAuthorityHints().stream().map(EntityID::new).collect(Collectors.toList())
                 : Collections.emptyList();
@@ -96,6 +111,28 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             );
 
             claims.setAuthorityHints(authorities);
+
+            //trust marks
+            if (StringUtils.hasText(map.getTrustMarks())) {
+                try {
+                    //we expect an array
+                    List<TrustMarkEntry> trustMarks = new ArrayList<>();
+                    List<JSONObject> list = JSONArrayUtils
+                        .parse(map.getTrustMarks())
+                        .stream()
+                        .filter(e -> e instanceof JSONObject)
+                        .map(e -> (JSONObject) e)
+                        .collect(Collectors.toList());
+
+                    for (JSONObject obj : list) {
+                        trustMarks.add(TrustMarkEntry.parse(obj));
+                    }
+
+                    claims.setTrustMarks(trustMarks);
+                } catch (ParseException e) {
+                    throw new JOSEException("invalid trust_marks");
+                }
+            }
 
             // client metadata
             JWKSet clientJwks = config.getClientJWKSet();
@@ -139,10 +176,17 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             FederationEntityMetadata federation = new FederationEntityMetadata();
             federation.setOrganizationName(map.getOrganizationName());
             federation.setContacts(map.getContacts());
-            //TODO set realm login as homepage
-            federation.setHomepageURI(null);
-            //TODO set realm logo
-            federation.setLogoURI(null);
+
+            if (realmAwareUriBuilder != null) {
+                String loginUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "login");
+                String logoUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "logo");
+
+                // set realm login as homepage
+                federation.setHomepageURI(URI.create(loginUrl));
+                // set realm logo
+                federation.setLogoURI(URI.create(logoUrl));
+            }
+
             federation.setFederationResolveEndpointURI(expandRedirectUri(baseUrl, config.getRedirectUrl(), "resolve"));
             claims.setFederationEntityMetadata(federation);
 
