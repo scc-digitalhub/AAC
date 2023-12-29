@@ -31,7 +31,6 @@ import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatementClaims
 import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import com.nimbusds.openid.connect.sdk.federation.trust.marks.TrustMarkEntry;
 import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
-import groovyjarjarantlr4.v4.parse.ANTLRParser.rulePrequels_return;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;

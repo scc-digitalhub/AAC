@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.springframework.data.util.Pair;
-import org.springframework.util.Assert;
 
 public class CachingEntityStatementResolver extends DefaultEntityStatementResolver {
 

@@ -16,16 +16,13 @@
 
 package it.smartcommunitylab.aac.openidfed.resolvers;
 
-import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.trust.ResolveException;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
-import java.util.List;
 
 /**
  * OpenId provider operations
  */
 public interface OpenIdProviderResolver {
     public OIDCProviderMetadata resolveOpenIdProvider(String trustAnchor, String entityId) throws ResolveException;
-
     // public List<EntityID> listOpenIdProviders(String trustAnchor, String entityId) throws ResolveException;
 }

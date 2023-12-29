@@ -30,7 +30,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
-import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -44,12 +43,9 @@ public class OpenIdFedClientRegistrationRepository implements ClientRegistration
     private final OpenIdProviderDiscoveryService discoveryService;
 
     //use base64 encoders for entityIds by default
-    private UnaryOperator<String> decoder = value -> {
-        return new String(Base64.getUrlDecoder().decode(value.getBytes()));
-    };
-    private UnaryOperator<String> encoder = value -> {
-        return Base64.getUrlEncoder().encodeToString(value.getBytes());
-    };
+    private UnaryOperator<String> decoder = value -> new String(Base64.getUrlDecoder().decode(value.getBytes()));
+
+    private UnaryOperator<String> encoder = value -> Base64.getUrlEncoder().encodeToString(value.getBytes());
 
     //TODO loading cache, must evaluate exp on federation metadata
 

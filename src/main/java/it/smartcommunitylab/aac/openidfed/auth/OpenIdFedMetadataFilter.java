@@ -80,6 +80,7 @@ public class OpenIdFedMetadataFilter extends OncePerRequestFilter {
         this.metadataResolver = metadataResolver;
     }
 
+    @Override
     @Nullable
     protected String getFilterName() {
         return getClass().getName() + "." + authorityId;

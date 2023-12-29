@@ -31,23 +31,16 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.service.DefaultOpenIdRpMetadataResolver;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
-import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -266,10 +259,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
                 //oidc
                 .claim(OidcParameterNames.NONCE, additionalParameters.get(OidcParameterNames.NONCE))
                 //pkce
-                .claim(
-                    PkceParameterNames.CODE_CHALLENGE,
-                    additionalParameters.get(PkceParameterNames.CODE_CHALLENGE)
-                )
+                .claim(PkceParameterNames.CODE_CHALLENGE, additionalParameters.get(PkceParameterNames.CODE_CHALLENGE))
                 .claim(
                     PkceParameterNames.CODE_CHALLENGE_METHOD,
                     additionalParameters.get(PkceParameterNames.CODE_CHALLENGE_METHOD)

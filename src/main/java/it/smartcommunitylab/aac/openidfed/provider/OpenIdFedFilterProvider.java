@@ -84,8 +84,6 @@ public class OpenIdFedFilterProvider implements FilterProvider {
             buildFilterUrl("resolve/{providerId}")
         );
 
-        //        OAuth2AuthorizationRequestRedirectFilter redirectFilter = new OAuth2AuthorizationRequestRedirectFilter(
-        //                clientRegistrationRepository, OpenIdFedIdentityAuthority.AUTHORITY_URL + "authorize");
         OpenIdFedRedirectAuthenticationFilter redirectFilter = new OpenIdFedRedirectAuthenticationFilter(
             authorityId,
             registrationRepository,
@@ -100,8 +98,6 @@ public class OpenIdFedFilterProvider implements FilterProvider {
             null
         );
         loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
-        // TODO use custom success handler to support auth sagas (disabled for now)
-        //        loginFilter.setAuthenticationSuccessHandler(new RequestAwareAuthenticationSuccessHandler();
 
         if (authManager != null) {
             loginFilter.setAuthenticationManager(authManager);

@@ -30,7 +30,6 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAccountPrincipalConverter;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAttributeProvider;
-import it.smartcommunitylab.aac.oidc.provider.OIDCLoginProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCSubjectResolver;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
 import it.smartcommunitylab.aac.openidfed.model.OpenIdFedLogin;
