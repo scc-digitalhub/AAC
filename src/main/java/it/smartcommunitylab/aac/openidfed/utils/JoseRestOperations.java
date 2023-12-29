@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.openidfed.utils;
 
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -42,6 +43,37 @@ public class JoseRestOperations extends RestTemplate {
         //build jwt converter
         HttpMessageConverter<?> jwtHttpMessageConverter = new JwtJacksonHttpMessageConverter(
             jwksUri,
+            jweKey,
+            jweAlgorithm,
+            jweMethod
+        );
+
+        //add to default converters
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.addAll(getMessageConverters());
+        converters.add(jwtHttpMessageConverter);
+
+        setMessageConverters(converters);
+    }
+
+    public JoseRestOperations(JWKSet jwks) {
+        super();
+        //build jwt converter
+        HttpMessageConverter<?> jwtHttpMessageConverter = new JwtJacksonHttpMessageConverter(jwks);
+
+        //add to default converters
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        converters.addAll(getMessageConverters());
+        converters.add(jwtHttpMessageConverter);
+
+        setMessageConverters(converters);
+    }
+
+    public JoseRestOperations(JWKSet jwks, JWK jweKey, String jweAlgorithm, String jweMethod) {
+        super();
+        //build jwt converter
+        HttpMessageConverter<?> jwtHttpMessageConverter = new JwtJacksonHttpMessageConverter(
+            jwks,
             jweKey,
             jweAlgorithm,
             jweMethod

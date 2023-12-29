@@ -22,6 +22,8 @@ import it.smartcommunitylab.aac.openidfed.service.OpenIdProviderDiscoveryService
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -104,8 +106,24 @@ public class OpenIdFedClientRegistrationRepository implements ClientRegistration
             return null;
         }
 
-        //autoconf via builder,
-        ClientRegistration.Builder builder = ClientRegistrations.fromIssuerLocation(metadata.getIssuer().getValue());
+        //set registrationId and build a registration
+        String registrationId = encoder.apply(metadata.getIssuer().getValue());
+        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId(registrationId);
+
+        //use op metadata as-is
+        builder
+            .providerConfigurationMetadata(new LinkedHashMap<>(metadata.toJSONObject()))
+            .authorizationUri(
+                metadata.getAuthorizationEndpointURI() != null
+                    ? metadata.getAuthorizationEndpointURI().toASCIIString()
+                    : null
+            )
+            .tokenUri(metadata.getTokenEndpointURI().toASCIIString())
+            .issuerUri(metadata.getIssuer().getValue())
+            .userInfoUri(
+                metadata.getUserInfoEndpointURI() != null ? metadata.getUserInfoEndpointURI().toASCIIString() : null
+            )
+            .jwkSetUri(metadata.getJWKSetURI() != null ? metadata.getJWKSetURI().toASCIIString() : null);
 
         //we support only automatic registration with private keys for now
         ClientAuthenticationMethod clientAuthenticationMethod = ClientAuthenticationMethod.PRIVATE_KEY_JWT;
@@ -125,16 +143,13 @@ public class OpenIdFedClientRegistrationRepository implements ClientRegistration
 
         // we support only authCode
         builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
+
         // add our redirect template
         builder.redirectUri(redirectUriTemplate);
 
         // set a placeholder for client id
         builder.clientId("_CLIENT_ID_");
         builder.clientName(configMap.getClientName());
-
-        //set registrationId
-        String registrationId = encoder.apply(metadata.getIssuer().getValue());
-        builder.registrationId(registrationId);
 
         return builder.build();
     }

@@ -87,7 +87,13 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
     public JwtJacksonHttpMessageConverter(String jwksUri) {
         super(Map.class, Arrays.asList(SUPPORTED_MEDIA_TYPES), objectMapper);
         Assert.hasText(jwksUri, "jwks set uri is required");
-        decoder = new JwkSetUriJwtDecoderBuilder(jwksUri).build();
+        decoder = new JwtDecoderBuilder().jwksUri(jwksUri).build();
+    }
+
+    public JwtJacksonHttpMessageConverter(JWKSet jwks) {
+        super(Map.class, Arrays.asList(SUPPORTED_MEDIA_TYPES), objectMapper);
+        Assert.notNull(jwks, "jwks is required");
+        decoder = new JwtDecoderBuilder().jwks(jwks).build();
     }
 
     public JwtJacksonHttpMessageConverter(String jwksUri, JWK jweKey, String jweAlgorithm, String jweMethod) {
@@ -98,7 +104,24 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
         Assert.hasText(jweMethod, "jweMethod is required");
 
         decoder =
-            new JwkSetUriJwtDecoderBuilder(jwksUri)
+            new JwtDecoderBuilder()
+                .jwksUri(jwksUri)
+                .jweKey(jweKey)
+                .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
+                .jweMethod(EncryptionMethod.parse(jweMethod))
+                .build();
+    }
+
+    public JwtJacksonHttpMessageConverter(JWKSet jwks, JWK jweKey, String jweAlgorithm, String jweMethod) {
+        super(Map.class, Arrays.asList(SUPPORTED_MEDIA_TYPES), objectMapper);
+        Assert.notNull(jweKey, "jwe key is required");
+        Assert.notNull(jwks, "jwks uri is required");
+        Assert.hasText(jweAlgorithm, "jweAlgorithm is required");
+        Assert.hasText(jweMethod, "jweMethod is required");
+
+        decoder =
+            new JwtDecoderBuilder()
+                .jwks(jwks)
                 .jweKey(jweKey)
                 .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
                 .jweMethod(EncryptionMethod.parse(jweMethod))
@@ -162,9 +185,10 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
      * <a target="_blank" href="https://tools.ietf.org/html/rfc7517#section-5">JWK Set</a>
      * uri.
      */
-    public static final class JwkSetUriJwtDecoderBuilder {
+    public static final class JwtDecoderBuilder {
 
         private String jwkSetUri;
+        private JWKSet jwks;
 
         private Set<SignatureAlgorithm> signatureAlgorithms = new HashSet<>();
         private JWK encKey;
@@ -177,10 +201,14 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
 
         private Consumer<ConfigurableJWTProcessor<SecurityContext>> jwtProcessorCustomizer;
 
-        private JwkSetUriJwtDecoderBuilder(String jwkSetUri) {
+        private JwtDecoderBuilder() {
+            this.jwtProcessorCustomizer = processor -> {};
+        }
+
+        public JwtDecoderBuilder jwksUri(String jwkSetUri) {
             Assert.hasText(jwkSetUri, "jwkSetUri cannot be empty");
             this.jwkSetUri = jwkSetUri;
-            this.jwtProcessorCustomizer = processor -> {};
+            return this;
         }
 
         /**
@@ -188,9 +216,9 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
          * <a href="https://tools.ietf.org/html/rfc7515#section-4.1.1" target=
          * "_blank">algorithm</a> to the set of algorithms to use.
          * @param signatureAlgorithm the algorithm to use
-         * @return a {@link JwkSetUriJwtDecoderBuilder} for further configurations
+         * @return a {@link JwtDecoderBuilder} for further configurations
          */
-        public JwkSetUriJwtDecoderBuilder jwsAlgorithm(SignatureAlgorithm signatureAlgorithm) {
+        public JwtDecoderBuilder jwsAlgorithm(SignatureAlgorithm signatureAlgorithm) {
             Assert.notNull(signatureAlgorithm, "signatureAlgorithm cannot be null");
             this.signatureAlgorithms.add(signatureAlgorithm);
             return this;
@@ -202,27 +230,33 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
          * "_blank">algorithms</a> to use with the given {@link Consumer}.
          * @param signatureAlgorithmsConsumer a {@link Consumer} for further configuring
          * the algorithm list
-         * @return a {@link JwkSetUriJwtDecoderBuilder} for further configurations
+         * @return a {@link JwtDecoderBuilder} for further configurations
          */
-        public JwkSetUriJwtDecoderBuilder jwsAlgorithms(Consumer<Set<SignatureAlgorithm>> signatureAlgorithmsConsumer) {
+        public JwtDecoderBuilder jwsAlgorithms(Consumer<Set<SignatureAlgorithm>> signatureAlgorithmsConsumer) {
             Assert.notNull(signatureAlgorithmsConsumer, "signatureAlgorithmsConsumer cannot be null");
             signatureAlgorithmsConsumer.accept(this.signatureAlgorithms);
             return this;
         }
 
-        public JwkSetUriJwtDecoderBuilder jweAlgorithm(JWEAlgorithm encAlgorithm) {
+        public JwtDecoderBuilder jwks(JWKSet jwks) {
+            Assert.notNull(jwks, "jwks cannot be null");
+            this.jwks = jwks;
+            return this;
+        }
+
+        public JwtDecoderBuilder jweAlgorithm(JWEAlgorithm encAlgorithm) {
             Assert.notNull(encAlgorithm, "encAlgorithm cannot be null");
             this.encAlgorithm = encAlgorithm;
             return this;
         }
 
-        public JwkSetUriJwtDecoderBuilder jweMethod(EncryptionMethod encMethod) {
+        public JwtDecoderBuilder jweMethod(EncryptionMethod encMethod) {
             Assert.notNull(encMethod, "encMethod cannot be null");
             this.encMethod = encMethod;
             return this;
         }
 
-        public JwkSetUriJwtDecoderBuilder jweKey(JWK encKey) {
+        public JwtDecoderBuilder jweKey(JWK encKey) {
             Assert.notNull(encKey, "encKey cannot be null");
             this.encKey = encKey;
             return this;
@@ -237,7 +271,7 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
          * @param restOperations
          * @return
          */
-        public JwkSetUriJwtDecoderBuilder restOperations(RestOperations restOperations) {
+        public JwtDecoderBuilder restOperations(RestOperations restOperations) {
             Assert.notNull(restOperations, "restOperations cannot be null");
             this.restOperations = restOperations;
             return this;
@@ -247,10 +281,10 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
          * Use the given {@link Cache} to store
          * <a href="https://tools.ietf.org/html/rfc7517#section-5">JWK Set</a>.
          * @param cache the {@link Cache} to be used to store JWK Set
-         * @return a {@link JwkSetUriJwtDecoderBuilder} for further configurations
+         * @return a {@link JwtDecoderBuilder} for further configurations
          * @since 5.4
          */
-        public JwkSetUriJwtDecoderBuilder cache(Cache cache) {
+        public JwtDecoderBuilder cache(Cache cache) {
             Assert.notNull(cache, "cache cannot be null");
             this.cache = cache;
             return this;
@@ -261,10 +295,10 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
          * ConfigurableJWTProcessor} before passing it to the build
          * {@link NimbusJwtDecoder}.
          * @param jwtProcessorCustomizer the callback used to alter the processor
-         * @return a {@link JwkSetUriJwtDecoderBuilder} for further configurations
+         * @return a {@link JwtDecoderBuilder} for further configurations
          * @since 5.4
          */
-        public JwkSetUriJwtDecoderBuilder jwtProcessorCustomizer(
+        public JwtDecoderBuilder jwtProcessorCustomizer(
             Consumer<ConfigurableJWTProcessor<SecurityContext>> jwtProcessorCustomizer
         ) {
             Assert.notNull(jwtProcessorCustomizer, "jwtProcessorCustomizer cannot be null");
@@ -307,15 +341,23 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
         }
 
         JWTProcessor<SecurityContext> processor() {
-            ResourceRetriever jwkSetRetriever = new RestOperationsResourceRetriever(this.restOperations);
-            JWKSource<SecurityContext> jwkSource = jwkSource(jwkSetRetriever);
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-            jwtProcessor.setJWSKeySelector(jwsKeySelector(jwkSource));
+
+            if (this.jwkSetUri != null) {
+                ResourceRetriever jwkSetRetriever = new RestOperationsResourceRetriever(this.restOperations);
+                JWKSource<SecurityContext> jwkSource = jwkSource(jwkSetRetriever);
+                jwtProcessor.setJWSKeySelector(jwsKeySelector(jwkSource));
+                jwtProcessor.setJWEKeySelector(jwePublicKeySelector(jwkSource));
+            }
+
+            if (this.jwks != null) {
+                JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(this.jwks);
+                jwtProcessor.setJWSKeySelector(jwsKeySelector(jwkSource));
+                jwtProcessor.setJWEKeySelector(jwePublicKeySelector(jwkSource));
+            }
 
             if (this.encKey != null && this.encAlgorithm != null && this.encMethod != null) {
                 jwtProcessor.setJWEKeySelector(jwePrivateKeySelector(new ImmutableJWKSet<>(new JWKSet(encKey))));
-            } else {
-                jwtProcessor.setJWEKeySelector(jwePublicKeySelector(jwkSource));
             }
 
             // Spring Security validates the claim set independent from Nimbus

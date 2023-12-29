@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.openidfed.provider;
 
 import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
@@ -35,10 +37,12 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.openidfed.utils.JoseRestOperations;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -52,6 +56,7 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResp
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -167,20 +172,62 @@ public class OpenIdFedAuthenticationProvider
             //TODO cache by registrationId
             DefaultOAuth2UserService oauth2UserService = new DefaultOAuth2UserService();
             String jwksUri = loginAuthenticationToken.getClientRegistration().getProviderDetails().getJwkSetUri();
+            JWKSet jwks = null;
+            try {
+                //try to parse jwks from metadata
+                Object value = loginAuthenticationToken
+                    .getClientRegistration()
+                    .getProviderDetails()
+                    .getConfigurationMetadata()
+                    .get("jwks");
 
-            //we expect a response encrypted with out public key, or just signed with op keys
-            JoseRestOperations restOperations = new JoseRestOperations(jwksUri);
-            if (
-                config.getConfigMap().getUserInfoJWEAlg() != null && config.getConfigMap().getUserInfoJWEEnc() != null
-            ) {
-                restOperations =
-                    new JoseRestOperations(
-                        jwksUri,
-                        config.getClientEncryptionJWK(),
-                        config.getConfigMap().getUserInfoJWEAlg().getValue(),
-                        config.getConfigMap().getUserInfoJWEEnc().getValue()
-                    );
+                if (value instanceof JSONObject) {
+                    jwks = JWKSet.parse(((JSONObject) value).toJSONString());
+                }
+            } catch (ParseException e) {
+                logger.error("error reading jwks from metadata: " + e.getMessage(), e);
             }
+
+            JoseRestOperations restOperations = null;
+
+            if (StringUtils.hasText(jwksUri)) {
+                //we expect a response encrypted with out public key, or just signed with op keys
+                restOperations = new JoseRestOperations(jwksUri);
+                if (
+                    config.getConfigMap().getUserInfoJWEAlg() != null &&
+                    config.getConfigMap().getUserInfoJWEEnc() != null
+                ) {
+                    restOperations =
+                        new JoseRestOperations(
+                            jwksUri,
+                            config.getClientEncryptionJWK(),
+                            config.getConfigMap().getUserInfoJWEAlg().getValue(),
+                            config.getConfigMap().getUserInfoJWEEnc().getValue()
+                        );
+                }
+            }
+
+            if (!StringUtils.hasText(jwksUri) && jwks != null) {
+                //use jwks
+                restOperations = new JoseRestOperations(jwks);
+                if (
+                    config.getConfigMap().getUserInfoJWEAlg() != null &&
+                    config.getConfigMap().getUserInfoJWEEnc() != null
+                ) {
+                    restOperations =
+                        new JoseRestOperations(
+                            jwks,
+                            config.getClientEncryptionJWK(),
+                            config.getConfigMap().getUserInfoJWEAlg().getValue(),
+                            config.getConfigMap().getUserInfoJWEEnc().getValue()
+                        );
+                }
+            }
+
+            if (restOperations == null) {
+                throw new OAuth2AuthenticationException("invalid_request");
+            }
+
             oauth2UserService.setRestOperations(restOperations);
 
             //build oidc provider
@@ -194,6 +241,11 @@ public class OpenIdFedAuthenticationProvider
                 accessTokenResponseClient,
                 oidcUserService
             );
+
+            if (!StringUtils.hasText(jwksUri) && jwks != null) {
+                //TODO replace jwtDecoderFactory to support providers with jwks in place of jwksUri
+                oidcProvider.setJwtDecoderFactory(new OidcIdTokenDecoderFactory());
+            }
 
             // use a custom authorities mapper to cleanup authorities spring injects
             // default impl translates the whole oauth response as an authority..
