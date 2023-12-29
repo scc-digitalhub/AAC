@@ -24,12 +24,14 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.Scope;
+import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.util.JSONArrayUtils;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityID;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatement;
 import com.nimbusds.openid.connect.sdk.federation.entities.EntityStatementClaimsSet;
 import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import com.nimbusds.openid.connect.sdk.federation.trust.marks.TrustMarkEntry;
+import com.nimbusds.openid.connect.sdk.rp.OIDCClientInformation;
 import com.nimbusds.openid.connect.sdk.rp.OIDCClientMetadata;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
@@ -135,7 +137,6 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
 
             // client metadata
             JWKSet clientJwks = config.getClientJWKSet();
-
             OIDCClientMetadata metadata = new OIDCClientMetadata();
             metadata.setName(map.getClientName());
             metadata.setEmailContacts(map.getContacts());
@@ -160,16 +161,16 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
                 metadata.setUserInfoJWEEnc(EncryptionMethod.parse(map.getUserInfoJWEEnc().getValue()));
             }
 
-            //use a custom field for client_id because we lack support
-            metadata.setCustomField("client_id", clientId);
-
             // build uri
             metadata.setRedirectionURI(expandRedirectUri(baseUrl, config.getRedirectUrl(), "login"));
             metadata.setTokenEndpointAuthMethod(config.getClientAuthenticationMethod());
 
             metadata.setJWKSet(clientJwks.toPublicJWKSet());
             metadata.setSubjectType(config.getSubjectType());
-            claims.setRPMetadata(metadata);
+
+            //build extended client information
+            OIDCClientInformation info = new OIDCClientInformation(new ClientID(clientId), metadata);
+            claims.setRPInformation(info);
 
             //federation entity
             FederationEntityMetadata federation = new FederationEntityMetadata();
