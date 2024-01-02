@@ -180,11 +180,14 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             if (realmAwareUriBuilder != null) {
                 String loginUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "login");
                 String logoUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "logo");
+                String termsUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "terms");
 
                 // set realm login as homepage
                 federation.setHomepageURI(URI.create(loginUrl));
                 // set realm logo
                 federation.setLogoURI(URI.create(logoUrl));
+                // set terms as policy
+                federation.setPolicyURI(URI.create(termsUrl));
             }
 
             federation.setFederationResolveEndpointURI(expandRedirectUri(baseUrl, config.getRedirectUrl(), "resolve"));
