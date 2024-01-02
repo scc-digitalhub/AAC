@@ -47,6 +47,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private PersistenceMode persistence;
     private String events;
     private Integer position;
+    private String template;
 
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
@@ -81,6 +82,14 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
 
     public void setPosition(Integer position) {
         this.position = position;
+    }
+
+    public String getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(String template) {
+        this.template = template;
     }
 
     public Map<String, String> getHookFunctions() {

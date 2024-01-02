@@ -16,11 +16,14 @@
 
 package it.smartcommunitylab.aac.core.auth;
 
+import groovyjarjarantlr4.v4.parse.ANTLRParser.throwsSpec_return;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
+import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import java.time.Instant;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
@@ -43,7 +46,9 @@ public abstract class ExtendedAuthenticationProvider<P extends UserAuthenticated
         // subclasses should implement the validation
         // TODO implement preAuthChecks
         Authentication authResponse = doAuthenticate(authentication);
-
+        if (authResponse == null) {
+            throw new LoginException(new AuthenticationServiceException("invalid auth response"));
+        }
         // TODO implement postAuthChecks
 
         // we expect a fully populated user principal

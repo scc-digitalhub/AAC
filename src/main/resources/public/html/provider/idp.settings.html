@@ -9,6 +9,10 @@
             </div>
             <div class="">
                 <legend class="mb-4">Display settings</legend>
+                <div class="form-group col">
+                    <input type="text" name="template" class="form-control form-control-sm" id="template" ng-model="idp.settings.template">
+                    <label for="template" class="{{idp.template != '' ? 'active' : ''}}">Template override</label>
+                </div>
 
                 <div class="form-group col ">
                     <div class="bootstrap-select-wrapper border-bottom-0">

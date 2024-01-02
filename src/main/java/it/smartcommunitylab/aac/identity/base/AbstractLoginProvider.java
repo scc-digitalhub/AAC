@@ -107,7 +107,7 @@ public abstract class AbstractLoginProvider implements LoginProvider, Comparable
     }
 
     public String getTitle(String lang) {
-        if (titleMap != null && lang != null) {
+        if (titleMap != null && lang != null && titleMap.get(lang) != null) {
             return titleMap.get(lang);
         }
 

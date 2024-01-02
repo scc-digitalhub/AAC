@@ -364,7 +364,7 @@ angular.module('aac.controllers.realmproviders', [])
             $('#' + $scope.providerAuthority + 'Modal').modal('hide');
 
             // HOOK: OIDC contains scopes to be converted to string
-            if ($scope.providerAuthority === 'oidc' && $scope.provider.scope) {
+            if ($scope.providerAuthority === 'oidc' || $scope.providerAuthority === 'openidfed'  && $scope.provider.scope) {
                 $scope.provider.scope = $scope.provider.scope.map(function (s) { return s.text }).join(',');
             }
             var name = $scope.provider.name;
@@ -586,14 +586,57 @@ angular.module('aac.controllers.realmproviders', [])
         var initConfiguration = function (authority, config, schema) {
             if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = [];
-                toChips(config.scope).forEach(function (s) {
-                    scopes.push({ 'text': s });
-                });
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
                 $scope.idpOidcScope = scopes;
             }
 
-            if (authority == 'saml') {
+            if (authority == 'openidfed' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap')) {
+                var scopes = [];
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
+                $scope.openidfedScope = scopes;
 
+                var claims = [];
+                if(config.claims) {
+                    config.claims.forEach(function (s) {
+                        claims.push({ 'text': s });
+                    });
+                }
+                $scope.openidfedClaims = claims;
+
+                var authorityHints = [];
+                if(config.authorityHints) {
+                    config.authorityHints.forEach(function (t) {
+                        authorityHints.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedAuthorityHints = authorityHints;   
+                
+                var contacts = [];
+                if(config.contacts) {
+                    config.contacts.forEach(function (t) {
+                        contacts.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedContacts = contacts;                   
+                
+                var acrValues = [];
+                if(config.acrValues) {
+                    config.acrValues.forEach(function (t) {
+                        acrValues.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedAcrValues = acrValues;                 
+            }            
+
+            if (authority == 'saml') {
                 var authnContextClasses = [];
                 if (config.authnContextClasses) {
                     config.authnContextClasses.forEach(function (s) {
@@ -616,6 +659,48 @@ angular.module('aac.controllers.realmproviders', [])
                 });
                 config.scope = scopes.join(',');
             }
+            if (authority == 'openidfed' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap')) {
+                console.log('dump',$scope);
+                var scopes = $scope.openidfedScope.map(function (s) {
+                    if ('text' in s) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                config.scope = scopes.join(',');
+
+                var claims = $scope.openidfedClaims.map(function (c) {
+                    if ('text' in c) {
+                        return c.text;
+                    }
+                    return c;
+                });
+                config.claims = claims;               
+
+                var authorityHints = $scope.openidfedAuthorityHints.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.authorityHints = authorityHints;        
+                
+                var contacts = $scope.openidfedContacts.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.contacts = contacts;        
+                                
+                var acrValues = $scope.openidfedAcrValues.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.acrValues = acrValues;           
+            }            
             if (authority == 'saml') {
                 var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
                     if ('text' in s) {
@@ -666,6 +751,10 @@ angular.module('aac.controllers.realmproviders', [])
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
             }
+            if (data.authority == 'openidfed' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap') {
+                var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
+                $scope.openidfedMetadataUrl = metadataUrl;
+            }
 
         };
 
@@ -698,6 +787,7 @@ angular.module('aac.controllers.realmproviders', [])
                 linkable: provider.settings.linkable,
                 events: provider.settings.events,
                 position: provider.settings.position,
+                template: provider.settings.template,
                 hookFunctions: hookFunctions
             }
 

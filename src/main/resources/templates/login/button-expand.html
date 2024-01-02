@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+  <head th:fragment="header"> </head>
+
+  <body>
+    <div th:fragment="login">
+      <p
+        th:if="${authority.getDescription(#locale.language) != null}"
+        th:text="${authority.getDescription(#locale.language)}"
+      ></p>
+
+      <!-- no entries, default button with no action -->
+      <div th:if="${authority.entries.size() == 0}">
+        <a
+          class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login"
+          th:classAppend="${authority.cssClass}"
+          onclick=""
+        >
+          <span class="mr-3 pr-2 border-right" aria-hidden="true">
+            <svg class="icon icon-black icon-sm">
+              <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
+            </svg>
+          </span>
+          <span
+            class="text-black"
+            th:text="${authority.getTitle(#locale.language)}"
+          ></span>
+        </a>
+      </div>
+
+      <!-- single entry, show direct button  -->
+      <div
+        th:if="${authority.entries.size() == 1}"
+        th:with="entry=${authority.entries.get(0)}"
+      >
+        <a
+          class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login"
+          th:classAppend="${authority.cssClass}"
+          th:href="${authority.loginUrl + '/'+entry.registrationId}"
+        >
+          <span class="mr-3 pr-2 border-right" aria-hidden="true">
+            <svg
+              th:if="${entry.iconUrl != null}"
+              class="icon icon-black icon-sm"
+            >
+              <use th:xlink:href="@{/}+${entry.iconUrl}"></use>
+            </svg>
+            <svg
+              th:if="${entry.logoUrl != null}"
+              class="icon icon-black icon-sm"
+            >
+              <use th:xlink:href="${entry.logoUrl}"></use>
+            </svg>
+          </span>
+          <span class="text-black" th:text="${entry.organizationName}"></span>
+        </a>
+      </div>
+
+      <!-- multiple entries, dropdown button -->
+      <div th:if="${authority.entries.size() > 1}">
+        <a
+          th:each="entry: ${authority.entries}"
+          class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login"
+          th:classAppend="${authority.cssClass}"
+          th:href="${authority.loginUrl + '/'+entry.registrationId}"
+        >
+          <span class="mr-3 pr-2 border-right" aria-hidden="true">
+            <svg
+              th:if="${entry.iconUrl != null}"
+              class="icon icon-black icon-sm"
+            >
+              <use th:xlink:href="@{/}+${entry.iconUrl}"></use>
+            </svg>
+            <svg
+              th:if="${entry.logoUrl != null}"
+              class="icon icon-black icon-sm"
+            >
+              <use th:xlink:href="${entry.logoUrl}"></use>
+            </svg>
+          </span>
+          <span class="text-black" th:text="${entry.organizationName}"></span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

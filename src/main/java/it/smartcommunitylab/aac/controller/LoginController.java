@@ -244,17 +244,18 @@ public class LoginController {
             return c;
         });
 
-        // build a display list respecting display mode for ordering: form, button
-        // TODO rework with comparable on model
-        List<LoginProvider> loginAuthorities = new ArrayList<>();
-        loginAuthorities.addAll(
-            authorities.stream().filter(a -> a.getTemplate().endsWith("form")).collect(Collectors.toList())
-        );
-        loginAuthorities.addAll(
-            authorities.stream().filter(a -> "button".equals(a.getTemplate())).collect(Collectors.toList())
-        );
+        //DISABLE default ordering, rely on sort
+        // // build a display list respecting display mode for ordering: form, button
+        // // TODO rework with comparable on model
+        // List<LoginProvider> loginAuthorities = new ArrayList<>();
+        // loginAuthorities.addAll(
+        //     authorities.stream().filter(a -> a.getTemplate().endsWith("form")).collect(Collectors.toList())
+        // );
+        // loginAuthorities.addAll(
+        //     authorities.stream().filter(a -> "button".equals(a.getTemplate())).collect(Collectors.toList())
+        // );
 
-        model.addAttribute("authorities", loginAuthorities);
+        model.addAttribute("authorities", authorities);
 
         // get registration entries
         // TODO replace with model, with ordering etc
