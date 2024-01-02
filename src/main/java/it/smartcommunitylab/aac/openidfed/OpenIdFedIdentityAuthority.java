@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.openidfed;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
@@ -84,6 +85,11 @@ public class OpenIdFedIdentityAuthority
     @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
+    }
+
+    @Autowired
+    public void setRealmAwareUriBuilder(RealmAwareUriBuilder realmAwareUriBuilder) {
+        this.filterProvider.setRealmAwareUriBuilder(realmAwareUriBuilder);
     }
 
     @Override

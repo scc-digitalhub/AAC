@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.openidfed.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.openidfed.OpenIdFedIdentityAuthority;
@@ -24,6 +25,7 @@ import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedLoginAuthenticationFilte
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedMetadataFilter;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedRedirectAuthenticationFilter;
 import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedResolverFilter;
+import it.smartcommunitylab.aac.openidfed.service.DefaultOpenIdRpMetadataResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,6 +43,7 @@ public class OpenIdFedFilterProvider implements FilterProvider {
     private final ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository;
 
     private AuthenticationManager authManager;
+    private RealmAwareUriBuilder realmAwareUriBuilder;
 
     public OpenIdFedFilterProvider(ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository) {
         this(SystemKeys.AUTHORITY_OPENIDFED, registrationRepository);
@@ -61,6 +64,10 @@ public class OpenIdFedFilterProvider implements FilterProvider {
         this.authManager = authManager;
     }
 
+    public void setRealmAwareUriBuilder(RealmAwareUriBuilder realmAwareUriBuilder) {
+        this.realmAwareUriBuilder = realmAwareUriBuilder;
+    }
+
     @Override
     public String getAuthorityId() {
         return authorityId;
@@ -77,6 +84,12 @@ public class OpenIdFedFilterProvider implements FilterProvider {
             registrationRepository,
             buildFilterUrl("metadata/{providerId}")
         );
+
+        if (realmAwareUriBuilder != null) {
+            DefaultOpenIdRpMetadataResolver metadataResolver = new DefaultOpenIdRpMetadataResolver();
+            metadataResolver.setRealmAwareUriBuilder(realmAwareUriBuilder);
+            metadataFilter.setMetadataResolver(metadataResolver);
+        }
 
         OpenIdFedResolverFilter resolveFilter = new OpenIdFedResolverFilter(
             authorityId,
