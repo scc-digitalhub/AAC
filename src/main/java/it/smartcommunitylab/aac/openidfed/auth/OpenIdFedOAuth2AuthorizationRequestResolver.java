@@ -298,14 +298,23 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
             //optional OIDC parameters
             if (additionalParameters.containsKey(OidcParameterNames.ACR_VALUES)) {
                 claims.claim(OidcParameterNames.ACR_VALUES, additionalParameters.get(OidcParameterNames.ACR_VALUES));
+
+                //remove from parameters to avoid including as plain in request, we keep it only in request_obj
+                additionalParameters.remove(OidcParameterNames.ACR_VALUES);
             }
             if (additionalParameters.containsKey(OidcParameterNames.PROMPT)) {
                 claims.claim(OidcParameterNames.PROMPT, additionalParameters.get(OidcParameterNames.PROMPT));
+
+                //remove from parameters to avoid including as plain in request, we keep it only in request_obj
+                additionalParameters.remove(OidcParameterNames.PROMPT);
             }
 
             if (additionalParameters.containsKey(OidcParameterNames.CLAIMS)) {
                 //add individual claims also to request obj
                 claims.claim(OidcParameterNames.CLAIMS, additionalParameters.get(OidcParameterNames.CLAIMS));
+
+                //remove from parameters to avoid including as plain in request, we keep it only in request_obj
+                additionalParameters.remove(OidcParameterNames.CLAIMS);
             }
 
             SignedJWT jwt = new SignedJWT(header, claims.build());
