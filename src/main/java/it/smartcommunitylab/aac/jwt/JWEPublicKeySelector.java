@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openidfed.utils;
+package it.smartcommunitylab.aac.jwt;
 
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.KeySourceException;

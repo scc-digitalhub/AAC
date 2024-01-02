@@ -30,12 +30,13 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.jwt.JoseRestOperations;
 import it.smartcommunitylab.aac.oidc.OIDCKeys;
 import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationToken;
+import it.smartcommunitylab.aac.oidc.auth.OIDCIdTokenDecoderFactory;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.openidfed.utils.JoseRestOperations;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Collections;
@@ -49,6 +50,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
@@ -236,16 +238,12 @@ public class OpenIdFedAuthenticationProvider
             //always load user profile - hack
             //TODO evaluate if scopes OR claims are requested
             oidcUserService.setAccessibleScopes(Collections.singleton("openid"));
-
             OidcAuthorizationCodeAuthenticationProvider oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
                 accessTokenResponseClient,
                 oidcUserService
             );
-
-            if (!StringUtils.hasText(jwksUri) && jwks != null) {
-                //TODO replace jwtDecoderFactory to support providers with jwks in place of jwksUri
-                oidcProvider.setJwtDecoderFactory(new OidcIdTokenDecoderFactory());
-            }
+            // replace jwtDecoderFactory to support providers with jwks in place of jwksUri
+            oidcProvider.setJwtDecoderFactory(new OIDCIdTokenDecoderFactory());
 
             // use a custom authorities mapper to cleanup authorities spring injects
             // default impl translates the whole oauth response as an authority..
