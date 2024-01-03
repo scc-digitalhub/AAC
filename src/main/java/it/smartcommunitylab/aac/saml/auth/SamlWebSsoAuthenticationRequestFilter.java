@@ -63,9 +63,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
     //    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
 
-    private Saml2AuthenticationRequestRepository<
-        SerializableSaml2AuthenticationRequestContext
-    > authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
+    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
     public SamlWebSsoAuthenticationRequestFilter(
         ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
@@ -237,9 +235,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     }
 
     public void setAuthenticationRequestRepository(
-        Saml2AuthenticationRequestRepository<
-            SerializableSaml2AuthenticationRequestContext
-        > authenticationRequestRepository
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
     ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
