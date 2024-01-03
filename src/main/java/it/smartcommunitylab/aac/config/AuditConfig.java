@@ -16,14 +16,22 @@
 
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.audit.AuthenticationEventListener;
-import it.smartcommunitylab.aac.audit.AuthorizationEventListener;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import it.smartcommunitylab.aac.audit.ExtendedAuthenticationEventPublisher;
+import it.smartcommunitylab.aac.audit.listeners.AuthorizationEventListener;
+import it.smartcommunitylab.aac.audit.listeners.ClientAuthenticationEventListener;
+import it.smartcommunitylab.aac.audit.listeners.UserAuthenticationEventListener;
 import it.smartcommunitylab.aac.audit.store.AutoJdbcAuditEventStore;
+import it.smartcommunitylab.aac.audit.store.SignedAuditDataReader;
+import it.smartcommunitylab.aac.audit.store.SignedAuditDataWriter;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
+import it.smartcommunitylab.aac.jose.JWKSetKeyStore;
 import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +39,7 @@ import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.util.StringUtils;
 
 /*
  * Audit configuration
@@ -43,6 +52,18 @@ public class AuditConfig {
 
     @Autowired
     private DataSource dataSource;
+
+    @Value("${audit.issuer}")
+    private String issuer;
+
+    @Value("${audit.kid.sig}")
+    private String sigKid;
+
+    @Value("${audit.kid.enc}")
+    private String encKid;
+
+    @Autowired
+    private JWKSetKeyStore jwtKeyStore;
 
     @Bean(name = "applicationEventMulticaster")
     public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
@@ -77,15 +98,42 @@ public class AuditConfig {
 
     @Bean
     public AutoJdbcAuditEventStore auditEventRepository() {
-        return new AutoJdbcAuditEventStore(dataSource);
+        AutoJdbcAuditEventStore store = new AutoJdbcAuditEventStore(dataSource);
+
+        if (StringUtils.hasText(sigKid)) {
+            //build signed converters
+            JWK jwk = jwtKeyStore
+                .getKeys()
+                .stream()
+                .filter(j ->
+                    j.getKeyID().equals(sigKid) && (j.getKeyUse() == null || j.getKeyUse().equals(KeyUse.SIGNATURE))
+                )
+                .findFirst()
+                .orElse(null);
+
+            if (jwk != null) {
+                SignedAuditDataWriter writer = new SignedAuditDataWriter(issuer, jwk);
+                SignedAuditDataReader reader = new SignedAuditDataReader(issuer, jwtKeyStore.getJwkSet());
+
+                store.setWriter(writer);
+                store.setReader(reader);
+            }
+        }
+
+        return store;
     }
 
     @Bean
-    public AuthenticationEventListener authenticationEventListener(IdentityProviderService providerService) {
-        AuthenticationEventListener listener = new AuthenticationEventListener();
+    public UserAuthenticationEventListener userAuthenticationEventListener(IdentityProviderService providerService) {
+        UserAuthenticationEventListener listener = new UserAuthenticationEventListener();
         listener.setProviderService(providerService);
 
         return listener;
+    }
+
+    @Bean
+    public ClientAuthenticationEventListener clientAuthenticationEventListener() {
+        return new ClientAuthenticationEventListener();
     }
 
     @Bean

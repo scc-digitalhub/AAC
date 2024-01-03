@@ -14,57 +14,60 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit;
+package it.smartcommunitylab.aac.audit.model;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
-import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
-public class RealmAuditEvent extends AuditEvent {
+public class RealmAuditEvent extends ExtendedAuditEvent {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private static final String REALM_KEY = "realm";
+    public static final String[] KEYS = { REALM_KEY };
 
-    private final String realm;
+    public RealmAuditEvent(
+        String realm,
+        Instant timestamp,
+        String principal,
+        String type,
+        Map<String, Object> attributes
+    ) {
+        super(timestamp, principal, type, buildData(realm, attributes));
+    }
 
-    public RealmAuditEvent(String realm, Instant timestamp, String principal, String type, Map<String, Object> data) {
+    public RealmAuditEvent(Instant timestamp, String principal, String type, Map<String, Object> data) {
         super(timestamp, principal, type, data);
+    }
+
+    static Map<String, Object> buildData(@Nullable String realm, Map<String, Object> initialData) {
         Assert.notNull(realm, "realm can not be null");
-        this.realm = realm;
+        return buildData(initialData, KEYS, new Object[] { realm });
     }
 
     public String getRealm() {
-        return realm;
+        return getAsString(REALM_KEY);
+    }
+
+    @Override
+    protected Collection<String> getKeys() {
+        return Arrays.asList(KEYS);
     }
 
     @Override
     public String toString() {
         return (
             "RealmAuditEvent [realm=" +
-            realm +
+            getRealm() +
+            ", type=" +
+            getType() +
             ", timestamp=" +
             getTimestamp() +
             ", principal=" +
             getPrincipal() +
-            ", type=" +
-            getType() +
-            ", data=" +
-            getData() +
             "]"
         );
-    }
-
-    public String getId() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getTimestamp());
-        if (getPrincipal() != null) {
-            sb.append("-").append(getPrincipal());
-        }
-        return sb.toString();
-    }
-
-    public long getTime() {
-        return getTimestamp() != null ? getTimestamp().getEpochSecond() * 1000 : -1;
     }
 }

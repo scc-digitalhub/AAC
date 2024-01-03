@@ -95,6 +95,13 @@ jwt:
       includeInternalRoles: false
       includeResourceRoles: false
 
+# AUDIT
+audit:
+   issuer: ${AUDIT_ISSUER:${application.url}}
+   kid:
+      sig: ${AUDIT_KID_SIG:}         
+      enc: ${AUDIT_KID_ENC:}
+
 #EXTERNAL PROVIDERS
 authorities:
   account:

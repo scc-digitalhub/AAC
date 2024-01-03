@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit;
+package it.smartcommunitylab.aac.audit.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.AuditManager;
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import java.util.Collection;
 import java.util.Date;

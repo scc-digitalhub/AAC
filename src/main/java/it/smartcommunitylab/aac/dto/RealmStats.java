@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.dto;
 
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.model.Realm;
 import java.util.List;
 

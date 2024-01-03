@@ -17,7 +17,8 @@
 package it.smartcommunitylab.aac.oidc.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.audit.UserAuthenticationFailureEvent;
+import it.smartcommunitylab.aac.audit.events.UserAuthenticationFailureEvent;
+
 import java.io.Serializable;
 import java.util.Map;
 import org.springframework.security.core.Authentication;

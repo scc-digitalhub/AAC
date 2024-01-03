@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit;
+package it.smartcommunitylab.aac.audit.listeners;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +35,12 @@ public class AuthorizationEventListener extends AbstractAuthorizationAuditListen
         // each request without authentication triggers an unauthorized event which ends
         // in store, we don't want those in db
         try {
-            if (event instanceof AuthorizationFailureEvent) {
-                AuthorizationFailureEvent failureEvent = (AuthorizationFailureEvent) event;
-
-                if (logger.isTraceEnabled()) {
-                    failureEvent.getAccessDeniedException().printStackTrace();
-                }
-            }
+            // if (event instanceof AuthorizationFailureEvent) {
+            //     AuthorizationFailureEvent failureEvent = (AuthorizationFailureEvent) event;
+            //     // if (logger.isTraceEnabled()) {
+            //     //     failureEvent.getAccessDeniedException().printStackTrace();
+            //     // }
+            // }
 
             logger.trace("authorization event " + event.toString());
         } catch (Exception e) {

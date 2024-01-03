@@ -17,10 +17,12 @@
 package it.smartcommunitylab.aac.audit;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,7 +88,11 @@ public class AuditManager {
             " before " +
             String.valueOf(b)
         );
-        return auditStore.findByRealm(realm, a, b, type);
+        return auditStore
+            .findByRealm(realm, a, b, type)
+            .stream()
+            .map(e -> new RealmAuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), e.getData()))
+            .collect(Collectors.toList());
     }
 
     public List<AuditEvent> findPrincipalEvents(String realm, String principal, String type, Date after, Date before) {

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit;
+package it.smartcommunitylab.aac.audit.events;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.model.Subject;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.util.Assert;
 
@@ -32,9 +33,11 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
     private final String authority;
     private final String provider;
     private final String realm;
+    private final Subject subject;
 
     public UserAuthenticationSuccessEvent(String authority, String provider, String realm, UserAuthentication auth) {
         super(auth);
+        Assert.notNull(auth, "user auth is required");
         Assert.hasText(authority, "authority is required");
         Assert.notNull(provider, "provider is required");
         Assert.notNull(realm, "realm is required");
@@ -42,9 +45,10 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
         this.authority = authority;
         this.provider = provider;
         this.realm = realm;
+        this.subject = auth.getSubject();
     }
 
-    public UserAuthentication getAuthenticationToken() {
+    public UserAuthentication getUserAuthentication() {
         return (UserAuthentication) super.getAuthentication();
     }
 
@@ -60,7 +64,11 @@ public class UserAuthenticationSuccessEvent extends AuthenticationSuccessEvent {
         return realm;
     }
 
+    public Subject getSubject() {
+        return subject;
+    }
+
     public WebAuthenticationDetails getDetails() {
-        return getAuthenticationToken().getWebAuthenticationDetails();
+        return getUserAuthentication().getWebAuthenticationDetails();
     }
 }

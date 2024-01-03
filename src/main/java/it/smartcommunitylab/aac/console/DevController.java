@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.AuditManager;
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.clients.ClientManager;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;

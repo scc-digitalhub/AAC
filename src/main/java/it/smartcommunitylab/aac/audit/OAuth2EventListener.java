@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.event.OAuth2AuthorizationExceptionEvent;
 import it.smartcommunitylab.aac.oauth.event.OAuth2Event;
