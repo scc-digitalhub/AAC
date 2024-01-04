@@ -25,10 +25,10 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
 
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
-    private String relyingPartyRegistrationId;
-    private String issuer;
-    private String relayState;
-    private AbstractSaml2AuthenticationRequest samlAuthenticationRequest;
+    private final String relyingPartyRegistrationId;
+    private final String issuer;
+    private final String relayState;
+    private final AbstractSaml2AuthenticationRequest samlAuthenticationRequest;
 
     public SerializableSaml2AuthenticationRequestContext(
         String relyingPartyRegistrationId,
@@ -54,31 +54,16 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
         return relyingPartyRegistrationId;
     }
 
-    public void setRelyingPartyRegistrationId(String relyingPartyRegistrationId) {
-        this.relyingPartyRegistrationId = relyingPartyRegistrationId;
-    }
-
     public String getIssuer() {
         return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
     }
 
     public String getRelayState() {
         return relayState;
     }
 
-    public void setRelayState(String relayState) {
-        this.relayState = relayState;
-    }
-
     public AbstractSaml2AuthenticationRequest getSamlAuthenticationRequest() {
         return samlAuthenticationRequest;
     }
 
-    public void setSamlAuthenticationRequest(AbstractSaml2AuthenticationRequest samlAuthenticationRequest) {
-        this.samlAuthenticationRequest = samlAuthenticationRequest;
-    }
 }
