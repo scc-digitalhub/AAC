@@ -243,6 +243,15 @@ public class SamlAuthenticationProvider
             // TODO wrap response token and erase credentials etc
             return auth;
         } catch (Saml2AuthenticationException e) {
+            logger.error(
+                String.format(
+                    "exception occurred when authenticating with saml provider %s - %s - %s",
+                    getProvider(),
+                    e.getSaml2Error().toString(),
+                    e.getMessage()
+                ),
+                e
+            );
             throw new SamlAuthenticationException(e.getSaml2Error(), e.getMessage(), null, saml2Response);
         }
     }
