@@ -183,11 +183,11 @@ public class OpenIdFedAuthenticationProvider
 
             return auth;
         } catch (OAuth2AuthenticationException e) {
-            logger.error(
+            logger.debug(
                 String.format(
                     "exception occurred when authenticating with openid federation provider %s - %s - %s",
                     getProvider(),
-                    e.getError().toString(),
+                    e.getError(),
                     e.getMessage()
                 ),
                 e

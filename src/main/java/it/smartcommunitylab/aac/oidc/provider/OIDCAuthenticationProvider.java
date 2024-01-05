@@ -253,11 +253,11 @@ public class OIDCAuthenticationProvider
 
             return auth;
         } catch (OAuth2AuthenticationException e) {
-            logger.error(
+            logger.debug(
                 String.format(
                     "exception occurred when authenticating with OIDC provider %s - %s - %s",
                     getProvider(),
-                    e.getError().toString(),
+                    e.getError(),
                     e.getMessage()
                 ),
                 e
