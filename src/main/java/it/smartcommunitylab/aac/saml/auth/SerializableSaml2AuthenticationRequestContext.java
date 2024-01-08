@@ -66,4 +66,16 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
         return samlAuthenticationRequest;
     }
 
+    @Override
+    public String toString() {
+        return (
+            "SerializableSaml2AuthenticationRequestContext [relyingPartyRegistrationId=" +
+            relyingPartyRegistrationId +
+            ", issuer=" +
+            issuer +
+            ", relayState=" +
+            relayState +
+            "]"
+        );
+    }
 }
