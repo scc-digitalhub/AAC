@@ -16,6 +16,9 @@
 
 package it.smartcommunitylab.aac.saml.events;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.events.ProviderEmittedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.util.Assert;
@@ -44,5 +47,14 @@ public abstract class SamlRequestEvent extends ApplicationEvent implements Provi
 
     public String getRealm() {
         return realm;
+    }
+
+    @JsonInclude(Include.NON_NULL)
+    public abstract String getRelayState();
+
+    @JsonIgnore
+    @Override
+    public Object getSource() {
+        return super.getSource();
     }
 }

@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.audit;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.audit.model.ExtendedAuditEvent;
 import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import java.time.Instant;
@@ -74,7 +75,7 @@ public class AuditManager {
         return auditStore.countByPrincipal(principal, a, b, type);
     }
 
-    public List<RealmAuditEvent> findRealmEvents(String realm, String type, Date after, Date before) {
+    public List<AuditEvent> findRealmEvents(String realm, String type, Date after, Date before) {
         Instant a = after == null ? null : after.toInstant();
         Instant b = before == null ? null : before.toInstant();
 
@@ -88,11 +89,7 @@ public class AuditManager {
             " before " +
             String.valueOf(b)
         );
-        return auditStore
-            .findByRealm(realm, a, b, type)
-            .stream()
-            .map(e -> new RealmAuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), e.getData()))
-            .collect(Collectors.toList());
+        return auditStore.findByRealm(realm, a, b, type);
     }
 
     public List<AuditEvent> findPrincipalEvents(String realm, String principal, String type, Date after, Date before) {

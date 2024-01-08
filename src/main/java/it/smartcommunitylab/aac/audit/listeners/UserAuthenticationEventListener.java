@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.audit.listeners;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.events.UserAuthenticationFailureEvent;
@@ -27,6 +26,7 @@ import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.security.AbstractAuthenticationAuditListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.core.Authentication;
@@ -87,6 +87,7 @@ public class UserAuthenticationEventListener extends AbstractAuthenticationAudit
         Map<String, Object> data = new HashMap<>();
         data.put("authority", authority);
         data.put("provider", provider);
+        data.put("realm", realm);
         data.put("message", ex.getMessage());
 
         if (authentication instanceof WrappedAuthenticationToken) {
@@ -106,7 +107,7 @@ public class UserAuthenticationEventListener extends AbstractAuthenticationAudit
         }
 
         // build audit
-        RealmAuditEvent audit = new RealmAuditEvent(realm, Instant.now(), principal, eventType, data);
+        AuditEvent audit = new AuditEvent(Instant.now(), principal, eventType, data);
 
         // publish as event, listener will persist to store
         publish(audit);
@@ -136,6 +137,7 @@ public class UserAuthenticationEventListener extends AbstractAuthenticationAudit
         Map<String, Object> data = new HashMap<>();
         data.put("authority", authority);
         data.put("provider", provider);
+        data.put("realm", realm);
 
         // persist web details, should be safe to store
         if (auth.getWebAuthenticationDetails() != null) {
@@ -153,7 +155,7 @@ public class UserAuthenticationEventListener extends AbstractAuthenticationAudit
         }
 
         // build audit
-        RealmAuditEvent audit = new RealmAuditEvent(realm, Instant.now(), principal, eventType, data);
+        AuditEvent audit = new AuditEvent(Instant.now(), principal, eventType, data);
 
         // publish as event, listener will persist to store
         publish(audit);

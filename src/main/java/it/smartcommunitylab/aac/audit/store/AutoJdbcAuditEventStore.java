@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.audit.model.ApplicationAuditEvent;
+import it.smartcommunitylab.aac.audit.model.ExtendedAuditEvent;
 import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.audit.model.TxAuditEvent;
 import java.io.IOException;
@@ -103,21 +104,18 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
 
         //use CBOR by default as mapper
-        CBORMapper cborMapper = new CBORMapper();
-        cborMapper.registerModule(new JavaTimeModule());
-
-        //include only non-null fields
-        cborMapper.setSerializationInclusion(Include.NON_NULL);
-        //serialize only fields and ignore all getter/setters to avoid any processing
-        cborMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
-        cborMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-
-        this.mapper = cborMapper;
+        this.mapper =
+            new CBORMapper()
+                .registerModule(new JavaTimeModule())
+                //include only non-null fields
+                .setSerializationInclusion(Include.NON_NULL)
+                //add mixin for including typeInfo in events
+                .addMixIn(ApplicationEvent.class, AuditApplicationEventMixIns.class);
 
         this.writer =
             map -> {
                 try {
-                    return (cborMapper.writeValueAsBytes(map));
+                    return (mapper.writeValueAsBytes(map));
                 } catch (JsonProcessingException e) {
                     logger.error("error writing data: {}", e.getMessage());
                     throw new IllegalArgumentException("error writing data", e);
@@ -127,7 +125,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         this.reader =
             bytes -> {
                 try {
-                    return cborMapper.readValue(bytes, typeRef);
+                    return mapper.readValue(bytes, typeRef);
                 } catch (IOException e) {
                     logger.error("error reading data: {}", e.getMessage());
                     throw new IllegalArgumentException("error reading data", e);
@@ -143,24 +141,26 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
     public void setReader(Converter<byte[], Map<String, Object>> reader) {
         this.reader = reader;
+        this.rowMapper = new AuditEventMappedRowMapper(reader);
     }
 
     @Override
     public void add(AuditEvent event) {
-        // extract data
+        // extract data and repack
         String principal = event.getPrincipal();
         long time = event.getTimestamp().toEpochMilli();
         String type = event.getType();
+
+        ExtendedAuditEvent<ApplicationEvent> eae = ExtendedAuditEvent.from(event);
+
+        String realm = eae.getRealm();
+        String tx = eae.getTx();
+        String clazz = eae.getClazz();
 
         //pack audit event in data
         Map<String, Object> data = mapper.convertValue(event, typeRef);
 
         byte[] bytes = writer != null ? writer.convert(data) : null;
-
-        String realm = new RealmAuditEvent(event.getTimestamp(), principal, type, data).getRealm();
-        String tx = new TxAuditEvent(event.getTimestamp(), principal, type, data).getTx();
-        String clazz = new ApplicationAuditEvent<ApplicationEvent>(event.getTimestamp(), principal, type, data)
-            .getClazz();
 
         jdbcTemplate.update(
             insertAuditEventSql,

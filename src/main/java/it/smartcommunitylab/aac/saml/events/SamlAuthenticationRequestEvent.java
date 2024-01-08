@@ -21,7 +21,7 @@ import org.springframework.util.Assert;
 
 public class SamlAuthenticationRequestEvent extends SamlRequestEvent {
 
-    protected SamlAuthenticationRequestEvent(
+    public SamlAuthenticationRequestEvent(
         String authority,
         String provider,
         String realm,
@@ -31,7 +31,12 @@ public class SamlAuthenticationRequestEvent extends SamlRequestEvent {
         Assert.notNull(request, "request can not be null");
     }
 
-    public AbstractSaml2AuthenticationRequest gAuthenticationRequest() {
+    public AbstractSaml2AuthenticationRequest getAuthenticationRequest() {
         return (AbstractSaml2AuthenticationRequest) super.getSource();
+    }
+
+    @Override
+    public String getRelayState() {
+        return getAuthenticationRequest().getRelayState();
     }
 }

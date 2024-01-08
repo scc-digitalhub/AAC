@@ -18,25 +18,19 @@ package it.smartcommunitylab.aac.audit.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.context.ApplicationEvent;
 
-public abstract class ExtendedAuditEvent extends AuditEvent {
+public class ExtendedAuditEvent<E extends ApplicationEvent>
+    extends AuditEvent
+    implements ApplicationAuditEvent<E>, TxAuditEvent, RealmAuditEvent {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     protected ExtendedAuditEvent(Instant timestamp, String principal, String type, Map<String, Object> data) {
         super(timestamp, principal, type, data);
-    }
-
-    protected Collection<String> getKeys() {
-        return Collections.emptyList();
     }
 
     static Map<String, Object> buildData(Map<String, Object> initialData, String[] keys, Object[] values) {
@@ -58,30 +52,15 @@ public abstract class ExtendedAuditEvent extends AuditEvent {
         return data;
     }
 
-    public Map<String, Object> getAttributes() {
-        return super.getData() == null
-            ? null
-            : super
-                .getData()
-                .entrySet()
-                .stream()
-                .filter(e -> !getKeys().contains(e.getKey()))
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    @Override
+    public Map<String, Object> getClaims() {
+        return getData();
     }
 
-    protected String getAsString(String key) {
-        String value = null;
-
-        if (getData() != null && getData().containsKey(key)) {
-            //try cast and handle error
-            try {
-                String c = (String) getData().get(key);
-                value = c;
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException("invalid value for " + key);
-            }
-        }
-
-        return value;
+    public static <E extends ApplicationEvent> ExtendedAuditEvent<E> from(AuditEvent event) {
+        return new ExtendedAuditEvent<>(event.getTimestamp(), event.getPrincipal(), event.getType(), event.getData());
     }
+    // public static <K3> Builder<K3> start(Class<K3> cls) {
+    //     return new Builder<K3>();
+    // }
 }

@@ -16,64 +16,21 @@
 
 package it.smartcommunitylab.aac.audit.model;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
-import java.util.UUID;
-import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.security.oauth2.core.ClaimAccessor;
 
-public class ApplicationAuditEvent<E extends ApplicationEvent> extends ExtendedAuditEvent {
+public interface ApplicationAuditEvent<E extends ApplicationEvent> extends ClaimAccessor {
+    public static final String EVENT_KEY = "event";
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-    private static final String EVENT_KEY = "event";
-    private static final String EVENT_CLASS = "clazz";
-
-    private static final String ID_KEY = "id";
-    public static final String[] KEYS = { ID_KEY, EVENT_KEY, EVENT_CLASS };
-
-    public ApplicationAuditEvent(
-        @Nullable String id,
-        Instant timestamp,
-        String principal,
-        String type,
-        E event,
-        Map<String, Object> attributes
-    ) {
-        super(timestamp, principal, type, buildData(id, event, attributes));
-    }
-
-    public ApplicationAuditEvent(Instant timestamp, String principal, String type, Map<String, Object> data) {
-        super(timestamp, principal, type, data);
-    }
-
-    static Map<String, Object> buildData(@Nullable String id, ApplicationEvent event, Map<String, Object> attributes) {
-        Assert.notNull(event, "event can not be null");
-
-        if (!StringUtils.hasText(id)) {
-            id = UUID.randomUUID().toString();
-        }
-
-        return buildData(attributes, KEYS, new Object[] { id, event, event.getClass().getName() });
-    }
-
-    public String getId() {
-        return getAsString(ID_KEY);
-    }
-
-    public E getEvent() {
+    default E getEvent() {
         E event = null;
 
-        if (getData() != null && getData().containsKey(EVENT_KEY)) {
+        if (getClaims() != null && getClaims().containsKey(EVENT_KEY)) {
             //try cast and handle error
             try {
                 @SuppressWarnings("unchecked")
-                E e = (E) getData().get(EVENT_KEY);
+                E e = (E) getClaims().get(EVENT_KEY);
                 event = e;
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("invalid event");
@@ -83,48 +40,37 @@ public class ApplicationAuditEvent<E extends ApplicationEvent> extends ExtendedA
         return event;
     }
 
-    public String getClazz() {
-        return getAsString(EVENT_CLASS);
-    }
+    default String getClazz() {
+        Map<String, Object> map = this.getClaimAsMap(EVENT_KEY);
+        if (map == null || !map.containsKey("@class")) {
+            return null;
+        }
 
-    public long getTime() {
-        return getTimestamp() != null ? getTimestamp().getEpochSecond() * 1000 : -1;
-    }
-
-    @Override
-    protected Collection<String> getKeys() {
-        return Arrays.asList(KEYS);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "ApplicationAuditEvent [id=" +
-            String.valueOf(getId()) +
-            ", type=" +
-            getType() +
-            ", timestamp=" +
-            getTimestamp() +
-            ", principal=" +
-            getPrincipal() +
-            "]"
-        );
-    }
-
-    public static <T extends ApplicationEvent> ApplicationAuditEvent<T> from(AuditEvent audit, Class<?> clazz) {
-        ApplicationAuditEvent<T> ea = new ApplicationAuditEvent<>(
-            audit.getTimestamp(),
-            audit.getPrincipal(),
-            audit.getType(),
-            audit.getData()
-        );
-
+        //try cast and handle error
+        String value = null;
         try {
-            if (ea.getClazz() != null && clazz.isAssignableFrom(Class.forName(ea.getClazz()))) {
-                return ea;
-            }
-        } catch (ClassNotFoundException e) {}
+            String c = (String) map.get("@class");
+            value = c;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("invalid value for clazz");
+        }
 
-        throw new IllegalArgumentException("invalid or missing event");
+        return value;
     }
+    // public static <T extends ApplicationEvent> ApplicationAuditEvent<T> from(AuditEvent audit, Class<?> clazz) {
+    //     ApplicationAuditEvent<T> ea = new ApplicationAuditEvent<>(
+    //         audit.getTimestamp(),
+    //         audit.getPrincipal(),
+    //         audit.getType(),
+    //         audit.getData()
+    //     );
+
+    //     try {
+    //         if (ea.getClazz() != null && clazz.isAssignableFrom(Class.forName(ea.getClazz()))) {
+    //             return ea;
+    //         }
+    //     } catch (ClassNotFoundException e) {}
+
+    //     throw new IllegalArgumentException("invalid or missing event");
+    // }
 }

@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -243,7 +244,7 @@ public class DevController {
             bean.setEvents(auditManager.countRealmEvents(realm, null, after, null));
 
             bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
-            List<RealmAuditEvent> loginEvents = auditManager
+            List<AuditEvent> loginEvents = auditManager
                 .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null)
                 .stream()
                 .limit(5)
@@ -252,14 +253,14 @@ public class DevController {
                     Map<String, Object> d = new HashMap<>(e.getData());
                     d.remove("details");
 
-                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                    return new AuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), d);
                 })
                 .collect(Collectors.toList());
 
             bean.setLoginEvents(loginEvents);
 
             bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
-            List<RealmAuditEvent> registrationEvents = auditManager
+            List<AuditEvent> registrationEvents = auditManager
                 .findRealmEvents(realm, "USER_REGISTRATION", after, null)
                 .stream()
                 .limit(5)
@@ -268,7 +269,7 @@ public class DevController {
                     Map<String, Object> d = new HashMap<>(e.getData());
                     d.remove("details");
 
-                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                    return new AuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), d);
                 })
                 .collect(Collectors.toList());
             bean.setRegistrationEvents(registrationEvents);

@@ -31,12 +31,15 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProvider;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
 public class SamlIdentityAuthority
-    extends AbstractIdentityProviderAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfig, SamlIdentityProviderConfigMap> {
+    extends AbstractIdentityProviderAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfig, SamlIdentityProviderConfigMap>
+    implements ApplicationEventPublisherAware {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SAML + "/";
 
@@ -91,6 +94,11 @@ public class SamlIdentityAuthority
     @Autowired
     public void setResourceService(ResourceEntityService resourceService) {
         this.resourceService = resourceService;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.filterProvider.setApplicationEventPublisher(eventPublisher);
     }
 
     @Override

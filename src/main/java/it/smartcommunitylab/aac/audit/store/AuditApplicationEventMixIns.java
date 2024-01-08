@@ -1,5 +1,5 @@
-/*
- * Copyright 2023 the original author or authors
+/**
+ * Copyright 2024 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit.model;
+package it.smartcommunitylab.aac.audit.store;
 
-import org.springframework.security.oauth2.core.ClaimAccessor;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-public interface TxAuditEvent extends ClaimAccessor {
-    public static final String TX_KEY = "tx";
-
-    default String getTx() {
-        return getClaimAsString(TX_KEY);
-    }
-}
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+public final class AuditApplicationEventMixIns {}

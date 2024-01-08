@@ -16,58 +16,12 @@
 
 package it.smartcommunitylab.aac.audit.model;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
+import org.springframework.security.oauth2.core.ClaimAccessor;
 
-public class RealmAuditEvent extends ExtendedAuditEvent {
+public interface RealmAuditEvent extends ClaimAccessor {
+    public static final String REALM_KEY = "realm";
 
-    private static final String REALM_KEY = "realm";
-    public static final String[] KEYS = { REALM_KEY };
-
-    public RealmAuditEvent(
-        String realm,
-        Instant timestamp,
-        String principal,
-        String type,
-        Map<String, Object> attributes
-    ) {
-        super(timestamp, principal, type, buildData(realm, attributes));
-    }
-
-    public RealmAuditEvent(Instant timestamp, String principal, String type, Map<String, Object> data) {
-        super(timestamp, principal, type, data);
-    }
-
-    static Map<String, Object> buildData(@Nullable String realm, Map<String, Object> initialData) {
-        Assert.notNull(realm, "realm can not be null");
-        return buildData(initialData, KEYS, new Object[] { realm });
-    }
-
-    public String getRealm() {
-        return getAsString(REALM_KEY);
-    }
-
-    @Override
-    protected Collection<String> getKeys() {
-        return Arrays.asList(KEYS);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "RealmAuditEvent [realm=" +
-            getRealm() +
-            ", type=" +
-            getType() +
-            ", timestamp=" +
-            getTimestamp() +
-            ", principal=" +
-            getPrincipal() +
-            "]"
-        );
+    default String getRealm() {
+        return getClaimAsString(REALM_KEY);
     }
 }

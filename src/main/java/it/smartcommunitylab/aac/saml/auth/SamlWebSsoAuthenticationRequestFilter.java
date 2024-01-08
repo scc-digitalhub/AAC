@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.saml.auth;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.SamlIdentityAuthority;
+import it.smartcommunitylab.aac.saml.events.SamlAuthenticationRequestEvent;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import java.io.IOException;
@@ -30,6 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
@@ -50,7 +53,9 @@ import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter {
+public class SamlWebSsoAuthenticationRequestFilter
+    extends OncePerRequestFilter
+    implements ApplicationEventPublisherAware {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -62,10 +67,12 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     private final RequestMatcher requestMatcher;
     private final Saml2AuthenticationRequestContextResolver authenticationRequestContextResolver;
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
-    //    private final ProviderRepository<SamlIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
     private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
         new HttpSessionSaml2AuthenticationRequestRepository();
+
+    private ApplicationEventPublisher eventPublisher;
 
     public SamlWebSsoAuthenticationRequestFilter(
         ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository,
@@ -84,7 +91,7 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         Assert.notNull(registrationRepository, "registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
-        //        this.registrationRepository = registrationRepository;
+        this.registrationRepository = registrationRepository;
         this.authorityId = authority;
 
         // use custom implementation to add secure relayState param
@@ -104,6 +111,11 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
     }
 
     @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
         if (!requestMatcher.matches(request)) {
@@ -116,6 +128,15 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         if (context == null) {
             logger.debug("error resolving context from request");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        //resolve provider
+        String registrationId = context.getRelyingPartyRegistration().getRegistrationId();
+        SamlIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
+        if (config == null) {
+            logger.error("error retrieving provider for registration {}", String.valueOf(registrationId));
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return;
         }
 
@@ -141,6 +162,17 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
             logger.debug("persisting authentication request with context under key: {}", ctx.getRelayState());
 
             authenticationRequestRepository.saveAuthenticationRequest(ctx, request, response);
+        }
+
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(
+                new SamlAuthenticationRequestEvent(
+                    authorityId,
+                    config.getProvider(),
+                    config.getRealm(),
+                    authenticationRequest
+                )
+            );
         }
 
         if (authenticationRequest instanceof Saml2RedirectAuthenticationRequest) {
