@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.audit.listeners;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.audit.events.UserAuthenticationFailureEvent;
-import it.smartcommunitylab.aac.audit.events.UserAuthenticationSuccessEvent;
 import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
+import it.smartcommunitylab.aac.events.UserAuthenticationFailureEvent;
+import it.smartcommunitylab.aac.events.UserAuthenticationSuccessEvent;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import java.time.Instant;

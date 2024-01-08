@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit;
+package it.smartcommunitylab.aac.events;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.audit.events.UserAuthenticationFailureEvent;
-import it.smartcommunitylab.aac.audit.events.UserAuthenticationSuccessEvent;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmWrappedAuthenticationToken;
