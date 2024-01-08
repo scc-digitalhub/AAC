@@ -16,11 +16,22 @@
 
 package it.smartcommunitylab.aac.oidc.events;
 
-import org.springframework.context.ApplicationEvent;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.util.Assert;
 
-public abstract class OIDCAbstractEvent extends ApplicationEvent {
+public class OAuth2TokenResponseEvent extends OAuth2MessageEvent {
 
-    public OIDCAbstractEvent(Object source) {
-        super(source);
+    public OAuth2TokenResponseEvent(
+        String authority,
+        String provider,
+        String realm,
+        OAuth2AccessTokenResponse response
+    ) {
+        super(authority, provider, realm, response);
+        Assert.notNull(response, "response can not be null");
+    }
+
+    public OAuth2AccessTokenResponse getTokenResponse() {
+        return (OAuth2AccessTokenResponse) super.getSource();
     }
 }

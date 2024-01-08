@@ -16,9 +16,7 @@
 
 package it.smartcommunitylab.aac.openidfed.provider;
 
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
@@ -37,11 +35,11 @@ import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.oidc.auth.OIDCIdTokenDecoderFactory;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedAuthorizationCodeTokenResponseClient;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
@@ -50,17 +48,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
-import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -83,7 +73,7 @@ public class OpenIdFedAuthenticationProvider
     protected ScriptExecutionService executionService;
     protected final OpenIdAttributesMapper openidMapper;
 
-    private final OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient;
+    // private final OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient;
 
     // private final LoadingCache<String, OAuth2UserService<OAuth2UserRequest, OAuth2User>> oauth2Services = CacheBuilder
     //     .newBuilder()
@@ -129,30 +119,6 @@ public class OpenIdFedAuthenticationProvider
 
         // attribute mapper to extract email
         this.openidMapper = new OpenIdAttributesMapper();
-
-        // build appropriate client auth request converter
-        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
-            new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-
-        // private key jwt resolver, as per
-        // https://tools.ietf.org/html/rfc7523#section-2.2
-        // fetch key
-        JWK jwk = config.getClientSignatureJWK();
-        // build resolver only for this registration to retrieve client key
-        Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> jwk;
-        requestEntityConverter.addParametersConverter(
-            new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver)
-        );
-
-        // we support only authCode login
-        DefaultAuthorizationCodeTokenResponseClient responseClient = new DefaultAuthorizationCodeTokenResponseClient();
-        responseClient.setRequestEntityConverter(requestEntityConverter);
-
-        this.accessTokenResponseClient = responseClient;
-        //build rest template with support for jwt/jose
-        //TODO remove and build a custom oauth2userservice because we can not know keys beforehand
-        // JoseRestOperations restOperations = new JoseRestOperations(realm);
-
     }
 
     @Override
@@ -231,6 +197,10 @@ public class OpenIdFedAuthenticationProvider
             }
 
             oauth2UserService.setRestOperations(restOperations);
+
+            OpenIdFedAuthorizationCodeTokenResponseClient accessTokenResponseClient =
+                new OpenIdFedAuthorizationCodeTokenResponseClient(config);
+            accessTokenResponseClient.setApplicationEventPublisher(eventPublisher);
 
             //build oidc provider
             OidcUserService oidcUserService = new OidcUserService();

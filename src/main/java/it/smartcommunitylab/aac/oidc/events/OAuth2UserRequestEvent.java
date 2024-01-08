@@ -16,15 +16,17 @@
 
 package it.smartcommunitylab.aac.oidc.events;
 
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.util.Assert;
 
-public class OIDCAuthenticationRequestEvent extends OIDCAbstractEvent {
+public class OAuth2UserRequestEvent extends OAuth2MessageEvent {
 
-    public OIDCAuthenticationRequestEvent(OAuth2AuthorizationRequest request) {
-        super(request);
+    public OAuth2UserRequestEvent(String authority, String provider, String realm, OAuth2UserRequest request) {
+        super(authority, provider, realm, request);
+        Assert.notNull(request, "request can not be null");
     }
 
-    public OAuth2AuthorizationRequest getAuthorizationRequest() {
-        return (OAuth2AuthorizationRequest) super.getSource();
+    public OAuth2UserRequest getUserRequest() {
+        return (OAuth2UserRequest) super.getSource();
     }
 }

@@ -31,12 +31,15 @@ import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProvider;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfigMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
 public class OpenIdFedIdentityAuthority
-    extends AbstractIdentityProviderAuthority<OpenIdFedIdentityProvider, OIDCUserIdentity, OpenIdFedIdentityProviderConfig, OpenIdFedIdentityProviderConfigMap> {
+    extends AbstractIdentityProviderAuthority<OpenIdFedIdentityProvider, OIDCUserIdentity, OpenIdFedIdentityProviderConfig, OpenIdFedIdentityProviderConfigMap>
+    implements ApplicationEventPublisherAware {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OPENIDFED + "/";
 
@@ -49,6 +52,7 @@ public class OpenIdFedIdentityAuthority
     // execution service for custom attributes mapping
     private ScriptExecutionService executionService;
     private ResourceEntityService resourceService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Autowired
     public OpenIdFedIdentityAuthority(
@@ -93,6 +97,12 @@ public class OpenIdFedIdentityAuthority
     }
 
     @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+        this.filterProvider.setApplicationEventPublisher(eventPublisher);
+    }
+
+    @Override
     public OpenIdFedFilterProvider getFilterProvider() {
         return this.filterProvider;
     }
@@ -111,6 +121,7 @@ public class OpenIdFedIdentityAuthority
 
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);
+        idp.setApplicationEventPublisher(eventPublisher);
         return idp;
     }
 }

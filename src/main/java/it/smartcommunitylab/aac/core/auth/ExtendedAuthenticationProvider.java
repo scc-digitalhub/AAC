@@ -22,6 +22,8 @@ import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import java.time.Instant;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -29,10 +31,17 @@ import org.springframework.security.core.AuthenticationException;
 
 public abstract class ExtendedAuthenticationProvider<P extends UserAuthenticatedPrincipal, A extends UserAccount>
     extends AbstractProvider<P>
-    implements AuthenticationProvider {
+    implements AuthenticationProvider, ApplicationEventPublisherAware {
+
+    protected ApplicationEventPublisher eventPublisher;
 
     protected ExtendedAuthenticationProvider(String authority, String provider, String realm) {
         super(authority, provider, realm);
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     // @Override

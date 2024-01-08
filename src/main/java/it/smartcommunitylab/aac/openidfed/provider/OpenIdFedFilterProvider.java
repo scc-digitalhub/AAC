@@ -31,19 +31,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.servlet.Filter;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.util.Assert;
 
-public class OpenIdFedFilterProvider implements FilterProvider {
+public class OpenIdFedFilterProvider implements FilterProvider, ApplicationEventPublisherAware {
 
     private final String authorityId;
     private final ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository;
 
     private AuthenticationManager authManager;
     private RealmAwareUriBuilder realmAwareUriBuilder;
+    private ApplicationEventPublisher eventPublisher;
 
     public OpenIdFedFilterProvider(ProviderConfigRepository<OpenIdFedIdentityProviderConfig> registrationRepository) {
         this(SystemKeys.AUTHORITY_OPENIDFED, registrationRepository);
@@ -66,6 +69,11 @@ public class OpenIdFedFilterProvider implements FilterProvider {
 
     public void setRealmAwareUriBuilder(RealmAwareUriBuilder realmAwareUriBuilder) {
         this.realmAwareUriBuilder = realmAwareUriBuilder;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -100,8 +108,9 @@ public class OpenIdFedFilterProvider implements FilterProvider {
         OpenIdFedRedirectAuthenticationFilter redirectFilter = new OpenIdFedRedirectAuthenticationFilter(
             authorityId,
             registrationRepository,
-            buildFilterUrl("authorize")
+            buildFilterUrl("authorize/{providerId}")
         );
+        redirectFilter.setApplicationEventPublisher(eventPublisher);
         redirectFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 
         OpenIdFedLoginAuthenticationFilter loginFilter = new OpenIdFedLoginAuthenticationFilter(
@@ -110,6 +119,7 @@ public class OpenIdFedFilterProvider implements FilterProvider {
             buildFilterUrl("login/{providerId}"),
             null
         );
+        loginFilter.setApplicationEventPublisher(eventPublisher);
         loginFilter.setAuthorizationRequestRepository(authorizationRequestRepository);
 
         if (authManager != null) {
