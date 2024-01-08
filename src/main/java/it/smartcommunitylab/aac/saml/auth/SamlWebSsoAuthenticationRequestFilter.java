@@ -28,16 +28,14 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.security.saml2.provider.service.authentication.AbstractSaml2AuthenticationRequest;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
-import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestFactory;
-import org.springframework.security.saml2.provider.service.authentication.Saml2PostAuthenticationRequest;
-import org.springframework.security.saml2.provider.service.authentication.Saml2RedirectAuthenticationRequest;
+import org.springframework.security.saml2.provider.service.authentication.*;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
@@ -53,6 +51,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String DEFAULT_FILTER_URI =
         SamlIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}";
@@ -111,44 +111,59 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
             return;
         }
 
+        logger.debug("resolving context from http request");
         Saml2AuthenticationRequestContext context = this.authenticationRequestContextResolver.resolve(request);
         if (context == null) {
+            logger.debug("error resolving context from request");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         // translate context to a serializable version
         // TODO drop and adopt resolver+request as per spring 5.6+
+        AbstractSaml2AuthenticationRequest authenticationRequest = resolve(context);
+
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
             context.getRelyingPartyRegistration().getRegistrationId(),
             context.getIssuer(),
             context.getRelayState(),
-            null
+            authenticationRequest
         );
+
+        logger.debug("resolved context relayState: {}", ctx.getRelayState());
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("context: {}", String.valueOf(ctx));
+        }
 
         // persist request if relayState is set
         if (StringUtils.hasText(context.getRelayState())) {
+            logger.debug("persisting authentication request with context under key: {}", ctx.getRelayState());
+
             authenticationRequestRepository.saveAuthenticationRequest(ctx, request, response);
         }
 
-        RelyingPartyRegistration relyingParty = context.getRelyingPartyRegistration();
-        AbstractSaml2AuthenticationRequest samlRequest;
-        if (relyingParty.getAssertingPartyDetails().getSingleSignOnServiceBinding() == Saml2MessageBinding.REDIRECT) {
-            samlRequest = sendRedirect(response, context);
+        if (authenticationRequest instanceof Saml2RedirectAuthenticationRequest) {
+            sendRedirect(response, (Saml2RedirectAuthenticationRequest) authenticationRequest);
         } else {
-            samlRequest = sendPost(response, context);
+            sendPost(response, (Saml2PostAuthenticationRequest) authenticationRequest);
         }
-        // persist (abstract) authentication request as per required by OpenSaml4AuthenticationProvider
-        ctx.setSamlAuthenticationRequest(samlRequest);
-        logger.debug("sent request");
     }
 
-    private AbstractSaml2AuthenticationRequest sendRedirect(
-        HttpServletResponse response,
-        Saml2AuthenticationRequestContext context
-    ) throws IOException {
-        Saml2RedirectAuthenticationRequest authenticationRequest =
-            this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
+    private AbstractSaml2AuthenticationRequest resolve(Saml2AuthenticationRequestContext context) {
+        Saml2MessageBinding binding = context
+            .getRelyingPartyRegistration()
+            .getAssertingPartyDetails()
+            .getSingleSignOnServiceBinding();
+
+        if (binding == Saml2MessageBinding.REDIRECT) {
+            return this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
+        }
+        return this.authenticationRequestFactory.createPostAuthenticationRequest(context);
+    }
+
+    private void sendRedirect(HttpServletResponse response, Saml2RedirectAuthenticationRequest authenticationRequest)
+        throws IOException {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
             authenticationRequest.getAuthenticationRequestUri()
         );
@@ -157,8 +172,13 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         addParameter("SigAlg", authenticationRequest.getSigAlg(), uriBuilder);
         addParameter("Signature", authenticationRequest.getSignature(), uriBuilder);
         String redirectUrl = uriBuilder.build(true).toUriString();
+
+        logger.info("send redirect for request {}", authenticationRequest.getRelayState());
+        if (logger.isTraceEnabled()) {
+            logger.trace("redirect url: {}", redirectUrl);
+        }
+
         response.sendRedirect(redirectUrl);
-        return authenticationRequest;
     }
 
     private void addParameter(String name, String value, UriComponentsBuilder builder) {
@@ -171,16 +191,16 @@ public class SamlWebSsoAuthenticationRequestFilter extends OncePerRequestFilter 
         }
     }
 
-    private AbstractSaml2AuthenticationRequest sendPost(
-        HttpServletResponse response,
-        Saml2AuthenticationRequestContext context
-    ) throws IOException {
-        Saml2PostAuthenticationRequest authenticationRequest =
-            this.authenticationRequestFactory.createPostAuthenticationRequest(context);
+    private void sendPost(HttpServletResponse response, Saml2PostAuthenticationRequest authenticationRequest)
+        throws IOException {
         String html = createSamlPostRequestFormData(authenticationRequest);
+        logger.info("send post for request {}", authenticationRequest.getRelayState());
+        if (logger.isTraceEnabled()) {
+            logger.trace("post html: {}", html);
+        }
+
         response.setContentType(MediaType.TEXT_HTML_VALUE);
         response.getWriter().write(html);
-        return authenticationRequest;
     }
 
     private String createSamlPostRequestFormData(Saml2PostAuthenticationRequest authenticationRequest) {
