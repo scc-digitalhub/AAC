@@ -60,7 +60,4 @@ public class ExtendedAuditEvent<E extends ApplicationEvent>
     public static <E extends ApplicationEvent> ExtendedAuditEvent<E> from(AuditEvent event) {
         return new ExtendedAuditEvent<>(event.getTimestamp(), event.getPrincipal(), event.getType(), event.getData());
     }
-    // public static <K3> Builder<K3> start(Class<K3> cls) {
-    //     return new Builder<K3>();
-    // }
 }
