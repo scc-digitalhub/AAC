@@ -16,10 +16,12 @@
 
 package it.smartcommunitylab.aac.claims;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import delight.graaljssandbox.GraalSandbox;
 import delight.graaljssandbox.GraalSandboxes;
 import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
@@ -44,7 +46,9 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
     private int maxMemory;
 
     // custom jackson configuration with typeReference
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .setSerializationInclusion(Include.NON_NULL);
     private final TypeReference<HashMap<String, Serializable>> typeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
 

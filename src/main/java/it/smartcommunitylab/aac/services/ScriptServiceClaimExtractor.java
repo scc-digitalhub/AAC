@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.services;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
@@ -50,7 +52,9 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
 
     public static final String CLAIM_MAPPING_FUNCTION = "claimMapping";
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .setSerializationInclusion(Include.NON_NULL);
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
     private final TypeReference<ArrayList<Serializable>> serListTypeRef =

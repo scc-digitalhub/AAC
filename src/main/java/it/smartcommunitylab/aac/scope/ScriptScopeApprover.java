@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.scope;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -40,7 +42,9 @@ public class ScriptScopeApprover implements ScopeApprover {
     public static final String APPROVAL_FUNCTION = "approver";
     public static final int DEFAULT_DURATION_MS = 3600000; // 1h
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .setSerializationInclusion(Include.NON_NULL);
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
 
