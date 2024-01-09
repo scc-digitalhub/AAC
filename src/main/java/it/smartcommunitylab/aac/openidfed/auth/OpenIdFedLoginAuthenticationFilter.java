@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.oidc.events.OAuth2AuthorizationResponseEvent;
 import it.smartcommunitylab.aac.openidfed.OpenIdFedIdentityAuthority;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import java.io.IOException;
@@ -31,6 +32,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
@@ -59,6 +62,8 @@ import org.springframework.web.util.UriComponentsBuilder;
  * Custom openid fed login filter, handles login via auth code with automatic client registration
  */
 public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public static final String DEFAULT_FILTER_URI = OpenIdFedIdentityAuthority.AUTHORITY_URL + "login/{providerId}";
     public static final String DEFAULT_EXTERNAL_REQ_STATE = "externalRequestDefaultStateString";
@@ -225,6 +230,15 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
 
         // convert request to response
         OAuth2AuthorizationResponse authorizationResponse = convert(params, redirectUri);
+
+        //publish event
+        if (eventPublisher != null) {
+            logger.debug("publish event for authorization response {}", authorizationRequest.getState());
+
+            eventPublisher.publishEvent(
+                new OAuth2AuthorizationResponseEvent(authority, providerId, realm, authorizationResponse)
+            );
+        }
 
         //check if we received an error
         if (authorizationResponse.getError() != null) {

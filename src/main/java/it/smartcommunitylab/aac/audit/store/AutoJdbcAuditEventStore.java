@@ -16,39 +16,64 @@
 
 package it.smartcommunitylab.aac.audit.store;
 
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import it.smartcommunitylab.aac.audit.model.ApplicationAuditEvent;
+import it.smartcommunitylab.aac.audit.model.ExtendedAuditEvent;
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
+import it.smartcommunitylab.aac.audit.model.TxAuditEvent;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
-import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class AutoJdbcAuditEventStore implements AuditEventStore {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
+
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<AuditEvent> rowMapper = new AuditEventRowMapper();
+    private RowMapper<AuditEvent> rowMapper;
+    private ObjectMapper mapper;
 
     private static final String DEFAULT_INSERT_STATEMENT =
-        "INSERT INTO audit_events (event_time, principal, realm , event_type, event_data ) VALUES (?, ?, ?, ?, ?)";
+        "INSERT INTO audit_events (event_time, principal, realm, tx, event_type, event_class, event_data ) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT =
-        "SELECT event_time, principal, realm, event_type, event_data FROM audit_events WHERE principal = ?";
+        "SELECT event_time, principal, event_type, event_data FROM audit_events WHERE principal = ?";
     private static final String DEFAULT_SELECT_REALM_STATEMENT =
-        "SELECT event_time, principal, realm, event_type, event_data FROM audit_events WHERE realm = ?";
+        "SELECT event_time, principal, event_type, event_data FROM audit_events WHERE realm = ?";
+    private static final String DEFAULT_SELECT_TX_STATEMENT =
+        "SELECT event_time, principal, event_type, event_data FROM audit_events WHERE tx = ?";
 
     private static final String DEFAULT_COUNT_PRINCIPAL_STATEMENT =
         "SELECT COUNT(*) FROM audit_events WHERE principal = ?";
     private static final String DEFAULT_COUNT_REALM_STATEMENT = "SELECT COUNT(*) FROM audit_events WHERE realm = ?";
+    private static final String DEFAULT_COUNT_TX_STATEMENT = "SELECT COUNT(*) FROM audit_events WHERE tx = ?";
 
     private static final String TIME_AFTER_CONDITION = "event_time >= ?";
     private static final String TIME_BETWEEN_CONDITION = "event_time BETWEEN ? AND ? ";
@@ -60,8 +85,10 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
     private String selectByPrincipalAuditEvent = DEFAULT_SELECT_PRINCIPAL_STATEMENT;
     private String selectByRealmAuditEvent = DEFAULT_SELECT_REALM_STATEMENT;
+    private String selectByTxAuditEvent = DEFAULT_SELECT_TX_STATEMENT;
     private String countByPrincipalAuditEvent = DEFAULT_COUNT_PRINCIPAL_STATEMENT;
     private String countByRealmAuditEvent = DEFAULT_COUNT_REALM_STATEMENT;
+    private String countByTxAuditEvent = DEFAULT_COUNT_TX_STATEMENT;
 
     private String timeAfterCondition = TIME_AFTER_CONDITION;
     private String timeBetweenCondition = TIME_BETWEEN_CONDITION;
@@ -69,32 +96,84 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
     private String orderBy = DEFAULT_ORDER_BY;
 
+    private Converter<Map<String, Object>, byte[]> writer;
+    private Converter<byte[], Map<String, Object>> reader;
+
     public AutoJdbcAuditEventStore(DataSource dataSource) {
         Assert.notNull(dataSource, "DataSource required");
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+
+        //use CBOR by default as mapper
+        this.mapper =
+            new CBORMapper()
+                .registerModule(new JavaTimeModule())
+                //include only non-null fields
+                .setSerializationInclusion(Include.NON_NULL)
+                //add mixin for including typeInfo in events
+                .addMixIn(ApplicationEvent.class, AuditApplicationEventMixIns.class);
+
+        this.writer =
+            map -> {
+                try {
+                    return (mapper.writeValueAsBytes(map));
+                } catch (JsonProcessingException e) {
+                    logger.error("error writing data: {}", e.getMessage());
+                    throw new IllegalArgumentException("error writing data", e);
+                }
+            };
+
+        this.reader =
+            bytes -> {
+                try {
+                    return mapper.readValue(bytes, typeRef);
+                } catch (IOException e) {
+                    logger.error("error reading data: {}", e.getMessage());
+                    throw new IllegalArgumentException("error reading data", e);
+                }
+            };
+
+        this.rowMapper = new AuditEventMappedRowMapper(reader);
+    }
+
+    public void setWriter(Converter<Map<String, Object>, byte[]> writer) {
+        this.writer = writer;
+    }
+
+    public void setReader(Converter<byte[], Map<String, Object>> reader) {
+        this.reader = reader;
+        this.rowMapper = new AuditEventMappedRowMapper(reader);
     }
 
     @Override
     public void add(AuditEvent event) {
-        // extract data
+        // extract data and repack
         String principal = event.getPrincipal();
         long time = event.getTimestamp().toEpochMilli();
         String type = event.getType();
-        String realm = null;
-        if (event instanceof RealmAuditEvent) {
-            realm = ((RealmAuditEvent) event).getRealm();
-        }
+
+        ExtendedAuditEvent<ApplicationEvent> eae = ExtendedAuditEvent.from(event);
+
+        String realm = eae.getRealm();
+        String tx = eae.getTx();
+        String clazz = eae.getClazz();
+
+        //pack audit event in data
+        Map<String, Object> data = mapper.convertValue(event, typeRef);
+
+        byte[] bytes = writer != null ? writer.convert(data) : null;
 
         jdbcTemplate.update(
             insertAuditEventSql,
-            new Object[] {
-                new java.sql.Timestamp(time),
-                principal,
-                realm,
-                type,
-                new SqlLobValue(SerializationUtils.serialize(event)),
-            },
-            new int[] { Types.TIMESTAMP, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB }
+            new Object[] { new java.sql.Timestamp(time), principal, realm, tx, type, clazz, new SqlLobValue(bytes) },
+            new int[] {
+                Types.TIMESTAMP,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.BLOB,
+            }
         );
     }
 
@@ -153,7 +232,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     }
 
     @Override
-    public List<RealmAuditEvent> findByRealm(String realm, Instant after, Instant before, String type) {
+    public List<AuditEvent> findByRealm(String realm, Instant after, Instant before, String type) {
         StringBuilder query = new StringBuilder();
         query.append(selectByRealmAuditEvent);
 
@@ -178,12 +257,45 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        return jdbcTemplate
-            .query(query.toString(), rowMapper, params.toArray(new Object[0]))
-            .stream()
-            .filter(e -> (e instanceof RealmAuditEvent))
-            .map(e -> (RealmAuditEvent) e)
-            .collect(Collectors.toList());
+        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0]));
+    }
+
+    @Override
+    public long countByTx(String tx, String type) {
+        StringBuilder query = new StringBuilder();
+        query.append(countByTxAuditEvent);
+
+        List<Object> params = new LinkedList<>();
+        params.add(tx);
+
+        if (StringUtils.hasText(type)) {
+            query.append(" AND ").append(typeCondition);
+            params.add(type);
+        }
+
+        Long count = jdbcTemplate.queryForObject(query.toString(), Long.class, params.toArray(new Object[0]));
+        if (count == null) {
+            return 0;
+        }
+        return count.longValue();
+    }
+
+    @Override
+    public List<AuditEvent> findByTx(String tx, String type) {
+        StringBuilder query = new StringBuilder();
+        query.append(selectByTxAuditEvent);
+
+        List<Object> params = new LinkedList<>();
+        params.add(tx);
+
+        if (StringUtils.hasText(type)) {
+            query.append(" AND ").append(typeCondition);
+            params.add(type);
+        }
+
+        query.append(" ").append(orderBy);
+
+        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0]));
     }
 
     @Override
@@ -282,16 +394,35 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         this.orderBy = orderBy;
     }
 
-    private static class AuditEventRowMapper implements RowMapper<AuditEvent> {
+    private class AuditEventMappedRowMapper implements RowMapper<AuditEvent> {
+
+        private final Converter<byte[], Map<String, Object>> reader;
+
+        public AuditEventMappedRowMapper(Converter<byte[], Map<String, Object>> reader) {
+            this.reader = reader;
+        }
 
         @Override
         public AuditEvent mapRow(ResultSet rs, int rowNum) throws SQLException {
-            //            long time = rs.getLong("time");
-            //            String principal = rs.getString("principal");
-            //            String realm = rs.getString("realm");
-            //            String type = rs.getString("type");
-            AuditEvent event = SerializationUtils.deserialize(rs.getBytes("event_data"));
-            return event;
+            Timestamp time = rs.getTimestamp("event_time");
+            String principal = rs.getString("principal");
+            String type = rs.getString("event_type");
+            byte[] bytes = rs.getBytes("event_data");
+            Map<String, Object> data = Collections.emptyMap();
+            Map<String, Object> raw = reader != null ? reader.convert(bytes) : Collections.emptyMap();
+
+            //unpack event to extract data
+            if (raw != null && raw.containsKey("data")) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> d = (Map<String, Object>) raw.get("data");
+                    data = d;
+                } catch (ClassCastException e) {
+                    throw new IllegalArgumentException("invalid value for data");
+                }
+            }
+
+            return new AuditEvent(time.toInstant(), principal, type, data);
         }
     }
 }

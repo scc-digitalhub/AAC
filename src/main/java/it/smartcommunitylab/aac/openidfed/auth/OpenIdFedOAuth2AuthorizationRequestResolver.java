@@ -76,7 +76,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         this.registrationRepository = registrationRepository;
         this.authorizationRequestBaseUri = authorizationRequestBaseUri;
 
-        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{providerId}/{registrationId}");
+        this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}");
     }
 
     @Override
@@ -114,7 +114,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         //build a scoped default resolver
         DefaultOAuth2AuthorizationRequestResolver defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
             config.getClientRegistrationRepository(),
-            authorizationRequestBaseUri + "/" + providerId
+            authorizationRequestBaseUri
         );
 
         //add PKCE

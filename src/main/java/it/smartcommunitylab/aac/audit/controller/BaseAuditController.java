@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.audit;
+package it.smartcommunitylab.aac.audit.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import java.util.Collection;
 import java.util.Date;
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -65,7 +67,7 @@ public class BaseAuditController implements InitializingBean {
 
     @GetMapping("/audit/{realm}")
     @Operation(summary = "find audit events from a given realm")
-    public Collection<RealmAuditEvent> findEvents(
+    public Collection<AuditEvent> findEvents(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, name = "type") Optional<String> type,
         @RequestParam(required = false, name = "after") @DateTimeFormat(
@@ -75,7 +77,7 @@ public class BaseAuditController implements InitializingBean {
             iso = DateTimeFormat.ISO.DATE_TIME
         ) Optional<Date> before
     ) throws NoSuchRealmException {
-        logger.debug("find audit events for realm [}", StringUtils.trimAllWhitespace(realm));
+        logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
 
         return auditManager.findRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
     }

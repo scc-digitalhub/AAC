@@ -16,9 +16,6 @@
 
 package it.smartcommunitylab.aac.openidfed.provider;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
@@ -30,38 +27,27 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
-import it.smartcommunitylab.aac.jwt.JoseRestOperations;
 import it.smartcommunitylab.aac.oidc.OIDCKeys;
 import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationToken;
 import it.smartcommunitylab.aac.oidc.auth.OIDCIdTokenDecoderFactory;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedAuthorizationCodeTokenResponseClient;
+import it.smartcommunitylab.aac.openidfed.service.OpenIdFedOidcUserService;
 import java.io.Serializable;
-import java.text.ParseException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
-import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -83,23 +69,9 @@ public class OpenIdFedAuthenticationProvider
     protected ScriptExecutionService executionService;
     protected final OpenIdAttributesMapper openidMapper;
 
-    private final OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient;
-
-    // private final LoadingCache<String, OAuth2UserService<OAuth2UserRequest, OAuth2User>> oauth2Services = CacheBuilder
-    //     .newBuilder()
-    //     .expireAfterWrite(5, TimeUnit.MINUTES)
-    //     .build(
-    //         new CacheLoader<String, OAuth2UserService<OAuth2UserRequest, OAuth2User>>() {
-    //             @Override
-    //             public OAuth2UserService<OAuth2UserRequest, OAuth2User> load(String key) throws Exception {
-    //                 return federationResolver
-    //                     .listFederationEntities(trustAnchor, key, EntityType.OPENID_PROVIDER)
-    //                     .stream()
-    //                     .map(e -> e.getValue())
-    //                     .collect(Collectors.toList());
-    //             }
-    //         }
-    //     );
+    private final OidcAuthorizationCodeAuthenticationProvider oidcProvider;
+    private OpenIdFedOidcUserService userService;
+    private OpenIdFedAuthorizationCodeTokenResponseClient accessTokenResponseClient;
 
     public OpenIdFedAuthenticationProvider(
         String providerId,
@@ -130,36 +102,31 @@ public class OpenIdFedAuthenticationProvider
         // attribute mapper to extract email
         this.openidMapper = new OpenIdAttributesMapper();
 
-        // build appropriate client auth request converter
-        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
-            new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+        userService = new OpenIdFedOidcUserService(config);
 
-        // private key jwt resolver, as per
-        // https://tools.ietf.org/html/rfc7523#section-2.2
-        // fetch key
-        JWK jwk = config.getClientSignatureJWK();
-        // build resolver only for this registration to retrieve client key
-        Function<ClientRegistration, JWK> jwkResolver = clientRegistration -> jwk;
-        requestEntityConverter.addParametersConverter(
-            new NimbusJwtClientAuthenticationParametersConverter<>(jwkResolver)
-        );
+        accessTokenResponseClient = new OpenIdFedAuthorizationCodeTokenResponseClient(config);
 
-        // we support only authCode login
-        DefaultAuthorizationCodeTokenResponseClient responseClient = new DefaultAuthorizationCodeTokenResponseClient();
-        responseClient.setRequestEntityConverter(requestEntityConverter);
+        oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient, userService);
 
-        this.accessTokenResponseClient = responseClient;
-        //build rest template with support for jwt/jose
-        //TODO remove and build a custom oauth2userservice because we can not know keys beforehand
-        // JoseRestOperations restOperations = new JoseRestOperations(realm);
+        // replace jwtDecoderFactory to support providers with jwks in place of jwksUri
+        oidcProvider.setJwtDecoderFactory(new OIDCIdTokenDecoderFactory());
 
+        // use a custom authorities mapper to cleanup authorities spring injects
+        // default impl translates the whole oauth response as an authority..
+        oidcProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        super.setApplicationEventPublisher(eventPublisher);
+        userService.setApplicationEventPublisher(eventPublisher);
+        accessTokenResponseClient.setApplicationEventPublisher(eventPublisher);
     }
 
     @Override
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
         OAuth2LoginAuthenticationToken loginAuthenticationToken = (OAuth2LoginAuthenticationToken) authentication;
 
-        // TODO extract codeResponse + tokenResponse for audit
         String authorizationRequestUri = loginAuthenticationToken
             .getAuthorizationExchange()
             .getAuthorizationRequest()
@@ -170,85 +137,6 @@ public class OpenIdFedAuthenticationProvider
             .getRedirectUri();
 
         try {
-            //build oauth2 user service for this registration
-            //TODO cache by registrationId
-            DefaultOAuth2UserService oauth2UserService = new DefaultOAuth2UserService();
-            String jwksUri = loginAuthenticationToken.getClientRegistration().getProviderDetails().getJwkSetUri();
-            JWKSet jwks = null;
-            try {
-                //try to parse jwks from metadata
-                Object value = loginAuthenticationToken
-                    .getClientRegistration()
-                    .getProviderDetails()
-                    .getConfigurationMetadata()
-                    .get("jwks");
-
-                if (value instanceof JSONObject) {
-                    jwks = JWKSet.parse(((JSONObject) value).toJSONString());
-                }
-            } catch (ParseException e) {
-                logger.error("error reading jwks from metadata: " + e.getMessage(), e);
-            }
-
-            JoseRestOperations restOperations = null;
-
-            if (StringUtils.hasText(jwksUri)) {
-                //we expect a response encrypted with out public key, or just signed with op keys
-                restOperations = new JoseRestOperations(jwksUri);
-                if (
-                    config.getConfigMap().getUserInfoJWEAlg() != null &&
-                    config.getConfigMap().getUserInfoJWEEnc() != null
-                ) {
-                    restOperations =
-                        new JoseRestOperations(
-                            jwksUri,
-                            config.getClientEncryptionJWK(),
-                            config.getConfigMap().getUserInfoJWEAlg().getValue(),
-                            config.getConfigMap().getUserInfoJWEEnc().getValue()
-                        );
-                }
-            }
-
-            if (!StringUtils.hasText(jwksUri) && jwks != null) {
-                //use jwks
-                restOperations = new JoseRestOperations(jwks);
-                if (
-                    config.getConfigMap().getUserInfoJWEAlg() != null &&
-                    config.getConfigMap().getUserInfoJWEEnc() != null
-                ) {
-                    restOperations =
-                        new JoseRestOperations(
-                            jwks,
-                            config.getClientEncryptionJWK(),
-                            config.getConfigMap().getUserInfoJWEAlg().getValue(),
-                            config.getConfigMap().getUserInfoJWEEnc().getValue()
-                        );
-                }
-            }
-
-            if (restOperations == null) {
-                throw new OAuth2AuthenticationException("invalid_request");
-            }
-
-            oauth2UserService.setRestOperations(restOperations);
-
-            //build oidc provider
-            OidcUserService oidcUserService = new OidcUserService();
-            oidcUserService.setOauth2UserService(oauth2UserService);
-            //always load user profile - hack
-            //TODO evaluate if scopes OR claims are requested
-            oidcUserService.setAccessibleScopes(Collections.singleton("openid"));
-            OidcAuthorizationCodeAuthenticationProvider oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
-                accessTokenResponseClient,
-                oidcUserService
-            );
-            // replace jwtDecoderFactory to support providers with jwks in place of jwksUri
-            oidcProvider.setJwtDecoderFactory(new OIDCIdTokenDecoderFactory());
-
-            // use a custom authorities mapper to cleanup authorities spring injects
-            // default impl translates the whole oauth response as an authority..
-            oidcProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
-
             // delegate to oidc provider
             Authentication auth = oidcProvider.authenticate(authentication);
 

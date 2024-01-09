@@ -16,9 +16,9 @@
 
 package it.smartcommunitylab.aac.dto;
 
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
 import it.smartcommunitylab.aac.model.Realm;
 import java.util.List;
+import org.springframework.boot.actuate.audit.AuditEvent;
 
 /**
  * @author raman
@@ -35,10 +35,10 @@ public class RealmStats {
     private Long events;
 
     private Long loginCount;
-    private List<RealmAuditEvent> loginEvents;
+    private List<AuditEvent> loginEvents;
 
     private Long registrationCount;
-    private List<RealmAuditEvent> registrationEvents;
+    private List<AuditEvent> registrationEvents;
 
     public Realm getRealm() {
         return realm;
@@ -104,11 +104,11 @@ public class RealmStats {
         this.loginCount = loginCount;
     }
 
-    public List<RealmAuditEvent> getLoginEvents() {
+    public List<AuditEvent> getLoginEvents() {
         return loginEvents;
     }
 
-    public void setLoginEvents(List<RealmAuditEvent> loginEvents) {
+    public void setLoginEvents(List<AuditEvent> loginEvents) {
         this.loginEvents = loginEvents;
     }
 
@@ -120,11 +120,11 @@ public class RealmStats {
         this.registrationCount = registrationCount;
     }
 
-    public List<RealmAuditEvent> getRegistrationEvents() {
+    public List<AuditEvent> getRegistrationEvents() {
         return registrationEvents;
     }
 
-    public void setRegistrationEvents(List<RealmAuditEvent> registrationEvents) {
+    public void setRegistrationEvents(List<AuditEvent> registrationEvents) {
         this.registrationEvents = registrationEvents;
     }
 }

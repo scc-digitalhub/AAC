@@ -39,6 +39,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -51,9 +53,11 @@ public abstract class AbstractIdentityProvider<
     C extends AbstractIdentityProviderConfig<M>
 >
     extends AbstractConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M>
-    implements IdentityProvider<I, U, P, M, C>, InitializingBean {
+    implements IdentityProvider<I, U, P, M, C>, ApplicationEventPublisherAware, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    protected ApplicationEventPublisher eventPublisher;
 
     protected AbstractIdentityProvider(String authority, String providerId, C config, String realm) {
         super(authority, providerId, realm, config);
@@ -89,6 +93,11 @@ public abstract class AbstractIdentityProvider<
     public boolean isAuthoritative() {
         // by default every provider is authoritative
         return true;
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     /*

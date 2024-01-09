@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.StringUtils;
 
 public class OpenIdFedIdentityProvider
@@ -112,6 +113,12 @@ public class OpenIdFedIdentityProvider
 
     public void setResourceService(ResourceEntityService resourceService) {
         this.accountService.setResourceService(resourceService);
+    }
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+        this.authenticationProvider.setApplicationEventPublisher(eventPublisher);
     }
 
     @Override
