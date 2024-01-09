@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
+import it.smartcommunitylab.aac.saml.SamlKeys;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import java.io.Serializable;
@@ -103,7 +104,13 @@ public class SamlAccountPrincipalConverter
 
         // attributes from provider
         String username = principal.getUsername();
-        Map<String, Serializable> attributes = principal.getAttributes();
+        //filter saml attributes to keep only user attributes
+        Map<String, Serializable> attributes = principal
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
         // map attributes to saml set and flatten to string
         // we also clean every attribute and allow only plain text

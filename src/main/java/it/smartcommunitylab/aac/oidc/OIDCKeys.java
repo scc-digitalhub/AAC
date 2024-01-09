@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 
 public class OIDCKeys {
 
@@ -50,6 +51,8 @@ public class OIDCKeys {
         IdTokenClaimNames.ISS,
         IdTokenClaimNames.NONCE,
         IdTokenClaimNames.SUB,
+        JwtClaimNames.JTI,
+        JwtClaimNames.NBF,
     };
 
     public static final Set<String> JWT_ATTRIBUTES;

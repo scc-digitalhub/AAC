@@ -247,14 +247,13 @@ public class SamlAuthenticationProvider
         // custom attribute mapping
         if (executionService != null && StringUtils.hasText(customMappingFunction)) {
             try {
-                // get all attributes from principal except jwt attrs
+                // get all attributes from principal
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user
                     .getAttributes()
                     .entrySet()
                     .stream()
                     .filter(e -> e.getValue() != null)
-                    .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(

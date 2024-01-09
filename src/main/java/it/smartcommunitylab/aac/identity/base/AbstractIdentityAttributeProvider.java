@@ -46,10 +46,11 @@ public abstract class AbstractIdentityAttributeProvider<
         String id = principal.getPrincipalId();
         Map<String, Serializable> attributes = principal.getAttributes();
 
-        if (account instanceof AbstractUserAccount) {
-            // set principal attrs in account
-            ((AbstractUserAccount) account).setAttributes(attributes);
-        }
+        //DISABLED - converting from principal to account is already handled by another component
+        // if (account instanceof AbstractUserAccount) {
+        //     // set principal attrs in account
+        //     ((AbstractUserAccount) account).setAttributes(attributes);
+        // }
 
         // call extract to transform
         return extractUserAttributes(account, attributes);

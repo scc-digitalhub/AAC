@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
+import it.smartcommunitylab.aac.oidc.OIDCKeys;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import java.io.Serializable;
@@ -113,7 +114,13 @@ public class OIDCAccountPrincipalConverter
 
         // attributes from provider
         String username = principal.getUsername();
-        Map<String, Serializable> attributes = principal.getAttributes();
+        //filter jwt attributes to keep only user attributes
+        Map<String, Serializable> attributes = principal
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
         // map attributes to openid set and flatten to string
         // we also clean every attribute and allow only plain text

@@ -111,8 +111,7 @@ public class SamlUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
                 .getAttributes()
                 .entrySet()
                 .stream()
-                .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
-                .filter(e -> (e.getValue() != null && !e.getValue().isEmpty()))
+                .filter(e -> (e.getValue() != null))
                 .forEach(e -> {
                     String key = e.getKey();
                     // map to String
@@ -127,7 +126,12 @@ public class SamlUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
 
         if (attributes != null) {
             // local attributes overwrite saml attributes when set
-            attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
+            attributes
+                .entrySet()
+                .stream()
+                .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
+                .filter(e -> (e.getValue() != null))
+                .forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
         // override if set

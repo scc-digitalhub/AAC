@@ -101,14 +101,14 @@ public class OpenIdFedIdentityProvider
             config.getHookFunctions() != null &&
             StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
         ) {
-            // this.authenticationProvider.setCustomMappingFunction(
-            //         config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
-            //     );
+            this.authenticationProvider.setCustomMappingFunction(
+                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                );
         }
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {
-        // this.authenticationProvider.setExecutionService(executionService);
+        this.authenticationProvider.setExecutionService(executionService);
     }
 
     public void setResourceService(ResourceEntityService resourceService) {

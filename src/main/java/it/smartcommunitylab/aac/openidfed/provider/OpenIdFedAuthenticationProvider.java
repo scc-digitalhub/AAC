@@ -116,6 +116,14 @@ public class OpenIdFedAuthenticationProvider
         oidcProvider.setAuthoritiesMapper(nullAuthoritiesMapper);
     }
 
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
+    }
+
+    public void setCustomMappingFunction(String customMappingFunction) {
+        this.customMappingFunction = customMappingFunction;
+    }
+
     @Override
     public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
         super.setApplicationEventPublisher(eventPublisher);
@@ -232,13 +240,12 @@ public class OpenIdFedAuthenticationProvider
         // custom attribute mapping
         if (executionService != null && StringUtils.hasText(customMappingFunction)) {
             try {
-                // get all attributes from principal except jwt attrs
+                // get all attributes from principal
                 // TODO handle all attributes not only strings.
                 Map<String, Serializable> principalAttributes = user
                     .getAttributes()
                     .entrySet()
                     .stream()
-                    .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 // execute script
                 Map<String, Serializable> customAttributes = executionService.executeFunction(

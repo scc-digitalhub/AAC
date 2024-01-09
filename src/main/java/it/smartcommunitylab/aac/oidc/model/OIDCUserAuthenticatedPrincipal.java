@@ -112,7 +112,6 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
                 .getAttributes()
                 .entrySet()
                 .stream()
-                .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                 .filter(e -> (e.getValue() != null))
                 .forEach(e -> {
                     // put if absent to pick only first value when repeated
@@ -124,7 +123,6 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
                 ((OidcUser) principal).getClaims()
                     .entrySet()
                     .stream()
-                    .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
                     .filter(e -> (e.getValue() != null))
                     .forEach(e -> {
                         // put if absent to pick only first value when repeated
@@ -136,7 +134,12 @@ public class OIDCUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
 
         if (attributes != null) {
             // local attributes overwrite oauth attributes when set
-            attributes.entrySet().forEach(e -> result.put(e.getKey(), e.getValue()));
+            attributes
+                .entrySet()
+                .stream()
+                .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
+                .filter(e -> (e.getValue() != null))
+                .forEach(e -> result.put(e.getKey(), e.getValue()));
         }
 
         // override if set

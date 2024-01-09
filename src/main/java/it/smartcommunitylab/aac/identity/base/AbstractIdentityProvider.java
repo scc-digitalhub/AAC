@@ -202,6 +202,7 @@ public abstract class AbstractIdentityProvider<
 
         // look in service for existing accounts
         U account = getAccountProvider().findAccount(id);
+        //TODO refactor to properly support missing account service and fallback to reg
         if (account == null) {
             // create account if supported
             if (getAccountService() == null) {
