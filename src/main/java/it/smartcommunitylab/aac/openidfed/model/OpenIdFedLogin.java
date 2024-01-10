@@ -23,6 +23,7 @@ public class OpenIdFedLogin {
     private String organizationName;
     private String iconUrl;
     private String logoUrl;
+    private String loginUrl;
 
     public OpenIdFedLogin(String registrationId) {
         this.registrationId = registrationId;
@@ -66,5 +67,13 @@ public class OpenIdFedLogin {
 
     public void setLogoUrl(String logoUrl) {
         this.logoUrl = logoUrl;
+    }
+
+    public String getLoginUrl() {
+        return loginUrl;
+    }
+
+    public void setLoginUrl(String loginUrl) {
+        this.loginUrl = loginUrl;
     }
 }

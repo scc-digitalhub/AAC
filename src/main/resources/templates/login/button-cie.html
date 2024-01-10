@@ -34,7 +34,7 @@
         <a
           class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login login-cie"
           th:classAppend="${authority.cssClass}"
-          th:href="${authority.loginUrl + '/'+entry.registrationId}"
+          th:href="${entry.loginUrl}"
         >
           <span class="mr-3 pr-2 border-right" aria-hidden="true">
             <svg class="icon icon-white icon-sm">
@@ -51,7 +51,7 @@
           th:each="entry: ${authority.entries}"
           class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login login-cie"
           th:classAppend="${authority.cssClass}"
-          th:href="${authority.loginUrl + '/'+entry.registrationId}"
+          th:href="${entry.loginUrl}"
         >
           <span class="mr-3 pr-2 border-right" aria-hidden="true">
             <svg class="icon icon-white icon-sm">

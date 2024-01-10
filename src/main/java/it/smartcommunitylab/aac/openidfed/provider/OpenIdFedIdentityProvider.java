@@ -169,13 +169,17 @@ public class OpenIdFedIdentityProvider
         return "/auth/" + getAuthority() + "/authorize/" + getProvider();
     }
 
+    public String getLoginUrl() {
+        return "/auth/" + getAuthority() + "/form/" + getProvider();
+    }
+
     @Override
     public OpenIdFedLoginProvider getLoginProvider() {
         OpenIdFedLoginProvider lp = new OpenIdFedLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setTitleMap(getTitleMap());
         lp.setDescriptionMap(getDescriptionMap());
 
-        lp.setLoginUrl(getAuthenticationUrl());
+        lp.setLoginUrl(getLoginUrl());
         lp.setPosition(getConfig().getPosition());
 
         //template override
@@ -195,6 +199,7 @@ public class OpenIdFedIdentityProvider
                     String registrationId = repository.encode(e);
                     OpenIdFedLogin login = new OpenIdFedLogin(registrationId);
                     login.setEntityId(e);
+                    login.setLoginUrl(getAuthenticationUrl() + "/" + registrationId);
 
                     OIDCProviderMetadata op = discoveryService.findProvider(e);
                     FederationEntityMetadata meta = discoveryService.loadProviderMetadata(e);
