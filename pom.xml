@@ -24,6 +24,7 @@
 		<yarn.version>v1.21.1</yarn.version>
 		<postgresql.version>42.3.8</postgresql.version>
 		<mysql.version>8.0.33</mysql.version>
+		<mariadb.version>3.3.2</mariadb.version>
 		<opensaml.version>4.1.1</opensaml.version>
 		<profile.authorization />
 	</properties>
@@ -175,6 +176,13 @@
 			<artifactId>postgresql</artifactId>
 			<version>${postgresql.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
+			<version>${mariadb.version}</version>
+		</dependency>
+		
 
 <!--		<dependency>-->
 <!--			<groupId>com.github.tomakehurst</groupId>-->
