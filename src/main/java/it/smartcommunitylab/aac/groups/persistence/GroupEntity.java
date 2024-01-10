@@ -33,7 +33,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  *
  */
 @Entity
-@Table(name = "groups", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "group_key" }))
+@Table(name = "realm_groups", uniqueConstraints = @UniqueConstraint(columnNames = { "realm", "group_key" }))
 @EntityListeners(AuditingEntityListener.class)
 public class GroupEntity {
 
