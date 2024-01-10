@@ -37,11 +37,15 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.context.i18n.LocaleContext;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
@@ -200,6 +204,17 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
             additionalParameters.put(OidcParameterNames.PROMPT, String.join(" ", promptModes));
         }
+
+        //extract language to set locales
+        Set<String> locales = new HashSet<>();
+        LocaleContext localeContext = LocaleContextHolder.getLocaleContext();
+        if (localeContext != null && localeContext.getLocale() != null) {
+            Optional.of(localeContext.getLocale()).ifPresent(locale -> locales.add(locale.getLanguage()));
+        }
+
+        if (!locales.isEmpty()) {
+            additionalParameters.put(OidcParameterNames.UI_LOCALES, String.join(" ", locales));
+        }
     }
 
     /*
@@ -307,6 +322,13 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
                 //remove from parameters to avoid including as plain in request, we keep it only in request_obj
                 additionalParameters.remove(OidcParameterNames.PROMPT);
+            }
+
+            if (additionalParameters.containsKey(OidcParameterNames.UI_LOCALES)) {
+                claims.claim(OidcParameterNames.UI_LOCALES, additionalParameters.get(OidcParameterNames.UI_LOCALES));
+
+                //remove from parameters to avoid including as plain in request, we keep it only in request_obj
+                additionalParameters.remove(OidcParameterNames.UI_LOCALES);
             }
 
             if (additionalParameters.containsKey(OidcParameterNames.CLAIMS)) {
