@@ -104,7 +104,7 @@ public class SamlAttributeProvider
 
         // override from account
         map.put(OpenIdAttributesSet.NAME, name);
-        if (surname != null) {
+        if (StringUtils.hasText(surname)) {
             map.put(OpenIdAttributesSet.FAMILY_NAME, surname);
         }
         map.put(OpenIdAttributesSet.EMAIL, email);
