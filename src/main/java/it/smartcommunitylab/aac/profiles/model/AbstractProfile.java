@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.SystemKeys;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ public abstract class AbstractProfile implements Serializable {
 
     static {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
+        mapper.registerModule(new JavaTimeModule());
     }
 
     public String getId() {
