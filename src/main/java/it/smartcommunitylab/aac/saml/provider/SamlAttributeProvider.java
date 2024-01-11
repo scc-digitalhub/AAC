@@ -104,7 +104,9 @@ public class SamlAttributeProvider
 
         // override from account
         map.put(OpenIdAttributesSet.NAME, name);
-        map.put(OpenIdAttributesSet.FAMILY_NAME, surname);
+        if (surname != null) {
+            map.put(OpenIdAttributesSet.FAMILY_NAME, surname);
+        }
         map.put(OpenIdAttributesSet.EMAIL, email);
         map.put(OpenIdAttributesSet.EMAIL_VERIFIED, account.isEmailVerified());
         map.put(OpenIdAttributesSet.PREFERRED_USERNAME, username);
