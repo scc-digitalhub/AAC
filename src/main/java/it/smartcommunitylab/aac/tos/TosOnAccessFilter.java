@@ -60,6 +60,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
         "/fonts/**",
         "/italia/**",
         "/i18n/**",
+        "/-/**/logo"
     };
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

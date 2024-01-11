@@ -22,7 +22,7 @@ CREATE TABLE
     );
     
 CREATE TABLE
-    IF NOT EXISTS files (
+    IF NOT EXISTS realm_files (
         id VARCHAR(256),
         file_id VARCHAR(256),
         data LONGBLOB,
