@@ -40,9 +40,9 @@ import org.springframework.util.Assert;
 
 public class AutoJdbcFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-	private static final String DEFAULT_SELECT_STATEMENT = "select id, file_id, data, realm, size from files where  file_id = ?";
-	private static final String DEFAULT_INSERT_STATEMENT = "insert into files (id, file_id, data, realm, size) values (?, ?, ?, ?, ?)";
-	private static final String DEFAULT_DELETE_STATEMENT = "delete from files where file_id = ?";
+	private static final String DEFAULT_SELECT_STATEMENT = "select id, file_id, data, realm, size from realm_files where  file_id = ?";
+	private static final String DEFAULT_INSERT_STATEMENT = "insert into realm_files (id, file_id, data, realm, size) values (?, ?, ?, ?, ?)";
+	private static final String DEFAULT_DELETE_STATEMENT = "delete from realm_files where file_id = ?";
 
 	private String selectFileSql = DEFAULT_SELECT_STATEMENT;
 	private String insertFileSql = DEFAULT_INSERT_STATEMENT;

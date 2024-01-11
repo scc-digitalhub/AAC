@@ -40,6 +40,8 @@ import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.dto.RealmConfig;
+import it.smartcommunitylab.aac.files.FileService;
+import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
@@ -63,6 +65,8 @@ import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.users.UserManager;
 import it.smartcommunitylab.aac.users.service.UserService;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
+
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -154,6 +158,9 @@ public class RealmManager {
 
     @Autowired
     private UserCredentialsService<InternalUserPassword> internalUserPasswordService;
+    
+    @Autowired
+    private FileService fileService;
 
     //    @Autowired
     //    private SessionManager sessionManager;
@@ -473,6 +480,16 @@ public class RealmManager {
                 } catch (Exception e) {
                     // skip
                 }
+            }
+            
+            // files
+            Collection<FileInfo> files = fileService.getFilesByRealm(slug);
+            for (FileInfo fileInfo: files) {
+            	try {
+					fileService.deleteFile(slug, fileInfo.getId());
+				} catch (FileNotFoundException e) {
+					// skip
+				}
             }
         }
 

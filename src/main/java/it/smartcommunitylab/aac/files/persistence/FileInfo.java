@@ -30,7 +30,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "files_info")
+@Table(name = "realm_files_info")
 @EntityListeners(AuditingEntityListener.class)
 public class FileInfo {
 	@Id
