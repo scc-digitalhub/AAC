@@ -292,6 +292,87 @@ public class RealmManager {
         Realm realm = realmService.getRealm(slug);
 
         if (realm != null && cleanup) {
+            // remove users
+            List<User> users = userManager.listUsers(slug);
+            for (User user : users) {
+                try {
+                    String subjectId = user.getSubjectId();
+
+                    // remove, will kill active sessions and cleanup
+                    // will also delete if this realm is owner
+                    userManager.removeUser(slug, subjectId);
+                } catch (NoSuchUserException e) {
+                    // skip
+                }
+            }
+
+            // remove all orphan credentials
+            // TODO refactor using credentialsService
+            List<String> passwords = internalUserPasswordService
+                .findCredentialsByRealm(slug)
+                .stream()
+                .map(p -> p.getId())
+                .collect(Collectors.toList());
+            internalUserPasswordService.deleteAllCredentials(slug, passwords);
+
+            List<String> credentials = webAuthnUserCredentialsService
+                .findCredentialsByRealm(slug)
+                .stream()
+                .map(p -> p.getId())
+                .collect(Collectors.toList());
+            webAuthnUserCredentialsService.deleteAllCredentials(slug, credentials);
+
+            // remove clients
+            List<Client> clients = clientManager.listClients(slug);
+            for (Client client : clients) {
+                try {
+                    String clientId = client.getClientId();
+
+                    // check ownership
+                    if (client.getRealm().equals(slug)) {
+                        // remove, will kill active sessions and cleanup
+                        clientManager.deleteClientApp(slug, clientId);
+                    }
+                } catch (NoSuchClientException e) {
+                    // skip
+                }
+            }
+
+            // attributes
+            Collection<AttributeSet> attributeSets = attributeManager.listAttributeSets(slug, false);
+            for (AttributeSet set : attributeSets) {
+                try {
+                    String setId = set.getIdentifier();
+
+                    // remove, should cleanup user association for leftovers
+                    attributeManager.deleteAttributeSet(slug, setId);
+                } catch (NoSuchAttributeSetException e) {
+                    // skip
+                }
+            }
+
+            // groups
+            Collection<Group> groups = groupService.listGroups(slug);
+            for (Group group : groups) {
+                String groupId = group.getGroupId();
+
+                // remove, should cleanup user association for leftovers
+                groupService.deleteGroup(slug, groupId);
+            }
+
+            // roles
+            Collection<RealmRole> roles = roleManager.getRealmRoles(slug);
+            for (RealmRole role : roles) {
+                try {
+                    String roleId = role.getRoleId();
+
+                    // remove, should cleanup user association for leftovers
+                    roleManager.deleteRealmRole(slug, roleId);
+                } catch (Exception e) {
+                    // skip
+                }
+            }
+
             // remove all identity providers, will also invalidate sessions for idps
             Collection<ConfigurableIdentityProvider> idps = identityProviderService.listProviders(slug);
             for (ConfigurableIdentityProvider provider : idps) {
@@ -340,52 +421,6 @@ public class RealmManager {
                 }
             }
 
-            // remove clients
-            List<Client> clients = clientManager.listClients(slug);
-            for (Client client : clients) {
-                try {
-                    String clientId = client.getClientId();
-
-                    // check ownership
-                    if (client.getRealm().equals(slug)) {
-                        // remove, will kill active sessions and cleanup
-                        clientManager.deleteClientApp(slug, clientId);
-                    }
-                } catch (NoSuchClientException e) {
-                    // skip
-                }
-            }
-
-            // remove users
-            List<User> users = userManager.listUsers(slug);
-            for (User user : users) {
-                try {
-                    String subjectId = user.getSubjectId();
-
-                    // remove, will kill active sessions and cleanup
-                    // will also delete if this realm is owner
-                    userManager.removeUser(slug, subjectId);
-                } catch (NoSuchUserException e) {
-                    // skip
-                }
-            }
-
-            // remove all orphan credentials
-            // TODO refactor using credentialsService
-            List<String> passwords = internalUserPasswordService
-                .findCredentialsByRealm(slug)
-                .stream()
-                .map(p -> p.getId())
-                .collect(Collectors.toList());
-            internalUserPasswordService.deleteAllCredentials(slug, passwords);
-
-            List<String> credentials = webAuthnUserCredentialsService
-                .findCredentialsByRealm(slug)
-                .stream()
-                .map(p -> p.getId())
-                .collect(Collectors.toList());
-            webAuthnUserCredentialsService.deleteAllCredentials(slug, credentials);
-
             // remove services
             List<it.smartcommunitylab.aac.services.Service> services = servicesManager.listServices(slug);
             for (it.smartcommunitylab.aac.services.Service service : services) {
@@ -395,41 +430,6 @@ public class RealmManager {
                     // remove, will cleanup
                     servicesManager.deleteService(slug, serviceId);
                 } catch (NoSuchServiceException e) {
-                    // skip
-                }
-            }
-
-            // attributes
-            Collection<AttributeSet> attributeSets = attributeManager.listAttributeSets(slug, false);
-            for (AttributeSet set : attributeSets) {
-                try {
-                    String setId = set.getIdentifier();
-
-                    // remove, should cleanup user association for leftovers
-                    attributeManager.deleteAttributeSet(slug, setId);
-                } catch (NoSuchAttributeSetException e) {
-                    // skip
-                }
-            }
-
-            // groups
-            Collection<Group> groups = groupService.listGroups(slug);
-            for (Group group : groups) {
-                String groupId = group.getGroupId();
-
-                // remove, should cleanup user association for leftovers
-                groupService.deleteGroup(slug, groupId);
-            }
-
-            // roles
-            Collection<RealmRole> roles = roleManager.getRealmRoles(slug);
-            for (RealmRole role : roles) {
-                try {
-                    String roleId = role.getRoleId();
-
-                    // remove, should cleanup user association for leftovers
-                    roleManager.deleteRealmRole(slug, roleId);
-                } catch (Exception e) {
                     // skip
                 }
             }
