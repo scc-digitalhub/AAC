@@ -5,6 +5,7 @@ import {
     TextField,
     DeleteWithConfirmButton,
     LinearProgress,
+    useLogout,
 } from 'react-admin';
 import {
     Box,
@@ -30,6 +31,7 @@ import { AccountsList } from '../resources/accounts';
 
 const UserActions = ({ user }: { user: any }) => {
     const translate = useTranslate();
+    const logout = useLogout();
 
     const account = user.identities.find(
         (i: any) => i.authority === 'internal'
@@ -71,6 +73,7 @@ const UserActions = ({ user }: { user: any }) => {
                         confirmContent="page.accounts.delete_user.content"
                         icon={<DeleteForeverIcon />}
                         translateOptions={{ id: user.username }}
+                        onClick={e => logout()}
                     />
                 </CardToolbar>
             </Box>
