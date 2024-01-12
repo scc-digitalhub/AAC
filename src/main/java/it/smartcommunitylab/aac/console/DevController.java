@@ -37,7 +37,7 @@ import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
-import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
+import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
 import it.smartcommunitylab.aac.realms.RealmManager;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.services.ServicesManager;
@@ -132,7 +132,7 @@ public class DevController {
     private ServletContext servletContext;
 
     @Autowired
-    private OAuth2MetadataEndpoint oauth2MetadataEndpoint;
+    private OpenIDMetadataEndpoint openidMetadataEndpoint;
 
     @GetMapping("/dev")
     public ModelAndView developer() {
@@ -160,7 +160,7 @@ public class DevController {
     ) throws NoSuchRealmException {
         // hack
         // TODO render proper per realm meta
-        Map<String, Object> metadata = oauth2MetadataEndpoint.getConfiguration();
+        Map<String, Object> metadata = openidMetadataEndpoint.getConfiguration();
         return ResponseEntity.ok(metadata);
     }
 

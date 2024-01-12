@@ -63,7 +63,7 @@ public class OpenIDMetadataEndpoint {
         return getConfiguration();
     }
 
-    private Map<String, Object> getConfiguration() {
+    public Map<String, Object> getConfiguration() {
         if (configuration == null) {
             logger.debug("Generate OIDC provider metadata via generators");
             // provider metadata from generators
