@@ -35,6 +35,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigCo
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ public class InternalAccountServiceAuthority
     private final UserAccountService<InternalUserAccount> accountService;
     private final InternalUserConfirmKeyService confirmKeyService;
 
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
@@ -77,6 +79,11 @@ public class InternalAccountServiceAuthority
         this.resourceService = resourceService;
         this.accountService = userAccountService;
         this.confirmKeyService = confirmKeyService;
+    }
+
+    @Autowired
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 
     @Autowired
@@ -104,6 +111,7 @@ public class InternalAccountServiceAuthority
             config.getRealm()
         );
 
+        service.setRealmService(realmService);
         service.setMailService(mailService);
         service.setUriBuilder(uriBuilder);
         service.setResourceService(resourceService);

@@ -257,6 +257,7 @@ public class TosUserTest {
         realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),

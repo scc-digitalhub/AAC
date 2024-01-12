@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class PasswordIdentityAuthority
     private final PasswordFilterProvider filterProvider;
 
     // services
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
     private ResourceEntityService resourceService;
@@ -75,6 +77,11 @@ public class PasswordIdentityAuthority
     public void setConfigProvider(PasswordIdentityConfigurationProvider configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
+    }
+
+    @Autowired
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 
     @Autowired
@@ -103,6 +110,7 @@ public class PasswordIdentityAuthority
         );
 
         // set services
+        idp.setRealmService(realmService);
         idp.setMailService(mailService);
         idp.setUriBuilder(uriBuilder);
         idp.setResourceService(resourceService);

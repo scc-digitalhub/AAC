@@ -30,6 +30,7 @@ import javax.validation.constraints.Size;
 public class Realm {
 
     private String name;
+    private String email;
 
     @NotBlank
     @Size(max = 128)
@@ -49,8 +50,7 @@ public class Realm {
         this.localizationConfiguration = new LocalizationConfigurationMap();
     }
 
-    public Realm(String slug, String name) {
-        this.name = name;
+    public Realm(String slug) {
         this.slug = slug;
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
@@ -63,6 +63,14 @@ public class Realm {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getSlug() {
