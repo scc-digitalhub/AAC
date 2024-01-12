@@ -142,11 +142,6 @@ public class TosController {
 
     @GetMapping("/terms/reject")
     public String rejectTerms(HttpServletRequest request, Model model, Locale locale) {
-        UserDetails user = authHelper.getUserDetails();
-        if (user == null) {
-            throw new InsufficientAuthenticationException("error.unauthenticated_user");
-        }
-
         return "tos/tos_refuse";
     }
 }
