@@ -401,10 +401,13 @@ public class InternalJpaUserAccountService
         account.setStatus(entity.getStatus());
 
         account.setEmail(entity.getEmail());
-        account.setConfirmed(entity.isConfirmed());
         account.setName(entity.getName());
         account.setSurname(entity.getSurname());
         account.setLang(entity.getLang());
+
+        account.setConfirmed(entity.isConfirmed());
+        account.setConfirmationDeadline(entity.getConfirmationDeadline());
+        account.setConfirmationKey(entity.getConfirmationKey());
 
         account.setCreateDate(entity.getCreateDate());
         account.setModifiedDate(entity.getModifiedDate());

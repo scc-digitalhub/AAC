@@ -42,7 +42,7 @@ public class InternalUserAuthenticatedPrincipal extends AbstractUserAuthenticate
     private Map<String, String> attributes;
 
     public InternalUserAuthenticatedPrincipal(String provider, String realm, String userId, String username) {
-        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, username, userId);
+        this(SystemKeys.AUTHORITY_INTERNAL, provider, realm, userId, username);
     }
 
     public InternalUserAuthenticatedPrincipal(
