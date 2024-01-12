@@ -34,10 +34,12 @@ import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 public class PasswordIdentityProvider
@@ -96,6 +98,10 @@ public class PasswordIdentityProvider
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
         this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.passwordService.setRealmService(realmService);
     }
 
     public void setMailService(MailService mailService) {

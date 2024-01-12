@@ -28,11 +28,13 @@ import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsService;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.password.PasswordCredentialsAuthority;
 import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.security.NoSuchAlgorithmException;
@@ -43,6 +45,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -62,6 +65,7 @@ public class PasswordCredentialsService
     // services
     private final InternalPasswordJpaUserCredentialsService passwordService;
     private PasswordHash hasher;
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
@@ -76,6 +80,10 @@ public class PasswordCredentialsService
 
         this.passwordService = passwordService;
         this.hasher = new PasswordHash();
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 
     public void setMailService(MailService mailService) {
@@ -631,11 +639,31 @@ public class PasswordCredentialsService
             action.put("url", loginUrl);
             action.put("text", "action.login");
 
+            String logoUrl = "";
+            if (uriBuilder != null) {
+                logoUrl = uriBuilder.buildUrl(realm, "/logo");
+            }
+
+            Map<String, String> application = new HashMap<>();
+            application.put("name", realm);
+            application.put("url", loginUrl);
+            application.put("logo", logoUrl);
+            application.put("email", "");
+
+            if (realmService != null) {
+                Realm r = realmService.findRealm(realm);
+                if (r != null) {
+                    application.put("name", r.getName());
+                    application.put("email", Optional.ofNullable(r.getEmail()).orElse(""));
+                }
+            }
+
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", user);
             vars.put("password", password);
             vars.put("action", action);
             vars.put("realm", user.getRealm());
+            vars.put("application", application);
 
             String template = "password";
             mailService.sendEmail(user.getEmailAddress(), template, lang, vars);

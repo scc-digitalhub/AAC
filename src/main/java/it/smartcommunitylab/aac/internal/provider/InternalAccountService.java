@@ -35,7 +35,9 @@ import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
@@ -44,6 +46,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import javax.mail.MessagingException;
 import org.jsoup.Jsoup;
@@ -72,6 +75,7 @@ public class InternalAccountService
 
     private final String repositoryId;
 
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
@@ -96,6 +100,10 @@ public class InternalAccountService
 
         // config
         this.repositoryId = config.getRepositoryId();
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 
     public void setMailService(MailService mailService) {
@@ -954,10 +962,33 @@ public class InternalAccountService
             action.put("url", confirmUrl);
             action.put("text", "action.confirm");
 
+            String realm = getRealm();
+            String realmUrl = "";
+            String logoUrl = "";
+            if (uriBuilder != null) {
+                realmUrl = uriBuilder.buildUrl(realm, "/login");
+                logoUrl = uriBuilder.buildUrl(realm, "/logo");
+            }
+
+            Map<String, String> application = new HashMap<>();
+            application.put("name", realm);
+            application.put("url", realmUrl);
+            application.put("logo", logoUrl);
+            application.put("email", "");
+
+            if (realmService != null) {
+                Realm r = realmService.findRealm(account.getRealm());
+                if (r != null) {
+                    application.put("name", r.getName());
+                    application.put("email", Optional.ofNullable(r.getEmail()).orElse(""));
+                }
+            }
+
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("action", action);
             vars.put("realm", account.getRealm());
+            vars.put("application", application);
 
             String template = "confirmation";
 

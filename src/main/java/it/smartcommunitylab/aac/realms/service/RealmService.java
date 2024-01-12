@@ -67,13 +67,15 @@ public class RealmService implements InitializingBean {
         this.realmRepository = realmRepository;
 
         // build system realm
-        systemRealm = new Realm(SystemKeys.REALM_SYSTEM, SystemKeys.REALM_SYSTEM);
+        systemRealm = new Realm(SystemKeys.REALM_SYSTEM);
+        systemRealm.setName(SystemKeys.REALM_SYSTEM);
         systemRealm.setEditable(false);
         systemRealm.setPublic(false);
         if (realmRepository.findBySlug(SystemKeys.REALM_SYSTEM) == null) {
             RealmEntity re = new RealmEntity();
             re.setSlug(systemRealm.getSlug());
             re.setName(systemRealm.getName());
+            re.setEmail(systemRealm.getEmail());
             re.setEditable(false);
             re.setPublic(false);
             realmRepository.save(re);
@@ -85,7 +87,8 @@ public class RealmService implements InitializingBean {
         Assert.notNull(systemRealm, "system realm can not be null");
     }
 
-    public Realm addRealm(String slug, String name, boolean isEditable, boolean isPublic) throws RegistrationException {
+    public Realm addRealm(String slug, String name, String email, boolean isEditable, boolean isPublic)
+        throws RegistrationException {
         if (!StringUtils.hasText(slug)) {
             throw new InvalidDataException("slug");
         }
@@ -110,6 +113,7 @@ public class RealmService implements InitializingBean {
         r = new RealmEntity();
         r.setSlug(slug);
         r.setName(name);
+        r.setEmail(email);
         r.setEditable(isEditable);
         r.setPublic(isPublic);
 
@@ -149,6 +153,7 @@ public class RealmService implements InitializingBean {
     public Realm updateRealm(
         String slug,
         String name,
+        String email,
         boolean isEditable,
         boolean isPublic,
         Map<String, Serializable> oauthConfigurationMap,
@@ -165,6 +170,7 @@ public class RealmService implements InitializingBean {
         }
 
         r.setName(name);
+        r.setEmail(email);
         r.setEditable(isEditable);
         r.setPublic(isPublic);
 
@@ -245,7 +251,9 @@ public class RealmService implements InitializingBean {
      * Helpers
      */
     private Realm toRealm(RealmEntity re) {
-        Realm r = new Realm(re.getSlug(), re.getName());
+        Realm r = new Realm(re.getSlug());
+        r.setName(re.getName());
+        r.setEmail(re.getEmail());
         r.setEditable(re.isEditable());
         r.setPublic(re.isPublic());
 

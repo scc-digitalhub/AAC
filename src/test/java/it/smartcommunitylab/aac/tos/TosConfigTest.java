@@ -80,6 +80,7 @@ public class TosConfigTest {
         Realm realmUpdated = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
@@ -104,6 +105,7 @@ public class TosConfigTest {
         Realm realmUpdated2 = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
@@ -143,6 +145,7 @@ public class TosConfigTest {
         Realm realmUpdated = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
@@ -167,6 +170,7 @@ public class TosConfigTest {
         Realm realmUpdated2 = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
@@ -240,6 +244,7 @@ public class TosConfigTest {
         realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),

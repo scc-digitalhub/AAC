@@ -7,6 +7,10 @@
                 <label for="name" class="{{realmSettings.name != '' ? 'active' : ''}}">Name</label>
             </div>
             <div class="form-group col">
+                <input type="text" name="email" class="form-control " id="email" ng-model="realmSettings.email">
+                <label for="email" class="{{realmSettings.email != '' ? 'active' : ''}}">Email</label>
+            </div>            
+            <div class="form-group col">
                 <textarea rows="3" name="description" id="description" ng-model="realmSettings.description"></textarea>
                 <label for="description" class="{{realmSettings.description != '' ? 'active' : ''}}">Description</label>
             </div>

@@ -170,6 +170,7 @@ public class RealmManager {
         // cleanup input
         String slug = r.getSlug();
         String name = r.getName();
+        String email = r.getEmail();
 
         if (StringUtils.hasText(slug)) {
             slug = Jsoup.clean(slug, Safelist.none());
@@ -179,6 +180,11 @@ public class RealmManager {
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Safelist.none());
             name = name.trim();
+        }
+
+        if (StringUtils.hasText(email)) {
+            email = Jsoup.clean(email, Safelist.none());
+            email = email.trim();
         }
 
         if (!StringUtils.hasText(slug)) {
@@ -197,7 +203,7 @@ public class RealmManager {
             logger.trace("realm: {}", r.toString());
         }
 
-        return realmService.addRealm(slug, name, r.isEditable(), r.isPublic());
+        return realmService.addRealm(slug, name, email, r.isEditable(), r.isPublic());
     }
 
     @Transactional(readOnly = false)
@@ -212,6 +218,12 @@ public class RealmManager {
         }
         if (!StringUtils.hasText(name)) {
             throw new RegistrationException("name cannot be empty");
+        }
+
+        String email = r.getEmail();
+        if (StringUtils.hasText(email)) {
+            email = Jsoup.clean(email, Safelist.none());
+            email = email.trim();
         }
 
         Map<String, Serializable> oauth2ConfigMap = null;
@@ -232,6 +244,7 @@ public class RealmManager {
         Realm realm = realmService.updateRealm(
             slug,
             name,
+            email,
             r.isEditable(),
             r.isPublic(),
             oauth2ConfigMap,
