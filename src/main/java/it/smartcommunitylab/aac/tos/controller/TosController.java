@@ -60,12 +60,11 @@ public class TosController {
     @GetMapping("/-/{realm}" + TOS_TERMS)
     public String realmTerms(@PathVariable String realm, Model model) throws NoSuchProviderException {
         Realm realmEntity = realmService.findRealm(realm);
-        if (
-            realmEntity == null ||
-            realmEntity.getTosConfiguration() == null ||
-            !realmEntity.getTosConfiguration().isEnableTOS()
-        ) {
+        if (realmEntity == null) {
             throw new NoSuchProviderException("realm not found");
+        }
+        if (realmEntity.getTosConfiguration() == null || !realmEntity.getTosConfiguration().isEnableTOS()) {
+            throw new IllegalArgumentException("tos disabled");
         }
 
         model.addAttribute("realm", realm);
