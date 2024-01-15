@@ -32,13 +32,11 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.opensaml.saml.saml2.core.*;
-import org.opensaml.saml.saml2.core.impl.AuthnStatementImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
@@ -49,6 +47,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public class SamlAuthenticationProvider
@@ -113,33 +112,34 @@ public class SamlAuthenticationProvider
         //                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
         //                    return new ValidationContext(params);
         //                }));
-
+        Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultAssertionConverter =
+            OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter(responseToken -> {
             // use default converter to pre-evaluate authentication, containing attributes and indexes
             // then, extract AuthnContextClassRef from Assertion and include it as a custom attribute
             Response response = responseToken.getResponse();
             Saml2AuthenticationToken token = responseToken.getToken();
-            Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultConverter =
-                OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
-            Saml2Authentication auth = defaultConverter.convert(responseToken);
+            Saml2Authentication auth = defaultAssertionConverter.convert(responseToken);
             Map<String, List<Object>> attributes = new HashMap<>(
-                ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
+                ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
             );
             List<Object> acrValues = extractAcrAssertion(response);
-            if (!(acrValues.isEmpty()) && (!attributes.containsKey(ACR_ATTRIBUTE))) {
+            if ((acrValues != null) && (!attributes.containsKey(ACR_ATTRIBUTE))) {
                 attributes.put(ACR_ATTRIBUTE, acrValues);
             }
-            List<String> defaultIndexes =
-                ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes();
-            DefaultSaml2AuthenticatedPrincipal enhancedPrincipal = new DefaultSaml2AuthenticatedPrincipal(
+            DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
                 auth.getName(),
-                attributes,
-                defaultIndexes
+                attributes
             );
+            if (auth.getPrincipal() instanceof DefaultSaml2AuthenticatedPrincipal) {
+                List<String> indexes =
+                    ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes();
+                principal = new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes, indexes);
+            }
             return new Saml2Authentication(
-                enhancedPrincipal,
+                principal,
                 token.getSaml2Response(),
-                AuthorityUtils.createAuthorityList("ROLE_USER")
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
             );
         });
         // TODO rework response converter to extract additional assertions as attributes
@@ -237,29 +237,23 @@ public class SamlAuthenticationProvider
     }
 
     private static List<Object> extractAcrAssertion(Response response) {
-        List<Object> acrValues = new ArrayList<>();
-        if ((response == null) || (response.getAssertions() == null) || (response.getAssertions().isEmpty())) {
-            return acrValues;
+        if (response == null) {
+            return null;
         }
-        for (Assertion assertion : response.getAssertions()) {
-            for (Statement statement : assertion.getStatements()) {
-                if (!(statement instanceof AuthnStatementImpl)) {
-                    continue;
-                }
-                AuthnContext authnContext = ((AuthnStatementImpl) statement).getAuthnContext();
-                if (authnContext == null) {
-                    continue;
-                }
-                AuthnContextClassRef acr = authnContext.getAuthnContextClassRef();
-                if (acr == null) {
-                    continue;
-                }
-                if (StringUtils.hasText(acr.getURI())) {
-                    acrValues.add(acr.getURI());
-                }
-            }
+        Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+        if (assertion == null) {
+            return null;
         }
-        return acrValues;
+        List<String> acrValues = assertion
+            .getAuthnStatements()
+            .stream()
+            .map(authStatement -> authStatement.getAuthnContext())
+            .filter(Objects::nonNull)
+            .map(authCtx -> authCtx.getAuthnContextClassRef())
+            .filter(Objects::nonNull)
+            .map(acr -> acr.getURI())
+            .toList();
+        return new ArrayList<Object>(acrValues);
     }
 
     @Override
