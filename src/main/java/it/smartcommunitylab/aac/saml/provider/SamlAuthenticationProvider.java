@@ -29,16 +29,20 @@ import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.opensaml.saml.saml2.core.*;
+import org.opensaml.saml.saml2.core.impl.AuthnStatementImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
@@ -53,6 +57,7 @@ public class SamlAuthenticationProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String SUBJECT_ATTRIBUTE = "subject";
+    private static final String ACR_ATTRIBUTE = "assertionAcr";
     private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
     private final String repositoryId;
@@ -109,6 +114,34 @@ public class SamlAuthenticationProvider
         //                    return new ValidationContext(params);
         //                }));
 
+        openSamlProvider.setResponseAuthenticationConverter(responseToken -> {
+            // use default converter to pre-evaluate authentication, containing attributes and indexes
+            // then, extract AuthnContextClassRef from Assertion and include it as a custom attribute
+            Response response = responseToken.getResponse();
+            Saml2AuthenticationToken token = responseToken.getToken();
+            Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultConverter =
+                OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+            Saml2Authentication auth = defaultConverter.convert(responseToken);
+            Map<String, List<Object>> attributes = new HashMap<>(
+                ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
+            );
+            List<Object> acrValues = extractAcrAssertion(response);
+            if (!(acrValues.isEmpty()) && (!attributes.containsKey(ACR_ATTRIBUTE))) {
+                attributes.put(ACR_ATTRIBUTE, acrValues);
+            }
+            List<String> defaultIndexes =
+                ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes();
+            DefaultSaml2AuthenticatedPrincipal enhancedPrincipal = new DefaultSaml2AuthenticatedPrincipal(
+                auth.getName(),
+                attributes,
+                defaultIndexes
+            );
+            return new Saml2Authentication(
+                enhancedPrincipal,
+                token.getSaml2Response(),
+                AuthorityUtils.createAuthorityList("ROLE_USER")
+            );
+        });
         // TODO rework response converter to extract additional assertions as attributes
         //
         //        Converter<ResponseToken, Saml2Authentication> authenticationConverter = OpenSamlAuthenticationProvider
@@ -201,6 +234,32 @@ public class SamlAuthenticationProvider
         } catch (Saml2AuthenticationException e) {
             throw new SamlAuthenticationException(e.getSaml2Error(), e.getMessage(), null, saml2Response);
         }
+    }
+
+    private static List<Object> extractAcrAssertion(Response response) {
+        List<Object> acrValues = new ArrayList<>();
+        if ((response == null) || (response.getAssertions() == null) || (response.getAssertions().isEmpty())) {
+            return acrValues;
+        }
+        for (Assertion assertion : response.getAssertions()) {
+            for (Statement statement : assertion.getStatements()) {
+                if (!(statement instanceof AuthnStatementImpl)) {
+                    continue;
+                }
+                AuthnContext authnContext = ((AuthnStatementImpl) statement).getAuthnContext();
+                if (authnContext == null) {
+                    continue;
+                }
+                AuthnContextClassRef acr = authnContext.getAuthnContextClassRef();
+                if (acr == null) {
+                    continue;
+                }
+                if (StringUtils.hasText(acr.getURI())) {
+                    acrValues.add(acr.getURI());
+                }
+            }
+        }
+        return acrValues;
     }
 
     @Override
