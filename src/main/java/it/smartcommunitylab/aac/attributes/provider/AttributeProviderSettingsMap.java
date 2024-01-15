@@ -41,6 +41,7 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
     private Set<String> attributeSets;
     private PersistenceMode persistence;
     private String events;
+    private String internalNotes;
 
     public Set<String> getAttributeSets() {
         return attributeSets;
@@ -64,6 +65,14 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
 
     public void setEvents(String events) {
         this.events = events;
+    }
+
+    public String getInternalNotes() {
+        return internalNotes;
+    }
+
+    public void setInternalNotes(String internalNotes) {
+        this.internalNotes = internalNotes;
     }
 
     @JsonIgnore

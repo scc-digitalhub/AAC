@@ -788,6 +788,7 @@ angular.module('aac.controllers.realmproviders', [])
                 events: provider.settings.events,
                 position: provider.settings.position,
                 template: provider.settings.template,
+                internalNotes: provider.settings.internalNotes,
                 hookFunctions: hookFunctions
             }
 
@@ -1266,7 +1267,6 @@ angular.module('aac.controllers.realmproviders', [])
                 enabled: provider.enabled,
                 settings: provider.settings,
                 configuration: configuration
-
             }
 
             RealmProviders.saveAttributeProvider($scope.realm.slug, data)
