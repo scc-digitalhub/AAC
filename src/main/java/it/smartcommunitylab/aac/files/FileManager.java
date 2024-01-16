@@ -32,7 +32,8 @@ import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 
 @Service
-@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
+@PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
+		+ " or hasAuthority(#realm+':" + Config.R_DEVELOPER + "')")
 public class FileManager {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 

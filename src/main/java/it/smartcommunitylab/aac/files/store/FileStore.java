@@ -24,6 +24,6 @@ public interface FileStore {
 	
 	public InputStream load(String id, String realm);
 	
-	public boolean delete(String id, String realm);	
+	public void delete(String id, String realm);	
 
 }

@@ -42,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.files.FileManager;
-import it.smartcommunitylab.aac.files.message.ResponseMessage;
 import it.smartcommunitylab.aac.files.persistence.FileInfo;
 
 @Controller
@@ -104,18 +103,19 @@ public class FilesController {
 	}
 
 	@DeleteMapping("/{id:.+}")
-	public ResponseEntity<ResponseMessage> deleteFile(
+	public ResponseEntity<String> deleteFile(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm, @PathVariable String id) {
 		String message = "";
 		try {
 			fileManager.deleteFile(realm, id);
 			message = "Deleted successfully: " + id;
 			logger.debug(message);
-			return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));			
+			return ResponseEntity.status(HttpStatus.OK).body(null);
 		} catch (Exception e) {
 			message = "Could not delete the file: " + id + ". Error: " + e.getMessage();
 			logger.error(message);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResponseMessage(message));
-		}
+			return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(null);
+		}		
 	}
+	
 }

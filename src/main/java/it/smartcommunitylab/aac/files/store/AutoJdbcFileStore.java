@@ -103,9 +103,8 @@ public class AutoJdbcFileStore implements FileStore {
 	}
 
 	@Override
-	public boolean delete(String id, String realm) {
+	public void delete(String id, String realm) {
 		deleteFileDB(id);
-		return true;
 	}
 
 }

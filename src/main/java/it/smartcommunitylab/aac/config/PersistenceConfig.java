@@ -64,9 +64,6 @@ import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.files.store.AutoJdbcFileStore;
-import it.smartcommunitylab.aac.files.store.FileStore;
-import it.smartcommunitylab.aac.files.store.LocalFileStore;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -114,8 +111,6 @@ public class PersistenceConfig {
     @Qualifier("jdbcDataSource")
     private DataSource jdbcDataSource;
     
-    @Value("${persistence.files.store}")
-    private String fileStore;
 
     @Autowired
     private ProviderConfigEntityService providerConfigEntityService;
@@ -416,16 +411,6 @@ public class PersistenceConfig {
         return buildProviderConfigRepository(RealmTemplateProviderConfig.class);
     }
     
-    @Bean
-    public FileStore fileStoreService() {
-    	if ("jdbc".equals(fileStore)) {
-    		return new AutoJdbcFileStore(jdbcDataSource);
-    	} else if ("filesystem".equals(fileStore)) {
-    		return new LocalFileStore();
-    	}
-    	throw new IllegalArgumentException();    	
-    }
-
     private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
         Class<U> clazz
     ) {

@@ -33,13 +33,20 @@ import org.springframework.core.io.UrlResource;
 public class LocalFileStore implements FileStore {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Value("${persistence.files.path}")
 	private String basePath;
 	
 	private Path root;
 
+	public String getBasePath() {
+		return basePath;
+	}
+
+	public void setBasePath(String basePath) {
+		this.basePath = basePath;
+	}
+
 	public void setPath(String realm) {
-		this.root = Paths.get(basePath + System.getProperty("file.separator") + realm);
+		this.root = Paths.get(getBasePath() + System.getProperty("file.separator") + realm);
 		logger.debug("Local file store initialized,  path set to " + this.root);
 	}
 
@@ -74,11 +81,11 @@ public class LocalFileStore implements FileStore {
 	}
 
 	@Override
-	public boolean delete(String id, String realm) {
+	public void delete(String id, String realm) {
 		try {
 			setPath(realm);
 			Path file = root.resolve(id);
-			return Files.deleteIfExists(file);
+			Files.deleteIfExists(file);
 		} catch (IOException e) {
 			throw new IllegalArgumentException("Error: " + e.getMessage());
 		}

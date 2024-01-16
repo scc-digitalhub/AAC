@@ -67,7 +67,7 @@ public class FileService {
 		} catch (AlreadyRegisteredException e) {
 			// something wrong, stop
 			logger.error("error creating new userfor subject {}", String.valueOf(fileId));
-			throw new AuthenticationServiceException("error processing request");
+			throw e;
 		}
 	}
 
