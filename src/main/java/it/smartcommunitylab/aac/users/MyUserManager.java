@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.accounts.service.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
+import it.smartcommunitylab.aac.audit.model.ExtendedAuditEvent;
 import it.smartcommunitylab.aac.audit.store.AuditEventStore;
 import it.smartcommunitylab.aac.clients.persistence.ClientEntity;
 import it.smartcommunitylab.aac.clients.service.ClientEntityService;
@@ -79,6 +80,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -322,7 +324,7 @@ public class MyUserManager {
         }
 
         // execute
-        return passwordCredentialsAuthority.getProviderByRealm(realm).registerCredential(account.getAccountId(), reg);
+        return passwordCredentialsAuthority.getProviderByRealm(realm).registerCredential(userId, reg);
     }
 
     public InternalEditableUserPassword updateMyPassword(String id, InternalEditableUserPassword reg)
@@ -797,10 +799,17 @@ public class MyUserManager {
      *
      * TODO
      */
-    public Collection<AuditEvent> getMyAuditEvents(String type) {
+    public Collection<ExtendedAuditEvent<?>> getMyAuditEvents(String type) {
         UserDetails details = curUserDetails();
         String subjectId = details.getSubjectId();
 
-        return auditStore.findByPrincipal(subjectId, null, null, type);
+        return auditStore
+            .findByPrincipal(subjectId, null, null, type)
+            .stream()
+            .map(a -> {
+                ExtendedAuditEvent<ApplicationEvent> eae = ExtendedAuditEvent.from(a);
+                return eae;
+            })
+            .collect(Collectors.toList());
     }
 }

@@ -8,6 +8,7 @@ import {
     useLogout,
 } from 'react-admin';
 import {
+    Container,
     Box,
     Grid,
     Typography,
@@ -136,7 +137,7 @@ export const AccountsPage = () => {
     }
 
     return (
-        <Box component="div">
+        <Container maxWidth="lg">
             <PageTitle
                 text={translate('page.accounts.header')}
                 secondaryText={translate('page.accounts.description')}
@@ -169,6 +170,6 @@ export const AccountsPage = () => {
                 {translate('page.accounts.header')}
             </Typography>
             <AccountsList />
-        </Box>
+        </Container>
     );
 };

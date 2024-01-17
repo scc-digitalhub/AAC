@@ -91,9 +91,6 @@ export const PasswordGridList = () => {
                         <DeleteWithConfirmButton
                             confirmContent="page.password.delete.content"
                             label="ra.action.remove"
-                            translateOptions={{
-                                id: record.username,
-                            }}
                         />
                     </CardToolbar>
                 );
@@ -134,8 +131,9 @@ export const PasswordEdit = () => {
 };
 
 export const PasswordCreate = () => {
+    const record = { type: 'credentials:password' };
     return (
-        <Create>
+        <Create record={record} redirect="list">
             <PasswordEditForm askCurrent={false} />
         </Create>
     );

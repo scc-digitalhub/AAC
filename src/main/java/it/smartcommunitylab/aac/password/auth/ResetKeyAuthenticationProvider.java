@@ -73,20 +73,18 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
 
         ResetKeyAuthenticationToken authRequest = (ResetKeyAuthenticationToken) authentication;
 
-        String userId = authRequest.getUserId();
+        String username = authRequest.getUsername();
         String key = authRequest.getKey();
 
-        if (!StringUtils.hasText(userId) || !StringUtils.hasText(key)) {
+        if (!StringUtils.hasText(username) || !StringUtils.hasText(key)) {
             throw new BadCredentialsException("missing required parameters in request");
         }
 
         try {
-            //pick any account for the same user
-            List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(repositoryId, userId);
-            if (accounts.isEmpty()) {
+            InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
+            if (account == null) {
                 throw new BadCredentialsException("invalid request");
             }
-            InternalUserAccount account = accounts.iterator().next();
 
             // verify only, won't disable the key
             passwordService.verifyReset(key);
@@ -107,7 +105,7 @@ public class ResetKeyAuthenticationProvider implements AuthenticationProvider {
             Set<GrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_USER));
 
             // build a valid token
-            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(userId, key, account, authorities);
+            ResetKeyAuthenticationToken auth = new ResetKeyAuthenticationToken(username, key, account, authorities);
 
             return auth;
         } catch (Exception e) {

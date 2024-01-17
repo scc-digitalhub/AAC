@@ -244,6 +244,8 @@ const messages: TranslationMessages = {
         webauthn_unsupported:
             'Dieser Browser unterstützt keine Sicherheitsschlüssel (webauthn)',
         invalid_attestation: 'Ungültiges Zertifikat',
+        missing_credentials:
+            'Keine Zugangsdaten verfügbar. Registrieren Sie einen, um sich anzumelden',
     },
     action: {
         register: 'Registrieren',

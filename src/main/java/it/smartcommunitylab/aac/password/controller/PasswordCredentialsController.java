@@ -122,7 +122,7 @@ public class PasswordCredentialsController {
 
         // build model
         model.addAttribute("userId", userId);
-        // model.addAttribute("username", account.getUsername());
+        model.addAttribute("username", user.getUsername());
         // model.addAttribute("uuid", account.getUuid());
         model.addAttribute("reg", reg);
         model.addAttribute("policy", policy);
@@ -197,7 +197,7 @@ public class PasswordCredentialsController {
 
             // get current password
             model.addAttribute("userId", userId);
-            // model.addAttribute("username", username);
+            model.addAttribute("username", user.getUsername());
             // model.addAttribute("uuid", account.getUuid());
 
             // expose password policy by passing idp config

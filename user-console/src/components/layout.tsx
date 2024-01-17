@@ -5,9 +5,10 @@ import {
     LayoutProps,
     MenuProps,
     useGetIdentity,
+    useSidebarState,
     useTranslate,
 } from 'react-admin';
-import { Box, Typography } from '@mui/material';
+import { Avatar, Box, CardHeader, Typography } from '@mui/material';
 import { Menu } from 'react-admin';
 import { FunctionComponent } from 'react';
 
@@ -27,6 +28,8 @@ import GroupIcon from '@mui/icons-material/Group';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import React from 'react';
+import { PageTitle } from './pageTitle';
+import { UserAvatar } from './userAvatar';
 
 const DEV_URL: string = process.env.REACT_APP_DEVELOPER_CONSOLE as string;
 const ADMIN_URL: string = process.env.REACT_APP_ADMIN_CONSOLE as string;
@@ -140,37 +143,52 @@ const MyMenu = (props: MenuProps) => {
     //     .map(name => {
     //         return <Menu.ResourceItem key={name} name={name} />;
     //     });
+    const translate = useTranslate();
+    const { data, isLoading } = useGetIdentity();
+    const [open, setOpen] = useSidebarState();
 
     return (
-        <Menu>
-            <Menu.DashboardItem />
-            {/* {links} */}
-            <Menu.Item
-                to="/accounts"
-                primaryText="accounts"
-                leftIcon={<GroupIcon />}
-            />
-            <Menu.Item
-                to="/profiles"
-                primaryText="profiles"
-                leftIcon={<AccountBoxIcon />}
-            />
-            <Menu.Item
-                to="/credentials"
-                primaryText="credentials"
-                leftIcon={<VpnKeyIcon />}
-            />
-            <Menu.Item
-                to="/connections"
-                primaryText="connections"
-                leftIcon={<AppShortcutIcon />}
-            />
-            <Menu.Item
-                to="/security"
-                primaryText="security"
-                leftIcon={<LockIcon />}
-            />
-        </Menu>
+        <>
+            {' '}
+            {!isLoading && data && (
+                <CardHeader
+                    sx={{ mt: 2, pb: 0, pl: '12px' }}
+                    avatar={<UserAvatar size="small" user={data} />}
+                    title={data.fullName}
+                    subheader={data.username}
+                    onClick={() => setOpen(!open)}
+                />
+            )}
+            <Menu sx={{ mt: 0 }}>
+                <Menu.DashboardItem />
+                {/* {links} */}
+                <Menu.Item
+                    to="/accounts"
+                    primaryText="accounts"
+                    leftIcon={<GroupIcon />}
+                />
+                <Menu.Item
+                    to="/profiles"
+                    primaryText="profiles"
+                    leftIcon={<AccountBoxIcon />}
+                />
+                <Menu.Item
+                    to="/credentials"
+                    primaryText="credentials"
+                    leftIcon={<VpnKeyIcon />}
+                />
+                <Menu.Item
+                    to="/connections"
+                    primaryText="connections"
+                    leftIcon={<AppShortcutIcon />}
+                />
+                <Menu.Item
+                    to="/security"
+                    primaryText="security"
+                    leftIcon={<LockIcon />}
+                />
+            </Menu>
+        </>
     );
 };
 

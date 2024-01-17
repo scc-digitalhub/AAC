@@ -1,5 +1,5 @@
 import { useTranslate } from 'react-admin';
-import { Box, Avatar } from '@mui/material';
+import { Box, Avatar, Container } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 
 import { PageTitle } from '../components/pageTitle';
@@ -8,7 +8,7 @@ import { ProfilesList } from '../resources/profiles';
 export const ProfilesPage = () => {
     const translate = useTranslate();
     return (
-        <Box component="div">
+        <Container maxWidth="lg">
             <PageTitle
                 text={translate('page.profiles.header')}
                 secondaryText={translate('page.profiles.description')}
@@ -30,6 +30,6 @@ export const ProfilesPage = () => {
                 }
             />
             <ProfilesList />
-        </Box>
+        </Container>
     );
 };

@@ -1,5 +1,5 @@
 import { useTranslate } from 'react-admin';
-import { Box, Avatar } from '@mui/material';
+import { Box, Avatar, Container } from '@mui/material';
 import AppShortcutIcon from '@mui/icons-material/AppShortcut';
 
 import { PageTitle } from '../components/pageTitle';
@@ -8,7 +8,7 @@ import { ConnectionsList } from '../resources/connections';
 export const ConnectionsPage = () => {
     const translate = useTranslate();
     return (
-        <Box component="div">
+        <Container maxWidth="lg">
             <PageTitle
                 text={translate('page.connections.header')}
                 secondaryText={translate('page.connections.description')}
@@ -30,6 +30,6 @@ export const ConnectionsPage = () => {
                 }
             />
             <ConnectionsList />
-        </Box>
+        </Container>
     );
 };

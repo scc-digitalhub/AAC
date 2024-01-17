@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.audit.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -55,6 +56,19 @@ public class ExtendedAuditEvent<E extends ApplicationEvent>
     @Override
     public Map<String, Object> getClaims() {
         return getData();
+    }
+
+    public String getId() {
+        String id = getClaimAsString("id");
+        return id != null ? id : getTimestamp().getEpochSecond() + "-" + getPrincipal();
+    }
+
+    public Date getTime() {
+        if (getTimestamp() == null) {
+            return null;
+        }
+
+        return Date.from(getTimestamp());
     }
 
     public static <E extends ApplicationEvent> ExtendedAuditEvent<E> from(AuditEvent event) {

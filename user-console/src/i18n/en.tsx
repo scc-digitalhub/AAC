@@ -160,7 +160,7 @@ const enMessages: TranslationMessages = {
         },
         audit: {
             title: 'Audit',
-            description: 'Recent security activity',
+            description: 'Recent account activity',
         },
         login: {
             header: 'Login',
@@ -173,6 +173,7 @@ const enMessages: TranslationMessages = {
         webauthn_unsupported:
             'This browser does not support security keys (webauthn)',
         invalid_attestation: 'Invalid attestation',
+        missing_credentials: 'No credentials available, register one to login',
     },
     action: {
         register: 'Register',
