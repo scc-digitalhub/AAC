@@ -29,7 +29,8 @@ import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
+import it.smartcommunitylab.aac.dto.FileInfoDTO;
+import it.smartcommunitylab.aac.files.persistence.FileInfoEntity;
 
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')"
@@ -40,12 +41,12 @@ public class FileManager {
 	@Autowired
 	private FileService fileService;
 
-	public FileInfo saveFile(String realm, String originalFilename, String contentType, long size, InputStream inputStream)
+	public FileInfoDTO saveFile(String realm, String originalFilename, String contentType, long size, InputStream inputStream)
 			throws AlreadyRegisteredException, IOException {
 		return (fileService.createFile(realm, originalFilename, contentType, size, inputStream));
 	}
 
-	public List<FileInfo> readFilesByRealm(String realm) {
+	public List<FileInfoDTO> readFilesByRealm(String realm) {
 		return fileService.getFilesByRealm(realm);
 	}
 
@@ -53,7 +54,7 @@ public class FileManager {
 		return fileService.getFileStream(realm, id);
 	}
 
-	public FileInfo readFile(String realm, String id) throws FileNotFoundException {
+	public FileInfoDTO readFile(String realm, String id) throws FileNotFoundException {
 		return fileService.getFile(realm, id);
 	}
 

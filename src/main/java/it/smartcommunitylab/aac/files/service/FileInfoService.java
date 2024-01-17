@@ -32,8 +32,10 @@ import org.springframework.util.Assert;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
+import it.smartcommunitylab.aac.dto.FileInfoDTO;
+import it.smartcommunitylab.aac.files.persistence.FileInfoEntity;
 import it.smartcommunitylab.aac.files.persistence.FileInfoRepository;
+import java.util.ArrayList;
 
 @Service
 @Transactional
@@ -49,14 +51,17 @@ public class FileInfoService {
 		logger.debug("fileinfo service initialized");
 	}
 
-	public FileInfo createFileInfo(String realm) {
-		return new FileInfo(generateUuid(), realm);
+	public FileInfoEntity createFileInfo(String realm) {
+		FileInfoEntity f = new FileInfoEntity();
+		f.setId(generateUuid());
+		f.setRealm(realm);
+		return f;
 	}
 
-	public FileInfo addFileInfo(String id, String realm, String fileName, String mimeType, long size)
+	public FileInfoEntity addFileInfo(String id, String realm, String fileName, String mimeType, long size)
 			throws AlreadyRegisteredException {
 		logger.debug("Add file for realm {}", String.valueOf(realm));
-		FileInfo exist = fileInfoRepository.findOne(id);
+		FileInfoEntity exist = fileInfoRepository.findOne(id);
 		if (exist != null) {
 			throw new AlreadyRegisteredException();
 		}
@@ -64,7 +69,9 @@ public class FileInfoService {
 		if (id == null || id.isBlank() || id.isEmpty()) {
 			id = generateUuid();
 		}
-		FileInfo f = new FileInfo(id, realm);
+		FileInfoEntity f = new FileInfoEntity();
+		f.setId(id);
+		f.setRealm(realm);
 		f.setName(fileName);
 		f.setMimeType(mimeType);
 		f.setSize(size);
@@ -73,9 +80,9 @@ public class FileInfoService {
 	}
 
 	@Transactional(readOnly = true)
-	public FileInfo getFile(String id) throws NoSuchUserException {
+	public FileInfoEntity getFile(String id) throws NoSuchUserException {
 		logger.debug("Read file id {}", String.valueOf(id));
-		FileInfo f = fileInfoRepository.findOne(id);
+		FileInfoEntity f = fileInfoRepository.findOne(id);
 		if (f == null) {
 			throw new NoSuchUserException("no file with id " + id);
 		}
@@ -88,18 +95,22 @@ public class FileInfoService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<FileInfo> listFiles(@NotNull String realm) {
-		return fileInfoRepository.findByRealm(realm);
+	public List<FileInfoDTO> listFiles(@NotNull String realm) {
+		List<FileInfoDTO> listfilesDTO = new ArrayList<>();
+		for (FileInfoEntity fileInfoEntity: fileInfoRepository.findByRealm(realm)) {
+			listfilesDTO.add(getFileInfoDTO(fileInfoEntity));
+		}		
+		return listfilesDTO;
 	}
 
-	public List<FileInfo> readAllFileInfo() {
+	public List<FileInfoEntity> readAllFileInfo() {
 		return fileInfoRepository.findAll();
 	}
 
-	public FileInfo readFileInfo(String realm, String id) throws FileNotFoundException {
-		FileInfo file = fileInfoRepository.findByRealmAndId(realm, id);
+	public FileInfoDTO readFileInfo(String realm, String id) throws FileNotFoundException {
+		FileInfoEntity file = fileInfoRepository.findByRealmAndId(realm, id);
 		if (file != null) {
-			return file;
+			return getFileInfoDTO(file);
 		}
 		throw new FileNotFoundException("file not found");
 	}
@@ -108,10 +119,10 @@ public class FileInfoService {
 		return UUID.randomUUID().toString().replace("-", "");
 	}
 
-	public FileInfo updateFileInfo(String id, String realm, String fileName, String mimeType, Long size)
+	public FileInfoEntity updateFileInfo(String id, String realm, String fileName, String mimeType, Long size)
 			throws NoSuchResourceException, FileNotFoundException {
 		logger.debug("Update file id {}", String.valueOf(id));
-		FileInfo f = readFileInfo(realm, id);
+		FileInfoEntity f = fileInfoRepository.findByRealmAndId(realm, id);;
 		if (f == null) {
 			throw new NoSuchResourceException("no file with id " + id);
 		}
@@ -124,10 +135,27 @@ public class FileInfoService {
 
 	public void deleteFileInfo(String realm, String id) {
 		logger.debug("Delete file id {} for realm {}", String.valueOf(id), String.valueOf(realm));
-		FileInfo blob = fileInfoRepository.findByRealmAndId(realm, id);
+		FileInfoEntity blob = fileInfoRepository.findByRealmAndId(realm, id);
 		if (blob != null) {
 			fileInfoRepository.delete(blob);
 		}
 	}
-
+	
+	public FileInfoDTO getFileInfoDTO(FileInfoEntity fileInfoEntity) {
+		FileInfoDTO fileInfoDTO = new FileInfoDTO();
+		fileInfoDTO.setId(fileInfoEntity.getId());
+		fileInfoDTO.setMimeType(fileInfoEntity.getMimeType());
+		fileInfoDTO.setModifiedDate(fileInfoEntity.getModifiedDate());
+		fileInfoDTO.setCreateDate(fileInfoEntity.getCreateDate());
+		fileInfoDTO.setName(fileInfoEntity.getName());
+		fileInfoDTO.setRealm(fileInfoEntity.getRealm());
+		fileInfoDTO.setSize(fileInfoEntity.getSize());
+		return fileInfoDTO;
+		
+	}
+	
+	public FileInfoEntity getFileInfoEntity(FileInfoDTO fileInfoDTO) {
+		return fileInfoRepository.findByRealmAndId(fileInfoDTO.getRealm(), fileInfoDTO.getId());		
+	}
+	
 }

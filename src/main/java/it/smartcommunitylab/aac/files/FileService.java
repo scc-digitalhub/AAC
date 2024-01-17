@@ -28,7 +28,8 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.stereotype.Service;
 
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
+import it.smartcommunitylab.aac.dto.FileInfoDTO;
+import it.smartcommunitylab.aac.files.persistence.FileInfoEntity;
 import it.smartcommunitylab.aac.files.service.FileInfoService;
 import it.smartcommunitylab.aac.files.store.FileStore;
 
@@ -54,16 +55,16 @@ public class FileService {
 	 * @throws IOException
 	 * @throws AlreadyRegisteredException
 	 */
-	public FileInfo createFile(String realm, String fileName, String mimeType, long size, InputStream isr)
+	public FileInfoDTO createFile(String realm, String fileName, String mimeType, long size, InputStream isr)
 			throws IOException, AlreadyRegisteredException {
 		// generate a new file, always persisted
-		FileInfo f = fileInfoService.createFileInfo(realm);
+		FileInfoEntity f = fileInfoService.createFileInfo(realm);
 		String fileId = f.getId();
 		try {
-			FileInfo file = fileInfoService.addFileInfo(fileId, realm, fileName, mimeType, size);
+			FileInfoEntity file = fileInfoService.addFileInfo(fileId, realm, fileName, mimeType, size);
 			fileStore.save(file.getId(), realm, isr, size);
 			isr.close();
-			return file;
+			return fileInfoService.getFileInfoDTO(file);
 		} catch (AlreadyRegisteredException e) {
 			// something wrong, stop
 			logger.error("error creating new userfor subject {}", String.valueOf(fileId));
@@ -79,7 +80,7 @@ public class FileService {
 	 * @return
 	 * @throws FileNotFoundException
 	 */
-	public FileInfo getFile(String realm, String id) throws FileNotFoundException {
+	public FileInfoDTO getFile(String realm, String id) throws FileNotFoundException {
 		return fileInfoService.readFileInfo(realm, id);
 	}
 
@@ -89,7 +90,7 @@ public class FileService {
 	 * @param realm
 	 * @return
 	 */
-	public List<FileInfo> getFilesByRealm(String realm) {
+	public List<FileInfoDTO> getFilesByRealm(String realm) {
 		return fileInfoService.listFiles(realm);
 	}
 
@@ -114,7 +115,7 @@ public class FileService {
 	 * @throws FileNotFoundException
 	 */
 	public void deleteFile(String realm, String id) throws FileNotFoundException {
-		FileInfo fileInfo = fileInfoService.readFileInfo(realm, id);
+		FileInfoDTO fileInfo = fileInfoService.readFileInfo(realm, id);
 		if (fileInfo != null) {
 			logger.debug("Delete file blob for realm {} and id {}", String.valueOf(realm), String.valueOf(id));
 			fileStore.delete(fileInfo.getId(), realm);
@@ -123,5 +124,5 @@ public class FileService {
 			throw new FileNotFoundException("file not found");	
 		}		
 	}
-
+		
 }

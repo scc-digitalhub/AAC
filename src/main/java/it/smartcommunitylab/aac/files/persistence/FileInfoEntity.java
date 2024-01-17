@@ -32,9 +32,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "realm_files_info")
 @EntityListeners(AuditingEntityListener.class)
-public class FileInfo {
+public class FileInfoEntity {
 	@Id
 	private String id;
+	@NotNull
 	private String name;
 	private String mimeType;
 	private String realm;
@@ -49,13 +50,7 @@ public class FileInfo {
 	private Date modifiedDate;
 	// todo hash.
 
-	public FileInfo() {}
-
-	public FileInfo(@NotNull String id, @NotNull String realm) {
-		super();
-		this.id = id;
-		this.realm = realm;
-	}
+	public FileInfoEntity() {}
 
 	public String getId() {
 		return id;

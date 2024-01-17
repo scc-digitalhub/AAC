@@ -39,9 +39,10 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
+import it.smartcommunitylab.aac.dto.FileInfoDTO;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.files.FileService;
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
+import it.smartcommunitylab.aac.files.persistence.FileInfoEntity;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
@@ -464,8 +465,8 @@ public class RealmManager {
             }
             
             // files
-            Collection<FileInfo> files = fileService.getFilesByRealm(slug);
-            for (FileInfo fileInfo: files) {
+            Collection<FileInfoDTO> files = fileService.getFilesByRealm(slug);
+            for (FileInfoDTO fileInfo: files) {
             	try {
 					fileService.deleteFile(slug, fileInfo.getId());
 				} catch (FileNotFoundException e) {

@@ -23,11 +23,13 @@ import org.springframework.stereotype.Repository;
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 
 @Repository
-public interface FileInfoRepository extends CustomJpaRepository<FileInfo, String> {
+public interface FileInfoRepository extends CustomJpaRepository<FileInfoEntity, String> {
 
-	FileInfo findByRealmAndId(String realm, String id);
+	FileInfoEntity findByRealmAndId(String realm, String id);
 
-	List<FileInfo> findByRealm(String realm);
+	List<FileInfoEntity> findByRealm(String realm);
+	
+	FileInfoEntity findByRealmAndName(String realm, String name);
 
 	long countByRealm(String realm);
 	

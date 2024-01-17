@@ -41,8 +41,9 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.dto.FileInfoDTO;
 import it.smartcommunitylab.aac.files.FileManager;
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
+import it.smartcommunitylab.aac.files.persistence.FileInfoEntity;
 
 @Controller
 @RequestMapping("/files/{realm}")
@@ -54,12 +55,12 @@ public class FilesController {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostMapping(path = "/upload")
-	public ResponseEntity<FileInfo> uploadFile(
+	public ResponseEntity<FileInfoDTO> uploadFile(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
 			@RequestPart(name = "file", required = true) @Valid MultipartFile file) {
 		String message = "";
 		try {
-			FileInfo f = fileManager.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
+			FileInfoDTO f = fileManager.saveFile(realm, file.getOriginalFilename(), file.getContentType(), file.getSize(),
 					file.getInputStream());
 			message = "File uploaded successfully: " + file.getOriginalFilename();
 			logger.debug(message);
@@ -72,13 +73,13 @@ public class FilesController {
 	}
 
 	@GetMapping("/list")
-	public ResponseEntity<List<FileInfo>> getListFiles(
+	public ResponseEntity<List<FileInfoDTO>> getListFiles(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm) {
 		return ResponseEntity.status(HttpStatus.OK).body(fileManager.readFilesByRealm(realm));
 	}
 	
 	@GetMapping("/{id}/metainfo")
-	public ResponseEntity<FileInfo> getFileInfo(
+	public ResponseEntity<FileInfoDTO> getFileInfo(
 			@PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
 			@PathVariable String id) throws FileNotFoundException {
 		return ResponseEntity.status(HttpStatus.OK).body(fileManager.readFile(realm, id));
@@ -89,7 +90,7 @@ public class FilesController {
 			@PathVariable String id, HttpServletResponse res) throws IOException {
 		InputStream is = fileManager.readFileBlob(realm, id);
 		if (is != null) {
-			FileInfo fileInfo = fileManager.readFile(realm, id);
+			FileInfoDTO fileInfo = fileManager.readFile(realm, id);
 			res.setContentType(fileInfo.getMimeType());
 			res.setHeader("Content-Disposition", "attachment;filename=" + fileInfo.getName());
 			ServletOutputStream out = res.getOutputStream();
