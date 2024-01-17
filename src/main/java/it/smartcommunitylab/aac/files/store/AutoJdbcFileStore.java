@@ -49,7 +49,7 @@ public class AutoJdbcFileStore implements FileStore {
 	private String deleteFileSql = DEFAULT_DELETE_STATEMENT;
 
 	private final JdbcTemplate jdbcTemplate;
-	private final RowMapper<Pair<String, Optional<Serializable>>> rowMapper = new FileRowMapper();
+	private final RowMapper<Pair<String, Optional<byte[]>>> rowMapper = new FileRowMapper();
 
 	public AutoJdbcFileStore(DataSource dataSource) {
 		Assert.notNull(dataSource, "DataSource required");
@@ -57,11 +57,11 @@ public class AutoJdbcFileStore implements FileStore {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	private static class FileRowMapper implements RowMapper<Pair<String, Optional<Serializable>>> {
+	private static class FileRowMapper implements RowMapper<Pair<String, Optional<byte[]>>> {
 		@Override
-		public Pair<String, Optional<Serializable>> mapRow(ResultSet rs, int rowNum) throws SQLException {
+		public Pair<String, Optional<byte[]>> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			String key = rs.getString("file_id");
-			Serializable value = rs.getBytes("data");
+			byte[] value = rs.getBytes("data");
 			return Pair.of(key, Optional.ofNullable(value));
 		}
 	}
@@ -77,7 +77,7 @@ public class AutoJdbcFileStore implements FileStore {
 	}
 
 	public Map<String, Serializable> findFileDB(String fileId) {
-		List<Pair<String, Optional<Serializable>>> list = jdbcTemplate.query(selectFileSql, rowMapper, fileId);
+		List<Pair<String, Optional<byte[]>>> list = jdbcTemplate.query(selectFileSql, rowMapper, fileId);
 		return list.stream().filter(p -> p.getSecond().isPresent())
 				.collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond().get()));
 	}
