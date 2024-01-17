@@ -74,7 +74,7 @@ public class TosConfigTest {
 
         TosConfigurationMap tosConfig = realm.getTosConfiguration();
         assertThat(tosConfig).isNotNull();
-
+        
         //update config to enable tos
         tosConfig.setEnableTOS(true);
         Realm realmUpdated = realmService.updateRealm(
@@ -85,7 +85,6 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null,
             null
         );
 
@@ -111,7 +110,6 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null,
             null
         );
 
@@ -152,7 +150,6 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null,
             null
         );
 
@@ -178,7 +175,6 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null,
             null
         );
 
@@ -253,7 +249,6 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
-            null,
             null
         );
     }

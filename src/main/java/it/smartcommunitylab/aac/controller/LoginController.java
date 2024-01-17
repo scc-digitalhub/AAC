@@ -20,8 +20,6 @@ import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.files.FileService;
-import it.smartcommunitylab.aac.files.persistence.FileInfo;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityService;
@@ -86,14 +84,9 @@ public class LoginController {
 
     @Autowired
     private RealmManager realmManager;
-    
-    @Autowired
-	private FileService fileService;
-    
+
     @Autowired
     private ClientDetailsService clientDetailsService;
-    
-    private final String LOGOFILE = "logoFileId";
 
     // TODO handle COMMON realm
     @RequestMapping(value = { "/login" }, method = RequestMethod.GET)
@@ -345,29 +338,11 @@ public class LoginController {
         //        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 
-	@RequestMapping(value = { "/-/{realm}/logo" }, method = RequestMethod.GET)
-	@ResponseBody
-	public ResponseEntity<InputStreamResource> realmLogo(@PathVariable("realm") String realm) throws IOException {
-		if (realm != null && !realm.isEmpty()) {
-			Realm re = realmManager.findRealm(realm);
-			if (re != null && re.getStylesConfiguration().getConfiguration().containsKey(LOGOFILE)) {
-				String logoFileId = String.valueOf(re.getStylesConfiguration().getConfiguration().get(LOGOFILE));
-				InputStream isr = fileService.getFileStream(realm, logoFileId);
-				FileInfo fileInfo = fileService.getFile(realm, logoFileId);
-				if (isr != null && fileInfo != null) {
-					if (logoEtagValue == null) {
-						logoEtagValue = computeWeakEtag(isr);
-					}
-					return ResponseEntity.ok().contentLength(fileInfo.getSize())
-							.contentType(MediaType.parseMediaType(fileInfo.getMimeType()))
-							.cacheControl(CacheControl.maxAge(3600, TimeUnit.SECONDS)).eTag(logoEtagValue)
-							.body(new InputStreamResource(fileService.getFileStream(realm, logoFileId)));
-
-				}
-			}
-		}
-		return logo();
-	}
+    @RequestMapping(value = { "/-/{realm}/logo" }, method = RequestMethod.GET)
+    public ResponseEntity<InputStreamResource> realmLogo() throws IOException {
+        // TODO implement logo support per realm
+        return logo();
+    }
 
     private String computeWeakEtag(InputStream is) throws IOException {
         StringBuilder builder = new StringBuilder();

@@ -79,8 +79,6 @@ import java.util.stream.Stream;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,8 +97,6 @@ public class RealmManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final int SLUG_MIN_LENGTH = 3;
-    
-    private final String CUSTOM_CSS = "customCss";
 
     @Autowired
     private ApplicationProperties appProps;
@@ -251,20 +247,6 @@ public class RealmManager {
         if (r.getLocalizationConfiguration() != null) {
             localizationConfigMap = r.getLocalizationConfiguration().getConfiguration();
         }
-        
-        Map<String, Serializable> stylesConfigMap = null;
-        if (r.getStylesConfiguration() != null) {
-        	stylesConfigMap = r.getStylesConfiguration().getConfiguration();
-        	// clean CSS string.
-        	if (r.getStylesConfiguration().getConfiguration().containsKey(CUSTOM_CSS)) {
-            	String customStyle = String.valueOf(r.getStylesConfiguration().getConfiguration().get(CUSTOM_CSS));
-            	Document dirty = Jsoup.parseBodyFragment(customStyle);
-            	Cleaner cleaner = new Cleaner(Safelist.none());
-            	Document clean = cleaner.clean(dirty);
-            	String style = clean.body().wholeText();
-            	r.getStylesConfiguration().getConfiguration().put(CUSTOM_CSS, style);
-            }        	
-        }
 
         return realmService.updateRealm(
             slug,
@@ -274,8 +256,7 @@ public class RealmManager {
             r.isPublic(),
             oauth2ConfigMap,
             tosConfigMap,
-            localizationConfigMap,
-            stylesConfigMap
+            localizationConfigMap
         );
     }
 

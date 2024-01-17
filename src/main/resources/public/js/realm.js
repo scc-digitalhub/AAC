@@ -118,34 +118,6 @@ angular.module('aac.controllers.realm', [])
             return data.data;
          });
       }
-
-      rService.uploadLogo = function (slug, file) {
-         var fd = new FormData();
-         if (file) {
-             fd.append('file', file);
-         }
-         return $http({
-             url: 'files/' + slug + '/upload',
-             headers: { "Content-Type": undefined },
-             data: fd,
-             method: "POST"
-         }).then(function (data) {
-             return data.data;
-         });
-      }
-
-      rService.getLogoFileInfo = function (slug, id) {
-         return $http.get('files/' + slug + '/' + id + '/metainfo').then(function (data) {
-            return data.data;
-         });
-      }
-      
-      rService.deleteLogo = function(slug, id) {
-      	return $http.delete('files/' + slug + '/' + id ).then(function (data) {
-            return data.data;
-         });
-      }
-
       return rService;
 
    })
@@ -518,67 +490,29 @@ angular.module('aac.controllers.realm', [])
 
       $scope.reload = function (data) {
          $scope.realmSettings = data;
-         if (data.stylesConfiguration.logoFileId) {
-            RealmData.getLogoFileInfo(data.slug, data.stylesConfiguration.logoFileId).then(
-               function (res) {
-                  $scope.logoFile = res;
-               }
-            )
-         }
          Utils.refreshFormBS(300);
       };
 
       $scope.saveRealmSettings = function () {
-        let data = $scope.realmSettings;
-        let templatesSettings = $scope.settingsTemplates;
-        let logo = document.getElementById('logoFile');
+         var data = $scope.realmSettings;
 
-        // update realm languages in provider configuration.
-        if (data.localizationConfiguration?.languages) {
-          templatesSettings.settings.languages =
-            data.localizationConfiguration.languages;
-        }
-
-        if (logo != null && logo.value != '') {
-          let logoFile = logo.files[0];
-          RealmData.uploadLogo($scope.realm.slug, logoFile).then(
-            function (res) {
-              data.stylesConfiguration.logoFileId = res.id;
-              RealmData.updateRealm($scope.realm.slug, data)
-                .then(function (res) {
-                  $scope.reload(res);
-                  $scope["$parent"].refresh();
-                })
-                .then(function () {
-                  return RealmData.setTemplatesConfig(slug, templatesSettings);
-                })
-                .then(function (data) {
-                  $scope.reloadTemplatesConfig(data);
-                  Utils.showSuccess();
-                })
-                .catch(function (err) {
-                  Utils.showError(err.data.message);
-                });
-            },
-          );
-        } else {
-          RealmData.updateRealm($scope.realm.slug, data)
+         RealmData.updateRealm($scope.realm.slug, data)
             .then(function (res) {
-              $scope.reload(res);
-              $scope["$parent"].refresh();
+               $scope.reload(res);
+               $scope['$parent'].refresh();
             })
-            .then(function () {
-              return RealmData.setTemplatesConfig(slug, templatesSettings);
+            .then(function() {
+               return RealmData.setTemplatesConfig(slug, $scope.settingsTemplates);
             })
-            .then(function (data) {
-              $scope.reloadTemplatesConfig(data);
-              Utils.showSuccess();
+            .then(function(data) {
+               $scope.reloadTemplatesConfig(data);
+               Utils.showSuccess();
             })
             .catch(function (err) {
-              Utils.showError(err.data.message);
+               Utils.showError(err.data.message);
             });
-        }
-      };
+
+      }
 
       $scope.exportRealmSettings = function () {
          window.open('console/dev/realms/' + $scope.realm.slug + '/export');
@@ -647,6 +581,8 @@ angular.module('aac.controllers.realm', [])
                .catch(function (err) {
                   Utils.showError('Failed to invite user: ' + err.data.message);
                });
+
+
          }
       }
 
@@ -706,37 +642,8 @@ angular.module('aac.controllers.realm', [])
          }
       }
 
-      $scope.deleteLogo = function () {
-         let data = $scope.realmSettings;
-         let templatesSettings = $scope.settingsTemplates;
- 
-         RealmData.deleteLogo($scope.realm.slug, $scope.logoFile.id)
-           .then(function () {
-             data.stylesConfiguration.logoFileId = null;
-             RealmData.updateRealm($scope.realm.slug, data)
-               .then(function (res) {
-                 $scope.reload(res);
-                 $scope["$parent"].refresh();
-               })
-               .then(function () {
-                 return RealmData.setTemplatesConfig(
-                   $scope.realm.slug,
-                   templatesSettings,
-                 );
-               })
-               .then(function (data) {
-                 $scope.reloadTemplatesConfig(data);
-                 Utils.showSuccess();
-               })
-               .catch(function (err) {
-                 Utils.showError(err.data.message);
-               });
-           })
-           .catch(function (err) {
-             Utils.showError("Failed to delete logo file: " + err.data.message);
-           });
-       };
-       
+
+
       init();
    })
 
