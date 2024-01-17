@@ -27,40 +27,44 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final String userId;
+    private final String username;
     private String key;
 
     private InternalUserAccount account;
 
-    public ResetKeyAuthenticationToken(String userId, String key) {
+    public ResetKeyAuthenticationToken(String username, String key) {
         super(null);
-        this.userId = userId;
+        this.username = username;
         this.key = key;
         setAuthenticated(false);
     }
 
-    public ResetKeyAuthenticationToken(String userId, String key, Collection<? extends GrantedAuthority> authorities) {
+    public ResetKeyAuthenticationToken(
+        String username,
+        String key,
+        Collection<? extends GrantedAuthority> authorities
+    ) {
         super(authorities);
-        this.userId = userId;
+        this.username = username;
         this.key = key;
         super.setAuthenticated(true);
     }
 
     public ResetKeyAuthenticationToken(
-        String userId,
+        String username,
         String key,
         InternalUserAccount account,
         Collection<? extends GrantedAuthority> authorities
     ) {
         super(authorities);
-        this.userId = userId;
+        this.username = username;
         this.key = key;
         this.account = account;
         super.setAuthenticated(true);
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
     public String getKey() {
@@ -78,12 +82,12 @@ public class ResetKeyAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return (this.account == null ? this.userId : this.account);
+        return (this.account == null ? this.username : this.account);
     }
 
     @Override
     public String getName() {
-        return this.userId;
+        return this.username;
     }
 
     @Override

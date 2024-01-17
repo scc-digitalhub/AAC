@@ -7,12 +7,12 @@
 <body>
    <div th:fragment="message">
       <p>
-         Cien. <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rosi</span>!
+         Cien. <span data-th-text="${reset.username}">Mario</span>.
       </p>
       <p>
          Jūsu <b data-th-text="${realm.name}">AAC</b> parole ir atiestatīta.
       </p>
-      <p>Lai atjauninātu savus akreditācijas datus, noklikšķiniet <a href="#" th:href="${action.url}">šeit</a>.</p>
+      <p>Lai atjauninātu savus akreditācijas datus, noklikšķiniet <a href="#" th:href="${action.url}">šeit</a>.</p>   
       <p>
          Ja jums rodas problēmas ar piekļuvi, lūdzu, sazinieties ar <a href="mailto:"
             th:href="'mailto:'+${application.email}">atbalstu</a>.

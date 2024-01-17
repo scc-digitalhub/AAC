@@ -40,7 +40,6 @@
     <div th:if="${policy} != null" th:replace="password/pwdpolicy :: policy"></div>
 
     <form action="#" th:action="${changeUrl}" th:object="${reg}" method="post">
-      <input type="hidden" th:field="*{username}">
       <div class="alert alert-danger" role="alert" th:if="${error} != null" th:text="#{${error}}">
         Error text</div>
       <br>

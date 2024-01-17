@@ -36,11 +36,15 @@ import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,10 +53,12 @@ import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriUtils;
 
 @Transactional
 public class PasswordIdentityCredentialsService extends AbstractProvider<InternalUserPassword> {
@@ -248,7 +254,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
             // send mail
             try {
-                sendResetMail(account, pass.getResetKey());
+                sendResetMail(account, pass.getResetKey(), pass.getResetDeadline());
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }
@@ -425,18 +431,35 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     /*
      * Mail
      */
-    private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
+    private void sendResetMail(InternalUserAccount account, String key, Date expirationDate) throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String resetUrl = PasswordIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String username = account.getUsername();
+            String resetUrl =
+                PasswordIdentityAuthority.AUTHORITY_URL +
+                "doreset/" +
+                provider +
+                "?username=" +
+                UriUtils.encodeQueryParam(username, StandardCharsets.UTF_8) +
+                "&code=" +
+                key;
             if (uriBuilder != null) {
                 resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }
-
             Map<String, String> action = new HashMap<>();
             action.put("url", resetUrl);
             action.put("text", "action.reset");
+
+            Locale locale = account.getLang() != null
+                ? Locale.forLanguageTag(account.getLang())
+                : LocaleContextHolder.getLocale();
+            DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
+
+            Map<String, String> reset = new HashMap<>();
+            reset.put("username", username);
+            reset.put("key", key);
+            reset.put("expire", formatter.format(expirationDate));
 
             String realm = getRealm();
             String realmUrl = "";
@@ -463,6 +486,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("action", action);
+            vars.put("reset", reset);
             vars.put("realm", account.getRealm());
             vars.put("application", application);
 

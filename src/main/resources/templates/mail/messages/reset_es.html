@@ -7,12 +7,12 @@
 <body>
    <div th:fragment="message">
       <p>
-         Estimado <span data-th-text="${user.name}">Mario</span> <span data-th-text="${user.surname}">Rossi</span>,
+         Estimado <span data-th-text="${reset.username}">Mario</span>,
          <br>
          Se ha restablecido su contraseña para <b data-th-text="${realm.name}">AAC</b>.
          <br>
          Para actualizar sus credenciales, haga clic <a href="#" th:href="${action.url}">aquí</a>.
-      </p>
+      </p>   
       <p>
          Póngase en contacto con <a href="mailto:" th:href="'mailto:'+${application.email}">soporte</a> si tiene algún
          problema con el acceso.

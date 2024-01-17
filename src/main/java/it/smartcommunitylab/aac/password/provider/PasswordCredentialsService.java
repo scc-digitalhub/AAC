@@ -507,7 +507,11 @@ public class PasswordCredentialsService
         // check if one password is already set
         // we require NO password for registration, otherwise we should check against
         // current for proper authorization (same as edit)
-        List<InternalUserPassword> list = passwordService.findCredentialsByUser(repositoryId, userId);
+        List<InternalUserPassword> list = passwordService
+            .findCredentialsByUser(repositoryId, userId)
+            .stream()
+            .filter(p -> p.isActive())
+            .collect(Collectors.toList());
         if (!list.isEmpty()) {
             throw new AlreadyRegisteredException();
         }

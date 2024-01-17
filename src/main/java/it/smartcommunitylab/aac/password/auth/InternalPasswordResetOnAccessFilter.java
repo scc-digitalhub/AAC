@@ -162,7 +162,7 @@ public class InternalPasswordResetOnAccessFilter extends OncePerRequestFilter {
                 );
             if (pass == null || pass.getCreateDate().getTime() < deadline) {
                 // require change because we still lack a valid password for post-reset login
-                targetUrl = "/changepwd/" + providerId + "/" + account.getUuid();
+                targetUrl = "/changepwd/" + providerId + "/" + userId;
                 requireChange = true;
             }
 

@@ -171,20 +171,21 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
         request.setAttribute("realm", realm);
 
         try {
+            String username = request.getParameter("username");
             String code = request.getParameter("code");
 
-            if (!StringUtils.hasText(code)) {
-                throw new BadCredentialsException("missing or invalid confirm code");
+            if (!StringUtils.hasText(username) || !StringUtils.hasText(code)) {
+                throw new BadCredentialsException("missing or invalid username or confirm code");
             }
 
-            // fetch account
-            InternalUserPassword password = userPasswordService.findCredentialsByResetKey(repositoryId, code);
-            if (password == null) {
-                // don't leak password does not exists
-                throw new BadCredentialsException("invalid-key");
-            }
+            // // fetch account
+            // InternalUserPassword password = userPasswordService.findCredentialsByResetKey(repositoryId, code);
+            // if (password == null) {
+            //     // don't leak password does not exists
+            //     throw new BadCredentialsException("invalid-key");
+            // }
 
-            String userId = password.getUserId();
+            // String userId = password.getUserId();
 
             //        HttpSession session = request.getSession(true);
             //        // user always needs to update password from here, if successful
@@ -194,7 +195,7 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
             //                "/changepwd/" + providerId + "/" + account.getUuid());
 
             // build a request
-            ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(userId, code);
+            ResetKeyAuthenticationToken authenticationRequest = new ResetKeyAuthenticationToken(username, code);
 
             ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
                 authenticationRequest,
