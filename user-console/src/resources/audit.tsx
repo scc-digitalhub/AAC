@@ -23,7 +23,10 @@ const AuditDetails = () => {
     if (!record || !record.data) {
         return <LinearProgress />;
     }
-    if (record.type === 'USER_AUTHENTICATION_SUCCESS') {
+    if (
+        record.type === 'USER_AUTHENTICATION_SUCCESS' ||
+        record.type === 'USER_AUTHENTICATION_FAILURE'
+    ) {
         return <UserAuthAuditDetails />;
     }
     if (record.type === 'OAUTH2_TOKEN_GRANT') {
@@ -76,6 +79,14 @@ const UserAuthAuditDetails = () => {
                             />
                         </Labeled>
                     )}
+                </Stack>
+            )}
+
+            {record.data.message && (
+                <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                    <Labeled>
+                        <TextField label="message" source="data.message" />
+                    </Labeled>
                 </Stack>
             )}
         </Box>

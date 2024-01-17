@@ -1,21 +1,66 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { useGetIdentity, useTranslate } from 'react-admin';
+import { useGetIdentity, useGetList, useTranslate } from 'react-admin';
 import LinearProgress from '@mui/material/LinearProgress';
-import { Card, CardContent, CardActions, CardHeader } from '@mui/material';
+import {
+    Card,
+    CardContent,
+    CardActions,
+    CardHeader,
+    Alert,
+} from '@mui/material';
 import { Container, Grid, Button, Avatar } from '@mui/material';
 
 import GroupIcon from '@mui/icons-material/Group';
 import KeyIcon from '@mui/icons-material/Key';
 import AppShortcutIcon from '@mui/icons-material/AppShortcut';
 import { PageTitle } from '../components/pageTitle';
+import { useEffect, useState } from 'react';
 
 const UserDashboard = () => {
-    const { data, isLoading } = useGetIdentity();
     const translate = useTranslate();
+    const { data, isLoading } = useGetIdentity();
+    //load accounts and credential to check if we should suggest actions
+    //TODO refactor
+    const { data: accounts, isLoading: isLoadingAccounts } = useGetList(
+        'accounts',
+        {
+            pagination: { page: 1, perPage: 100 },
+        }
+    );
+    const { data: passwords, isLoading: isLoadingPasswords } = useGetList(
+        'password',
+        {
+            pagination: { page: 1, perPage: 100 },
+        }
+    );
+    const { data: keys, isLoading: isLoadingKeys } = useGetList('webauthn', {
+        pagination: { page: 1, perPage: 100 },
+    });
+
+    const [shouldCreateCredentials, setShouldCreateCredentials] =
+        useState<boolean>(false);
+
+    useEffect(() => {
+        if (!isLoadingAccounts && !isLoadingPasswords && !isLoadingKeys) {
+            const account = accounts?.find(a => a.authority === 'internal');
+            if (account && passwords?.length === 0 && keys?.length === 0) {
+                setShouldCreateCredentials(true);
+            }
+        }
+    }, [
+        accounts,
+        passwords,
+        keys,
+        isLoadingAccounts,
+        isLoadingPasswords,
+        isLoadingKeys,
+    ]);
+
     if (isLoading === true || !data) {
         return <LinearProgress />;
     }
+
     return (
         <Container maxWidth="lg">
             <PageTitle
@@ -75,6 +120,15 @@ const UserDashboard = () => {
                         <CardContent>
                             {translate(
                                 'page.dashboard.credentials.description'
+                            )}
+                            {shouldCreateCredentials && (
+                                <Alert
+                                    severity="warning"
+                                    variant="filled"
+                                    sx={{ width: '100%', mt: 2 }}
+                                >
+                                    {translate('alert.missing_credentials')}
+                                </Alert>
                             )}
                         </CardContent>
                         <CardActions>

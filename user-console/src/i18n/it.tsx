@@ -240,6 +240,8 @@ const messages: TranslationMessages = {
         webauthn_unsupported:
             'Questo browser non supporta le chiavi di sicurezza (webauthn)',
         invalid_attestation: 'Attestato invalido',
+        missing_credentials:
+            'Nessuna credenziale disponibile, registrane una per effettuare il login',
     },
     action: {
         register: 'Registra',
