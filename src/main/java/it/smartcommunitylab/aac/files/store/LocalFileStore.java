@@ -26,7 +26,6 @@ import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
@@ -45,15 +44,15 @@ public class LocalFileStore implements FileStore {
 		this.basePath = basePath;
 	}
 
-	public void setPath(String realm) {
+	public void appendRealmToPath(String realm) {
 		this.root = Paths.get(getBasePath() + System.getProperty("file.separator") + realm);
-		logger.debug("Local file store initialized,  path set to " + this.root);
+		logger.debug("Local file store path append to {}", this.root);		
 	}
 
 	@Override
 	public void save(String id, String realm, InputStream str, long size) {
 		try {
-			setPath(realm);
+			appendRealmToPath(realm);
 			Files.createDirectories(root);
 			Files.copy(str, root.resolve(id));
 		} catch (Exception e) {
@@ -64,7 +63,7 @@ public class LocalFileStore implements FileStore {
 	@Override
 	public InputStream load(String id, String realm) {
 		try {
-			setPath(realm);
+			appendRealmToPath(realm);
 			Path file = root.resolve(id);
 			Resource resource = new UrlResource(file.toUri());
 			if (resource.exists() || resource.isReadable()) {
@@ -83,7 +82,7 @@ public class LocalFileStore implements FileStore {
 	@Override
 	public void delete(String id, String realm) {
 		try {
-			setPath(realm);
+			appendRealmToPath(realm);
 			Path file = root.resolve(id);
 			Files.deleteIfExists(file);
 		} catch (IOException e) {
