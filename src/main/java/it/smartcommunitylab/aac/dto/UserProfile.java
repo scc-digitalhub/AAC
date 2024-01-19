@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
 import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.HashSet;

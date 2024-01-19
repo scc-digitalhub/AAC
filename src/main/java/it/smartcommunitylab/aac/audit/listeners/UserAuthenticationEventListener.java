@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.audit.listeners;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WrappedAuthenticationToken;
 import it.smartcommunitylab.aac.events.UserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.events.UserAuthenticationSuccessEvent;

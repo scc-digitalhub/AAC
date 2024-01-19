@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.util.Assert;
 
-public interface ResourceContext {
-    Map<String, List<? extends Resource>> getResources();
+public interface ResourceContext<R extends Resource> {
+    Map<String, List<? extends R>> getResources();
 
     default boolean hasResources(String type) {
         Assert.notNull(type, "type cannot be null");
@@ -30,12 +30,16 @@ public interface ResourceContext {
     }
 
     @SuppressWarnings("unchecked")
-    default <T extends Resource> List<T> getResources(String type) {
+    default <T extends R> List<T> getResources(String type) {
         Assert.notNull(type, "type cannot be null");
-        return !hasResources(type) ? Collections.emptyList() : (List<T>) getResources().get(type);
+        try {
+            return !hasResources(type) ? Collections.emptyList() : (List<T>) getResources().get(type);
+        } catch (ClassCastException e) {
+            return Collections.emptyList();
+        }
     }
 
-    default void setResources(String type, List<? extends Resource> resources) {
+    default void setResources(String type, List<? extends R> resources) {
         Assert.notNull(type, "type cannot be null");
         if (resources == null && hasResources(type)) {
             getResources().remove(type);

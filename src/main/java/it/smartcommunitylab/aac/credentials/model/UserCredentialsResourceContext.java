@@ -18,15 +18,26 @@ package it.smartcommunitylab.aac.credentials.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
+import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResourceContext;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public interface UserCredentialsResourceContext extends ResourceContext {
+public interface UserCredentialsResourceContext extends UserResourceContext {
     default Collection<UserCredentials> getCredentials() {
         return getResources(SystemKeys.RESOURCE_CREDENTIALS);
     }
 
     default void setCredentials(List<UserCredentials> credentials) {
         setResources(SystemKeys.RESOURCE_CREDENTIALS, credentials);
+    }
+
+    static UserCredentialsResourceContext with(ResourceContext<UserResource> context) {
+        return () -> context.getResources();
+    }
+
+    static UserCredentialsResourceContext from(ResourceContext<UserResource> context) {
+        return () -> Collections.unmodifiableMap(context.getResources());
     }
 }

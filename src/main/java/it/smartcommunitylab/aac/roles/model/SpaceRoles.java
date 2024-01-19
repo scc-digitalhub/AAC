@@ -14,7 +14,7 @@
  *    limitations under the License.
  ******************************************************************************/
 
-package it.smartcommunitylab.aac.model;
+package it.smartcommunitylab.aac.roles.model;
 
 import java.util.List;
 

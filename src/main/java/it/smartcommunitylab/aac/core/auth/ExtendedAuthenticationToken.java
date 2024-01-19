@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.users.auth;
+package it.smartcommunitylab.aac.core.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,13 +33,14 @@ import org.springframework.security.core.GrantedAuthority;
  *
  */
 
-public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
+public class ExtendedAuthenticationToken<P extends AuthenticatedPrincipal & Serializable>
+    extends AbstractAuthenticationToken {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     // authenticated principal from the authProvider view
     // do note that *here* this could be detached from an actual user
-    private final UserAuthenticatedPrincipal principal;
+    private final P principal;
 
     private final String authority;
     private final String provider;
@@ -55,7 +57,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         String authority,
         String provider,
         String realm,
-        UserAuthenticatedPrincipal principal,
+        P principal,
         Authentication token
     ) {
         super(Collections.emptyList());
@@ -73,7 +75,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         String authority,
         String provider,
         String realm,
-        UserAuthenticatedPrincipal principal,
+        P principal,
         Authentication token,
         Instant expiresAt
     ) {
@@ -96,7 +98,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         String authority,
         String provider,
         String realm,
-        UserAuthenticatedPrincipal principal,
+        P principal,
         Authentication token,
         Collection<GrantedAuthority> authorities
     ) {
@@ -115,7 +117,7 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
         String authority,
         String provider,
         String realm,
-        UserAuthenticatedPrincipal principal,
+        P principal,
         Authentication token,
         Instant expiresAt,
         Collection<GrantedAuthority> authorities
@@ -140,18 +142,13 @@ public class ExtendedAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public UserAuthenticatedPrincipal getPrincipal() {
+    public P getPrincipal() {
         return principal;
     }
 
     @Override
     public boolean isAuthenticated() {
         return token.isAuthenticated();
-    }
-
-    @Override
-    public Collection<GrantedAuthority> getAuthorities() {
-        return super.getAuthorities();
     }
 
     @Override

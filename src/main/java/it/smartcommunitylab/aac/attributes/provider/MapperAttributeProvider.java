@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;

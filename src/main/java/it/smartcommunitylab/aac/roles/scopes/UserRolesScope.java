@@ -22,6 +22,8 @@ import it.smartcommunitylab.aac.scope.Scope;
 
 public class UserRolesScope extends Scope {
 
+    public static final String SCOPE = "user.roles.me";
+
     @Override
     public String getResourceId() {
         return RolesResource.RESOURCE_ID;
@@ -34,7 +36,7 @@ public class UserRolesScope extends Scope {
 
     @Override
     public String getScope() {
-        return Config.SCOPE_USER_ROLE;
+        return SCOPE;
     }
 
     // TODO replace with keys for i18n

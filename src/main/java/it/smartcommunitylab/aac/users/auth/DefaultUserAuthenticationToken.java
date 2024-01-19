@@ -18,19 +18,22 @@ package it.smartcommunitylab.aac.users.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
@@ -41,11 +44,11 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
     // auth principal is the subject
     protected final Subject subject;
 
-    // user userDetails
-    protected UserDetails details;
-
     // the auth is bound to a single realm,
     protected final String realm;
+
+    // user userDetails
+    protected final UserDetails details;
 
     // the token is created at the given time
     protected final Instant createdAt;
@@ -54,7 +57,7 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
     // do note that tokens are *supposed* to be associated to the same user
     // but this is *not* a hard-requirement: we could store client auth
     // when relevant to the user auth, for example for MFA
-    private final Set<ExtendedAuthenticationToken> tokens;
+    private final Set<ExtendedAuthenticationToken<? extends AuthenticatedPrincipal>> tokens;
 
     // web authentication details
     private WebAuthenticationDetails webAuthenticationDetails;
@@ -67,44 +70,61 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
 
     // audit
     // TODO
-
     public DefaultUserAuthenticationToken(
-        Subject principal,
+        String userId,
         String realm,
         String username,
+        UserDetails userDetails,
         Collection<? extends GrantedAuthority> authorities,
-        List<ExtendedAuthenticationToken> tokens
+        List<ExtendedAuthenticationToken<? extends AuthenticatedPrincipal>> tokens
     ) {
         // we set authorities via super
         // we don't support null authorities list
         super(authorities);
         Assert.notEmpty(tokens, "at least one auth token is required");
         Assert.notEmpty(authorities, "authorities can not be empty");
-        Assert.notNull(principal, "principal is required");
+        Assert.hasText(userId, "userId is required");
         Assert.notNull(realm, "realm is required");
+        Assert.notNull(userDetails, "details are required");
 
-        this.subject = principal;
+        this.subject = new Subject(userId, realm, username, SystemKeys.RESOURCE_USER);
         this.realm = realm;
 
         this.createdAt = Instant.now();
 
-        super.setAuthenticated(true); // must use super, as we override
+        //at least one token should be for users to be authenticated
+        boolean isAuthenticated = tokens
+            .stream()
+            .anyMatch(t -> (t.getPrincipal() instanceof UserAuthenticatedPrincipal));
+        super.setAuthenticated(isAuthenticated); // must use super, as we override
 
-        //build details
-        this.details = new UserDetails(principal.getSubjectId(), realm, username, authorities);
+        this.details = userDetails;
+
+        //build user context
+        this.user = new User(userId, realm);
 
         //store tokens
-        this.tokens = new HashSet<>(tokens);
+        this.tokens = Collections.unmodifiableSet(new HashSet<>(tokens));
     }
 
     public DefaultUserAuthenticationToken(
-        Subject principal,
+        String userId,
         String realm,
         String username,
         Collection<? extends GrantedAuthority> authorities,
-        ExtendedAuthenticationToken tokens
+        List<ExtendedAuthenticationToken<? extends AuthenticatedPrincipal>> tokens
     ) {
-        this(principal, realm, username, authorities, Arrays.asList(tokens));
+        this(userId, realm, username, new UserDetails(userId, realm, username, authorities), authorities, tokens);
+    }
+
+    public DefaultUserAuthenticationToken(
+        String userId,
+        String realm,
+        String username,
+        Collection<? extends GrantedAuthority> authorities,
+        ExtendedAuthenticationToken<? extends UserAuthenticatedPrincipal> token
+    ) {
+        this(userId, realm, username, authorities, Collections.singletonList(token));
     }
 
     /**
@@ -115,7 +135,7 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
      */
     @SuppressWarnings("unused")
     private DefaultUserAuthenticationToken() {
-        this(null, null, null, null, (List<ExtendedAuthenticationToken>) null);
+        this(null, null, null, null, (List<ExtendedAuthenticationToken<?>>) null);
     }
 
     @Override
@@ -173,48 +193,48 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
      */
 
     public boolean isExpired() {
-        // check if any token is valid
-        return !getAuthentications().stream().filter(a -> !a.isExpired()).findFirst().isPresent();
+        // check if any token is expired
+        return getAuthentications().stream().anyMatch(a -> a.isExpired());
     }
 
-    public void addAuthentication(ExtendedAuthenticationToken auth) {
-        // TODO implement a proper lock
-        synchronized (this) {
-            if (!realm.equals(auth.getRealm())) {
-                throw new IllegalArgumentException("realm does not match");
-            }
+    // public void addAuthentication(ExtendedAuthenticationToken auth) {
+    //     // TODO implement a proper lock
+    //     synchronized (this) {
+    //         if (!realm.equals(auth.getRealm())) {
+    //             throw new IllegalArgumentException("realm does not match");
+    //         }
 
-            this.tokens.add(auth);
-        }
-    }
+    //         this.tokens.add(auth);
+    //     }
+    // }
 
-    public ExtendedAuthenticationToken getAuthentication(String authority, String provider, String userId) {
-        ExtendedAuthenticationToken token = null;
-        for (ExtendedAuthenticationToken t : tokens) {
-            if (
-                t.getAuthority().equals(authority) &&
-                t.getProvider().equals(provider) &&
-                t.getPrincipal().getUserId().equals(userId)
-            ) {
-                token = t;
-                break;
-            }
-        }
+    // public ExtendedAuthenticationToken getAuthentication(String authority, String provider, String userId) {
+    //     ExtendedAuthenticationToken token = null;
+    //     for (ExtendedAuthenticationToken t : tokens) {
+    //         if (
+    //             t.getAuthority().equals(authority) &&
+    //             t.getProvider().equals(provider) &&
+    //             t.getPrincipal().getUserId().equals(userId)
+    //         ) {
+    //             token = t;
+    //             break;
+    //         }
+    //     }
 
-        // we return the original
-        // we expect consumers to avoid mangling the token or resetting the
-        // authenticated flag
-        return token;
-    }
+    //     // we return the original
+    //     // we expect consumers to avoid mangling the token or resetting the
+    //     // authenticated flag
+    //     return token;
+    // }
 
-    public void eraseAuthentication(ExtendedAuthenticationToken auth) {
-        // TODO implement a proper lock
-        synchronized (this) {
-            this.tokens.remove(auth);
-        }
-    }
+    // public void eraseAuthentication(ExtendedAuthenticationToken auth) {
+    //     // TODO implement a proper lock
+    //     synchronized (this) {
+    //         this.tokens.remove(auth);
+    //     }
+    // }
 
-    public Set<ExtendedAuthenticationToken> getAuthentications() {
+    public Set<ExtendedAuthenticationToken<? extends AuthenticatedPrincipal>> getAuthentications() {
         return tokens;
     }
 

@@ -313,11 +313,11 @@ public class RealmManager {
             List<User> users = userManager.listUsers(slug);
             for (User user : users) {
                 try {
-                    String subjectId = user.getSubjectId();
+                    String userId = user.getUserId();
 
                     // remove, will kill active sessions and cleanup
                     // will also delete if this realm is owner
-                    userManager.removeUser(slug, subjectId);
+                    userManager.removeUser(slug, userId);
                 } catch (NoSuchUserException e) {
                     // skip
                 }

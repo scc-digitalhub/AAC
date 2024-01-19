@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
 import java.util.Collection;
 import javax.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
@@ -39,7 +40,7 @@ public interface CredentialsService<
     M extends ConfigMap,
     C extends CredentialsServiceConfig<M>
 >
-    extends ConfigurableResourceProvider<R, C, CredentialsServiceSettingsMap, M> {
+    extends ConfigurableResourceProvider<R, C, CredentialsServiceSettingsMap, M>, UserPersistedResourceProvider<R> {
     /*
      * (user) editable credentials
      * User can manage their credentials via a simplified (and unified) view.

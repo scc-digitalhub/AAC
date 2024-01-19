@@ -18,15 +18,26 @@ package it.smartcommunitylab.aac.accounts.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
+import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResourceContext;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public interface UserAccountsResourceContext extends ResourceContext {
+public interface UserAccountsResourceContext extends UserResourceContext {
     default Collection<UserAccount> getAccounts() {
         return getResources(SystemKeys.RESOURCE_ACCOUNT);
     }
 
     default void setAccounts(List<UserAccount> accounts) {
         setResources(SystemKeys.RESOURCE_ACCOUNT, accounts);
+    }
+
+    static UserAccountsResourceContext with(ResourceContext<UserResource> context) {
+        return () -> context.getResources();
+    }
+
+    static UserAccountsResourceContext from(ResourceContext<UserResource> context) {
+        return () -> Collections.unmodifiableMap(context.getResources());
     }
 }

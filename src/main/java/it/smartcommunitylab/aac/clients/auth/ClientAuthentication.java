@@ -21,9 +21,7 @@ import it.smartcommunitylab.aac.clients.model.Client;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import java.util.Collection;
 import javax.annotation.Nullable;
-import org.springframework.security.core.GrantedAuthority;
 
 /*
  * A client authentication
@@ -43,12 +41,7 @@ public interface ClientAuthentication extends ExtendedAuthentication {
     public ClientDetails getClientDetails();
 
     public default String getClientId() {
-        return getClientDetails() != null ? getClientDetails().getClientId() : null;
-    }
-
-    @Override
-    default Collection<? extends GrantedAuthority> getAuthorities() {
-        return getClientDetails() != null ? getClientDetails().getAuthorities() : null;
+        return getClientDetails() != null ? getClientDetails().getClientId() : getSubjectId();
     }
 
     // client (temporarily) stores user info and resources

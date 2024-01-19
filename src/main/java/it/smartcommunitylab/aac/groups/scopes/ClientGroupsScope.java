@@ -16,13 +16,12 @@
 
 package it.smartcommunitylab.aac.groups.scopes;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.scope.Scope;
 
 public class ClientGroupsScope extends Scope {
 
-    public static final String SCOPE = Config.SCOPE_CLIENT_GROUP;
+    public static final String SCOPE = "client.groups.me";
 
     @Override
     public String getResourceId() {

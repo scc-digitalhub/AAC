@@ -95,6 +95,8 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
 
     public void setTemplate(String template) {
         this.template = template;
+    }
+
     public String[] getResolvableFields() {
         return resolvableFields;
     }

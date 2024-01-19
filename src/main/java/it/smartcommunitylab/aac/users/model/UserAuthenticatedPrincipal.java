@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.identity.model;
+package it.smartcommunitylab.aac.users.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.users.model.UserResource;
 import java.io.Serializable;
 import java.util.Map;
 import org.springframework.security.core.AuthenticatedPrincipal;

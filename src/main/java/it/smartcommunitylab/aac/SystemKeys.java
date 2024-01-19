@@ -72,6 +72,7 @@ public class SystemKeys {
     public static final String RESOURCE_CREDENTIALS = "credentials";
     public static final String RESOURCE_CLIENT = "client";
     public static final String RESOURCE_ROLE = "role";
+    public static final String RESOURCE_SPACE = "space";
     public static final String RESOURCE_SERVICE = "service";
     public static final String RESOURCE_GROUP = "group";
     public static final String RESOURCE_CREDENTIALS_SECRET = "credentials_secret";

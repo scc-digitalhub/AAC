@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.tos;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.tos.controller.TosController;
-import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.service.UserService;

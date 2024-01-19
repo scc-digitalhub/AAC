@@ -1,5 +1,5 @@
-/*
- * Copyright 2023 the original author or authors
+/**
+ * Copyright 2024 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.identity.provider;
+package it.smartcommunitylab.aac.users.model;
 
-import it.smartcommunitylab.aac.accounts.model.UserAccount;
-import it.smartcommunitylab.aac.core.provider.ResourceProvider;
-import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.core.model.ResourceContext;
 
-public interface AccountPrincipalConverter<U extends UserAccount> extends ResourceProvider<U> {
-    /*
-     * Build account from principal attributes
-     */
-    public U convertAccount(UserAuthenticatedPrincipal principal, String userId);
-}
+public interface UserResourceContext extends ResourceContext<UserResource> {}

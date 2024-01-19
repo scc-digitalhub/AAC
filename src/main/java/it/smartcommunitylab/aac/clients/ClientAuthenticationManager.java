@@ -78,7 +78,7 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
             }
 
             // we let authExceptions propagate
-            auth = provider.authenticate(authentication);
+            auth = (ClientAuthentication) provider.authenticate(authentication);
             if (auth != null) {
                 break;
             }
@@ -93,11 +93,8 @@ public class ClientAuthenticationManager implements AuthenticationManager, Initi
         try {
             ClientDetails clientDetails = clientService.loadClient(clientId);
 
-
             //create auth token
-            DefaultClientAuthenticationToken token = new DefaultClientAuthenticationToken() {
-                
-            };
+            DefaultClientAuthenticationToken token = new DefaultClientAuthenticationToken(clientId);
             auth.setClientDetails(clientDetails);
 
             return auth;

@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.audit.listeners;
 
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -47,7 +47,7 @@ public class ClientAuthenticationEventListener extends AbstractAuthenticationAud
         }
 
         ClientAuthentication auth = (ClientAuthentication) event.getAuthentication();
-        String principal = auth.getPrincipal();
+        String principal = auth.getClientId();
         Object details = auth.getDetails();
         String eventType = CLIENT_AUTHENTICATION_FAILURE;
 

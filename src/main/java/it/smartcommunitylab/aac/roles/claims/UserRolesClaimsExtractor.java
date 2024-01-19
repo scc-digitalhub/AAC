@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.roles.claims;
 
-import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.Claim;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsSet;
@@ -26,6 +25,9 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.roles.model.UserRole;
+import it.smartcommunitylab.aac.roles.model.UserRolesResourceContext;
+import it.smartcommunitylab.aac.roles.scopes.RolesResource;
+import it.smartcommunitylab.aac.roles.scopes.UserRolesScope;
 import it.smartcommunitylab.aac.users.model.User;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -39,12 +41,12 @@ public class UserRolesClaimsExtractor implements ScopeClaimsExtractor {
 
     @Override
     public String getResourceId() {
-        return "aac.roles";
+        return RolesResource.RESOURCE_ID;
     }
 
     @Override
     public Collection<String> getScopes() {
-        return Collections.singleton(Config.SCOPE_USER_ROLE);
+        return Collections.singleton(UserRolesScope.SCOPE);
     }
 
     @Override
@@ -56,12 +58,12 @@ public class UserRolesClaimsExtractor implements ScopeClaimsExtractor {
         Map<String, Serializable> extensions
     ) throws InvalidDefinitionException, SystemException {
         // we get roles from user, it should be up-to-date
-        Collection<UserRole> realmRoles = user.getRoles();
+        Collection<UserRole> realmRoles = UserRolesResourceContext.from(user).getRoles();
 
         // convert to a claims list flattening roles
         List<Claim> claims = new ArrayList<>();
 
-        SerializableClaim realmRolesClaim = new SerializableClaim("roles");
+        SerializableClaim realmRolesClaim = new SerializableClaim(RolesResource.CLAIM);
         List<String> realmRolesClaims = realmRoles.stream().map(r -> r.getRole()).collect(Collectors.toList());
         realmRolesClaim.setValue(new ArrayList<>(realmRolesClaims));
         claims.add(realmRolesClaim);
@@ -69,7 +71,7 @@ public class UserRolesClaimsExtractor implements ScopeClaimsExtractor {
         // build a claimsSet
         DefaultClaimsSet claimsSet = new DefaultClaimsSet();
         claimsSet.setResourceId(getResourceId());
-        claimsSet.setScope(Config.SCOPE_USER_ROLE);
+        claimsSet.setScope(UserRolesScope.SCOPE);
         // we merge our map with namespace to tld
         claimsSet.setNamespace(null);
         claimsSet.setUser(true);

@@ -16,18 +16,12 @@
 
 package it.smartcommunitylab.aac.users.auth;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.model.UserDetails;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Set;
 import javax.annotation.Nullable;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * A user authentication as used in the auth/security context
@@ -48,12 +42,7 @@ public interface UserAuthentication extends ExtendedAuthentication {
     public UserDetails getUserDetails();
 
     public default String getUserId() {
-        return getUserDetails() != null ? getUserDetails().getUserId() : null;
-    }
-
-    @Override
-    default Collection<? extends GrantedAuthority> getAuthorities() {
-        return getUserDetails() != null ? getUserDetails().getAuthorities() : null;
+        return getUserDetails() != null ? getUserDetails().getUserId() : getSubjectId();
     }
 
     // user (temporarily) stores user info and resources
