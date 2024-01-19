@@ -132,8 +132,7 @@ public class SamlAuthenticationProvider
                 attributes
             );
             if (auth.getPrincipal() instanceof DefaultSaml2AuthenticatedPrincipal) {
-                List<String> indexes =
-                    ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes();
+                List<String> indexes = ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes();
                 principal = new DefaultSaml2AuthenticatedPrincipal(auth.getName(), attributes, indexes);
             }
             return new Saml2Authentication(
