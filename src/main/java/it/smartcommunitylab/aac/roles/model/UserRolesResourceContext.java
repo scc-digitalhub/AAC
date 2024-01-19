@@ -18,15 +18,26 @@ package it.smartcommunitylab.aac.roles.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
+import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResourceContext;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public interface UserRolesResourceContext extends ResourceContext {
+public interface UserRolesResourceContext extends UserResourceContext {
     default Collection<UserRole> getRoles() {
         return getResources(SystemKeys.RESOURCE_ROLE);
     }
 
     default void setRoles(List<UserRole> roles) {
         setResources(SystemKeys.RESOURCE_ROLE, roles);
+    }
+
+    static UserRolesResourceContext with(ResourceContext<UserResource> context) {
+        return () -> context.getResources();
+    }
+
+    static UserRolesResourceContext from(ResourceContext<UserResource> context) {
+        return () -> Collections.unmodifiableMap(context.getResources());
     }
 }

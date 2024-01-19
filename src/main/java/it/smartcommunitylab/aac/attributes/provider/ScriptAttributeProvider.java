@@ -30,7 +30,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;

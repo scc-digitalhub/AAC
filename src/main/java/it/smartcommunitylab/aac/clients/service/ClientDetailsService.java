@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import java.util.Collection;

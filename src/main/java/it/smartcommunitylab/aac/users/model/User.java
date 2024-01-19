@@ -16,20 +16,15 @@
 
 package it.smartcommunitylab.aac.users.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.UserAccountsResourceContext;
-import it.smartcommunitylab.aac.attributes.model.UserAttributesResourceContext;
-import it.smartcommunitylab.aac.core.model.Resource;
-import it.smartcommunitylab.aac.credentials.model.UserCredentialsResourceContext;
-import it.smartcommunitylab.aac.groups.model.UserGroupsResourceContext;
-import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.roles.model.UserRolesResourceContext;
 import it.smartcommunitylab.aac.templates.model.Language;
 import java.util.Collection;
 import java.util.Collections;
@@ -49,15 +44,7 @@ import org.springframework.util.Assert;
  * In addition to core properties, user resources can be included.
  */
 @JsonInclude(Include.NON_NULL)
-public class User
-    implements
-        UserResource,
-        UserAttributesResourceContext,
-        UserAccountsResourceContext,
-        UserIdentitiesResourceContext,
-        UserCredentialsResourceContext,
-        UserGroupsResourceContext,
-        UserRolesResourceContext {
+public class User implements UserResource, UserResourceContext {
 
     @NotBlank
     private final String userId;
@@ -128,7 +115,7 @@ public class User
 
     // resources stored as map context and read via accessors
     @JsonIgnore
-    private Map<String, List<? extends Resource>> resources = new HashMap<>();
+    private Map<String, List<? extends UserResource>> resources = new HashMap<>();
 
     public User(@JsonProperty("userId") String userId, @JsonProperty("realm") String realm) {
         Assert.hasText(userId, "userId can not be null or empty");
@@ -307,13 +294,27 @@ public class User
      * Resource context
      */
 
-    @JsonIgnore
+    @JsonAnyGetter
     @Override
-    public Map<String, List<? extends Resource>> getResources() {
+    public Map<String, List<? extends UserResource>> getResources() {
         if (this.resources == null) {
             this.resources = new HashMap<>();
         }
 
         return resources;
+    }
+
+    @JsonAnySetter
+    public void setResources(Map<String, List<? extends UserResource>> resources) {
+        this.resources = resources;
+    }
+
+    public static User from(UserDetails details) {
+        Assert.notNull(details, "user details can not be null");
+        User user = new User(details.getUserId(), details.getRealm());
+        user.setUsername(details.getUsername());
+        user.setAuthorities(new HashSet<>(details.getAuthorities()));
+
+        return user;
     }
 }

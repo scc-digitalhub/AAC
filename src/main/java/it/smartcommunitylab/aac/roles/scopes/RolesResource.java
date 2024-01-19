@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.scope.Resource;
 public class RolesResource extends Resource {
 
     public static final String RESOURCE_ID = "aac.roles";
+    public static final String CLAIM = "roles";
 
     @Override
     public String getResourceId() {

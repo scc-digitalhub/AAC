@@ -18,15 +18,26 @@ package it.smartcommunitylab.aac.groups.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ResourceContext;
+import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.users.model.UserResourceContext;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-public interface UserGroupsResourceContext extends ResourceContext {
+public interface UserGroupsResourceContext extends UserResourceContext {
     default Collection<UserGroup> getGroups() {
         return getResources(SystemKeys.RESOURCE_GROUP);
     }
 
     default void setGroups(List<UserGroup> groups) {
         setResources(SystemKeys.RESOURCE_GROUP, groups);
+    }
+
+    static UserGroupsResourceContext with(ResourceContext<UserResource> context) {
+        return () -> context.getResources();
+    }
+
+    static UserGroupsResourceContext from(ResourceContext<UserResource> context) {
+        return () -> Collections.unmodifiableMap(context.getResources());
     }
 }

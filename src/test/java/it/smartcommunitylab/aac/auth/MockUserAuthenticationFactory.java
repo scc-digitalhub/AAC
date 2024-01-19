@@ -16,22 +16,15 @@
 
 package it.smartcommunitylab.aac.auth;
 
-import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
-import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.users.auth.DefaultUserAuthenticationToken;
-import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationToken;
-
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -113,7 +106,7 @@ public class MockUserAuthenticationFactory implements WithSecurityContextFactory
             );
 
             // resolve
-            Subject subject = idp.getUserResolver().resolveByAccountId(username);
+            // Subject subject = idp.getUserResolver().resolveByAccountId(username);
             // UserIdentity identity = idp.convertIdentity(principal, userId);
             // Collection<UserAttributes> attributeSets = Collections.emptyList();
 
@@ -123,18 +116,18 @@ public class MockUserAuthenticationFactory implements WithSecurityContextFactory
 
             // build user authentication
             DefaultUserAuthenticationToken auth = new DefaultUserAuthenticationToken(
-                subject,
+                userId,
                 realm,
-                extToken,
                 username,
+                authorities,
+                extToken
                 // identity,
                 // attributeSets,
-                authorities
             );
 
             // set authentication
             context.setAuthentication(auth);
-        } catch (NoSuchProviderException | NoSuchUserException | RegistrationException e) {
+        } catch (NoSuchProviderException | NoSuchUserException e) {
             e.printStackTrace();
         }
 

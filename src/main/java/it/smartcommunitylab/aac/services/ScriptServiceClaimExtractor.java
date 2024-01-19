@@ -278,11 +278,9 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
                     c = new BooleanClaim(model.getKey(), bvalue);
                     break;
                 case NUMBER:
-                    {
-                        Number nvalue = mapper.convertValue(value, Number.class);
-                        c = new NumberClaim(model.getKey(), nvalue);
-                        break;
-                    }
+                    Number nvalue = mapper.convertValue(value, Number.class);
+                    c = new NumberClaim(model.getKey(), nvalue);
+                    break;
                 case STRING:
                     String svalue = mapper.convertValue(value, String.class);
                     c = new StringClaim(model.getKey(), svalue);

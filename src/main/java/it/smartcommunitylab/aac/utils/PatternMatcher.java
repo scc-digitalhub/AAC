@@ -57,7 +57,9 @@ public class PatternMatcher {
             }
             if (pos1 != s1.length && pos2 != s2.length) {
                 int l1 = s1[pos1], l2 = s2[pos2];
-                if (match(l1, l2, pos1, pos2)) {}
+                if (match(l1, l2, pos1, pos2)) {
+                    //
+                }
             }
             pool.remove(0);
         }

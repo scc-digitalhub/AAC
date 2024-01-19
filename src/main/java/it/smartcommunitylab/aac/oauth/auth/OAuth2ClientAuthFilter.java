@@ -153,7 +153,7 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
 
             // check client details
             OAuth2ClientAuthenticationToken token = (OAuth2ClientAuthenticationToken) authResult;
-            if (token.getOAuth2ClientDetails() == null || token.getClient() == null) {
+            if (token.getOAuth2ClientDetails() == null || token.getClientId() == null) {
                 // something bad happened
                 throw new OAuth2AuthenticationException(OAuth2ErrorCodes.SERVER_ERROR);
             }

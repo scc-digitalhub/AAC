@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.config;
 
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.claims.ClaimsService;
@@ -25,8 +23,6 @@ import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.core.service.CoreUserTranslator;
-import it.smartcommunitylab.aac.users.UserTranslator;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.IOException;
 import java.util.Locale;
@@ -35,7 +31,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -142,14 +137,6 @@ public class AACConfig {
         service.setExecutionService(executionService);
         service.setUserService(userService);
         return service;
-    }
-
-    /*
-     * Cross realm user translator
-     */
-    @Bean
-    public UserTranslator userTranslator() {
-        return new CoreUserTranslator();
     }
 
     /*

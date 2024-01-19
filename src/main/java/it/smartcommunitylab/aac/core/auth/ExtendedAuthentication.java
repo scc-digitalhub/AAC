@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.core.auth;
 
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationToken;
 import java.time.Instant;
 import java.util.Set;
+import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 
@@ -74,7 +74,7 @@ public interface ExtendedAuthentication extends Authentication, CredentialsConta
      * Auth tokens
      */
 
-    public Set<ExtendedAuthenticationToken> getAuthentications();
+    public Set<ExtendedAuthenticationToken<? extends AuthenticatedPrincipal>> getAuthentications();
 
     @Override
     default void eraseCredentials() {

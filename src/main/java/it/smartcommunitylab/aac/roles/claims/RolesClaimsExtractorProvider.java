@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.roles.claims;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractor;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
+import it.smartcommunitylab.aac.roles.scopes.UserRolesScope;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class RolesClaimsExtractorProvider implements ScopeClaimsExtractorProvide
 
     static {
         Map<String, ScopeClaimsExtractor> e = new HashMap<>();
-        e.put(Config.SCOPE_USER_ROLE, new UserRolesClaimsExtractor());
+        e.put(UserRolesScope.SCOPE, new UserRolesClaimsExtractor());
         e.put(Config.SCOPE_CLIENT_ROLE, new ClientRolesClaimsExtractor());
 
         extractors = e;

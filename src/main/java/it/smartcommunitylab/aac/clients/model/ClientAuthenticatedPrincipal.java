@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.groups.scopes;
+package it.smartcommunitylab.aac.clients.model;
 
-import it.smartcommunitylab.aac.scope.Resource;
+import it.smartcommunitylab.aac.SystemKeys;
+import org.springframework.security.core.AuthenticatedPrincipal;
 
-public class GroupsResource extends Resource {
+/*
+ * An authenticated client principal
+ */
+public interface ClientAuthenticatedPrincipal extends AuthenticatedPrincipal, ClientResource {
+    // principal name
+    public String getName();
 
-    public static final String RESOURCE_ID = "aac.groups";
-    public static final String CLAIM = "groups";
-
-    @Override
-    public String getResourceId() {
-        return RESOURCE_ID;
+    default String getType() {
+        return SystemKeys.RESOURCE_PRINCIPAL;
     }
 
-    // TODO replace with keys for i18n
-    @Override
-    public String getName() {
-        return "Groups";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Access groups for user and clients";
+    public default String getPrincipalId() {
+        return getId();
     }
 }
