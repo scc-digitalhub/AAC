@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
+
+import it.smartcommunitylab.aac.repository.SafeString;
 import org.springframework.util.StringUtils;
 
 @Valid
@@ -48,7 +50,8 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private String events;
     private Integer position;
     private String template;
-    private String internalNotes;
+    @SafeString
+    private String notes;
 
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
@@ -93,12 +96,12 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         this.template = template;
     }
 
-    public String getInternalNotes() {
-        return internalNotes;
+    public String getNotes() {
+        return notes;
     }
 
-    public void setInternalNotes(String internalNotes) {
-        this.internalNotes = internalNotes;
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Map<String, String> getHookFunctions() {
@@ -158,8 +161,8 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         this.persistence = map.getPersistence();
         this.events = map.getEvents();
         this.position = map.getPosition();
-
         this.hookFunctions = map.getHookFunctions();
+        this.notes = map.getNotes();
     }
 
     @Override

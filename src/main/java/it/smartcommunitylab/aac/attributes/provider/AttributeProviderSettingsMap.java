@@ -24,6 +24,8 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.repository.SafeString;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +43,8 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
     private Set<String> attributeSets;
     private PersistenceMode persistence;
     private String events;
-    private String internalNotes;
+    @SafeString
+    private String notes;
 
     public Set<String> getAttributeSets() {
         return attributeSets;
@@ -67,12 +70,12 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
         this.events = events;
     }
 
-    public String getInternalNotes() {
-        return internalNotes;
+    public String getNotes() {
+        return notes;
     }
 
-    public void setInternalNotes(String internalNotes) {
-        this.internalNotes = internalNotes;
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     @JsonIgnore
@@ -84,6 +87,7 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
         this.attributeSets = map.getAttributeSets();
         this.persistence = map.getPersistence();
         this.events = map.getEvents();
+        this.notes =  map.getNotes();
     }
 
     @Override
