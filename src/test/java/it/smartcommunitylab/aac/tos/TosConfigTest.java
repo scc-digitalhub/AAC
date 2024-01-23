@@ -74,7 +74,7 @@ public class TosConfigTest {
 
         TosConfigurationMap tosConfig = realm.getTosConfiguration();
         assertThat(tosConfig).isNotNull();
-        
+
         //update config to enable tos
         tosConfig.setEnableTOS(true);
         Realm realmUpdated = realmService.updateRealm(
