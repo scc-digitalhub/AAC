@@ -33,3 +33,6 @@ CREATE TABLE
         token bytea NOT NULL,
         authentication bytea NOT NULL
     );
+
+CREATE INDEX oauth_access_token_token_id_index
+    ON public.oauth_access_token (token_id);
