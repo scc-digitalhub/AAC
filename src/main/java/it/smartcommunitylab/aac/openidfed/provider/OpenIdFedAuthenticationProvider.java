@@ -184,13 +184,10 @@ public class OpenIdFedAuthenticationProvider
             return auth;
         } catch (OAuth2AuthenticationException e) {
             logger.debug(
-                String.format(
-                    "exception occurred when authenticating with openid federation provider %s - %s - %s",
-                    getProvider(),
-                    e.getError(),
-                    e.getMessage()
-                ),
-                e
+                "exception occurred when authenticating with openid federation provider {}, error information {}, {}",
+                getProvider(),
+                e.getError(),
+                e.getMessage()
             );
             throw new OIDCAuthenticationException(
                 e.getError(),
@@ -202,12 +199,9 @@ public class OpenIdFedAuthenticationProvider
             );
         } catch (NullPointerException e) {
             logger.error(
-                String.format(
-                    "null pointer exception occurred when authenticating with openid federation provider %s - %s",
-                    getProvider(),
-                    e.getMessage()
-                ),
-                e
+                "null pointer exception occurred when authenticating with openid federation provider {}, error information {}",
+                getProvider(),
+                e.getMessage()
             );
             throw new OIDCAuthenticationException(
                 new OAuth2Error(OAuth2ErrorCodes.SERVER_ERROR),
