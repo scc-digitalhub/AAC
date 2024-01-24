@@ -174,14 +174,14 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
 
         if (authentication != null) {
             // remove
-            jdbcTemplate.update(deleteAuthenticationSql, code);
+            if (jdbcTemplate.update(deleteAuthenticationSql, code) > 0) {
+                long expiresAt = authentication.getSecond().longValue();
+                OAuth2Authentication oauth = authentication.getFirst();
 
-            long expiresAt = authentication.getSecond().longValue();
-            OAuth2Authentication oauth = authentication.getFirst();
-
-            // validate expire
-            if (System.currentTimeMillis() < expiresAt) {
-                return oauth;
+                // validate expire
+                if (System.currentTimeMillis() < expiresAt) {
+                    return oauth;
+                }
             }
         }
 
