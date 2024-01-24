@@ -19,12 +19,14 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiClientAppScope;
 import it.smartcommunitylab.aac.clients.controller.BaseClientAppController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 /*
  * API controller for clientApp
  */
 @RestController
+@Validated
 @ApiSecurityTag(ApiClientAppScope.SCOPE)
 @Tag(name = "Client apps", description = "Manage client applications and their configuration")
 @ApiRequestMapping

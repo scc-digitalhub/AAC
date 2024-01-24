@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiAttributesScope;
 import it.smartcommunitylab.aac.attributes.BaseAttributeSetsController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiAttributesScope.SCOPE)
 @Tag(name = "Attribute Sets", description = "Manage realm attribute sets definition and attributes registration")
 @ApiRequestMapping

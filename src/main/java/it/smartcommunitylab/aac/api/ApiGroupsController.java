@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiGroupsScope;
 import it.smartcommunitylab.aac.groups.BaseGroupController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiGroupsScope.SCOPE)
 @Tag(name = "Groups", description = "Manage realm groups and group membership")
 @ApiRequestMapping

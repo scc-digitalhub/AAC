@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiProviderScope;
 import it.smartcommunitylab.aac.identity.controller.BaseIdentityProviderController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiProviderScope.SCOPE)
 @Tag(name = "Identity Providers", description = "Manage realm identity providers and their configuration")
 @ApiRequestMapping

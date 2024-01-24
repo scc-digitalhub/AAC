@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiScopesScope;
 import it.smartcommunitylab.aac.scope.controller.BaseScopesController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiScopesScope.SCOPE)
 @Tag(name = "Scopes", description = "Manage scopes")
 @ApiRequestMapping

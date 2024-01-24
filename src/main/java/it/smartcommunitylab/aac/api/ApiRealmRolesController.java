@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiRolesScope;
 import it.smartcommunitylab.aac.roles.BaseRealmRolesController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiRolesScope.SCOPE)
 @Tag(name = "Roles", description = "Manage realm roles and roles membership")
 @ApiRequestMapping

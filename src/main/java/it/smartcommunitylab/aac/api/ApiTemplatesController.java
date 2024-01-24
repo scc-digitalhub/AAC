@@ -19,9 +19,11 @@ package it.smartcommunitylab.aac.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.smartcommunitylab.aac.api.scopes.ApiRealmScope;
 import it.smartcommunitylab.aac.templates.BaseTemplatesController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiRealmScope.SCOPE)
 @Tag(name = "Templates", description = "Manage realm templates")
 @ApiRequestMapping
