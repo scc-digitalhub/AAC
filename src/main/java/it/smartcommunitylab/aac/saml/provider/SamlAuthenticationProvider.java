@@ -33,8 +33,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.Response;
 import org.slf4j.Logger;
@@ -117,10 +118,7 @@ public class SamlAuthenticationProvider
         //                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
         //                    return new ValidationContext(params);
         //                }));
-        Converter<
-            OpenSaml4AuthenticationProvider.ResponseToken,
-            Saml2Authentication
-        > defaultResponseAuthenticationConverterConverter =
+        Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultResponseAuthenticationConverterConverter =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter(responseToken -> {
             // use default converter to pre-evaluate authentication, containing attributes and indexes
@@ -131,10 +129,11 @@ public class SamlAuthenticationProvider
             Map<String, List<Object>> attributes = new HashMap<>(
                 ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
             );
-            List<Object> acrValues = extractAcrAssertion(response);
+            List<Object> acrValues = extractAcrValues(response);
             if (acrValues != null) {
                 attributes.put(ACR_ATTRIBUTE, acrValues);
             }
+
             DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
                 auth.getName(),
                 attributes
@@ -147,6 +146,7 @@ public class SamlAuthenticationProvider
                         ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
                     );
             }
+
             return new Saml2Authentication(
                 principal,
                 token.getSaml2Response(),
@@ -247,27 +247,24 @@ public class SamlAuthenticationProvider
         }
     }
 
-    private static List<Object> extractAcrAssertion(Response response) {
-        if (response == null) {
-            return null;
-        }
+    private static @Nullable List<Object> extractAcrValues(Response response) {
         Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
         if (assertion == null) {
             return null;
         }
+
         List<Object> acrValues = assertion
             .getAuthnStatements()
             .stream()
-            .map(authStatement -> authStatement.getAuthnContext())
-            .filter(Objects::nonNull)
-            .map(authCtx -> authCtx.getAuthnContextClassRef())
-            .filter(Objects::nonNull)
+            .filter(a -> a.getAuthnContext() != null)
+            .flatMap(a -> Stream.ofNullable(a.getAuthnContext().getAuthnContextClassRef()))
             .map(acr -> acr.getURI())
-            .map(s -> (Object) s)
-            .toList();
+            .collect(Collectors.toList());
+
         if (acrValues.isEmpty()) {
             return null;
         }
+
         return acrValues;
     }
 
