@@ -318,7 +318,7 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
     /*
      * Validation
      */
-    private void validateConfigMap(ConfigMap configurable) throws RegistrationException {
+    protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
         // check with validator
         if (validator != null) {
             DataBinder binder = new DataBinder(configurable);

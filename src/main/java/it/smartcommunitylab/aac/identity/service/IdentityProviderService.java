@@ -30,6 +30,9 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
+
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,5 +160,22 @@ public class IdentityProviderService
                 }
             }
         }
+    }
+
+    @Override
+    protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
+        if (configurable instanceof IdentityProviderSettingsMap) {
+            sanitizeIdentityProviderSettingsMap((IdentityProviderSettingsMap) configurable);
+        }
+        super.validateConfigMap(configurable);
+    }
+
+    private void sanitizeIdentityProviderSettingsMap(IdentityProviderSettingsMap map) {
+        String notes = map.getNotes();
+        if (!StringUtils.hasText(notes)) {
+            return;
+        }
+        notes = Jsoup.clean(notes, Safelist.none());
+        map.setNotes(notes);
     }
 }

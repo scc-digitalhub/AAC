@@ -20,9 +20,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional
@@ -38,6 +43,24 @@ public class AttributeProviderService
         // setEntityConverter(new AttributeProviderEntityConverter());
         // setConfigConverter(new AttributeProviderConfigConverter());
     }
+
+    @Override
+    protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
+        if (configurable instanceof AttributeProviderSettingsMap) {
+            sanitizeAttributeProviderSettingsMap((AttributeProviderSettingsMap) configurable);
+        }
+        super.validateConfigMap(configurable);
+    }
+
+    private void sanitizeAttributeProviderSettingsMap(AttributeProviderSettingsMap map) {
+        String notes = map.getNotes();
+        if (!StringUtils.hasText(notes)) {
+            return;
+        }
+        notes = Jsoup.clean(notes, Safelist.none());
+        map.setNotes(notes);
+    }
+
     // class AttributeProviderEntityConverter
     //     implements Converter<AttributeProviderEntity, ConfigurableAttributeProvider> {
 
