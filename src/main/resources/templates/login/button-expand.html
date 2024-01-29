@@ -17,13 +17,13 @@
           th:classAppend="${authority.cssClass}"
           onclick=""
         >
-          <span class="mr-3 pr-2 border-right" aria-hidden="true">
+          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
             <svg class="icon icon-black icon-sm">
               <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
             </svg>
           </span>
           <span
-            class="text-black"
+            class="text-black btn-login-text"
             th:text="${authority.getTitle(#locale.language)}"
           ></span>
         </a>
@@ -39,7 +39,7 @@
           th:classAppend="${authority.cssClass}"
           th:href="${entry.loginUrl}"
         >
-          <span class="mr-3 pr-2 border-right" aria-hidden="true">
+          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
             <svg
               th:if="${entry.iconUrl != null}"
               class="icon icon-black icon-sm"
@@ -53,7 +53,7 @@
               <use th:xlink:href="${entry.logoUrl}"></use>
             </svg>
           </span>
-          <span class="text-black" th:text="${entry.organizationName}"></span>
+          <span class="text-black btn-login-text" th:text="${entry.organizationName}"></span>
         </a>
       </div>
 
@@ -65,7 +65,7 @@
           th:classAppend="${authority.cssClass}"
           th:href="${entry.loginUrl}"
         >
-          <span class="mr-3 pr-2 border-right" aria-hidden="true">
+          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
             <svg
               th:if="${entry.iconUrl != null}"
               class="icon icon-black icon-sm"
@@ -79,7 +79,7 @@
               <use th:xlink:href="${entry.logoUrl}"></use>
             </svg>
           </span>
-          <span class="text-black" th:text="${entry.organizationName}"></span>
+          <span class="text-black btn-login-text" th:text="${entry.organizationName}"></span>
         </a>
       </div>
     </div>
