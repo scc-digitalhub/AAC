@@ -584,7 +584,7 @@ angular.module('aac.controllers.realmproviders', [])
         };
 
         var initConfiguration = function (authority, config, schema) {
-            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = [];
                 if(config.scope) {
                     toChips(config.scope).forEach(function (s) {
@@ -650,7 +650,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         var extractConfiguration = function (authority, config, schema) {
-            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = $scope.idpOidcScope.map(function (s) {
                     if ('text' in s) {
                         return s.text;
@@ -747,7 +747,7 @@ angular.module('aac.controllers.realmproviders', [])
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
-            if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap') {
+            if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap') {
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
             }
