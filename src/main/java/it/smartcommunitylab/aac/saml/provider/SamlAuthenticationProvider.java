@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -129,9 +130,9 @@ public class SamlAuthenticationProvider
             Map<String, List<Object>> attributes = new HashMap<>(
                 ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
             );
-            List<Object> acrValues = extractAcrValues(response);
-            if (acrValues != null) {
-                attributes.put(ACR_ATTRIBUTE, acrValues);
+            Object acrValue = extractAcrValue(response);
+            if (acrValue != null) {
+                attributes.put(ACR_ATTRIBUTE, Collections.singletonList(acrValue));
             }
 
             DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
@@ -247,25 +248,25 @@ public class SamlAuthenticationProvider
         }
     }
 
-    private static @Nullable List<Object> extractAcrValues(Response response) {
+    private static @Nullable String extractAcrValue(Response response) {
         Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
         if (assertion == null) {
             return null;
         }
 
-        List<Object> acrValues = assertion
+        String acrValue = assertion
             .getAuthnStatements()
             .stream()
             .filter(a -> a.getAuthnContext() != null)
             .flatMap(a -> Stream.ofNullable(a.getAuthnContext().getAuthnContextClassRef()))
+            .findFirst()
             .map(acr -> acr.getURI())
-            .collect(Collectors.toList());
+            .orElse(null);
 
-        if (acrValues.isEmpty()) {
+        if (!StringUtils.hasText(acrValue)) {
             return null;
         }
-
-        return acrValues;
+        return acrValue;
     }
 
     @Override
