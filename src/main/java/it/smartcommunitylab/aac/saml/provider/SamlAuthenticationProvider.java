@@ -33,11 +33,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -254,19 +253,19 @@ public class SamlAuthenticationProvider
             return null;
         }
 
-        String acrValue = assertion
+        AuthnContext authnContext = assertion
             .getAuthnStatements()
             .stream()
             .filter(a -> a.getAuthnContext() != null)
-            .flatMap(a -> Stream.ofNullable(a.getAuthnContext().getAuthnContextClassRef()))
             .findFirst()
-            .map(acr -> acr.getURI())
+            .map(a -> a.getAuthnContext())
             .orElse(null);
 
-        if (!StringUtils.hasText(acrValue)) {
+        if (authnContext == null) {
             return null;
         }
-        return acrValue;
+
+        return authnContext.getAuthnContextClassRef().getURI();
     }
 
     @Override
