@@ -85,7 +85,7 @@ public class IdentityProviderService
         if (providers != null) {
             // identity providers
             for (ConfigurableIdentityProvider cp : providers.getIdentity()) {
-                if (cp == null || SystemKeys.RESOURCE_IDENTITY.equals(cp.getType()) || !cp.isEnabled()) {
+                if (cp == null || !cp.isEnabled()) {
                     continue;
                 }
 
