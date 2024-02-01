@@ -25,6 +25,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.repository.SafeString;
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Collections;
@@ -48,6 +49,9 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private String events;
     private Integer position;
     private String template;
+
+    @SafeString
+    private String notes;
 
     @JsonIgnore
     private Map<String, String> hookFunctions = new HashMap<>();
@@ -90,6 +94,14 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
 
     public void setTemplate(String template) {
         this.template = template;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Map<String, String> getHookFunctions() {
@@ -149,8 +161,8 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         this.persistence = map.getPersistence();
         this.events = map.getEvents();
         this.position = map.getPosition();
-
         this.hookFunctions = map.getHookFunctions();
+        this.notes = map.getNotes();
     }
 
     @Override

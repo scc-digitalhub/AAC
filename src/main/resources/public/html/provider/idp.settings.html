@@ -35,6 +35,10 @@
                     <label for="description"
                         class="{{idp.descriptionMap[selectedLanguage] != '' ? 'active' : ''}}">Description</label>
                 </div>
+                <div class="form-group col">
+                    <textarea rows="3" name="notes" id="notes" ng-model="idp.settings.notes"></textarea>
+                    <label for="notes" class="{{idp.settings.notes != '' ? 'active' : ''}}">Notes</label>
+                </div>
 
             </div>
 

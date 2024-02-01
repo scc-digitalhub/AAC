@@ -11,6 +11,10 @@
                 <textarea rows="3" name="description" id="description" ng-model="ap.description"></textarea>
                 <label for="description" class="{{ap.description != '' ? 'active' : ''}}">Description</label>
             </div>
+            <div class="form-group col">
+                <textarea rows="3" name="description" id="notes" ng-model="ap.settings.notes"></textarea>
+                <label for="notes" class="{{ap.settings.notes != '' ? 'active' : ''}}">Notes</label>
+            </div>
             <div class="form-group col ">
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label for="persistence">Persistence*</label>

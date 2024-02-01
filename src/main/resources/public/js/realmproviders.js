@@ -788,6 +788,7 @@ angular.module('aac.controllers.realmproviders', [])
                 events: provider.settings.events,
                 position: provider.settings.position,
                 template: provider.settings.template,
+                notes: provider.settings.notes,
                 hookFunctions: hookFunctions
             }
 
