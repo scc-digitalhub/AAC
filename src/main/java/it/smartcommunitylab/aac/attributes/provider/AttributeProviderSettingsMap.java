@@ -42,6 +42,7 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
     private Set<String> attributeSets;
     private PersistenceMode persistence;
     private String events;
+
     @SafeString
     private String notes;
 
@@ -86,7 +87,7 @@ public class AttributeProviderSettingsMap extends AbstractSettingsMap {
         this.attributeSets = map.getAttributeSets();
         this.persistence = map.getPersistence();
         this.events = map.getEvents();
-        this.notes =  map.getNotes();
+        this.notes = map.getNotes();
     }
 
     @Override

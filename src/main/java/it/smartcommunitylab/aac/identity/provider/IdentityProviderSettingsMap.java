@@ -25,6 +25,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.repository.SafeString;
 import java.io.Serializable;
 import java.util.Base64;
 import java.util.Collections;
@@ -32,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
-import it.smartcommunitylab.aac.repository.SafeString;
 import org.springframework.util.StringUtils;
 
 @Valid
@@ -49,6 +49,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private String events;
     private Integer position;
     private String template;
+
     @SafeString
     private String notes;
 
