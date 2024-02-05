@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ConfigurableProviderManager;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.service.RealmService;
@@ -51,6 +52,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
@@ -81,7 +83,7 @@ public class TemplatesManager
     }
 
     public ConfigurableTemplateProvider getProviderByRealm(String realm)
-        throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException, SystemException, MethodArgumentNotValidException {
         // fetch first if available
         ConfigurableTemplateProvider provider = findProviderByRealm(realm);
 
@@ -130,7 +132,7 @@ public class TemplatesManager
 
     @Override
     public ConfigurableTemplateProvider addProvider(String realm, ConfigurableTemplateProvider provider)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, SystemException, MethodArgumentNotValidException {
         // validate style
         // TODO add css validator
         if (provider.getSettings() != null && provider.getSettings().containsKey("customStyle")) {
@@ -161,7 +163,8 @@ public class TemplatesManager
         String realm,
         String providerId,
         ConfigurableTemplateProvider provider
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         // validate style
         // TODO add css validator
         if (provider.getSettings() != null && provider.getSettings().containsKey("customStyle")) {

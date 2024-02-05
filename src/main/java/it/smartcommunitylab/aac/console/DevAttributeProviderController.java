@@ -59,6 +59,7 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -118,7 +119,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     public ConfigurableAttributeProvider addAp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration
-    ) throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
+    )
+        throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException, SystemException, MethodArgumentNotValidException {
         ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
@@ -135,7 +137,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
         @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -229,7 +232,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         @RequestParam(required = false, defaultValue = "false") boolean reset,
         @RequestPart(name = "yaml", required = false) @Valid String yaml,
         @RequestPart(name = "file", required = false) @Valid MultipartFile file
-    ) throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+    )
+        throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("import ap(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {

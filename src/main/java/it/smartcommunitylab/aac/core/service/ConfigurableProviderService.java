@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import java.util.Collection;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 public interface ConfigurableProviderService<C extends ConfigurableProvider<? extends ConfigMap>> {
     /*
@@ -34,10 +35,11 @@ public interface ConfigurableProviderService<C extends ConfigurableProvider<? ex
 
     C getProvider(String providerId) throws NoSuchProviderException;
 
-    C addProvider(String realm, C cp) throws RegistrationException, SystemException, NoSuchAuthorityException;
+    C addProvider(String realm, C cp)
+        throws RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException;
 
     C updateProvider(String providerId, C cp)
-        throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException;
+        throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException;
     void deleteProvider(String providerId) throws SystemException, NoSuchProviderException;
 
     /*

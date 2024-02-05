@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.base.service;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -49,12 +50,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Transactional
 public abstract class AbstractConfigurableProviderService<C extends ConfigurableProvider<S>, S extends ConfigMap>
@@ -187,7 +190,8 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
         return config;
     }
 
-    public C addProvider(String realm, C cp) throws RegistrationException, SystemException, NoSuchAuthorityException {
+    public C addProvider(String realm, C cp)
+        throws RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
@@ -210,6 +214,17 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
             if (providerId.length() < 3 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
                 throw new RegistrationException("invalid id");
             }
+        }
+
+        //check for duplicate names
+        if (
+            StringUtils.hasText(cp.getName()) &&
+            providerService
+                .listProvidersByRealm(type, realm)
+                .stream()
+                .anyMatch(p -> p.getName().equalsIgnoreCase(cp.getName()))
+        ) {
+            throw new AlreadyRegisteredException();
         }
 
         // set initial version to 1
@@ -247,7 +262,7 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
     }
 
     public C updateProvider(String providerId, C cp)
-        throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(cp.toString()));
@@ -265,6 +280,19 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
 
         if (!pe.getRealm().equals(cp.getRealm())) {
             throw new IllegalArgumentException("realm mismatch");
+        }
+
+        //check for duplicate names if name changes
+        if (
+            StringUtils.hasText(cp.getName()) &&
+            !cp.getName().equals(pe.getName()) &&
+            providerService
+                .listProvidersByRealm(type, pe.getRealm())
+                .stream()
+                .filter(p -> !(p.getProvider().equals(providerId)))
+                .anyMatch(p -> p.getName().equalsIgnoreCase(cp.getName()))
+        ) {
+            throw new AlreadyRegisteredException();
         }
 
         // check version and increment when necessary
@@ -318,21 +346,38 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
     /*
      * Validation
      */
-    private void validateConfigMap(ConfigMap configurable) throws RegistrationException {
+    public void validateConfigMap(ConfigMap configurable)
+        throws RegistrationException, MethodArgumentNotValidException {
         // check with validator
         if (validator != null) {
             DataBinder binder = new DataBinder(configurable);
             validator.validate(configurable, binder.getBindingResult());
             if (binder.getBindingResult().hasErrors()) {
-                StringBuilder sb = new StringBuilder();
-                binder
-                    .getBindingResult()
-                    .getFieldErrors()
-                    .forEach(e -> {
-                        sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-                    });
-                String errorMsg = sb.toString();
-                throw new RegistrationException(errorMsg);
+                // StringBuilder sb = new StringBuilder();
+                // binder
+                //     .getBindingResult()
+                //     .getFieldErrors()
+                //     .forEach(e -> {
+                //         sb.append(e.getField()).append(" ").append(e.getDefaultMessage()).append(", ");
+                //     });
+                // String errorMsg = sb.toString();
+                // throw new RegistrationException(errorMsg);
+                MethodParameter methodParameter;
+                try {
+                    methodParameter =
+                        new MethodParameter(this.getClass().getMethod("validateConfigMap", ConfigMap.class), 0);
+                    throw new MethodArgumentNotValidException(methodParameter, binder.getBindingResult());
+                } catch (NoSuchMethodException | SecurityException ex) {
+                    StringBuilder sb = new StringBuilder();
+                    binder
+                        .getBindingResult()
+                        .getFieldErrors()
+                        .forEach(e -> {
+                            sb.append(e.getField()).append(" ").append(e.getDefaultMessage()).append(", ");
+                        });
+                    String errorMsg = sb.toString();
+                    throw new RegistrationException(errorMsg);
+                }
             }
         }
     }

@@ -65,6 +65,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -280,7 +281,8 @@ public class DevRealmController {
     @GetMapping("/realms/{realm}/templates/conf")
     public ConfigurableTemplateProvider getTemplateProviderConfig(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
-    ) throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
+    )
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException, SystemException, MethodArgumentNotValidException {
         // single config per realm
         return templatesManager.getProviderByRealm(realm);
     }
@@ -289,7 +291,8 @@ public class DevRealmController {
     public ConfigurableTemplateProvider setTemplateProviderConfig(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableTemplateProvider config
-    ) throws NoSuchProviderException, NoSuchRealmException, RegistrationException, NoSuchAuthorityException {
+    )
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException, NoSuchAuthorityException, SystemException, MethodArgumentNotValidException {
         // single config per realm, so either add as new or update
         ConfigurableTemplateProvider cp = templatesManager.findProviderByRealm(realm);
         if (cp == null) {

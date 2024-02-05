@@ -34,11 +34,16 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -98,6 +103,43 @@ public class ConsoleExceptionHandler extends ResponseEntityExceptionHandler {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
         return handleExceptionInternal(ex, null, headers, status, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+        MethodArgumentNotValidException ex,
+        HttpHeaders headers,
+        HttpStatus status,
+        WebRequest request
+    ) {
+        StringBuilder sb = new StringBuilder("Validation failed");
+        BindingResult bindingResult = ex.getBindingResult();
+        if (bindingResult.getErrorCount() > 1) {
+            sb.append(" with ").append(bindingResult.getErrorCount()).append(" errors");
+        }
+        sb.append(": ");
+        for (ObjectError error : bindingResult.getGlobalErrors()) {
+            String message = error.getDefaultMessage();
+            Object[] args = error.getArguments();
+            if (args != null && args.length > 0 && args[0] != null) {
+                Object arg = args[0];
+                if (arg instanceof MessageSourceResolvable) {
+                    sb.append(((MessageSourceResolvable) arg).getDefaultMessage()).append(" ");
+                } else {
+                    sb.append(String.valueOf(args[0])).append(" ");
+                }
+            }
+            sb.append(message).append(", ");
+        }
+
+        for (FieldError error : bindingResult.getFieldErrors()) {
+            String message = error.getDefaultMessage();
+            String field = error.getField();
+            sb.append(field).append(" ").append(message).append(", ");
+        }
+        //repackage exception
+        Exception e = new IllegalArgumentException(sb.toString());
+        return handleExceptionInternal(e, ex.getMessage(), headers, status, request);
     }
 
     @Override

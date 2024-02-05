@@ -18,7 +18,7 @@ import org.jsoup.safety.Safelist;
 public @interface SafeString {
     SafeList safelist() default SafeList.NONE;
 
-    String message() default "invalid string: value might be unsafe";
+    String message() default "unsafe according to safelist:{safelist}";
 
     Class<?>[] groups() default {};
 

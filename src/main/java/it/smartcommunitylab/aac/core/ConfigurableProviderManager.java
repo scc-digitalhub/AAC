@@ -37,6 +37,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 public abstract class ConfigurableProviderManager<
     C extends ConfigurableProvider<? extends ConfigMap>,
@@ -116,7 +117,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C addProvider(String realm, C provider)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, SystemException, MethodArgumentNotValidException {
         logger.debug("add provider to realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
@@ -132,7 +133,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C updateProvider(String realm, String providerId, C provider)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "update provider {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -187,7 +188,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C registerProvider(String realm, String providerId)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "register provider {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -234,7 +235,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C unregisterProvider(String realm, String providerId)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "unregister provider {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),

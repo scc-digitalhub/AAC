@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -122,7 +123,8 @@ public class BaseAttributeProviderController implements InitializingBean {
     public ConfigurableAttributeProvider addAp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider reg
-    ) throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
+    )
+        throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException, SystemException, MethodArgumentNotValidException {
         logger.debug("add ap to realm {}", StringUtils.trimAllWhitespace(realm));
 
         // enforce realm match
@@ -142,7 +144,8 @@ public class BaseAttributeProviderController implements InitializingBean {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider reg,
         @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "update ap {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -209,7 +212,7 @@ public class BaseAttributeProviderController implements InitializingBean {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
     )
-        throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "register ap {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -232,7 +235,7 @@ public class BaseAttributeProviderController implements InitializingBean {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
     )
-        throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchProviderException, NoSuchRealmException, SystemException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "unregister ap {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),

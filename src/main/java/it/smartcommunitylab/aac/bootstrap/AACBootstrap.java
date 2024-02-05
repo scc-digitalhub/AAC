@@ -77,6 +77,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Component
 @Transactional
@@ -493,6 +494,7 @@ public class AACBootstrap {
                                     }
                                 } catch (
                                     RegistrationException
+                                    | MethodArgumentNotValidException
                                     | NoSuchRealmException
                                     | NoSuchProviderException
                                     | NoSuchAuthorityException e
@@ -577,6 +579,7 @@ public class AACBootstrap {
                                     }
                                 } catch (
                                     RegistrationException
+                                    | MethodArgumentNotValidException
                                     | NoSuchRealmException
                                     | NoSuchProviderException
                                     | NoSuchAuthorityException e

@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -132,7 +133,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableIdentityProvider reg
     )
-        throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException, NoSuchAuthorityException {
+        throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("add idp to realm {}", StringUtils.trimAllWhitespace(realm));
 
         // enforce realm match
@@ -204,7 +205,8 @@ public class BaseIdentityProviderController implements InitializingBean {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
         @RequestBody @Valid @NotNull ConfigurableIdentityProvider reg,
         @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "update idp {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -274,7 +276,8 @@ public class BaseIdentityProviderController implements InitializingBean {
     public ConfigurableIdentityProvider registerIdp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
-    ) throws RegistrationException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
+    )
+        throws RegistrationException, NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug(
             "register idp {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -296,7 +299,8 @@ public class BaseIdentityProviderController implements InitializingBean {
     public ConfigurableIdentityProvider unregisterIdp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
-    ) throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "unregister idp {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),

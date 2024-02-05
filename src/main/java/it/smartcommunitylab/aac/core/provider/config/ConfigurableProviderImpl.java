@@ -86,6 +86,8 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     private Boolean registered;
 
     @Size(max = 128)
+    @Pattern(regexp = SystemKeys.SLUG_PATTERN)
+    @NotBlank
     private String name;
 
     private Map<String, String> titleMap = Collections.emptyMap();
