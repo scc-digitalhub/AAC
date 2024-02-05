@@ -72,11 +72,14 @@ public class MailService {
     @Value("${mail.protocol}")
     private String mailProtocol;
 
+    @Value("${mail.debug}")
+    private boolean mailDebug;
+
     @Autowired
     private ApplicationProperties appProps;
 
-    @Value("classpath:/javamail.properties")
-    private org.springframework.core.io.Resource mailProps;
+    // @Value("classpath:/javamail.properties")
+    // private org.springframework.core.io.Resource mailProps;
 
     @Resource(name = "messageSource")
     private MessageSource messageSource;
@@ -102,9 +105,11 @@ public class MailService {
             mailSender.setPassword(mailPwd);
             mailSender.setUsername(mailUser);
         }
-
         Properties props = new Properties();
-        props.load(mailProps.getInputStream());
+        if (mailDebug) {
+            props.setProperty("mail.debug", String.valueOf(mailDebug));
+        }
+
         mailSender.setJavaMailProperties(props);
     }
 

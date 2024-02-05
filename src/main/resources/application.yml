@@ -295,6 +295,7 @@ mail:
    host: ${MAIL_HOST:localhost}
    port: ${MAIL_PORT:25}
    protocol: ${MAIL_PROTOCOL:smtp}
+   debug: ${MAIL_DEBUG:false}
 
 api:
    clients:
