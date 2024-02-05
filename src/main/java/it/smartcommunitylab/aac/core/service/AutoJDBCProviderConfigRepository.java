@@ -29,7 +29,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,11 +78,14 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
     private final ObjectMapper mapper;
     private final String type;
 
-    public AutoJDBCProviderConfigRepository(DataSource dataSource, Class<U> className) {
+    public AutoJDBCProviderConfigRepository(DataSource dataSource, Class<U> className, @Nullable String key) {
         Assert.notNull(className, "please provide a valid class for serializer");
         Assert.notNull(dataSource, "DataSource required");
 
-        this.type = className.getName();
+        this.type =
+            StringUtils.hasText(key)
+                ? className.getName() + ":" + key
+                : className.getName() + UUID.randomUUID().toString();
         logger.debug("create jdbc repository for provider config {}", type);
 
         // DISABLED

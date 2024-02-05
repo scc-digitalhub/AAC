@@ -43,6 +43,7 @@ import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -329,52 +330,52 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
-        return buildProviderConfigRepository(InternalIdentityProviderConfig.class);
+        return buildProviderConfigRepository(InternalIdentityProviderConfig.class, SystemKeys.AUTHORITY_INTERNAL);
     }
 
     @Bean
     public ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
-        return buildProviderConfigRepository(PasswordIdentityProviderConfig.class);
+        return buildProviderConfigRepository(PasswordIdentityProviderConfig.class, SystemKeys.AUTHORITY_PASSWORD);
     }
 
     @Bean
     public ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
-        return buildProviderConfigRepository(OIDCIdentityProviderConfig.class);
+        return buildProviderConfigRepository(OIDCIdentityProviderConfig.class, SystemKeys.AUTHORITY_OIDC);
     }
 
     @Bean
     public ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
-        return buildProviderConfigRepository(AppleIdentityProviderConfig.class);
+        return buildProviderConfigRepository(AppleIdentityProviderConfig.class, SystemKeys.AUTHORITY_APPLE);
     }
 
     @Bean
     public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
-        return buildProviderConfigRepository(SamlIdentityProviderConfig.class);
+        return buildProviderConfigRepository(SamlIdentityProviderConfig.class, SystemKeys.AUTHORITY_SAML);
     }
 
     @Bean
     public ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderConfigRepository() {
-        return buildProviderConfigRepository(WebAuthnIdentityProviderConfig.class);
+        return buildProviderConfigRepository(WebAuthnIdentityProviderConfig.class, SystemKeys.AUTHORITY_WEBAUTHN);
     }
 
     @Bean
     public ProviderConfigRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
-        return buildProviderConfigRepository(MapperAttributeProviderConfig.class);
+        return buildProviderConfigRepository(MapperAttributeProviderConfig.class, SystemKeys.AUTHORITY_MAPPER);
     }
 
     @Bean
     public ProviderConfigRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
-        return buildProviderConfigRepository(ScriptAttributeProviderConfig.class);
+        return buildProviderConfigRepository(ScriptAttributeProviderConfig.class, SystemKeys.AUTHORITY_SCRIPT);
     }
 
     @Bean
     public ProviderConfigRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
-        return buildProviderConfigRepository(InternalAttributeProviderConfig.class);
+        return buildProviderConfigRepository(InternalAttributeProviderConfig.class, SystemKeys.AUTHORITY_INTERNAL);
     }
 
     @Bean
     public ProviderConfigRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
-        return buildProviderConfigRepository(WebhookAttributeProviderConfig.class);
+        return buildProviderConfigRepository(WebhookAttributeProviderConfig.class, SystemKeys.AUTHORITY_WEBHOOK);
     }
 
     //    @Bean
@@ -400,19 +401,20 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<OpenIdFedIdentityProviderConfig> openidFedIdentityProviderConfigRepository() {
-        return buildProviderConfigRepository(OpenIdFedIdentityProviderConfig.class);
+        return buildProviderConfigRepository(OpenIdFedIdentityProviderConfig.class, SystemKeys.AUTHORITY_OPENIDFED);
     }
 
     @Bean
     public ProviderConfigRepository<RealmTemplateProviderConfig> templateProviderConfigRepository() {
-        return buildProviderConfigRepository(RealmTemplateProviderConfig.class);
+        return buildProviderConfigRepository(RealmTemplateProviderConfig.class, SystemKeys.AUTHORITY_TEMPLATE);
     }
 
     private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
-        Class<U> clazz
+        Class<U> clazz,
+        String authority
     ) {
         if ("jdbc".equals(providerConfigRepository)) {
-            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz);
+            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz, authority);
         } else if ("jpa".equals(providerConfigRepository)) {
             return new JpaProviderConfigRepository<U>(providerConfigEntityService, clazz);
         }

@@ -114,7 +114,7 @@ public class AuthoritiesConfig {
 
                         // build config repositories
                         ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
-                            buildProviderConfigRepository(OIDCIdentityProviderConfig.class);
+                            buildProviderConfigRepository(OIDCIdentityProviderConfig.class, id);
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                             id,
@@ -146,10 +146,11 @@ public class AuthoritiesConfig {
     }
 
     private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
-        Class<U> clazz
+        Class<U> clazz,
+        String authority
     ) {
         if ("jdbc".equals(providerConfigRepository)) {
-            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz);
+            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz, authority);
         } else if ("jpa".equals(providerConfigRepository)) {
             return new JpaProviderConfigRepository<U>(providerConfigEntityService, clazz);
         }
