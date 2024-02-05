@@ -511,8 +511,12 @@ public class InternalIdentityService
 
     @Override
     public String getRegistrationUrl() {
-        // TODO filter
-        // TODO build a realm-bound url, need updates on filters
-        return "/auth/internal/register/" + getProvider();
+        if (config.isEnableRegistration()) {
+            // TODO filter
+            // TODO build a realm-bound url, need updates on filters
+            return "/auth/internal/register/" + getProvider();
+        }
+
+        return null;
     }
 }
