@@ -309,7 +309,6 @@ public class InternalIdentityService
 
             account = service.getAccount(ea.getAccountId());
             userId = account.getUserId();
-            String username = account.getUsername();
 
             // register credentials
             if (regCredentials != null) {
@@ -321,7 +320,7 @@ public class InternalIdentityService
                         .orElse(null);
                     if (cs != null) {
                         // add as new
-                        credentials.add(cs.addCredential(username, null, uc));
+                        credentials.add(cs.addCredential(userId, null, uc));
                     }
                 }
             }
@@ -390,8 +389,7 @@ public class InternalIdentityService
 
         // create account via service
         InternalUserAccount account = service.createAccount(userId, null, reg.getAccount());
-        String username = account.getUsername();
-
+        userId = account.getUserId();
         // register credentials
         List<UserCredentials> credentials = new ArrayList<>();
         if (regCredentials != null) {
@@ -402,7 +400,7 @@ public class InternalIdentityService
                     .findFirst()
                     .orElse(null);
                 if (cs != null) {
-                    credentials.add(cs.addCredential(username, uc.getCredentialsId(), uc));
+                    credentials.add(cs.addCredential(userId, uc.getCredentialsId(), uc));
                 }
             }
         }
