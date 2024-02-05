@@ -72,8 +72,14 @@ public class MailService {
     @Value("${mail.protocol}")
     private String mailProtocol;
 
+    @Value("${mail.sender}")
+    private String mailFrom;
+
+    @Value("${mail.start-tls}")
+    private boolean enableStartTls;
+
     @Value("${mail.debug}")
-    private boolean mailDebug;
+    private boolean enableDebug;
 
     @Autowired
     private ApplicationProperties appProps;
@@ -98,16 +104,21 @@ public class MailService {
 
     @PostConstruct
     public void init() throws IOException {
+        Properties props = new Properties();
+
         mailSender.setHost(mailHost);
         mailSender.setPort(mailPort);
         mailSender.setProtocol(mailProtocol);
         if (StringUtils.hasText(mailPwd) && StringUtils.hasText(mailUser)) {
             mailSender.setPassword(mailPwd);
             mailSender.setUsername(mailUser);
+            props.setProperty("mail.smtp.auth", String.valueOf(true));
         }
-        Properties props = new Properties();
-        if (mailDebug) {
-            props.setProperty("mail.debug", String.valueOf(mailDebug));
+        if (enableDebug) {
+            props.setProperty("mail.debug", String.valueOf(enableDebug));
+        }
+        if (enableStartTls) {
+            props.setProperty("mail.smtp.starttls.enable", String.valueOf(enableStartTls));
         }
 
         mailSender.setJavaMailProperties(props);
@@ -172,7 +183,7 @@ public class MailService {
         String subjectText = realm.getName() + ": " + subject;
         message.setSubject(subjectText);
         try {
-            message.setFrom(mailUser, appProps.getEmail());
+            message.setFrom(mailFrom, appProps.getEmail());
         } catch (UnsupportedEncodingException | MessagingException e) {
             throw new MessagingException("invalid-mail-sender");
         }
