@@ -66,6 +66,8 @@ public class ClientEntity {
     @Column(name = "resource_ids")
     private String resourceIds;
 
+    @Lob
+    @Column(name = "providers")
     private String providers;
 
     @Lob
