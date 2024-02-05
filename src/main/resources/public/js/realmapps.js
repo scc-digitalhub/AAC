@@ -789,7 +789,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.resetClientCredentialsDlg = function (clientApp, type) {
             $scope.modClientApp = {
                 clientId: clientApp.clientId,
-                credentialsId: clientApp.clientId + "." + type
+                credentialsId: clientApp.clientId + "_" + type
             };
             $('#resetClientCredentialsConfirm').modal({ keyboard: false });
         }
@@ -807,7 +807,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.removeClientCredentialsDlg = function (clientApp, type) {
             $scope.modClientApp = {
                 clientId: clientApp.clientId,
-                credentialsId: clientApp.clientId + "." + type
+                credentialsId: clientApp.clientId + "_" + type
             };
             $('#removeClientCredentialsConfirm').modal({ keyboard: false });
         }

@@ -75,7 +75,7 @@ public class ClientJwks extends AbstractOAuth2ClientResource implements ClientCr
 
     @Override
     public String getId() {
-        return getClientId() + "." + getType();
+        return getClientId() + "_" + getType();
     }
 
     @Override

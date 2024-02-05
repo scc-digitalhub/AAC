@@ -77,6 +77,9 @@ public class OAuth2ClientService implements ClientService {
     // keep supported client auth schemes, match clientAuthFilters
     private static final Set<AuthenticationMethod> VALID_AUTH_METHODS;
 
+    //TODO remove
+    private static final String ID_SEPARATOR = "_";
+
     static {
         Set<AuthorizationGrantType> n = new HashSet<>();
         n.add(AuthorizationGrantType.AUTHORIZATION_CODE);
@@ -233,7 +236,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return null;
         }
@@ -263,7 +266,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return null;
         }
@@ -302,7 +305,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return;
         }
@@ -335,7 +338,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return null;
         }

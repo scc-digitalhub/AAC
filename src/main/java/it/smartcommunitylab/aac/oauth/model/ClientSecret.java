@@ -58,7 +58,7 @@ public class ClientSecret extends AbstractOAuth2ClientResource implements Client
 
     @Override
     public String getId() {
-        return getClientId() + "." + getType();
+        return getClientId() + "_" + getType();
     }
 
     @Override
