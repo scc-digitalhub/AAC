@@ -86,13 +86,17 @@ public class OIDCIdentityProvider
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // function hooks from config
-        if (
-            config.getHookFunctions() != null &&
-            StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
-        ) {
-            this.authenticationProvider.setCustomMappingFunction(
-                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
-                );
+        if (config.getHookFunctions() != null) {
+            if (StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
+                this.authenticationProvider.setCustomMappingFunction(
+                        config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                    );
+            }
+            if (StringUtils.hasText(config.getHookFunctions().get(AUTHORIZATION_FUNCTION))) {
+                this.authenticationProvider.setCustomAuthFunction(
+                        config.getHookFunctions().get(AUTHORIZATION_FUNCTION)
+                    );
+            }
         }
     }
 

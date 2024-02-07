@@ -35,6 +35,8 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAuthenticationProvider;
 import it.smartcommunitylab.aac.openid.service.IdTokenOidcUserService;
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -249,40 +251,76 @@ public class AppleAuthenticationProvider extends OIDCAuthenticationProvider {
         user.setUsername(username);
         user.setPrincipal(oauthDetails);
 
-        // custom attribute mapping
-        if (executionService != null && StringUtils.hasText(customMappingFunction)) {
-            try {
-                // get all attributes from principal except jwt attrs
-                // TODO handle all attributes not only strings.
-                Map<String, Serializable> principalAttributes = user
-                    .getAttributes()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                // execute script
-                Map<String, Serializable> customAttributes = executionService.executeFunction(
-                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                    customMappingFunction,
-                    principalAttributes
-                );
+        if (executionService != null) {
+            // get all attributes from principal
+            // TODO handle all attributes not only strings.
+            HashMap<String, Serializable> principalAttributes = new HashMap<>();
+            user
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
-                // update map
-                if (customAttributes != null) {
-                    // replace map
-                    principalAttributes =
+            //TODO build context with relevant info
+            HashMap<String, Serializable> contextAttributes = new HashMap<>();
+            contextAttributes.put("timestamp", Instant.now().getEpochSecond());
+            contextAttributes.put("errors", new ArrayList<Serializable>());
+
+            // evaluate authorization function
+            if (StringUtils.hasText(customAuthFunction)) {
+                try {
+                    // execute script
+                    Boolean authResult = executionService.executeFunction(
+                        IdentityProvider.AUTHORIZATION_FUNCTION,
+                        customAuthFunction,
+                        Boolean.class,
+                        principalAttributes,
+                        contextAttributes
+                    );
+
+                    if (authResult != null) {
+                        if (authResult.booleanValue() == false) {
+                            throw new OIDCAuthenticationException(
+                                new OAuth2Error("unauthorized"),
+                                "unauthorized",
+                                null,
+                                null,
+                                null,
+                                null
+                            );
+                        }
+                    }
+                } catch (SystemException | InvalidDefinitionException ex) {
+                    logger.debug("error executing authorize function via script: " + ex.getMessage());
+                }
+            }
+
+            // custom attribute mapping
+            if (StringUtils.hasText(customMappingFunction)) {
+                try {
+                    // execute script
+                    Map<String, Serializable> customAttributes = executionService.executeFunction(
+                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                        customMappingFunction,
+                        principalAttributes
+                    );
+
+                    // update map
+                    if (customAttributes != null) {
+                        // replace attributes
                         customAttributes
                             .entrySet()
                             .stream()
                             .filter(e -> !OIDCKeys.JWT_ATTRIBUTES.contains(e.getKey()))
-                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                    user.setAttributes(principalAttributes);
+                            .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+                        user.setAttributes(principalAttributes);
+                    }
+                } catch (SystemException | InvalidDefinitionException ex) {
+                    logger.debug("error mapping principal attributes via script: " + ex.getMessage());
                 }
-            } catch (SystemException | InvalidDefinitionException ex) {
-                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
             }
         }
-
         // map attributes to openid set and flatten to string
         AttributeSet oidcAttributeSet = openidMapper.mapAttributes(user.getAttributes());
         Map<String, String> oidcAttributes = oidcAttributeSet

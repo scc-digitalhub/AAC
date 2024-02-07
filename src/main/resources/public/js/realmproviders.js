@@ -94,6 +94,19 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
+        service.testIdentityProviderClaimMapping = function (slug, providerId, functionCode) {
+            return $http.post('console/dev/idps/' + slug + '/' + providerId + "/claims", functionCode).then(function (data) {
+                return data.data;
+            });
+        }       
+        
+        service.testIdentityProviderAuthFunction = function (slug, providerId, functionCode) {
+            return $http.post('console/dev/idps/' + slug + '/' + providerId + "/authz", functionCode).then(function (data) {
+                return data.data;
+            });
+        }        
+        
+
         //aps
         service.getAttributeProvider = function (slug, providerId) {
             return $http.get('console/dev/aps/' + slug + '/' + providerId).then(function (data) {
@@ -743,6 +756,19 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
+            var authFunction = {
+                enabled: false,
+                code: "",
+                result: null,
+                error: null
+            };
+            if ("hookFunctions" in data.settings && "authorize" in data.settings.hookFunctions) {
+                authFunction.enabled = true;
+                authFunction.code = atob(data.settings.hookFunctions["authorize"]);
+            }
+
+            $scope.authFunction = authFunction;            
+
             if (data.authority == 'saml') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
@@ -781,7 +807,9 @@ angular.module('aac.controllers.realmproviders', [])
             if ($scope.attributeMapping.code != "") {
                 hookFunctions["attributeMapping"] = btoa($scope.attributeMapping.code);
             }
-
+            if ($scope.authFunction.code != "") {
+                hookFunctions["authorize"] = btoa($scope.authFunction.code);
+            }
             var settings = {
                 persistence: provider.settings.persistence,
                 linkable: provider.settings.linkable,
@@ -887,6 +915,76 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
+        }
+
+        $scope.testProviderAttributeMapping = function () {
+            var attributeMapping = $scope.attributeMapping;
+            var functionCode = attributeMapping.code;
+
+            if (functionCode == '') {
+                Utils.showError("empty function code");
+                return;
+            }
+
+            var data = {
+                name: 'attributeMapping',
+                code: btoa(functionCode),
+            }
+
+            RealmProviders.testIdentityProviderClaimMapping(slug, providerId, data)
+                .then(function (res) {
+                    $scope.attributeMapping.result = res.result;
+                    $scope.attributeMapping.errors = res.errors;
+                    $scope.attributeMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
+                }).catch(function (err) {
+                    $scope.attributeMapping.result = null;
+                    $scope.attributeMapping.context = (err.context ? JSON.stringify(err.context, null, 4) : '{}');
+                    $scope.attributeMapping.errors = [err.data.message];
+                });
+        }
+
+        $scope.toggleProviderAuthFunction = function () {
+            var authFunction = $scope.authFunction;
+
+            if (authFunction.enabled && authFunction.code == '') {
+                authFunction.code =
+                    '/**\n * DEFINE YOUR OWN AUTHORIZATION FUNCTION HERE\n' +
+                    '**/\n' +
+                    'function authorize(principal, context) {\n   return true;\n}';
+            }
+
+            authFunction.error = null;
+            authFunction.result = null;
+
+            $scope.authFunction = authFunction;
+
+        }
+
+        $scope.testProviderAuthFunction = function () {
+            var authFunction = $scope.authFunction;
+            console.log(authFunction);
+            var functionCode = authFunction.code;
+
+            if (functionCode == '') {
+                Utils.showError("empty function code");
+                return;
+            }
+
+            var data = {
+                name: 'authorize',
+                code: btoa(functionCode),
+            }
+
+            RealmProviders.testIdentityProviderAuthFunction(slug, providerId, data)
+                .then(function (res) {
+                    $scope.authFunction.result = res.result;
+                    $scope.authFunction.errors = res.errors;
+                    $scope.authFunction.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
+                }).catch(function (err) {
+                    $scope.authFunction.result = null;
+                    $scope.authFunction.context = (err.context ? JSON.stringify(err.context, null, 4) : '{}');
+                    $scope.authFunction.errors = [err.data.message];
+                });
         }
 
         $scope.toggleProviderClientApp = function (provider, client) {

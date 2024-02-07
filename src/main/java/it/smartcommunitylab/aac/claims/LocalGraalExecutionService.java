@@ -33,6 +33,8 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import javax.script.ScriptException;
@@ -107,6 +109,53 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             String output = (String) sandbox.get("result");
 
             Map<String, Serializable> result = mapper.readValue(output, typeRef);
+            return result;
+        } catch (JsonGenerationException | JsonMappingException e) {
+            throw new InvalidDefinitionException(e.getMessage());
+        } catch (IOException e) {
+            throw new SystemException(e.getMessage());
+        } catch (ScriptCPUAbuseException | ScriptException e) {
+            throw new InvalidDefinitionException(e.getMessage());
+        } finally {
+            sandbox.getExecutor().shutdown();
+        }
+    }
+
+    @Override
+    public <T> T executeFunction(String name, String function, Class<T> clazz, Serializable... inputs)
+        throws InvalidDefinitionException, SystemException {
+        // TODO evaluate function syntax etc
+
+        // workaround for graal 19.2.1 and fat jars
+        // https://github.com/oracle/graal/issues/1348
+        try {
+            URL res =
+                com.oracle.js.parser.ScriptEnvironment.class.getClassLoader().getResource("/META-INF/truffle/language");
+            // initialize the file system for the language file
+            FileSystems.newFileSystem(res.toURI(), new HashMap<>());
+        } catch (Throwable ignored) {
+            // in case of starting without fat jar
+        }
+
+        GraalSandbox sandbox = createSandbox();
+        try {
+            StringWriter writer = new StringWriter();
+            List<String> vars = new LinkedList<>();
+            for (int i = 0; i < inputs.length; i++) {
+                String v = "a" + i;
+                writer.append(v).append("=");
+                mapper.writeValue(writer, inputs[i]);
+                writer.append(";\n");
+                vars.add(v);
+            }
+
+            writer.append(function).append(";").append("\n");
+            writer.append("result = JSON.stringify(" + name + "(" + String.join(",", vars) + "))");
+            String code = writer.toString();
+
+            sandbox.eval(code);
+            String output = (String) sandbox.get("result");
+            T result = mapper.readValue(output, clazz);
             return result;
         } catch (JsonGenerationException | JsonMappingException e) {
             throw new InvalidDefinitionException(e.getMessage());

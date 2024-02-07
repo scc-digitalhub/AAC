@@ -29,6 +29,8 @@ import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
@@ -75,6 +78,7 @@ public class SamlAuthenticationProvider
     private final OpenSaml4AuthenticationProvider openSamlProvider;
 
     private String customMappingFunction;
+    protected String customAuthFunction;
     private ScriptExecutionService executionService;
 
     public SamlAuthenticationProvider(
@@ -190,6 +194,10 @@ public class SamlAuthenticationProvider
 
     public void setCustomMappingFunction(String customMappingFunction) {
         this.customMappingFunction = customMappingFunction;
+    }
+
+    public void setCustomAuthFunction(String customAuthFunction) {
+        this.customAuthFunction = customAuthFunction;
     }
 
     @Override
@@ -316,37 +324,70 @@ public class SamlAuthenticationProvider
         user.setPrincipal(samlDetails);
 
         // custom attribute mapping
-        if (executionService != null && StringUtils.hasText(customMappingFunction)) {
-            try {
-                // get all attributes from principal
-                // TODO handle all attributes not only strings.
-                Map<String, Serializable> principalAttributes = user
-                    .getAttributes()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null)
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                // execute script
-                Map<String, Serializable> customAttributes = executionService.executeFunction(
-                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                    customMappingFunction,
-                    principalAttributes
-                );
+        if (executionService != null) {
+            // get all attributes from principal
+            // TODO handle all attributes not only strings.
+            HashMap<String, Serializable> principalAttributes = new HashMap<>();
+            user
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
-                // update map
-                if (customAttributes != null) {
-                    // replace map
-                    principalAttributes =
+            //TODO build context with relevant info
+            HashMap<String, Serializable> contextAttributes = new HashMap<>();
+            contextAttributes.put("timestamp", Instant.now().getEpochSecond());
+            contextAttributes.put("errors", new ArrayList<Serializable>());
+
+            // evaluate authorization function
+            if (StringUtils.hasText(customAuthFunction)) {
+                try {
+                    // execute script
+                    Boolean authResult = executionService.executeFunction(
+                        IdentityProvider.AUTHORIZATION_FUNCTION,
+                        customAuthFunction,
+                        Boolean.class,
+                        principalAttributes,
+                        contextAttributes
+                    );
+
+                    if (authResult != null) {
+                        if (authResult.booleanValue() == false) {
+                            throw new SamlAuthenticationException(
+                                new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "unauthorized")
+                            );
+                        }
+                    }
+                } catch (SystemException | InvalidDefinitionException ex) {
+                    logger.debug("error executing authorize function via script: " + ex.getMessage());
+                }
+            }
+
+            // custom attribute mapping
+            if (StringUtils.hasText(customMappingFunction)) {
+                try {
+                    // execute script
+                    Map<String, Serializable> customAttributes = executionService.executeFunction(
+                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                        customMappingFunction,
+                        principalAttributes
+                    );
+
+                    // update map
+                    if (customAttributes != null) {
+                        // replace attributes
                         customAttributes
                             .entrySet()
                             .stream()
                             .filter(e -> e.getValue() != null)
                             .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
-                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                    user.setAttributes(principalAttributes);
+                            .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+                        user.setAttributes(principalAttributes);
+                    }
+                } catch (SystemException | InvalidDefinitionException ex) {
+                    logger.debug("error mapping principal attributes via script: " + ex.getMessage());
                 }
-            } catch (SystemException | InvalidDefinitionException ex) {
-                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
             }
         }
 

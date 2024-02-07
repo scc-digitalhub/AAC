@@ -24,4 +24,7 @@ import java.util.Map;
 public interface ScriptExecutionService {
     public Map<String, Serializable> executeFunction(String name, String function, Map<String, Serializable> input)
         throws InvalidDefinitionException, SystemException;
+
+    public <T> T executeFunction(String name, String function, Class<T> clazz, Serializable... inputs)
+        throws InvalidDefinitionException, SystemException;
 }

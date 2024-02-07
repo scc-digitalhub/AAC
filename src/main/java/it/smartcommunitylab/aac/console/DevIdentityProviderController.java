@@ -22,13 +22,18 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.clients.ClientManager;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.identity.controller.BaseIdentityProviderController;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
@@ -80,6 +85,9 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
     @Autowired
     private ClientManager clientManager;
+
+    @Autowired
+    private DevManager devManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -282,5 +290,78 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         }
 
         return ResponseEntity.ok(clientApp);
+    }
+
+    /*
+     * Hooks
+     */
+    @PostMapping("/idps/{realm}/{providerId}/claims")
+    public ResponseEntity<FunctionValidationBean> testProviderClaimMapping(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid @NotNull FunctionValidationBean function,
+        UserAuthentication user
+    )
+        throws NoSuchRealmException, NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        try {
+            //pick first matching token to test
+            Optional<ExtendedAuthenticationToken> auth = user
+                .getAuthentications()
+                .stream()
+                .filter(a -> a.getRealm().equals(realm))
+                .findFirst();
+
+            if (auth.isEmpty()) {
+                throw new IllegalArgumentException("missing valid token for the realm");
+            }
+
+            // TODO expose context personalization in UI
+            function = devManager.testIdpClaimMapping(realm, providerId, function, auth.get().getPrincipal());
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
+            //            // wrap error
+            //            Map<String, Serializable> res = new HashMap<>();
+            //            res.put("error", e.getClass().getName());
+            //            res.put("message", e.getMessage());
+            //            return ResponseEntity.badRequest().body(res);
+        }
+
+        return ResponseEntity.ok(function);
+    }
+
+    @PostMapping("/idps/{realm}/{providerId}/authz")
+    public ResponseEntity<FunctionValidationBean> testProviderAuthFunction(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid @NotNull FunctionValidationBean function,
+        UserAuthentication user
+    )
+        throws NoSuchRealmException, NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        try {
+            //pick first matching token to test
+            Optional<ExtendedAuthenticationToken> auth = user
+                .getAuthentications()
+                .stream()
+                .filter(a -> a.getRealm().equals(realm))
+                .findFirst();
+
+            if (auth.isEmpty()) {
+                throw new IllegalArgumentException("missing valid token for the realm");
+            }
+
+            // TODO expose context personalization in UI
+            function = devManager.testIdpAuthFunction(realm, providerId, function, auth.get().getPrincipal());
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
+            //            // wrap error
+            //            Map<String, Serializable> res = new HashMap<>();
+            //            res.put("error", e.getClass().getName());
+            //            res.put("message", e.getMessage());
+            //            return ResponseEntity.badRequest().body(res);
+        }
+
+        return ResponseEntity.ok(function);
     }
 }

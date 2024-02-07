@@ -46,6 +46,7 @@ public interface IdentityProvider<
 >
     extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M> {
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
+    public static final String AUTHORIZATION_FUNCTION = "authorize";
 
     /*
      * Authoritative for the given identity model
