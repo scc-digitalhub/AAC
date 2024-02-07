@@ -79,9 +79,6 @@ public class AuthoritiesConfig {
     @Autowired
     private AccountServiceAuthorityService accountServiceAuthorityService;
 
-    @Autowired
-    private ProviderConfigRepository<OIDCIdentityProviderConfig> oidcRegistrationRepository;
-
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
         Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities,
@@ -103,18 +100,19 @@ public class AuthoritiesConfig {
                     // TODO refactor
 
                     if (authProp.getOidc() != null) {
+                        // build config repositories
+                        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
+                            buildProviderConfigRepository(OIDCIdentityProviderConfig.class, id);
+
                         // build oidc config provider
                         OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
                         OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(
                             id,
-                            oidcRegistrationRepository,
+                            registrationRepository,
                             authsProps.getSettings(),
                             configMap
                         );
 
-                        // build config repositories
-                        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
-                            buildProviderConfigRepository(OIDCIdentityProviderConfig.class, id);
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                             id,
