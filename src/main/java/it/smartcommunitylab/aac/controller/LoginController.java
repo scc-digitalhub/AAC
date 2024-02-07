@@ -268,7 +268,8 @@ public class LoginController {
 
         // bypass idp selection when only 1 is available
         // and NO registration provider available
-        if (authorities.size() == 1 && registrations.isEmpty()) {
+        // and we come from a client req
+        if (authorities.size() == 1 && registrations.isEmpty() && clientId != null) {
             LoginProvider lab = authorities.get(0);
             // note: we can bypass only providers which expose a button,
             // anything else requires user interaction
