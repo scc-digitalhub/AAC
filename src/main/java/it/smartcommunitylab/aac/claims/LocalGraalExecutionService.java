@@ -25,6 +25,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import delight.graaljssandbox.GraalSandbox;
 import delight.graaljssandbox.GraalSandboxes;
 import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
+import delight.nashornsandbox.internal.RemoveComments;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import java.io.IOException;
@@ -95,6 +96,7 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         GraalSandbox sandbox = createSandbox();
         try {
             StringWriter writer = new StringWriter();
+            writer.append(CONSOLE_OVERRIDE);
             writer.append("data = ");
             mapper.writeValue(writer, input);
             writer.append(";");
@@ -102,13 +104,16 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append(function);
             writer.append(";");
             writer.append("\n");
-            writer.append("result = JSON.stringify(" + name + "(data))");
+            writer.append("result = JSON.stringify(" + name + "(data));");
+            writer.append("logs = JSON.stringify(_logs);");
 
-            String code = writer.toString();
+            String code = RemoveComments.perform(writer.toString());
             sandbox.eval(code);
-            String output = (String) sandbox.get("result");
 
+            String output = (String) sandbox.get("result");
             Map<String, Serializable> result = mapper.readValue(output, typeRef);
+            String logs = (String) sandbox.get("logs");
+
             return result;
         } catch (JsonGenerationException | JsonMappingException e) {
             throw new InvalidDefinitionException(e.getMessage());
@@ -140,6 +145,8 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         GraalSandbox sandbox = createSandbox();
         try {
             StringWriter writer = new StringWriter();
+            writer.append(CONSOLE_OVERRIDE);
+
             List<String> vars = new LinkedList<>();
             for (int i = 0; i < inputs.length; i++) {
                 String v = "a" + i;
@@ -150,12 +157,16 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             }
 
             writer.append(function).append(";").append("\n");
-            writer.append("result = JSON.stringify(" + name + "(" + String.join(",", vars) + "))");
-            String code = writer.toString();
+            writer.append("result = JSON.stringify(" + name + "(" + String.join(",", vars) + "));");
+            writer.append("logs = JSON.stringify(_logs);");
 
+            String code = RemoveComments.perform(writer.toString());
             sandbox.eval(code);
+
             String output = (String) sandbox.get("result");
             T result = mapper.readValue(output, clazz);
+            String logs = (String) sandbox.get("logs");
+
             return result;
         } catch (JsonGenerationException | JsonMappingException e) {
             throw new InvalidDefinitionException(e.getMessage());
@@ -175,6 +186,21 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         sandbox.setMaxMemory(maxMemory);
         sandbox.setMaxPreparedStatements(30); // because preparing scripts for execution is expensive
         sandbox.setExecutor(Executors.newSingleThreadExecutor());
+        sandbox.allowNoBraces(false);
+        sandbox.disallowAllClasses();
+        sandbox.allowPrintFunctions(false);
         return sandbox;
     }
+
+    private static final String CONSOLE_OVERRIDE =
+        "var _logs = [];\n" + //
+        "if (console) {\n" + //
+        "  for (let c of [\"log\", \"warn\", \"debug\", \"error\"]) {\n" + //
+        "    console[c] = function () {\n" + //
+        "      var line = { ...arguments };\n" + //
+        "      _logs.push(line);\n" + //
+        "    };\n" + //
+        "  }\n" + //
+        "}\n" + //
+        "";
 }
