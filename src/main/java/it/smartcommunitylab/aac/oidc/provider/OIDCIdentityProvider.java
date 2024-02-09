@@ -167,6 +167,12 @@ public class OIDCIdentityProvider
         lp.setLoginUrl(getAuthenticationUrl());
         lp.setPosition(getConfig().getPosition());
 
+        //template override
+        //TODO validate against supported
+        if (StringUtils.hasText(config.getSettingsMap().getTemplate())) {
+            lp.setTemplate(config.getSettingsMap().getTemplate());
+        }
+
         return lp;
     }
 }
