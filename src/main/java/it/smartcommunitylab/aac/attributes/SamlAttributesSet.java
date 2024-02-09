@@ -125,12 +125,12 @@ public class SamlAttributesSet implements AttributeSet {
     @Override
     public String getName() {
         // TODO i18n
-        return "OpenId user attribute set";
+        return "SAML user attribute set";
     }
 
     @Override
     public String getDescription() {
-        return "OpenId Connect default user attribute set";
+        return "SAML default user attribute set";
     }
 
     public static final String NAME = "Name";
