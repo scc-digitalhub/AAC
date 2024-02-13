@@ -10,7 +10,7 @@ server:
       protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
    max-http-header-size: 32000     
    error:
-      include-stacktrace: ON_PARAM   
+      include-stacktrace: never
 
 # APPLICATION EXTERNAL URL
 application:
