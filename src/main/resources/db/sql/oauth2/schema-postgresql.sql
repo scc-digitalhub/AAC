@@ -34,5 +34,6 @@ CREATE TABLE
         authentication bytea NOT NULL
     );
 
-CREATE INDEX oauth_access_token_token_id_index
-    ON public.oauth_access_token (token_id);
+CREATE INDEX oauth_access_token_token_id_index ON public.oauth_access_token (token_id);
+
+CREATE INDEX oauth_refresh_token_token_id_index ON public.oauth_refresh_token (token_id);

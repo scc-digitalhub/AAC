@@ -33,3 +33,7 @@ CREATE TABLE
         token BLOB NOT NULL,
         authentication BLOB NOT NULL
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC;
+
+CREATE INDEX oauth_access_token_token_id_index ON oauth_access_token (token_id);
+
+CREATE INDEX oauth_refresh_token_token_id_index ON oauth_refresh_token (token_id);
