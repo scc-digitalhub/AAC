@@ -9,6 +9,10 @@
             </div>
             <div class="">
                 <legend class="mb-4">Display settings</legend>
+                <div class="form-group col">
+                    <input type="text" name="template" class="form-control form-control-sm" id="template" ng-model="idp.settings.template">
+                    <label for="template" class="{{idp.template != '' ? 'active' : ''}}">Template override</label>
+                </div>
 
                 <div class="form-group col ">
                     <div class="bootstrap-select-wrapper border-bottom-0">
@@ -31,42 +35,46 @@
                     <label for="description"
                         class="{{idp.descriptionMap[selectedLanguage] != '' ? 'active' : ''}}">Description</label>
                 </div>
+                <div class="form-group col">
+                    <textarea rows="3" name="notes" id="notes" ng-model="idp.settings.notes"></textarea>
+                    <label for="notes" class="{{idp.settings.notes != '' ? 'active' : ''}}">Notes</label>
+                </div>
 
             </div>
 
             <div class="form-group col">
                 <input type="number" name="position" class="form-control form-control-sm" id="position"
-                    ng-model="idp.position" min="0">
-                <label for="position" class="{{idp.position != '' ? 'active' : ''}}">Provider position</label>
+                    ng-model="idp.settings.position" min="0">
+                <label for="position" class="{{idp.settings.position != '' ? 'active' : ''}}">Provider position</label>
             </div>
 
             <legend class="mb-4">Advanced settings</legend>
             <div class="form-group col ">
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label for="persistence">Persistence*</label>
-                    <select id="persistence" ng-model="idp.persistence">
-                        <option value="none" ng-selected="idp.persistence=='none'">None</option>
-                        <option value="session" ng-selected="idp.persistence=='session'">Session</option>
-                        <option value="memory" ng-selected="idp.persistence=='memory'">Memory</option>
-                        <option value="repository" ng-selected="idp.persistence=='repository'">Repository</option>
+                    <select id="persistence" ng-model="idp.settings.persistence">
+                        <option value="none" ng-selected="idp.settings.persistence=='none'">None</option>
+                        <option value="session" ng-selected="idp.settings.persistence=='session'">Session</option>
+                        <option value="memory" ng-selected="idp.settings.persistence=='memory'">Memory</option>
+                        <option value="repository" ng-selected="idp.settings.persistence=='repository'">Repository</option>
                     </select>
                 </div>
             </div>
             <div class="form-group col ">
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label for="events">Audit events*</label>
-                    <select id="events" ng-model="idp.events">
-                        <option value="none" ng-selected="idp.events=='none'">None</option>
-                        <option value="minimal" ng-selected="idp.events=='minimal'">Minimal</option>
-                        <option value="details" ng-selected="idp.events=='details'">Details</option>
-                        <option value="full" ng-selected="idp.events=='full'">Full</option>
+                    <select id="events" ng-model="idp.settings.events">
+                        <option value="none" ng-selected="idp.settings.events=='none'">None</option>
+                        <option value="minimal" ng-selected="idp.settings.events=='minimal'">Minimal</option>
+                        <option value="details" ng-selected="idp.settings.events=='details'">Details</option>
+                        <option value="full" ng-selected="idp.settings.events=='full'">Full</option>
                     </select>
                 </div>
             </div>
             <div class="form-group col ">
                 <div class="form-check">
                     <input class="form-check-input" name="linkable" id="linkable" type="checkbox"
-                        ng-model="idp.linkable">
+                        ng-model="idp.settings.linkable">
                     <label for="linkable">Enable account linking</label>
                 </div>
             </div>

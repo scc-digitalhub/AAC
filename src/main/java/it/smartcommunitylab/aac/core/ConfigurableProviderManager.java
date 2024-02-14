@@ -18,18 +18,18 @@ package it.smartcommunitylab.aac.core;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
-import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +37,21 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 public abstract class ConfigurableProviderManager<
-    C extends ConfigurableProvider, A extends ConfigurableProviderAuthority<?, ?, C, ?, ?>
+    C extends ConfigurableProvider<? extends ConfigMap>,
+    A extends ConfigurableProviderAuthority<?, ?, ?, ?, ? extends ConfigMap>
 >
     implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService;
+    private final AbstractConfigurableProviderService<C, ? extends ConfigMap> providerService;
 
     private RealmService realmService;
 
-    public ConfigurableProviderManager(ConfigurableProviderService<A, C, ? extends ProviderEntity> providerService) {
+    protected ConfigurableProviderManager(AbstractConfigurableProviderService<C, ? extends ConfigMap> providerService) {
         Assert.notNull(providerService, "provider service is required");
         this.providerService = providerService;
     }
@@ -115,7 +117,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C addProvider(String realm, C provider)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, SystemException, MethodArgumentNotValidException {
         logger.debug("add provider to realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
             logger.trace("provider bean: {}", StringUtils.trimAllWhitespace(provider.toString()));
@@ -131,7 +133,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C updateProvider(String realm, String providerId, C provider)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "update provider {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -186,7 +188,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C registerProvider(String realm, String providerId)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "register provider {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -233,7 +235,7 @@ public abstract class ConfigurableProviderManager<
     }
 
     public C unregisterProvider(String realm, String providerId)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug(
             "unregister provider {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
@@ -292,9 +294,9 @@ public abstract class ConfigurableProviderManager<
      * Configuration schemas
      */
 
-    public ConfigurableProperties getConfigurableProperties(String realm, String authority)
+    public ConfigurableProperties getConfigurableProperties(String realm, String authority, String type)
         throws NoSuchAuthorityException {
-        return providerService.getConfigurableProperties(authority);
+        return providerService.getConfigurableProperties(authority, type);
     }
 
     public JsonSchema getConfigurationSchema(String realm, String authority) throws NoSuchAuthorityException {

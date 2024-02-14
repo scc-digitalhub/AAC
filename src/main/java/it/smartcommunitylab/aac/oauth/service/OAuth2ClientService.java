@@ -20,12 +20,12 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.clients.base.BaseClient;
+import it.smartcommunitylab.aac.clients.model.ClientCredentials;
+import it.smartcommunitylab.aac.clients.persistence.ClientEntity;
+import it.smartcommunitylab.aac.clients.service.ClientEntityService;
+import it.smartcommunitylab.aac.clients.service.ClientService;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
-import it.smartcommunitylab.aac.core.base.BaseClient;
-import it.smartcommunitylab.aac.core.model.ClientCredentials;
-import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.service.ClientEntityService;
-import it.smartcommunitylab.aac.core.service.ClientService;
 import it.smartcommunitylab.aac.jwt.JWKUtils;
 import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
@@ -51,7 +51,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -76,6 +76,9 @@ public class OAuth2ClientService implements ClientService {
     private static final Set<AuthorizationGrantType> VALID_GRANT_TYPES;
     // keep supported client auth schemes, match clientAuthFilters
     private static final Set<AuthenticationMethod> VALID_AUTH_METHODS;
+
+    //TODO remove
+    private static final String ID_SEPARATOR = "_";
 
     static {
         Set<AuthorizationGrantType> n = new HashSet<>();
@@ -233,7 +236,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return null;
         }
@@ -263,7 +266,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return null;
         }
@@ -302,7 +305,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return;
         }
@@ -335,7 +338,7 @@ public class OAuth2ClientService implements ClientService {
         }
 
         // get credentials type from id
-        String prefix = clientId + ".";
+        String prefix = clientId + ID_SEPARATOR;
         if (credentialsId == null || !credentialsId.startsWith(prefix)) {
             return null;
         }

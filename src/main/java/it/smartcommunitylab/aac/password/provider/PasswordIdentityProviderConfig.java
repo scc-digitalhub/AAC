@@ -16,10 +16,10 @@
 
 package it.smartcommunitylab.aac.password.provider;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 
 public class PasswordIdentityProviderConfig extends AbstractIdentityProviderConfig<PasswordIdentityProviderConfigMap> {
 
@@ -30,18 +30,34 @@ public class PasswordIdentityProviderConfig extends AbstractIdentityProviderConf
     private static final int DEFAULT_SESSION_DURATION = 24 * 60 * 60; // 24h
     private static final int DEFAULT_RESET_DURATION = 900; // 15m
 
-    public PasswordIdentityProviderConfig(
-        @JsonProperty("provider") String provider,
-        @JsonProperty("realm") String realm
-    ) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
+    public PasswordIdentityProviderConfig(String provider, String realm) {
+        super(
+            SystemKeys.AUTHORITY_PASSWORD,
+            provider,
+            realm,
+            new IdentityProviderSettingsMap(),
+            new PasswordIdentityProviderConfigMap()
+        );
     }
 
     public PasswordIdentityProviderConfig(
         ConfigurableIdentityProvider cp,
+        IdentityProviderSettingsMap settingsMap,
         PasswordIdentityProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private PasswordIdentityProviderConfig() {
+        super();
     }
 
     public String getRepositoryId() {

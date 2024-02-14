@@ -18,15 +18,16 @@ package it.smartcommunitylab.aac.core.persistence;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
-import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.stereotype.Repository;
 
-@NoRepositoryBean
-public interface ProviderEntityRepository<P extends ProviderEntity> extends CustomJpaRepository<P, String> {
-    P findByProvider(String provider);
+@Repository
+public interface ProviderEntityRepository extends CustomJpaRepository<ProviderEntity, String> {
+    ProviderEntity findByProvider(String provider);
+    List<ProviderEntity> findByRealm(String realm);
 
-    List<P> findByAuthority(String authority);
+    List<ProviderEntity> findByType(String type);
+    List<ProviderEntity> findByTypeAndAuthority(String type, String authority);
+    List<ProviderEntity> findByTypeAndRealm(String type, String realm);
 
-    List<P> findByRealm(String realm);
-
-    List<P> findByAuthorityAndRealm(String authority, String realm);
+    List<ProviderEntity> findByTypeAndAuthorityAndRealm(String type, String authority, String realm);
 }

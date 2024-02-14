@@ -18,9 +18,9 @@ package it.smartcommunitylab.aac.core;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;

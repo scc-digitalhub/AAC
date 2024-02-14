@@ -47,7 +47,7 @@
 
         <div class="text-center mt-4 login-authorities" th:if="${authorities != null && authorities.size() > 0}">
             <div class="row d-flex justify-content-center">
-                <div class="col col-12 mb-3" th:each="authority: ${authorities}">
+                <div class="col col-12 mb-3" th:each="authority: ${authorities}" th:classAppend="${'login-authority-'+authority.cssClass}">
                     <div th:replace="${authority.fragment} :: login"></div>
                 </div>
             </div>

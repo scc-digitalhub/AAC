@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractEditableUserCredentials;
+import it.smartcommunitylab.aac.credentials.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import java.util.Date;
 import javax.validation.Valid;
@@ -43,10 +43,6 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
     }
 
     private String credentialsId;
-
-    @NotBlank
-    @JsonSchemaIgnore
-    private String username;
 
     @JsonSchemaIgnore
     private String userHandle;
@@ -73,18 +69,12 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
     @JsonSchemaIgnore
     private String attestation;
 
-    public WebAuthnEditableUserCredential() {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, null, null);
+    public WebAuthnEditableUserCredential(String realm, String id) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, null, realm, id);
     }
 
-    public WebAuthnEditableUserCredential(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, uuid);
-    }
-
-    public WebAuthnEditableUserCredential(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN, provider, uuid);
-        setRealm(realm);
-        setUserId(userId);
+    private WebAuthnEditableUserCredential() {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, (String) null, (String) null, (String) null);
     }
 
     @Override
@@ -98,14 +88,6 @@ public class WebAuthnEditableUserCredential extends AbstractEditableUserCredenti
 
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getUserHandle() {

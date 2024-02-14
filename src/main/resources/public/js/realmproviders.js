@@ -94,6 +94,19 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
+        service.testIdentityProviderClaimMapping = function (slug, providerId, functionCode) {
+            return $http.post('console/dev/idps/' + slug + '/' + providerId + "/claims", functionCode).then(function (data) {
+                return data.data;
+            });
+        }       
+        
+        service.testIdentityProviderAuthFunction = function (slug, providerId, functionCode) {
+            return $http.post('console/dev/idps/' + slug + '/' + providerId + "/authz", functionCode).then(function (data) {
+                return data.data;
+            });
+        }        
+        
+
         //aps
         service.getAttributeProvider = function (slug, providerId) {
             return $http.get('console/dev/aps/' + slug + '/' + providerId).then(function (data) {
@@ -364,7 +377,7 @@ angular.module('aac.controllers.realmproviders', [])
             $('#' + $scope.providerAuthority + 'Modal').modal('hide');
 
             // HOOK: OIDC contains scopes to be converted to string
-            if ($scope.providerAuthority === 'oidc' && $scope.provider.scope) {
+            if ($scope.providerAuthority === 'oidc' || $scope.providerAuthority === 'openidfed'  && $scope.provider.scope) {
                 $scope.provider.scope = $scope.provider.scope.map(function (s) { return s.text }).join(',');
             }
             var name = $scope.provider.name;
@@ -554,12 +567,12 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.realmUrls = data;
                 })
                 .then(function () {
-                    return RealmData.getTemplatesConfig(slug);
+                    return RealmData.getRealm(slug);
                 })
-                .then(function (config) {
+                .then(function (realm) {
                     var languages = [];
-                    if (config.languages) {
-                        languages = config.languages;
+                    if(realm.localizationConfiguration.languages) {
+                        languages = realm.localizationConfiguration.languages;
                     }
                     $scope.availableLanguages = languages;
                     $scope.selectedLanguage = languages[0];
@@ -584,16 +597,59 @@ angular.module('aac.controllers.realmproviders', [])
         };
 
         var initConfiguration = function (authority, config, schema) {
-            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = [];
-                toChips(config.scope).forEach(function (s) {
-                    scopes.push({ 'text': s });
-                });
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
                 $scope.idpOidcScope = scopes;
             }
 
-            if (authority == 'saml') {
+            if (authority == 'openidfed' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap')) {
+                var scopes = [];
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
+                $scope.openidfedScope = scopes;
 
+                var claims = [];
+                if(config.claims) {
+                    config.claims.forEach(function (s) {
+                        claims.push({ 'text': s });
+                    });
+                }
+                $scope.openidfedClaims = claims;
+
+                var authorityHints = [];
+                if(config.authorityHints) {
+                    config.authorityHints.forEach(function (t) {
+                        authorityHints.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedAuthorityHints = authorityHints;   
+                
+                var contacts = [];
+                if(config.contacts) {
+                    config.contacts.forEach(function (t) {
+                        contacts.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedContacts = contacts;                   
+                
+                var acrValues = [];
+                if(config.acrValues) {
+                    config.acrValues.forEach(function (t) {
+                        acrValues.push({ 'text': t });
+                    });
+                }
+                $scope.openidfedAcrValues = acrValues;                 
+            }            
+
+            if (authority == 'saml') {
                 var authnContextClasses = [];
                 if (config.authnContextClasses) {
                     config.authnContextClasses.forEach(function (s) {
@@ -607,7 +663,7 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         var extractConfiguration = function (authority, config, schema) {
-            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap')) {
+            if (authority == 'oidc' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap')) {
                 var scopes = $scope.idpOidcScope.map(function (s) {
                     if ('text' in s) {
                         return s.text;
@@ -616,6 +672,48 @@ angular.module('aac.controllers.realmproviders', [])
                 });
                 config.scope = scopes.join(',');
             }
+            if (authority == 'openidfed' || (schema && schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap')) {
+                console.log('dump',$scope);
+                var scopes = $scope.openidfedScope.map(function (s) {
+                    if ('text' in s) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                config.scope = scopes.join(',');
+
+                var claims = $scope.openidfedClaims.map(function (c) {
+                    if ('text' in c) {
+                        return c.text;
+                    }
+                    return c;
+                });
+                config.claims = claims;               
+
+                var authorityHints = $scope.openidfedAuthorityHints.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.authorityHints = authorityHints;        
+                
+                var contacts = $scope.openidfedContacts.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.contacts = contacts;        
+                                
+                var acrValues = $scope.openidfedAcrValues.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.acrValues = acrValues;           
+            }            
             if (authority == 'saml') {
                 var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
                     if ('text' in s) {
@@ -651,20 +749,37 @@ angular.module('aac.controllers.realmproviders', [])
                 result: null,
                 error: null
             };
-            if ("attributeMapping" in data.hookFunctions) {
+            if ("hookFunctions" in data.settings && "attributeMapping" in data.settings.hookFunctions) {
                 attributeMapping.enabled = true;
-                attributeMapping.code = atob(data.hookFunctions["attributeMapping"]);
+                attributeMapping.code = atob(data.settings.hookFunctions["attributeMapping"]);
             }
 
             $scope.attributeMapping = attributeMapping;
+
+            var authFunction = {
+                enabled: false,
+                code: "",
+                result: null,
+                error: null
+            };
+            if ("hookFunctions" in data.settings && "authorize" in data.settings.hookFunctions) {
+                authFunction.enabled = true;
+                authFunction.code = atob(data.settings.hookFunctions["authorize"]);
+            }
+
+            $scope.authFunction = authFunction;            
 
             if (data.authority == 'saml') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
-            if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openid:provider:OIDCIdentityProviderConfigMap') {
+            if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap') {
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
+            }
+            if (data.authority == 'openidfed' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap') {
+                var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
+                $scope.openidfedMetadataUrl = metadataUrl;
             }
 
         };
@@ -688,11 +803,21 @@ angular.module('aac.controllers.realmproviders', [])
 
             var configuration = extractConfiguration(provider.authority, provider.configuration, provider.schema);
 
-            var hookFunctions = provider.hookFunctions;
+            var hookFunctions = {};
             if ($scope.attributeMapping.code != "") {
                 hookFunctions["attributeMapping"] = btoa($scope.attributeMapping.code);
-            } else {
-                delete hookFunctions["attributeMapping"];
+            }
+            if ($scope.authFunction.code != "") {
+                hookFunctions["authorize"] = btoa($scope.authFunction.code);
+            }
+            var settings = {
+                persistence: provider.settings.persistence,
+                linkable: provider.settings.linkable,
+                events: provider.settings.events,
+                position: provider.settings.position,
+                template: provider.settings.template,
+                notes: provider.settings.notes,
+                hookFunctions: hookFunctions
             }
 
             var data = {
@@ -705,12 +830,8 @@ angular.module('aac.controllers.realmproviders', [])
                 descriptionMap: provider.descriptionMap,
                 displayMode: provider.displayMode,
                 enabled: provider.enabled,
-                persistence: provider.persistence,
-                linkable: provider.linkable,
-                events: provider.events,
-                position: provider.position,
+                settings: settings,
                 configuration: configuration,
-                hookFunctions: hookFunctions
             }
 
             RealmProviders.saveIdentityProvider($scope.realm.slug, data)
@@ -794,6 +915,76 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.attributeMapping = attributeMapping;
 
+        }
+
+        $scope.testProviderAttributeMapping = function () {
+            var attributeMapping = $scope.attributeMapping;
+            var functionCode = attributeMapping.code;
+
+            if (functionCode == '') {
+                Utils.showError("empty function code");
+                return;
+            }
+
+            var data = {
+                name: 'attributeMapping',
+                code: btoa(functionCode),
+            }
+
+            RealmProviders.testIdentityProviderClaimMapping(slug, providerId, data)
+                .then(function (res) {
+                    $scope.attributeMapping.result = res.result;
+                    $scope.attributeMapping.errors = res.errors;
+                    $scope.attributeMapping.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
+                }).catch(function (err) {
+                    $scope.attributeMapping.result = null;
+                    $scope.attributeMapping.context = (err.context ? JSON.stringify(err.context, null, 4) : '{}');
+                    $scope.attributeMapping.errors = [err.data.message];
+                });
+        }
+
+        $scope.toggleProviderAuthFunction = function () {
+            var authFunction = $scope.authFunction;
+
+            if (authFunction.enabled && authFunction.code == '') {
+                authFunction.code =
+                    '/**\n * DEFINE YOUR OWN AUTHORIZATION FUNCTION HERE\n' +
+                    '**/\n' +
+                    'function authorize(principal, context) {\n   return true;\n}';
+            }
+
+            authFunction.error = null;
+            authFunction.result = null;
+
+            $scope.authFunction = authFunction;
+
+        }
+
+        $scope.testProviderAuthFunction = function () {
+            var authFunction = $scope.authFunction;
+            console.log(authFunction);
+            var functionCode = authFunction.code;
+
+            if (functionCode == '') {
+                Utils.showError("empty function code");
+                return;
+            }
+
+            var data = {
+                name: 'authorize',
+                code: btoa(functionCode),
+            }
+
+            RealmProviders.testIdentityProviderAuthFunction(slug, providerId, data)
+                .then(function (res) {
+                    $scope.authFunction.result = res.result;
+                    $scope.authFunction.errors = res.errors;
+                    $scope.authFunction.context = (res.context ? JSON.stringify(res.context, null, 4) : '{}');
+                }).catch(function (err) {
+                    $scope.authFunction.result = null;
+                    $scope.authFunction.context = (err.context ? JSON.stringify(err.context, null, 4) : '{}');
+                    $scope.authFunction.errors = [err.data.message];
+                });
         }
 
         $scope.toggleProviderClientApp = function (provider, client) {
@@ -1172,10 +1363,9 @@ angular.module('aac.controllers.realmproviders', [])
                 name: provider.name,
                 description: provider.description,
                 enabled: provider.enabled,
-                persistence: provider.persistence,
-                events: provider.events,
-                attributeSets: provider.attributeSets,
+                settings: provider.settings,
                 configuration: configuration
+
             }
 
             RealmProviders.saveAttributeProvider($scope.realm.slug, data)
@@ -1204,16 +1394,19 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         $scope.toggleProviderAttributeSet = function (attributeSet) {
+            if(!$scope.ap.settings.attributeSets){
+                $scope.ap.settings.attributeSets = [];
+            }
             if (attributeSet.identifier) {
                 var id = attributeSet.identifier;
-                var setIds = $scope.ap.attributeSets;
-                if ($scope.ap.attributeSets.includes(id)) {
+                var setIds = $scope.ap.settings.attributeSets;
+                if ($scope.ap.settings.attributeSets.includes(id)) {
                     setIds = setIds.filter(i => id != i);
                 } else {
                     setIds.push(id);
                 }
 
-                $scope.ap.attributeSets = setIds;
+                $scope.ap.settings.attributeSets = setIds;
 
             }
         }

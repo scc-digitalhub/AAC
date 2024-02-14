@@ -37,9 +37,9 @@ public class WebAuthnRegistrationResponse {
     private String key;
 
     @NotNull
-    private PublicKeyCredentialCreationOptions options;
+    private String options;
 
-    public WebAuthnRegistrationResponse(String key, PublicKeyCredentialCreationOptions options) {
+    public WebAuthnRegistrationResponse(String key, String options) {
         this.key = key;
         this.options = options;
     }
@@ -52,16 +52,16 @@ public class WebAuthnRegistrationResponse {
         this.key = key;
     }
 
-    public PublicKeyCredentialCreationOptions getOptions() {
+    public String getOptions() {
         return this.options;
     }
 
-    public void setOptions(PublicKeyCredentialCreationOptions options) {
+    public void setOptions(String options) {
         this.options = options;
     }
 
     @JsonGetter("options")
     public JsonNode getOptionsAsJson() throws JsonProcessingException {
-        return mapper.readTree(options.toCredentialsCreateJson());
+        return mapper.readTree(options);
     }
 }

@@ -16,18 +16,18 @@
 
 package it.smartcommunitylab.aac.controller;
 
+import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.LoginException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.RealmManager;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityService;
-import it.smartcommunitylab.aac.core.provider.LoginProvider;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityServiceAuthorityService;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityService;
+import it.smartcommunitylab.aac.identity.provider.LoginProvider;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.identity.service.IdentityServiceAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.RealmManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -244,17 +244,18 @@ public class LoginController {
             return c;
         });
 
-        // build a display list respecting display mode for ordering: form, button
-        // TODO rework with comparable on model
-        List<LoginProvider> loginAuthorities = new ArrayList<>();
-        loginAuthorities.addAll(
-            authorities.stream().filter(a -> a.getTemplate().endsWith("form")).collect(Collectors.toList())
-        );
-        loginAuthorities.addAll(
-            authorities.stream().filter(a -> "button".equals(a.getTemplate())).collect(Collectors.toList())
-        );
+        //DISABLE default ordering, rely on sort
+        // // build a display list respecting display mode for ordering: form, button
+        // // TODO rework with comparable on model
+        // List<LoginProvider> loginAuthorities = new ArrayList<>();
+        // loginAuthorities.addAll(
+        //     authorities.stream().filter(a -> a.getTemplate().endsWith("form")).collect(Collectors.toList())
+        // );
+        // loginAuthorities.addAll(
+        //     authorities.stream().filter(a -> "button".equals(a.getTemplate())).collect(Collectors.toList())
+        // );
 
-        model.addAttribute("authorities", loginAuthorities);
+        model.addAttribute("authorities", authorities);
 
         // get registration entries
         // TODO replace with model, with ordering etc
@@ -267,7 +268,8 @@ public class LoginController {
 
         // bypass idp selection when only 1 is available
         // and NO registration provider available
-        if (authorities.size() == 1 && registrations.isEmpty()) {
+        // and we come from a client req
+        if (authorities.size() == 1 && registrations.isEmpty() && clientId != null) {
             LoginProvider lab = authorities.get(0);
             // note: we can bypass only providers which expose a button,
             // anything else requires user interaction

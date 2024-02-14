@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.attributes.mapper;
 
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
@@ -23,8 +25,6 @@ import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
 import it.smartcommunitylab.aac.attributes.model.SerializableAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import it.smartcommunitylab.aac.model.AttributeType;
 import java.io.Serializable;
 import java.text.ParseException;

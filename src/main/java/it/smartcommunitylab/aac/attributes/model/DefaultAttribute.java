@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.Attribute;
 import it.smartcommunitylab.aac.model.AttributeType;
 import java.io.Serializable;
 import javax.validation.Valid;
@@ -31,7 +30,7 @@ import javax.validation.constraints.NotNull;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DefaultAttribute implements Attribute, Serializable {
+public class DefaultAttribute implements Attribute {
 
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 

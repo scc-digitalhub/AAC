@@ -21,16 +21,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.clients.ClientManager;
+import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.controller.BaseIdentityProviderController;
-import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.identity.controller.BaseIdentityProviderController;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +58,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,6 +73,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
 
 @RestController
+@Validated
 @Hidden
 @RequestMapping("/console/dev")
 public class DevIdentityProviderController extends BaseIdentityProviderController {
@@ -77,6 +85,9 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
     @Autowired
     private ClientManager clientManager;
+
+    @Autowired
+    private DevManager devManager;
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -106,7 +117,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration
     )
-        throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException, NoSuchAuthorityException {
+        throws NoSuchRealmException, NoSuchProviderException, RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException {
         ConfigurableIdentityProvider provider = super.addIdp(realm, registration);
 
         // fetch also configuration schema
@@ -123,7 +134,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
         @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration,
         @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         ConfigurableIdentityProvider provider = super.updateIdp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -142,7 +154,8 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         @RequestParam(required = false, defaultValue = "false") boolean reset,
         @RequestPart(name = "yaml", required = false) @Valid String yaml,
         @RequestPart(name = "file", required = false) @Valid MultipartFile file
-    ) throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+    )
+        throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("import idp(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -157,9 +170,9 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
                 }
 
                 if (
-                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_TEXT_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_XYAML.toString().equals(file.getContentType())
                 ) {
                     throw new IllegalArgumentException("invalid file");
                 }
@@ -239,7 +252,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=idp-" + provider.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));
@@ -277,5 +290,78 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
         }
 
         return ResponseEntity.ok(clientApp);
+    }
+
+    /*
+     * Hooks
+     */
+    @PostMapping("/idps/{realm}/{providerId}/claims")
+    public ResponseEntity<FunctionValidationBean> testProviderClaimMapping(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid @NotNull FunctionValidationBean function,
+        UserAuthentication user
+    )
+        throws NoSuchRealmException, NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        try {
+            //pick first matching token to test
+            Optional<ExtendedAuthenticationToken> auth = user
+                .getAuthentications()
+                .stream()
+                .filter(a -> a.getRealm().equals(realm))
+                .findFirst();
+
+            if (auth.isEmpty()) {
+                throw new IllegalArgumentException("missing valid token for the realm");
+            }
+
+            // TODO expose context personalization in UI
+            function = devManager.testIdpClaimMapping(realm, providerId, function, auth.get().getPrincipal());
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
+            //            // wrap error
+            //            Map<String, Serializable> res = new HashMap<>();
+            //            res.put("error", e.getClass().getName());
+            //            res.put("message", e.getMessage());
+            //            return ResponseEntity.badRequest().body(res);
+        }
+
+        return ResponseEntity.ok(function);
+    }
+
+    @PostMapping("/idps/{realm}/{providerId}/authz")
+    public ResponseEntity<FunctionValidationBean> testProviderAuthFunction(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+        @RequestBody @Valid @NotNull FunctionValidationBean function,
+        UserAuthentication user
+    )
+        throws NoSuchRealmException, NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        try {
+            //pick first matching token to test
+            Optional<ExtendedAuthenticationToken> auth = user
+                .getAuthentications()
+                .stream()
+                .filter(a -> a.getRealm().equals(realm))
+                .findFirst();
+
+            if (auth.isEmpty()) {
+                throw new IllegalArgumentException("missing valid token for the realm");
+            }
+
+            // TODO expose context personalization in UI
+            function = devManager.testIdpAuthFunction(realm, providerId, function, auth.get().getPrincipal());
+        } catch (InvalidDefinitionException | RuntimeException e) {
+            // translate error
+            function.addError(e.getMessage());
+            //            // wrap error
+            //            Map<String, Serializable> res = new HashMap<>();
+            //            res.put("error", e.getClass().getName());
+            //            res.put("message", e.getMessage());
+            //            return ResponseEntity.badRequest().body(res);
+        }
+
+        return ResponseEntity.ok(function);
     }
 }

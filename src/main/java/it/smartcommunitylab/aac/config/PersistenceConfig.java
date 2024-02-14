@@ -25,52 +25,51 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.store.AutoJdbcAttributeStore;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
-import it.smartcommunitylab.aac.core.base.AbstractProviderConfig;
-import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.AttributeProviderEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.IdentityProviderEntityRepository;
-import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntity;
-import it.smartcommunitylab.aac.core.persistence.TemplateProviderEntityRepository;
+import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountRepository;
+import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
-import it.smartcommunitylab.aac.internal.service.InternalUserAccountService;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccountRepository;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.service.OIDCUserAccountService;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordRepository;
+import it.smartcommunitylab.aac.internal.service.InternalJpaUserAccountService;
+import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfig;
+import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
+import it.smartcommunitylab.aac.oidc.persistence.OIDCUserAccountEntityRepository;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.oidc.service.OIDCJpaUserAccountService;
+import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
+import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountRepository;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.persistence.SamlUserAccountEntityRepository;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
+import it.smartcommunitylab.aac.saml.service.SamlJpaUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsRepository;
+import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfig;
 import it.smartcommunitylab.aac.webauthn.service.WebAuthnConfigTranslatorRepository;
-import it.smartcommunitylab.aac.webauthn.service.WebAuthnUserCredentialsService;
+import it.smartcommunitylab.aac.webauthn.service.WebAuthnJpaUserCredentialsService;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -108,7 +107,11 @@ public class PersistenceConfig {
     private Boolean sessionCookieSecure;
 
     @Autowired
-    private DataSource dataSource;
+    @Qualifier("jdbcDataSource")
+    private DataSource jdbcDataSource;
+
+    @Autowired
+    private ProviderConfigEntityService providerConfigEntityService;
 
     /*
      * Object mappers
@@ -242,66 +245,66 @@ public class PersistenceConfig {
 
     @Bean
     public UserAccountService<OIDCUserAccount> oidcUserAccountService(
-        OIDCUserAccountRepository accountRepository,
+        OIDCUserAccountEntityRepository accountRepository,
         SubjectService subjectService
     ) {
-        return new OIDCUserAccountService(accountRepository, subjectService);
+        return new OIDCJpaUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
     public UserAccountService<SamlUserAccount> samlUserAccountService(
-        SamlUserAccountRepository accountRepository,
+        SamlUserAccountEntityRepository accountRepository,
         SubjectService subjectService
     ) {
-        return new SamlUserAccountService(accountRepository, subjectService);
+        return new SamlJpaUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
     public UserAccountService<InternalUserAccount> internalUserAccountService(
-        InternalUserAccountRepository accountRepository,
+        InternalUserAccountEntityRepository accountRepository,
         SubjectService subjectService
     ) {
-        return new InternalUserAccountService(accountRepository, subjectService);
+        return new InternalJpaUserAccountService(accountRepository, subjectService);
     }
 
     @Bean
-    public InternalPasswordUserCredentialsService internalUserPasswordService(
-        InternalUserPasswordRepository passwordRepository
+    public InternalPasswordJpaUserCredentialsService internalUserPasswordService(
+        InternalUserPasswordEntityRepository passwordRepository
     ) {
-        return new InternalPasswordUserCredentialsService(passwordRepository);
+        return new InternalPasswordJpaUserCredentialsService(passwordRepository);
     }
 
     @Bean
-    public WebAuthnUserCredentialsService webAuthnCredentialsService(
-        WebAuthnUserCredentialsRepository credentialsRepository
+    public WebAuthnJpaUserCredentialsService webAuthnCredentialsService(
+        WebAuthnUserCredentialsEntityRepository credentialsRepository
     ) {
-        return new WebAuthnUserCredentialsService(credentialsRepository);
+        return new WebAuthnJpaUserCredentialsService(credentialsRepository);
     }
 
-    @Bean
-    public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
-        AttributeProviderEntityRepository attributeProviderRepository
-    ) {
-        return new ConfigurableProviderEntityService<>(attributeProviderRepository);
-    }
+    // @Bean
+    // public ConfigurableProviderEntityService<AttributeProviderEntity> attributeProviderEntityService(
+    //     AttributeProviderEntityRepository attributeProviderRepository
+    // ) {
+    //     return new ConfigurableProviderEntityService<>(attributeProviderRepository);
+    // }
 
-    @Bean
-    public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
-        IdentityProviderEntityRepository identityProviderRepository
-    ) {
-        return new ConfigurableProviderEntityService<>(identityProviderRepository);
-    }
+    // @Bean
+    // public ConfigurableProviderEntityService<IdentityProviderEntity> identityProviderEntityService(
+    //     IdentityProviderEntityRepository identityProviderRepository
+    // ) {
+    //     return new ConfigurableProviderEntityService<>(identityProviderRepository);
+    // }
 
-    @Bean
-    public ConfigurableProviderEntityService<TemplateProviderEntity> templateProviderEntityService(
-        TemplateProviderEntityRepository templateProviderRepository
-    ) {
-        return new ConfigurableProviderEntityService<>(templateProviderRepository);
-    }
+    // @Bean
+    // public ConfigurableProviderEntityService<TemplateProviderEntity> templateProviderEntityService(
+    //     TemplateProviderEntityRepository templateProviderRepository
+    // ) {
+    //     return new ConfigurableProviderEntityService<>(templateProviderRepository);
+    // }
 
     @Bean
     public AutoJdbcAttributeStore attributeStore() {
-        return new AutoJdbcAttributeStore(dataSource);
+        return new AutoJdbcAttributeStore(jdbcDataSource);
     }
 
     @Bean(name = "scopeRegistry")
@@ -327,52 +330,52 @@ public class PersistenceConfig {
 
     @Bean
     public ProviderConfigRepository<InternalIdentityProviderConfig> internalProviderConfigRepository() {
-        return buildProviderConfigRepository(InternalIdentityProviderConfig.class);
+        return buildProviderConfigRepository(InternalIdentityProviderConfig.class, SystemKeys.AUTHORITY_INTERNAL);
     }
 
     @Bean
     public ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
-        return buildProviderConfigRepository(PasswordIdentityProviderConfig.class);
+        return buildProviderConfigRepository(PasswordIdentityProviderConfig.class, SystemKeys.AUTHORITY_PASSWORD);
     }
 
     @Bean
     public ProviderConfigRepository<OIDCIdentityProviderConfig> oidcProviderConfigRepository() {
-        return buildProviderConfigRepository(OIDCIdentityProviderConfig.class);
+        return buildProviderConfigRepository(OIDCIdentityProviderConfig.class, SystemKeys.AUTHORITY_OIDC);
     }
 
     @Bean
     public ProviderConfigRepository<AppleIdentityProviderConfig> appleProviderConfigRepository() {
-        return buildProviderConfigRepository(AppleIdentityProviderConfig.class);
+        return buildProviderConfigRepository(AppleIdentityProviderConfig.class, SystemKeys.AUTHORITY_APPLE);
     }
 
     @Bean
     public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
-        return buildProviderConfigRepository(SamlIdentityProviderConfig.class);
+        return buildProviderConfigRepository(SamlIdentityProviderConfig.class, SystemKeys.AUTHORITY_SAML);
     }
 
     @Bean
     public ProviderConfigRepository<WebAuthnIdentityProviderConfig> webAuthnProviderConfigRepository() {
-        return buildProviderConfigRepository(WebAuthnIdentityProviderConfig.class);
+        return buildProviderConfigRepository(WebAuthnIdentityProviderConfig.class, SystemKeys.AUTHORITY_WEBAUTHN);
     }
 
     @Bean
     public ProviderConfigRepository<MapperAttributeProviderConfig> mapperProviderConfigRepository() {
-        return buildProviderConfigRepository(MapperAttributeProviderConfig.class);
+        return buildProviderConfigRepository(MapperAttributeProviderConfig.class, SystemKeys.AUTHORITY_MAPPER);
     }
 
     @Bean
     public ProviderConfigRepository<ScriptAttributeProviderConfig> scriptProviderConfigRepository() {
-        return buildProviderConfigRepository(ScriptAttributeProviderConfig.class);
+        return buildProviderConfigRepository(ScriptAttributeProviderConfig.class, SystemKeys.AUTHORITY_SCRIPT);
     }
 
     @Bean
     public ProviderConfigRepository<InternalAttributeProviderConfig> internalAttributeProviderConfigRepository() {
-        return buildProviderConfigRepository(InternalAttributeProviderConfig.class);
+        return buildProviderConfigRepository(InternalAttributeProviderConfig.class, SystemKeys.AUTHORITY_INTERNAL);
     }
 
     @Bean
     public ProviderConfigRepository<WebhookAttributeProviderConfig> webhookAttributeProviderConfigRepository() {
-        return buildProviderConfigRepository(WebhookAttributeProviderConfig.class);
+        return buildProviderConfigRepository(WebhookAttributeProviderConfig.class, SystemKeys.AUTHORITY_WEBHOOK);
     }
 
     //    @Bean
@@ -397,15 +400,23 @@ public class PersistenceConfig {
     }
 
     @Bean
+    public ProviderConfigRepository<OpenIdFedIdentityProviderConfig> openidFedIdentityProviderConfigRepository() {
+        return buildProviderConfigRepository(OpenIdFedIdentityProviderConfig.class, SystemKeys.AUTHORITY_OPENIDFED);
+    }
+
+    @Bean
     public ProviderConfigRepository<RealmTemplateProviderConfig> templateProviderConfigRepository() {
-        return buildProviderConfigRepository(RealmTemplateProviderConfig.class);
+        return buildProviderConfigRepository(RealmTemplateProviderConfig.class, SystemKeys.AUTHORITY_TEMPLATE);
     }
 
     private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
-        Class<U> clazz
+        Class<U> clazz,
+        String authority
     ) {
         if ("jdbc".equals(providerConfigRepository)) {
-            return new AutoJDBCProviderConfigRepository<U>(dataSource, clazz);
+            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz, authority);
+        } else if ("jpa".equals(providerConfigRepository)) {
+            return new JpaProviderConfigRepository<U>(providerConfigEntityService, clazz);
         }
 
         return new InMemoryProviderConfigRepository<U>();

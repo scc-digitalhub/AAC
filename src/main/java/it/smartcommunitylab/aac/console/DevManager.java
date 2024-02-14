@@ -22,8 +22,10 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.claims.ClaimsSet;
 import it.smartcommunitylab.aac.claims.DefaultClaimsService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
@@ -35,11 +37,9 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.model.Template;
-import it.smartcommunitylab.aac.core.service.ClientDetailsService;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.User;
@@ -48,6 +48,8 @@ import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.request.OAuth2AuthorizationRequestFactory;
 import it.smartcommunitylab.aac.oauth.request.OAuth2TokenRequestFactory;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.oidc.OIDCKeys;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
@@ -56,9 +58,12 @@ import it.smartcommunitylab.aac.services.Service;
 import it.smartcommunitylab.aac.services.ServicesService;
 import it.smartcommunitylab.aac.templates.TemplateAuthority;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
+import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
+import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -66,6 +71,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -444,6 +450,105 @@ public class DevManager {
         // claimsService new function
 
         functionBean.setResult(claims);
+
+        return functionBean;
+    }
+
+    public FunctionValidationBean testIdpClaimMapping(
+        String realm,
+        String clientId,
+        FunctionValidationBean functionBean,
+        UserAuthenticatedPrincipal principal
+    ) throws NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        // TODO handle context init here
+        // TODO handle errors
+        // TODO handle log
+
+        List<String> errors = new ArrayList<>();
+        String functionCode = StringUtils.hasText(functionBean.getCode())
+            ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+            : null;
+
+        if (!StringUtils.hasText(functionCode)) {
+            errors.add("empty function");
+        } else {
+            // TODO handle all attributes not only strings.
+            HashMap<String, Serializable> principalAttributes = new HashMap<>();
+            principal
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+
+            functionBean.setContext(Collections.singletonMap("attributes", principalAttributes));
+
+            try {
+                // execute script
+                Map<String, Serializable> customAttributes = executionService.executeFunction(
+                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                    functionCode,
+                    principalAttributes
+                );
+
+                functionBean.setResult(customAttributes);
+            } catch (SystemException | InvalidDefinitionException ex) {}
+        }
+
+        functionBean.setErrors(errors);
+
+        return functionBean;
+    }
+
+    public FunctionValidationBean testIdpAuthFunction(
+        String realm,
+        String clientId,
+        FunctionValidationBean functionBean,
+        UserAuthenticatedPrincipal principal
+    ) throws NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+        // TODO handle context init here
+        // TODO handle errors
+        // TODO handle log
+
+        List<String> errors = new ArrayList<>();
+        String functionCode = StringUtils.hasText(functionBean.getCode())
+            ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+            : null;
+
+        if (!StringUtils.hasText(functionCode)) {
+            errors.add("empty function");
+        } else {
+            // TODO handle all attributes not only strings.
+            HashMap<String, Serializable> principalAttributes = new HashMap<>();
+            principal
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+
+            //TODO build context with relevant info
+            HashMap<String, Serializable> contextAttributes = new HashMap<>();
+            contextAttributes.put("timestamp", Instant.now().getEpochSecond());
+            contextAttributes.put("errors", new ArrayList<Serializable>());
+
+            functionBean.setContext(Map.of("principal", principalAttributes, "context", contextAttributes));
+
+            try {
+                // execute script
+                Boolean authResult = executionService.executeFunction(
+                    IdentityProvider.AUTHORIZATION_FUNCTION,
+                    functionCode,
+                    Boolean.class,
+                    principalAttributes,
+                    contextAttributes
+                );
+
+                functionBean.setResult(Map.of("result", authResult));
+            } catch (SystemException | InvalidDefinitionException ex) {}
+        }
+
+        functionBean.setErrors(errors);
 
         return functionBean;
     }

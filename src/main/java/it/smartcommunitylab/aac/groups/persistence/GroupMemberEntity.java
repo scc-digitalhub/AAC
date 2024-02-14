@@ -30,7 +30,7 @@ import javax.validation.constraints.NotNull;
  */
 @Entity
 @Table(
-    name = "group_members",
+    name = "realm_group_members",
     uniqueConstraints = @UniqueConstraint(columnNames = { "subject_id", "realm", "group_key" })
 )
 public class GroupMemberEntity {

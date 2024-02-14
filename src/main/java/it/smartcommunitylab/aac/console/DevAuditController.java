@@ -17,11 +17,13 @@
 package it.smartcommunitylab.aac.console;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import it.smartcommunitylab.aac.audit.BaseAuditController;
+import it.smartcommunitylab.aac.audit.controller.BaseAuditController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @Hidden
 @RequestMapping("/console/dev")
 public class DevAuditController extends BaseAuditController {}

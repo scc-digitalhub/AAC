@@ -18,17 +18,26 @@ package it.smartcommunitylab.aac.webauthn.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WebAuthnIdentityConfigurationProvider
-    extends AbstractIdentityConfigurationProvider<WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<WebAuthnIdentityProviderConfig, WebAuthnIdentityProviderConfigMap> {
 
-    public WebAuthnIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
-        super(SystemKeys.AUTHORITY_WEBAUTHN);
-        if (authoritiesProperties != null && authoritiesProperties.getWebauthn() != null) {
+    public WebAuthnIdentityConfigurationProvider(
+        ProviderConfigRepository<WebAuthnIdentityProviderConfig> registrationRepository,
+        IdentityAuthoritiesProperties authoritiesProperties
+    ) {
+        super(SystemKeys.AUTHORITY_WEBAUTHN, registrationRepository);
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getWebauthn() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getWebauthn());
         } else {
             setDefaultConfigMap(new WebAuthnIdentityProviderConfigMap());
@@ -37,6 +46,10 @@ public class WebAuthnIdentityConfigurationProvider
 
     @Override
     protected WebAuthnIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new WebAuthnIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new WebAuthnIdentityProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

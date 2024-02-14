@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -79,6 +81,18 @@ public class ConsoleSecurityConfig {
             http.cors().configurationSource(corsConfigurationSource(corsOrigins));
         }
 
+        return http.build();
+    }
+
+    @Order(25)
+    @Bean("h2ConsoleSecurityFilterChain")
+    @ConditionalOnProperty(prefix = "spring", name = "h2.console.enabled")
+    SecurityFilterChain h2ConsoleSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .requestMatcher(PathRequest.toH2Console())
+            .authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().permitAll())
+            .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
         return http.build();
     }
 

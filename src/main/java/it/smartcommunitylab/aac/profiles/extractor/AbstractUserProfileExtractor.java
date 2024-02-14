@@ -16,13 +16,13 @@
 
 package it.smartcommunitylab.aac.profiles.extractor;
 
+import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateAttribute;
 import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
 import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
 import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.model.AttributeType;
 import java.text.ParseException;
 import java.time.LocalDate;

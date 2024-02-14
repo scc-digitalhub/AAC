@@ -16,10 +16,10 @@
 
 package it.smartcommunitylab.aac.attributes;
 
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -125,12 +125,12 @@ public class SamlAttributesSet implements AttributeSet {
     @Override
     public String getName() {
         // TODO i18n
-        return "OpenId user attribute set";
+        return "SAML user attribute set";
     }
 
     @Override
     public String getDescription() {
-        return "OpenId Connect default user attribute set";
+        return "SAML default user attribute set";
     }
 
     public static final String NAME = "Name";

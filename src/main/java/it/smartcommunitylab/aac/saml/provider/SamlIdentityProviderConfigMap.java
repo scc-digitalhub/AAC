@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +71,8 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
     private Boolean trustEmailAddress;
     private Boolean alwaysTrustEmailAddress;
     private Boolean requireEmailAddress;
+
+    private String subAttributeName;
 
     public SamlIdentityProviderConfigMap() {}
 
@@ -250,6 +252,15 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.requireEmailAddress = requireEmailAddress;
     }
 
+    public String getSubAttributeName() {
+        return subAttributeName;
+    }
+
+    public void setSubAttributeName(String subAttributeName) {
+        this.subAttributeName = subAttributeName;
+    }
+
+
     @JsonIgnore
     public void setConfiguration(SamlIdentityProviderConfigMap map) {
         this.signingKey = map.getSigningKey();
@@ -279,6 +290,7 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.requireEmailAddress = map.getRequireEmailAddress();
 
         this.entityId = map.getEntityId();
+        this.subAttributeName = map.getSubAttributeName();
     }
 
     @Override

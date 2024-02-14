@@ -21,19 +21,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.controller.BaseAttributeProviderController;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
+import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.controller.BaseAttributeProviderController;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
-import it.smartcommunitylab.aac.core.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -58,6 +58,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,6 +73,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.yaml.snakeyaml.Yaml;
 
 @RestController
+@Validated
 @Hidden
 @RequestMapping("/console/dev")
 public class DevAttributeProviderController extends BaseAttributeProviderController {
@@ -116,7 +119,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     public ConfigurableAttributeProvider addAp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration
-    ) throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException {
+    )
+        throws NoSuchRealmException, NoSuchAuthorityException, RegistrationException, NoSuchProviderException, SystemException, MethodArgumentNotValidException {
         ConfigurableAttributeProvider provider = super.addAp(realm, registration);
 
         // fetch also configuration schema
@@ -133,7 +137,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration,
         @RequestParam(required = false, defaultValue = "false") Optional<Boolean> force
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         ConfigurableAttributeProvider provider = super.updateAp(realm, providerId, registration, Optional.of(false));
 
         // fetch also configuration schema
@@ -161,7 +166,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
             throw new IllegalArgumentException("provider is not active");
         }
 
-        AttributeProvider<?, ?> ap = attributeProviderAuthorityService
+        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(provider.getAuthority())
             .getProvider(providerId);
 
@@ -227,7 +232,8 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         @RequestParam(required = false, defaultValue = "false") boolean reset,
         @RequestPart(name = "yaml", required = false) @Valid String yaml,
         @RequestPart(name = "file", required = false) @Valid MultipartFile file
-    ) throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException {
+    )
+        throws NoSuchRealmException, RegistrationException, NoSuchProviderException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("import ap(s) to realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (!StringUtils.hasText(yaml) && (file == null || file.isEmpty())) {
@@ -242,9 +248,9 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
                 }
 
                 if (
-                    !SystemKeys.MEDIA_TYPE_YAML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_YML.toString().equals(file.getContentType()) &&
-                    !SystemKeys.MEDIA_TYPE_XYAML.toString().equals(file.getContentType())
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_TEXT_YAML.toString().equals(file.getContentType()) &&
+                    !SystemKeys.MEDIA_TYPE_APPLICATION_XYAML.toString().equals(file.getContentType())
                 ) {
                     throw new IllegalArgumentException("invalid file");
                 }
@@ -328,7 +334,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         String s = yamlObjectMapper.writeValueAsString(provider);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=ap-" + provider.getName() + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));

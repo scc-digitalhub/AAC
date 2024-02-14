@@ -53,7 +53,11 @@ angular.module('aac.controllers.realmapps', [])
                 return data.data;
             });
         }
-
+        service.getClientAppCredentials = function (slug, clientId) {
+            return $http.get('console/dev/apps/' + slug + '/' + clientId + '/credentials').then(function (data) {
+                return data.data;
+            });
+        }
         service.resetClientAppCredentials = function (slug, clientId, credentialsId) {
             return $http.put('console/dev/apps/' + slug + '/' + clientId + '/credentials/' + credentialsId, {}).then(function (data) {
                 return data.data;
@@ -785,7 +789,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.resetClientCredentialsDlg = function (clientApp, type) {
             $scope.modClientApp = {
                 clientId: clientApp.clientId,
-                credentialsId: clientApp.clientId + "." + type
+                credentialsId: clientApp.clientId + "_" + type
             };
             $('#resetClientCredentialsConfirm').modal({ keyboard: false });
         }
@@ -793,7 +797,8 @@ angular.module('aac.controllers.realmapps', [])
         $scope.resetClientCredentials = function () {
             $('#resetClientCredentialsConfirm').modal('hide');
             RealmAppsData.resetClientAppCredentials($scope.realm.slug, $scope.modClientApp.clientId, $scope.modClientApp.credentialsId).then(function (res) {
-                $scope.reload(res);
+                // $scope.reload(res);
+                $scope.load();
                 Utils.showSuccess();
             }).catch(function (err) {
                 Utils.showError(err.data.message);
@@ -802,7 +807,7 @@ angular.module('aac.controllers.realmapps', [])
         $scope.removeClientCredentialsDlg = function (clientApp, type) {
             $scope.modClientApp = {
                 clientId: clientApp.clientId,
-                credentialsId: clientApp.clientId + "." + type
+                credentialsId: clientApp.clientId + "_" + type
             };
             $('#removeClientCredentialsConfirm').modal({ keyboard: false });
         }
@@ -810,7 +815,8 @@ angular.module('aac.controllers.realmapps', [])
         $scope.removeClientCredentials = function () {
             $('#removeClientCredentialsConfirm').modal('hide');
             RealmAppsData.removeClientAppCredentials($scope.realm.slug, $scope.modClientApp.clientId, $scope.modClientApp.credentialsId).then(function (res) {
-                $scope.reload(res);
+                // $scope.reload(res);
+                $scope.load();
                 Utils.showSuccess();
             }).catch(function (err) {
                 Utils.showError(err.data.message);

@@ -18,24 +18,26 @@ package it.smartcommunitylab.aac.templates;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ConfigurableProviderManager;
-import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.core.model.Template;
-import it.smartcommunitylab.aac.core.service.TemplateProviderAuthorityService;
-import it.smartcommunitylab.aac.core.service.TemplateProviderService;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.templates.model.Language;
+import it.smartcommunitylab.aac.templates.model.Template;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
+import it.smartcommunitylab.aac.templates.service.TemplateProviderAuthorityService;
+import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
@@ -50,6 +52,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Service
 @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "')" + " or hasAuthority(#realm+':" + Config.R_ADMIN + "')")
@@ -60,6 +63,9 @@ public class TemplatesManager
 
     @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private RealmService realmService;
 
     @Autowired
     private TemplateProviderAuthorityService authorityService;
@@ -77,7 +83,7 @@ public class TemplatesManager
     }
 
     public ConfigurableTemplateProvider getProviderByRealm(String realm)
-        throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException, SystemException, MethodArgumentNotValidException {
         // fetch first if available
         ConfigurableTemplateProvider provider = findProviderByRealm(realm);
 
@@ -97,9 +103,28 @@ public class TemplatesManager
             }
         }
 
-        // check if languages are set, otherwise use default
-        if (provider.getLanguages() == null || provider.getLanguages().isEmpty()) {
-            provider.setLanguages(new HashSet<>(Arrays.asList(LanguageService.LANGUAGES)));
+        TemplateProviderSettingsMap settingsMap = new TemplateProviderSettingsMap();
+        settingsMap.setConfiguration(provider.getSettings());
+
+        if (settingsMap.getLanguages() == null || settingsMap.getLanguages().isEmpty()) {
+            Realm r = realmService.findRealm(realm);
+            if (
+                r != null &&
+                r.getLocalizationConfiguration() != null &&
+                r.getLocalizationConfiguration().getLanguages() != null
+            ) {
+                settingsMap.setLanguages(r.getLocalizationConfiguration().getLanguages());
+            } else {
+                settingsMap.setLanguages(
+                    Arrays
+                        .asList(LanguageService.LANGUAGES)
+                        .stream()
+                        .map(l -> Language.parse(l))
+                        .collect(Collectors.toSet())
+                );
+            }
+
+            provider.setSettings(settingsMap.getConfiguration());
         }
 
         return provider;
@@ -107,28 +132,23 @@ public class TemplatesManager
 
     @Override
     public ConfigurableTemplateProvider addProvider(String realm, ConfigurableTemplateProvider provider)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        // validate language
-        // TODO refactor
-        if (provider.getLanguages() != null) {
-            Collection<String> languages = provider.getLanguages();
-            if (!Arrays.asList(LanguageService.LANGUAGES).containsAll(languages)) {
-                throw new InvalidDataException("language");
-            }
-        }
-
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, SystemException, MethodArgumentNotValidException {
         // validate style
         // TODO add css validator
-        if (provider.getCustomStyle() != null) {
+        if (provider.getSettings() != null && provider.getSettings().containsKey("customStyle")) {
+            String customStyle = String.valueOf(provider.getSettings().get("customStyle"));
+            if ("null".equals(customStyle)) {
+                customStyle = "";
+            }
             // use wholetext to avoid escaping ><& etc.
             // this could break the final document
             // TODO use a proper CSS parser
-            Document dirty = Jsoup.parseBodyFragment(provider.getCustomStyle());
+            Document dirty = Jsoup.parseBodyFragment(customStyle);
             Cleaner cleaner = new Cleaner(Safelist.none());
             Document clean = cleaner.clean(dirty);
 
             String style = clean.body().wholeText();
-            provider.setCustomStyle(style);
+            provider.getSettings().put("customStyle", style);
         }
 
         ConfigurableTemplateProvider cp = super.addProvider(realm, provider);
@@ -143,28 +163,24 @@ public class TemplatesManager
         String realm,
         String providerId,
         ConfigurableTemplateProvider provider
-    ) throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
-        // validate language
-        // TODO refactor
-        if (provider.getLanguages() != null) {
-            Collection<String> languages = provider.getLanguages();
-            if (!Arrays.asList(LanguageService.LANGUAGES).containsAll(languages)) {
-                throw new InvalidDataException("language");
-            }
-        }
-
+    )
+        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         // validate style
         // TODO add css validator
-        if (provider.getCustomStyle() != null) {
+        if (provider.getSettings() != null && provider.getSettings().containsKey("customStyle")) {
+            String customStyle = String.valueOf(provider.getSettings().get("customStyle"));
+            if ("null".equals(customStyle)) {
+                customStyle = "";
+            }
             // use wholetext to avoid escaping ><& etc.
             // this could break the final document
             // TODO use a proper CSS parser
-            Document dirty = Jsoup.parseBodyFragment(provider.getCustomStyle());
+            Document dirty = Jsoup.parseBodyFragment(customStyle);
             Cleaner cleaner = new Cleaner(Safelist.none());
             Document clean = cleaner.clean(dirty);
 
             String style = clean.body().wholeText();
-            provider.setCustomStyle(style);
+            provider.getSettings().put("customStyle", style);
         }
 
         ConfigurableTemplateProvider cp = super.updateProvider(realm, providerId, provider);

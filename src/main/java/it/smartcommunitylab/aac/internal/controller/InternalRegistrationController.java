@@ -27,18 +27,19 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.provider.AccountCredentialsService;
-import it.smartcommunitylab.aac.core.service.RealmService;
+import it.smartcommunitylab.aac.credentials.model.UserCredentials;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
-import java.nio.file.ProviderNotFoundException;
+import it.smartcommunitylab.aac.realms.service.RealmService;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
@@ -266,7 +267,7 @@ public class InternalRegistrationController {
         String realm = idp.getRealm();
         Realm r = realmService.findRealm(realm);
         if (r == null) {
-            throw new ProviderNotFoundException("realm not found");
+            throw new NoSuchRealmException("realm not found");
         }
 
         model.addAttribute("realm", realm);
@@ -284,7 +285,7 @@ public class InternalRegistrationController {
         //        }
 
         // fetch password service if available
-        AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+        CredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
         if (cs != null) {
             PasswordCredentialsService service = (PasswordCredentialsService) cs;
             // expose password policy by passing idp config
@@ -334,7 +335,7 @@ public class InternalRegistrationController {
             model.addAttribute("displayName", realm);
 
             // fetch password service if available
-            AccountCredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
+            CredentialsService<?, ?, ?, ?> cs = idp.getCredentialsService(SystemKeys.AUTHORITY_PASSWORD);
             PasswordCredentialsService service = null;
             if (cs != null) {
                 service = (PasswordCredentialsService) cs;
@@ -368,7 +369,7 @@ public class InternalRegistrationController {
             String email = reg.getEmail();
             String name = reg.getName();
             String surname = reg.getSurname();
-            String lang = reg.getLang();
+            String lang = reg.getLang() != null ? reg.getLang() : locale.getLanguage();
 
             // validate password
             // TODO rework flow
@@ -377,7 +378,12 @@ public class InternalRegistrationController {
             }
 
             // convert registration model to internal model
-            InternalUserAccount account = new InternalUserAccount();
+            InternalUserAccount account = new InternalUserAccount(
+                idp.getAuthority(),
+                idp.getProvider(),
+                idp.getRealm(),
+                null
+            );
             account.setUsername(username);
             account.setEmail(email);
             account.setName(name);
@@ -400,17 +406,17 @@ public class InternalRegistrationController {
             );
 
             // register password
+            Collection<UserCredentials> credentials = null;
             if (service != null && StringUtils.hasText(password)) {
-                InternalUserPassword pwd = new InternalUserPassword();
+                InternalUserPassword pwd = new InternalUserPassword(idp.getRealm(), null);
                 pwd.setUserId(identity.getUserId());
-                pwd.setUsername(username);
+                // pwd.setUsername(username);
                 pwd.setPassword(password);
-
-                identity.setCredentials(Collections.singleton(pwd));
+                credentials = Collections.singleton(pwd);
             }
 
             // register
-            identity = idp.registerIdentity(subjectId, identity);
+            identity = idp.registerIdentity(subjectId, identity, credentials);
 
             model.addAttribute("account", account);
 

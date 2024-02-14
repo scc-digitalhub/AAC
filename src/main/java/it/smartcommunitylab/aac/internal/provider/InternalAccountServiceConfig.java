@@ -17,8 +17,9 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 
 public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<InternalIdentityProviderConfigMap> {
 
@@ -35,11 +36,33 @@ public class InternalAccountServiceConfig extends AbstractAccountServiceConfig<I
     private static final int DEFAULT_CONFIRM_DURATION = 24 * 60 * 60; // 24h
 
     public InternalAccountServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalIdentityProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_INTERNAL,
+            provider,
+            realm,
+            new AccountServiceSettingsMap(),
+            new InternalIdentityProviderConfigMap()
+        );
     }
 
-    public InternalAccountServiceConfig(ConfigurableAccountProvider cp, InternalIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public InternalAccountServiceConfig(
+        ConfigurableAccountService cp,
+        AccountServiceSettingsMap settingsMap,
+        InternalIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
+    }
+
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private InternalAccountServiceConfig() {
+        super();
     }
 
     public String getRepositoryId() {

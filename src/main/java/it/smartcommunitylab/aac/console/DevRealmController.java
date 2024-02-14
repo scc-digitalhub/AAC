@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.AttributeProviderManager;
+import it.smartcommunitylab.aac.clients.ClientManager;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -27,21 +29,19 @@ import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.AttributeProviderManager;
-import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.IdentityProviderManager;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.SubjectManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.dto.UserSubject;
+import it.smartcommunitylab.aac.identity.IdentityProviderManager;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.realms.RealmManager;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
 import java.io.IOException;
@@ -64,6 +64,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,6 +77,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @Hidden
 @RequestMapping("/console/dev")
 public class DevRealmController {
@@ -180,7 +183,7 @@ public class DevRealmController {
         String s = yamlObjectMapper.writeValueAsString(export);
 
         // write as file
-        res.setContentType("text/yaml");
+        res.setContentType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML_VALUE);
         res.setHeader("Content-Disposition", "attachment;filename=realm-" + key + ".yaml");
         ServletOutputStream out = res.getOutputStream();
         out.write(s.getBytes(StandardCharsets.UTF_8));
@@ -278,7 +281,8 @@ public class DevRealmController {
     @GetMapping("/realms/{realm}/templates/conf")
     public ConfigurableTemplateProvider getTemplateProviderConfig(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
-    ) throws NoSuchProviderException, NoSuchRealmException, RegistrationException {
+    )
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException, SystemException, MethodArgumentNotValidException {
         // single config per realm
         return templatesManager.getProviderByRealm(realm);
     }
@@ -287,7 +291,8 @@ public class DevRealmController {
     public ConfigurableTemplateProvider setTemplateProviderConfig(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableTemplateProvider config
-    ) throws NoSuchProviderException, NoSuchRealmException, RegistrationException, NoSuchAuthorityException {
+    )
+        throws NoSuchProviderException, NoSuchRealmException, RegistrationException, NoSuchAuthorityException, SystemException, MethodArgumentNotValidException {
         // single config per realm, so either add as new or update
         ConfigurableTemplateProvider cp = templatesManager.findProviderByRealm(realm);
         if (cp == null) {

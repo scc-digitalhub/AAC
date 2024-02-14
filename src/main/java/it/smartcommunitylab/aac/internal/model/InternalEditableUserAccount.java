@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractEditableAccount;
+import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import java.util.Date;
 import javax.validation.Valid;
@@ -79,16 +79,21 @@ public class InternalEditableUserAccount extends AbstractEditableAccount {
     private String lang;
 
     protected InternalEditableUserAccount() {
-        super(SystemKeys.AUTHORITY_INTERNAL, null, null);
+        super(SystemKeys.AUTHORITY_INTERNAL, null, null, null);
     }
 
+    @Deprecated
     public InternalEditableUserAccount(String provider, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
+        super(SystemKeys.AUTHORITY_INTERNAL, provider, null, uuid);
     }
 
-    public InternalEditableUserAccount(String provider, String realm, String userId, String uuid) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, uuid);
-        setRealm(realm);
+    @Deprecated
+    public InternalEditableUserAccount(String authority, String provider, String uuid) {
+        super(authority, provider, null, uuid);
+    }
+
+    public InternalEditableUserAccount(String authority, String provider, String realm, String userId, String uuid) {
+        super(authority, provider, realm, uuid);
         setUserId(userId);
     }
 

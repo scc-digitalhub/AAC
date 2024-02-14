@@ -17,15 +17,15 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.provider.AccountProvider;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,13 +74,17 @@ public class SamlIdentityProvider
         this.subjectResolver = new SamlSubjectResolver(authority, providerId, userAccountService, config, realm);
 
         // function hooks from config
-        if (
-            config.getHookFunctions() != null &&
-            StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))
-        ) {
-            this.authenticationProvider.setCustomMappingFunction(
-                    config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
-                );
+        if (config.getHookFunctions() != null) {
+            if (StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
+                this.authenticationProvider.setCustomMappingFunction(
+                        config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                    );
+            }
+            if (StringUtils.hasText(config.getHookFunctions().get(AUTHORIZATION_FUNCTION))) {
+                this.authenticationProvider.setCustomAuthFunction(
+                        config.getHookFunctions().get(AUTHORIZATION_FUNCTION)
+                    );
+            }
         }
     }
 
@@ -149,6 +153,12 @@ public class SamlIdentityProvider
 
         lp.setLoginUrl(getAuthenticationUrl());
         lp.setPosition(getConfig().getPosition());
+
+        //template override
+        //TODO validate against supported
+        if (StringUtils.hasText(config.getSettingsMap().getTemplate())) {
+            lp.setTemplate(config.getSettingsMap().getTemplate());
+        }
 
         return lp;
     }

@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.webauthn.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import java.io.Serializable;
 import java.util.Map;
 import org.springframework.security.core.CredentialsContainer;

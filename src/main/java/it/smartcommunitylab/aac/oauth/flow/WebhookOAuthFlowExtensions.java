@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.oauth.flow;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import java.io.Serializable;
@@ -62,7 +63,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookOAuthFlowExtensions.class);
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
     private final TypeReference<HashMap<String, String>> stringMapTypeRef =

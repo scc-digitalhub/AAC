@@ -47,7 +47,19 @@ public enum JWEAlgorithm {
 
     A192GCMKW("A192GCMKW"),
 
-    A256GCMKW("A256GCMKW");
+    A256GCMKW("A256GCMKW"),
+
+    /*
+     * RSAES using Optimal Asymmetric Encryption Padding (OAEP) (RFC 3447),
+     */
+
+    RSA_OAEP("RSA-OAEP"),
+
+    RSA_OAEP_256("RSA-OAEP-256"),
+
+    RSA_OAEP_384("RSA-OAEP-384"),
+
+    RSA_OAEP_512("RSA-OAEP-512");
 
     private final String value;
 

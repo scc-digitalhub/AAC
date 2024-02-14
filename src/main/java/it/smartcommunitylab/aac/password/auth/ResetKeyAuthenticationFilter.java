@@ -17,19 +17,18 @@
 package it.smartcommunitylab.aac.password.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
-import it.smartcommunitylab.aac.core.auth.RequestAwareAuthenticationSuccessHandler;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -75,11 +74,11 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
 
     // TODO remove services and build resetPassword action url after auth success
     private final UserAccountService<InternalUserAccount> userAccountService;
-    private final InternalPasswordUserCredentialsService userPasswordService;
+    private final InternalPasswordJpaUserCredentialsService userPasswordService;
 
     public ResetKeyAuthenticationFilter(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         this(userAccountService, userPasswordService, registrationRepository, DEFAULT_FILTER_URI, null);
@@ -87,7 +86,7 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
 
     public ResetKeyAuthenticationFilter(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService userPasswordService,
+        InternalPasswordJpaUserCredentialsService userPasswordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
         String filterProcessingUrl,
         AuthenticationEntryPoint authenticationEntryPoint
@@ -172,26 +171,21 @@ public class ResetKeyAuthenticationFilter extends AbstractAuthenticationProcessi
         request.setAttribute("realm", realm);
 
         try {
+            String username = request.getParameter("username");
             String code = request.getParameter("code");
 
-            if (!StringUtils.hasText(code)) {
-                throw new BadCredentialsException("missing or invalid confirm code");
+            if (!StringUtils.hasText(username) || !StringUtils.hasText(code)) {
+                throw new BadCredentialsException("missing or invalid username or confirm code");
             }
 
-            // fetch account
-            InternalUserPassword password = userPasswordService.findCredentialsByResetKey(repositoryId, code);
-            if (password == null) {
-                // don't leak password does not exists
-                throw new BadCredentialsException("invalid-key");
-            }
+            // // fetch account
+            // InternalUserPassword password = userPasswordService.findCredentialsByResetKey(repositoryId, code);
+            // if (password == null) {
+            //     // don't leak password does not exists
+            //     throw new BadCredentialsException("invalid-key");
+            // }
 
-            InternalUserAccount account = userAccountService.findAccountById(repositoryId, password.getUsername());
-            if (account == null) {
-                // don't leak user does not exists
-                throw new BadCredentialsException("invalid-key");
-            }
-
-            String username = account.getUsername();
+            // String userId = password.getUserId();
 
             //        HttpSession session = request.getSession(true);
             //        // user always needs to update password from here, if successful

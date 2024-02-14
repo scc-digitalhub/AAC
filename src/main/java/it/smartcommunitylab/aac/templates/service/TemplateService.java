@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.templates.service;
 
+import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchTemplateException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -45,10 +46,11 @@ public class TemplateService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // whitelist typography + links
-    private static final Safelist DEFAULT_WHITELIST = Safelist
-        .relaxed()
-        .removeTags("img")
-        .addEnforcedAttribute("a", "rel", "nofollow");
+    private static final Safelist DEFAULT_WHITELIST = Config.WHITELIST_RELAXED_NOIMG.addEnforcedAttribute(
+        "a",
+        "rel",
+        "nofollow"
+    );
 
     private final TemplateEntityService templateService;
 

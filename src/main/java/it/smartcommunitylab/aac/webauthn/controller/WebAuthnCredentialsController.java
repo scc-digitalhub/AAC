@@ -18,21 +18,21 @@ package it.smartcommunitylab.aac.webauthn.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.UserAccount;
-import it.smartcommunitylab.aac.core.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.RealmManager;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
-import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredential;
+import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
 import java.util.Collection;
 import java.util.Set;
@@ -125,7 +125,7 @@ public class WebAuthnCredentialsController {
         // NOTE: credentials are listed by user not account
         // TODO implement picker for account when more than one available
         String userId = user.getSubjectId();
-        Collection<WebAuthnUserCredential> credentials = service.listCredentialsByUser(userId);
+        Collection<WebAuthnUserCredential> credentials = service.listCredentials(userId);
         model.addAttribute("credentials", credentials);
 
         // build url
@@ -162,12 +162,13 @@ public class WebAuthnCredentialsController {
             }
 
             // check user matches
-            boolean matches = user
-                .getIdentities()
-                .stream()
-                .filter(i -> (i.getAccount() instanceof InternalUserAccount))
-                .map(i -> i.getAccount().getAccountId())
-                .anyMatch(u -> cred.getAccountId().equals(u));
+            boolean matches = user.getSubjectId().equals(cred.getUserId());
+            // boolean matches = user
+            //     .getIdentities()
+            //     .stream()
+            //     .filter(i -> (i.getAccount() instanceof InternalUserAccount))
+            //     .map(i -> i.getAccount().getAccountId())
+            //     .anyMatch(u -> cred.getAccountId().equals(u));
             if (!matches) {
                 throw new IllegalArgumentException("invalid credential");
             }

@@ -17,36 +17,46 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.provider.IdentityProvider;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.saml.SamlKeys;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
-import it.smartcommunitylab.aac.saml.service.SamlUserAccountService;
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.ArrayUtils;
+import javax.annotation.Nullable;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.AuthnContext;
+import org.opensaml.saml.saml2.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
-import org.springframework.security.saml2.provider.service.authentication.OpenSamlAuthenticationProvider;
+import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public class SamlAuthenticationProvider
@@ -55,16 +65,20 @@ public class SamlAuthenticationProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String SUBJECT_ATTRIBUTE = "subject";
-
+    private static final String ACR_ATTRIBUTE = "authnContextClassRef";
     private final UserAccountService<SamlUserAccount> accountService;
     private final SamlIdentityProviderConfig config;
     private final String repositoryId;
 
     private final String usernameAttributeName;
 
-    private final OpenSamlAuthenticationProvider openSamlProvider;
+    // let config set subject attribute name
+    private final String subAttributeName;
+
+    private final OpenSaml4AuthenticationProvider openSamlProvider;
 
     private String customMappingFunction;
+    protected String customAuthFunction;
     private ScriptExecutionService executionService;
 
     public SamlAuthenticationProvider(
@@ -98,15 +112,51 @@ public class SamlAuthenticationProvider
                 ? config.getConfigMap().getUserNameAttributeName()
                 : SUBJECT_ATTRIBUTE;
 
+        this.subAttributeName = config.getSubAttributeName();
+
         // build a default saml provider with a clock skew of 5 minutes
-        openSamlProvider = new OpenSamlAuthenticationProvider();
+        openSamlProvider = new OpenSaml4AuthenticationProvider();
         //        openSamlProvider.setAssertionValidator(OpenSamlAuthenticationProvider
         //                .createDefaultAssertionValidator(assertionToken -> {
         //                    Map<String, Object> params = new HashMap<>();
         //                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
         //                    return new ValidationContext(params);
         //                }));
+        Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultResponseAuthenticationConverterConverter =
+            OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+        openSamlProvider.setResponseAuthenticationConverter(responseToken -> {
+            // use default converter to pre-evaluate authentication, containing attributes and indexes
+            // then, extract AuthnContextClassRef from Assertion and include it as a custom attribute
+            Response response = responseToken.getResponse();
+            Saml2AuthenticationToken token = responseToken.getToken();
+            Saml2Authentication auth = defaultResponseAuthenticationConverterConverter.convert(responseToken);
+            Map<String, List<Object>> attributes = new HashMap<>(
+                ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
+            );
+            Object acrValue = extractAcrValue(response);
+            if (acrValue != null) {
+                attributes.put(ACR_ATTRIBUTE, Collections.singletonList(acrValue));
+            }
 
+            DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
+                auth.getName(),
+                attributes
+            );
+            if (auth.getPrincipal() instanceof DefaultSaml2AuthenticatedPrincipal) {
+                principal =
+                    new DefaultSaml2AuthenticatedPrincipal(
+                        auth.getName(),
+                        attributes,
+                        ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
+                    );
+            }
+
+            return new Saml2Authentication(
+                principal,
+                token.getSaml2Response(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+        });
         // TODO rework response converter to extract additional assertions as attributes
         //
         //        Converter<ResponseToken, Saml2Authentication> authenticationConverter = OpenSamlAuthenticationProvider
@@ -144,6 +194,10 @@ public class SamlAuthenticationProvider
 
     public void setCustomMappingFunction(String customMappingFunction) {
         this.customMappingFunction = customMappingFunction;
+    }
+
+    public void setCustomAuthFunction(String customAuthFunction) {
+        this.customAuthFunction = customAuthFunction;
     }
 
     @Override
@@ -197,8 +251,35 @@ public class SamlAuthenticationProvider
             // TODO wrap response token and erase credentials etc
             return auth;
         } catch (Saml2AuthenticationException e) {
+            logger.debug(
+                "exception occurred when authenticating with saml provider {}, error information {}, {}",
+                getProvider(),
+                e.getSaml2Error(),
+                e.getMessage()
+            );
             throw new SamlAuthenticationException(e.getSaml2Error(), e.getMessage(), null, saml2Response);
         }
+    }
+
+    private static @Nullable String extractAcrValue(Response response) {
+        Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+        if (assertion == null) {
+            return null;
+        }
+
+        AuthnContext authnContext = assertion
+            .getAuthnStatements()
+            .stream()
+            .filter(a -> a.getAuthnContext() != null)
+            .findFirst()
+            .map(a -> a.getAuthnContext())
+            .orElse(null);
+
+        if (authnContext == null) {
+            return null;
+        }
+
+        return authnContext.getAuthnContextClassRef().getURI();
     }
 
     @Override
@@ -212,11 +293,14 @@ public class SamlAuthenticationProvider
         // note we expect default behavior, if provider has a converter this will break
         Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
 
-        // upstream subject identifier
-        //        String subjectId = StringUtils.hasText(samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE))
-        //                ? samlDetails.getFirstAttribute(SUBJECT_ATTRIBUTE)
-        //                : samlDetails.getName();
-        String subjectId = samlDetails.getName();
+        // subjectId is optionally evaluated from an attribute defined in saml provider configurations
+        String subjectId = StringUtils.hasText(subAttributeName)
+            ? samlDetails.getFirstAttribute(subAttributeName)
+            : samlDetails.getName();
+        if (subjectId == null) {
+            logger.error("Failed to evaluate or obtain the subjectId in the the Saml2AuthenticatedPrincipal");
+            return null; // fail authentication
+        }
 
         // name is always available, by default is subjectId
         String name = samlDetails.getName();
@@ -240,38 +324,70 @@ public class SamlAuthenticationProvider
         user.setPrincipal(samlDetails);
 
         // custom attribute mapping
-        if (executionService != null && StringUtils.hasText(customMappingFunction)) {
-            try {
-                // get all attributes from principal except jwt attrs
-                // TODO handle all attributes not only strings.
-                Map<String, Serializable> principalAttributes = user
-                    .getAttributes()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null)
-                    .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                // execute script
-                Map<String, Serializable> customAttributes = executionService.executeFunction(
-                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                    customMappingFunction,
-                    principalAttributes
-                );
+        if (executionService != null) {
+            // get all attributes from principal
+            // TODO handle all attributes not only strings.
+            HashMap<String, Serializable> principalAttributes = new HashMap<>();
+            user
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
-                // update map
-                if (customAttributes != null) {
-                    // replace map
-                    principalAttributes =
+            //TODO build context with relevant info
+            HashMap<String, Serializable> contextAttributes = new HashMap<>();
+            contextAttributes.put("timestamp", Instant.now().getEpochSecond());
+            contextAttributes.put("errors", new ArrayList<Serializable>());
+
+            // evaluate authorization function
+            if (StringUtils.hasText(customAuthFunction)) {
+                try {
+                    // execute script
+                    Boolean authResult = executionService.executeFunction(
+                        IdentityProvider.AUTHORIZATION_FUNCTION,
+                        customAuthFunction,
+                        Boolean.class,
+                        principalAttributes,
+                        contextAttributes
+                    );
+
+                    if (authResult != null) {
+                        if (authResult.booleanValue() == false) {
+                            throw new SamlAuthenticationException(
+                                new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "unauthorized")
+                            );
+                        }
+                    }
+                } catch (SystemException | InvalidDefinitionException ex) {
+                    logger.debug("error executing authorize function via script: " + ex.getMessage());
+                }
+            }
+
+            // custom attribute mapping
+            if (StringUtils.hasText(customMappingFunction)) {
+                try {
+                    // execute script
+                    Map<String, Serializable> customAttributes = executionService.executeFunction(
+                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                        customMappingFunction,
+                        principalAttributes
+                    );
+
+                    // update map
+                    if (customAttributes != null) {
+                        // replace attributes
                         customAttributes
                             .entrySet()
                             .stream()
                             .filter(e -> e.getValue() != null)
                             .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
-                            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-                    user.setAttributes(principalAttributes);
+                            .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+                        user.setAttributes(principalAttributes);
+                    }
+                } catch (SystemException | InvalidDefinitionException ex) {
+                    logger.debug("error mapping principal attributes via script: " + ex.getMessage());
                 }
-            } catch (SystemException | InvalidDefinitionException ex) {
-                logger.debug("error mapping principal attributes via script: " + ex.getMessage());
             }
         }
 

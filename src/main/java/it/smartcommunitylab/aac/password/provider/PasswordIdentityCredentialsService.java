@@ -17,39 +17,48 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.InvalidDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
-import it.smartcommunitylab.aac.password.persistence.InternalUserPassword;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.model.InternalUserPassword;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriUtils;
 
 @Transactional
 public class PasswordIdentityCredentialsService extends AbstractProvider<InternalUserPassword> {
@@ -58,7 +67,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     private static final String STATUS_ACTIVE = CredentialsStatus.ACTIVE.getValue();
     private static final String STATUS_INACTIVE = CredentialsStatus.INACTIVE.getValue();
 
-    private final InternalPasswordUserCredentialsService passwordService;
+    private final InternalPasswordJpaUserCredentialsService passwordService;
     private final UserAccountService<InternalUserAccount> accountService;
 
     private final PasswordIdentityProviderConfig config;
@@ -67,6 +76,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     private PasswordHash hasher;
     private StringKeyGenerator keyGenerator;
 
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
     private ResourceEntityService resourceService;
@@ -74,7 +84,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
     public PasswordIdentityCredentialsService(
         String providerId,
         UserAccountService<InternalUserAccount> accountService,
-        InternalPasswordUserCredentialsService passwordService,
+        InternalPasswordJpaUserCredentialsService passwordService,
         PasswordIdentityProviderConfig config,
         String realm
     ) {
@@ -106,6 +116,10 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         this.hasher = hasher;
     }
 
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
+    }
+
     public void setMailService(MailService mailService) {
         this.mailService = mailService;
     }
@@ -118,33 +132,33 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         this.resourceService = resourceService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_CREDENTIALS;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_CREDENTIALS;
+    // }
 
-    @Transactional(readOnly = true)
-    public List<InternalUserPassword> findPassword(String username) throws NoSuchUserException {
-        InternalUserAccount account = accountService.findAccountById(repositoryId, username);
-        if (account == null) {
-            throw new NoSuchUserException();
-        }
+    // @Transactional(readOnly = true)
+    // public List<InternalUserPassword> findPassword(String username) throws NoSuchUserException {
+    //     InternalUserAccount account = accountService.findAccountById(repositoryId, username);
+    //     if (account == null) {
+    //         throw new NoSuchUserException();
+    //     }
 
-        // fetch all active passwords
-        return passwordService
-            .findCredentialsByAccount(repositoryId, username)
-            .stream()
-            .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
-            .map(p -> {
-                // map to ourselves
-                p.setProvider(getProvider());
+    //     // fetch all active passwords
+    //     return passwordService
+    //         .findCredentialsByAccount(repositoryId, username)
+    //         .stream()
+    //         .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
+    //         .map(p -> {
+    //             // map to ourselves
+    //             p.setProvider(getProvider());
 
-                // password are encrypted, but clear value for extra safety
-                p.eraseCredentials();
-                return p;
-            })
-            .collect(Collectors.toList());
-    }
+    //             // password are encrypted, but clear value for extra safety
+    //             p.eraseCredentials();
+    //             return p;
+    //         })
+    //         .collect(Collectors.toList());
+    // }
 
     public boolean verifyPassword(String username, String password) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
@@ -152,9 +166,11 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             throw new NoSuchUserException();
         }
 
-        // fetch ALL active + non expired credentials
+        // fetch ALL active + non expired credentials from same user
+        //NOTE: username in password should be dropped
+        String userId = account.getUserId();
         List<InternalUserPassword> credentials = passwordService
-            .findCredentialsByAccount(repositoryId, username)
+            .findCredentialsByUser(repositoryId, userId)
             .stream()
             .filter(c -> STATUS_ACTIVE.equals(c.getStatus()) && !c.isExpired())
             .collect(Collectors.toList());
@@ -171,15 +187,18 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
             });
     }
 
+    //TODO remove from here! credentials management should go via credentials services
     public InternalUserPassword resetPassword(String username) throws NoSuchUserException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
             throw new NoSuchUserException();
         }
         try {
-            // fetch first active password
+            // fetch first active password from same user
+            //NOTE: username in password should be dropped
+            String userId = account.getUserId();
             InternalUserPassword pass = passwordService
-                .findCredentialsByAccount(repositoryId, username)
+                .findCredentialsByUser(repositoryId, userId)
                 .stream()
                 .filter(c -> STATUS_ACTIVE.equals(c.getStatus()))
                 .findFirst()
@@ -192,13 +211,13 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                 String hash = hasher.createHash(value);
 
                 // create password already hashed
-                InternalUserPassword newPassword = new InternalUserPassword();
-                newPassword.setId(UUID.randomUUID().toString());
-                newPassword.setProvider(repositoryId);
+                String id = UUID.randomUUID().toString();
+                InternalUserPassword newPassword = new InternalUserPassword(getRealm(), id);
+                newPassword.setRepositoryId(repositoryId);
+                newPassword.setProvider(getProvider());
 
-                newPassword.setUsername(username);
-                newPassword.setUserId(account.getUserId());
-                newPassword.setRealm(account.getRealm());
+                // newPassword.setUsername(username);
+                newPassword.setUserId(userId);
 
                 newPassword.setPassword(hash);
                 newPassword.setChangeOnFirstAccess(true);
@@ -213,7 +232,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
                         SystemKeys.RESOURCE_CREDENTIALS,
                         getAuthority(),
                         getProvider(),
-                        pass.getResourceId()
+                        pass.getId()
                     );
                 }
             }
@@ -235,7 +254,7 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
 
             // send mail
             try {
-                sendResetMail(account, pass.getResetKey());
+                sendResetMail(account, pass.getResetKey(), pass.getResetDeadline());
             } catch (Exception e) {
                 logger.error(e.getMessage());
             }
@@ -381,49 +400,95 @@ public class PasswordIdentityCredentialsService extends AbstractProvider<Interna
         return pass;
     }
 
-    public void deletePassword(String username) throws NoSuchUserException {
-        // TODO add locking for atomic operation
-        logger.debug("delete all passwords for account {}", String.valueOf(username));
+    //DISABLED, management should happen via credentialsService!
+    // public void deletePassword(String userId, String username) throws NoSuchUserException {
+    //     // TODO add locking for atomic operation
+    //     logger.debug("delete all passwords for user {} username {}", String.valueOf(userId), String.valueOf(username));
 
-        // fetch all to collect ids
-        List<InternalUserPassword> passwords = passwordService.findCredentialsByAccount(repositoryId, username);
+    //     // fetch all to collect ids
+    //     List<InternalUserPassword> passwords = passwordService
+    //         .findCredentialsByUser(repositoryId, userId)
+    //         .stream()
+    //         .filter(p -> p.getUsername().equals(username))
+    //         .collect(Collectors.toList());
 
-        // delete in batch
-        Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
-        passwordService.deleteAllCredentials(repositoryId, ids);
+    //     // delete in batch
+    //     Set<String> ids = passwords.stream().map(p -> p.getId()).collect(Collectors.toSet());
+    //     passwordService.deleteAllCredentials(repositoryId, ids);
 
-        if (resourceService != null) {
-            // remove resources
-            try {
-                // delete in batch
-                Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
-                resourceService.deleteAllResourceEntities(uuids);
-            } catch (RuntimeException re) {
-                logger.error("error removing resources: {}", re.getMessage());
-            }
-        }
-    }
+    //     if (resourceService != null) {
+    //         // remove resources
+    //         try {
+    //             // delete in batch
+    //             Set<String> uuids = passwords.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
+    //             resourceService.deleteAllResourceEntities(uuids);
+    //         } catch (RuntimeException re) {
+    //             logger.error("error removing resources: {}", re.getMessage());
+    //         }
+    //     }
+    // }
 
     /*
      * Mail
      */
-    private void sendResetMail(InternalUserAccount account, String key) throws MessagingException {
+    private void sendResetMail(InternalUserAccount account, String key, Date expirationDate) throws MessagingException {
         if (mailService != null) {
             // action is handled by global filter
             String provider = getProvider();
-            String resetUrl = PasswordIdentityAuthority.AUTHORITY_URL + "doreset/" + provider + "?code=" + key;
+            String username = account.getUsername();
+            String resetUrl =
+                PasswordIdentityAuthority.AUTHORITY_URL +
+                "doreset/" +
+                provider +
+                "?username=" +
+                UriUtils.encodeQueryParam(username, StandardCharsets.UTF_8) +
+                "&code=" +
+                key;
             if (uriBuilder != null) {
                 resetUrl = uriBuilder.buildUrl(null, resetUrl);
             }
-
             Map<String, String> action = new HashMap<>();
             action.put("url", resetUrl);
             action.put("text", "action.reset");
 
+            Locale locale = account.getLang() != null
+                ? Locale.forLanguageTag(account.getLang())
+                : LocaleContextHolder.getLocale();
+            DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
+
+            Map<String, String> reset = new HashMap<>();
+            reset.put("username", username);
+            reset.put("key", key);
+            reset.put("expire", formatter.format(expirationDate));
+
+            String realm = getRealm();
+            String realmUrl = "";
+            String logoUrl = "";
+            if (uriBuilder != null) {
+                realmUrl = uriBuilder.buildUrl(realm, "/login");
+                logoUrl = uriBuilder.buildUrl(realm, "/logo");
+            }
+
+            Map<String, String> application = new HashMap<>();
+            application.put("name", realm);
+            application.put("url", realmUrl);
+            application.put("logo", logoUrl);
+            application.put("email", "");
+
+            if (realmService != null) {
+                Realm r = realmService.findRealm(realm);
+                if (r != null) {
+                    application.put("name", r.getName());
+                    application.put("email", Optional.ofNullable(r.getEmail()).orElse(""));
+                }
+            }
+
             Map<String, Object> vars = new HashMap<>();
             vars.put("user", account);
             vars.put("action", action);
+            vars.put("reset", reset);
             vars.put("realm", account.getRealm());
+            vars.put("application", application);
 
             String template = "reset";
             mailService.sendEmail(account.getEmail(), template, account.getLang(), vars);

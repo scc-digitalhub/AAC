@@ -21,28 +21,28 @@ import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.audit.AuditManager;
-import it.smartcommunitylab.aac.audit.RealmAuditEvent;
+import it.smartcommunitylab.aac.audit.model.RealmAuditEvent;
+import it.smartcommunitylab.aac.clients.ClientManager;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
-import it.smartcommunitylab.aac.core.ClientManager;
-import it.smartcommunitylab.aac.core.IdentityProviderManager;
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.UserManager;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.dto.RealmStats;
+import it.smartcommunitylab.aac.identity.IdentityProviderManager;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SpaceRoles;
-import it.smartcommunitylab.aac.oauth.endpoint.OAuth2MetadataEndpoint;
+import it.smartcommunitylab.aac.openid.endpoint.OpenIDMetadataEndpoint;
+import it.smartcommunitylab.aac.realms.RealmManager;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
 import it.smartcommunitylab.aac.services.ServicesManager;
+import it.smartcommunitylab.aac.users.MyUserManager;
+import it.smartcommunitylab.aac.users.UserManager;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -66,12 +66,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,6 +85,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.context.WebContext;
 
 @RestController
+@Validated
 @Hidden
 public class DevController {
 
@@ -131,7 +134,7 @@ public class DevController {
     private ServletContext servletContext;
 
     @Autowired
-    private OAuth2MetadataEndpoint oauth2MetadataEndpoint;
+    private OpenIDMetadataEndpoint openidMetadataEndpoint;
 
     @GetMapping("/dev")
     public ModelAndView developer() {
@@ -159,7 +162,7 @@ public class DevController {
     ) throws NoSuchRealmException {
         // hack
         // TODO render proper per realm meta
-        Map<String, Object> metadata = oauth2MetadataEndpoint.getAuthServerMetadata();
+        Map<String, Object> metadata = openidMetadataEndpoint.getConfiguration();
         return ResponseEntity.ok(metadata);
     }
 
@@ -243,7 +246,7 @@ public class DevController {
             bean.setEvents(auditManager.countRealmEvents(realm, null, after, null));
 
             bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
-            List<RealmAuditEvent> loginEvents = auditManager
+            List<AuditEvent> loginEvents = auditManager
                 .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null)
                 .stream()
                 .limit(5)
@@ -252,14 +255,14 @@ public class DevController {
                     Map<String, Object> d = new HashMap<>(e.getData());
                     d.remove("details");
 
-                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                    return new AuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), d);
                 })
                 .collect(Collectors.toList());
 
             bean.setLoginEvents(loginEvents);
 
             bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
-            List<RealmAuditEvent> registrationEvents = auditManager
+            List<AuditEvent> registrationEvents = auditManager
                 .findRealmEvents(realm, "USER_REGISTRATION", after, null)
                 .stream()
                 .limit(5)
@@ -268,7 +271,7 @@ public class DevController {
                     Map<String, Object> d = new HashMap<>(e.getData());
                     d.remove("details");
 
-                    return new RealmAuditEvent(e.getRealm(), e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                    return new AuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), d);
                 })
                 .collect(Collectors.toList());
             bean.setRegistrationEvents(registrationEvents);

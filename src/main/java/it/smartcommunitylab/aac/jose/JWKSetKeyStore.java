@@ -16,7 +16,7 @@
  * limitations under the License.
  *******************************************************************************/
 
- package it.smartcommunitylab.aac.jose;
+package it.smartcommunitylab.aac.jose;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;

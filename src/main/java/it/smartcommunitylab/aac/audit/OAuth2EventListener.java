@@ -96,13 +96,14 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
         String type = "OAUTH2_" + errorCode.toUpperCase();
 
         Map<String, Object> data = new HashMap<>();
+        data.put("realm", realm);
         data.put("error", errorCode);
         data.put("summary", exception.getSummary());
         data.put("message", exception.getMessage());
         data.put("info", exception.getAdditionalInformation());
 
         // build audit
-        RealmAuditEvent audit = new RealmAuditEvent(realm, Instant.now(), principal, type, data);
+        AuditEvent audit = new AuditEvent(Instant.now(), principal, type, data);
 
         // publish as event, listener will persist to store
         publish(audit);
@@ -125,13 +126,14 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
         String type = "OAUTH2_" + errorCode.toUpperCase();
 
         Map<String, Object> data = new HashMap<>();
+        data.put("realm", realm);
         data.put("error", errorCode);
         data.put("summary", exception.getSummary());
         data.put("message", exception.getMessage());
         data.put("info", exception.getAdditionalInformation());
 
         // build audit
-        RealmAuditEvent audit = new RealmAuditEvent(realm, Instant.now(), principal, type, data);
+        AuditEvent audit = new AuditEvent(Instant.now(), principal, type, data);
 
         // publish as event, listener will persist to store
         publish(audit);
@@ -171,7 +173,7 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             }
 
             // build audit
-            RealmAuditEvent audit = new RealmAuditEvent(realm, Instant.now(), principal, TOKEN_GRANT, data);
+            AuditEvent audit = new AuditEvent(Instant.now(), principal, TOKEN_GRANT, data);
 
             // publish as event, listener will persist to store
             publish(audit);

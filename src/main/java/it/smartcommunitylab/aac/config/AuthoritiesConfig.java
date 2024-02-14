@@ -16,22 +16,35 @@
 
 package it.smartcommunitylab.aac.config;
 
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
+import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
-import it.smartcommunitylab.aac.core.authorities.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.core.service.AccountServiceAuthorityService;
-import it.smartcommunitylab.aac.core.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.openid.OIDCAccountServiceAuthority;
-import it.smartcommunitylab.aac.openid.OIDCIdentityAuthority;
-import it.smartcommunitylab.aac.openid.persistence.OIDCUserAccount;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityConfigurationProvider;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfig;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
+import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
+import it.smartcommunitylab.aac.oidc.OIDCAccountServiceAuthority;
+import it.smartcommunitylab.aac.oidc.OIDCIdentityAuthority;
+import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 import java.util.Collection;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -43,6 +56,16 @@ import org.springframework.util.StringUtils;
 @Configuration
 @Order(12)
 public class AuthoritiesConfig {
+
+    @Value("${persistence.repository.providerConfig}")
+    private String providerConfigRepository;
+
+    @Autowired
+    @Qualifier("jdbcDataSource")
+    private DataSource jdbcDataSource;
+
+    @Autowired
+    private ProviderConfigEntityService providerConfigEntityService;
 
     @Autowired
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
@@ -58,7 +81,7 @@ public class AuthoritiesConfig {
 
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
-        Collection<IdentityProviderAuthority<?, ?, ?, ?>> authorities,
+        Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities,
         IdentityAuthoritiesProperties authsProps
     ) {
         // build a service with default from autowiring
@@ -77,16 +100,19 @@ public class AuthoritiesConfig {
                     // TODO refactor
 
                     if (authProp.getOidc() != null) {
+                        // build config repositories
+                        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
+                            buildProviderConfigRepository(OIDCIdentityProviderConfig.class, id);
+
                         // build oidc config provider
                         OIDCIdentityProviderConfigMap configMap = authProp.getOidc();
                         OIDCIdentityConfigurationProvider configProvider = new OIDCIdentityConfigurationProvider(
                             id,
+                            registrationRepository,
+                            authsProps.getSettings(),
                             configMap
                         );
 
-                        // build config repositories
-                        ProviderConfigRepository<OIDCIdentityProviderConfig> registrationRepository =
-                            new InMemoryProviderConfigRepository<>();
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                             id,
@@ -115,5 +141,18 @@ public class AuthoritiesConfig {
         }
 
         return service;
+    }
+
+    private <U extends AbstractProviderConfig<?, ?>> ProviderConfigRepository<U> buildProviderConfigRepository(
+        Class<U> clazz,
+        String authority
+    ) {
+        if ("jdbc".equals(providerConfigRepository)) {
+            return new AutoJDBCProviderConfigRepository<U>(jdbcDataSource, clazz, authority);
+        } else if ("jpa".equals(providerConfigRepository)) {
+            return new JpaProviderConfigRepository<U>(providerConfigEntityService, clazz);
+        }
+
+        return new InMemoryProviderConfigRepository<U>();
     }
 }

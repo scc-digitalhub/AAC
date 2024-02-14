@@ -36,8 +36,6 @@ import org.springframework.util.Assert;
 
 public class AutoJdbcAttributeStore {
 
-    private static final String DEFAULT_CREATE_TABLE_STATEMENT =
-        "CREATE TABLE IF NOT EXISTS attributes (entity_id VARCHAR(256), provider_id VARCHAR(256), attr_key VARCHAR(256), attr_value BLOB);";
     private static final String DEFAULT_SELECT_STATEMENT =
         "select attr_value from attributes where  provider_id = ? and entity_id = ? and attr_key = ?";
     private static final String DEFAULT_FIND_STATEMENT =
@@ -51,7 +49,6 @@ public class AutoJdbcAttributeStore {
     private static final String DEFAULT_CLEAR_STATEMENT =
         "delete from attributes where provider_id = ? and entity_id = ?";
 
-    private String createAttributesSql = DEFAULT_CREATE_TABLE_STATEMENT;
     private String selectAttributeSql = DEFAULT_SELECT_STATEMENT;
     private String findAttributesSql = DEFAULT_FIND_STATEMENT;
     private String insertAttributeSql = DEFAULT_INSERT_STATEMENT;
@@ -65,11 +62,6 @@ public class AutoJdbcAttributeStore {
     public AutoJdbcAttributeStore(DataSource dataSource) {
         Assert.notNull(dataSource, "DataSource required");
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        initSchema();
-    }
-
-    protected void initSchema() {
-        jdbcTemplate.execute(createAttributesSql);
     }
 
     public Serializable getAttribute(String providerId, String entityId, String key) {
@@ -136,10 +128,6 @@ public class AutoJdbcAttributeStore {
 
     public void clearAttributes(String providerId, String entityId) {
         jdbcTemplate.update(clearAttributeSql, providerId, entityId);
-    }
-
-    public void setCreateAttributesSql(String createAttributesSql) {
-        this.createAttributesSql = createAttributesSql;
     }
 
     public void setSelectAttributeSql(String selectAttributeSql) {

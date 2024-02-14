@@ -21,9 +21,6 @@ package it.smartcommunitylab.aac.core.model;
  */
 
 public interface ClientResource extends Resource {
+    //owner
     public String getClientId();
-
-    default String getProvider() {
-        return null;
-    }
 }

@@ -103,16 +103,14 @@ public class WebConfig implements WebMvcConfigurer {
         // configure a sane path mapping by disabling content negotiation via extensions
         // the default breaks every single mapping which receives a path ending with
         // '.x', like 'user.roles.me'
-        configurer//                .favorPathExtension(false) // disable path extension, as of 5.3 is false by default
-        .favorParameter(false);
+        configurer.favorParameter(false); //                .favorPathExtension(false) // disable path extension, as of 5.3 is false by default
 
         // add mediatypes
         configurer
             .ignoreAcceptHeader(false)
             .defaultContentType(MediaType.APPLICATION_JSON)
             .mediaType(MediaType.APPLICATION_JSON.getSubtype(), MediaType.APPLICATION_JSON)
-            .mediaType(SystemKeys.MEDIA_TYPE_YML.getSubtype(), SystemKeys.MEDIA_TYPE_YML)
-            .mediaType(SystemKeys.MEDIA_TYPE_YAML.getSubtype(), SystemKeys.MEDIA_TYPE_YAML);
+            .mediaType(SystemKeys.MEDIA_TYPE_APPLICATION_YAML.getSubtype(), SystemKeys.MEDIA_TYPE_APPLICATION_YAML);
     }
 
     /*
@@ -126,7 +124,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter yamlConverter = new MappingJackson2HttpMessageConverter(yamlObjectMapper);
-        yamlConverter.setSupportedMediaTypes(Arrays.asList(SystemKeys.MEDIA_TYPE_YML, SystemKeys.MEDIA_TYPE_YAML));
+        yamlConverter.setSupportedMediaTypes(
+            Arrays.asList(
+                SystemKeys.MEDIA_TYPE_APPLICATION_YAML,
+                SystemKeys.MEDIA_TYPE_TEXT_YAML,
+                SystemKeys.MEDIA_TYPE_APPLICATION_XYAML
+            )
+        );
         converters.add(yamlConverter);
     }
 

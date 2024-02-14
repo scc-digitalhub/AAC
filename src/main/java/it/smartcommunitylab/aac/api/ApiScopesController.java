@@ -17,21 +17,16 @@
 package it.smartcommunitylab.aac.api;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiScopesScope;
-import it.smartcommunitylab.aac.controller.BaseScopesController;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
+import it.smartcommunitylab.aac.scope.controller.BaseScopesController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @ApiSecurityTag(ApiScopesScope.SCOPE)
 @Tag(name = "Scopes", description = "Manage scopes")
-@RequestMapping(
-    value = "api",
-    consumes = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE },
-    produces = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE }
-)
+@ApiRequestMapping
 public class ApiScopesController extends BaseScopesController {
 
     /*

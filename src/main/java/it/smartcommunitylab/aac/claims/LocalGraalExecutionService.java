@@ -16,13 +16,16 @@
 
 package it.smartcommunitylab.aac.claims;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import delight.graaljssandbox.GraalSandbox;
 import delight.graaljssandbox.GraalSandboxes;
 import delight.nashornsandbox.exceptions.ScriptCPUAbuseException;
+import delight.nashornsandbox.internal.RemoveComments;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import java.io.IOException;
@@ -31,6 +34,8 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import javax.script.ScriptException;
@@ -44,7 +49,9 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
     private int maxMemory;
 
     // custom jackson configuration with typeReference
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .setSerializationInclusion(Include.NON_NULL);
     private final TypeReference<HashMap<String, Serializable>> typeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
 
@@ -89,6 +96,7 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         GraalSandbox sandbox = createSandbox();
         try {
             StringWriter writer = new StringWriter();
+            writer.append(CONSOLE_OVERRIDE);
             writer.append("data = ");
             mapper.writeValue(writer, input);
             writer.append(";");
@@ -96,13 +104,69 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append(function);
             writer.append(";");
             writer.append("\n");
-            writer.append("result = JSON.stringify(" + name + "(data))");
+            writer.append("result = JSON.stringify(" + name + "(data));");
+            writer.append("logs = JSON.stringify(_logs);");
 
-            String code = writer.toString();
+            String code = RemoveComments.perform(writer.toString());
             sandbox.eval(code);
-            String output = (String) sandbox.get("result");
 
+            String output = (String) sandbox.get("result");
             Map<String, Serializable> result = mapper.readValue(output, typeRef);
+            String logs = (String) sandbox.get("logs");
+
+            return result;
+        } catch (JsonGenerationException | JsonMappingException e) {
+            throw new InvalidDefinitionException(e.getMessage());
+        } catch (IOException e) {
+            throw new SystemException(e.getMessage());
+        } catch (ScriptCPUAbuseException | ScriptException e) {
+            throw new InvalidDefinitionException(e.getMessage());
+        } finally {
+            sandbox.getExecutor().shutdown();
+        }
+    }
+
+    @Override
+    public <T> T executeFunction(String name, String function, Class<T> clazz, Serializable... inputs)
+        throws InvalidDefinitionException, SystemException {
+        // TODO evaluate function syntax etc
+
+        // workaround for graal 19.2.1 and fat jars
+        // https://github.com/oracle/graal/issues/1348
+        try {
+            URL res =
+                com.oracle.js.parser.ScriptEnvironment.class.getClassLoader().getResource("/META-INF/truffle/language");
+            // initialize the file system for the language file
+            FileSystems.newFileSystem(res.toURI(), new HashMap<>());
+        } catch (Throwable ignored) {
+            // in case of starting without fat jar
+        }
+
+        GraalSandbox sandbox = createSandbox();
+        try {
+            StringWriter writer = new StringWriter();
+            writer.append(CONSOLE_OVERRIDE);
+
+            List<String> vars = new LinkedList<>();
+            for (int i = 0; i < inputs.length; i++) {
+                String v = "a" + i;
+                writer.append(v).append("=");
+                mapper.writeValue(writer, inputs[i]);
+                writer.append(";\n");
+                vars.add(v);
+            }
+
+            writer.append(function).append(";").append("\n");
+            writer.append("result = JSON.stringify(" + name + "(" + String.join(",", vars) + "));");
+            writer.append("logs = JSON.stringify(_logs);");
+
+            String code = RemoveComments.perform(writer.toString());
+            sandbox.eval(code);
+
+            String output = (String) sandbox.get("result");
+            T result = mapper.readValue(output, clazz);
+            String logs = (String) sandbox.get("logs");
+
             return result;
         } catch (JsonGenerationException | JsonMappingException e) {
             throw new InvalidDefinitionException(e.getMessage());
@@ -122,6 +186,21 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
         sandbox.setMaxMemory(maxMemory);
         sandbox.setMaxPreparedStatements(30); // because preparing scripts for execution is expensive
         sandbox.setExecutor(Executors.newSingleThreadExecutor());
+        sandbox.allowNoBraces(false);
+        sandbox.disallowAllClasses();
+        sandbox.allowPrintFunctions(false);
         return sandbox;
     }
+
+    private static final String CONSOLE_OVERRIDE =
+        "var _logs = [];\n" + //
+        "if (console) {\n" + //
+        "  for (let c of [\"log\", \"warn\", \"debug\", \"error\"]) {\n" + //
+        "    console[c] = function () {\n" + //
+        "      var line = { ...arguments };\n" + //
+        "      _logs.push(line);\n" + //
+        "    };\n" + //
+        "  }\n" + //
+        "}\n" + //
+        "";
 }

@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.oauth.service;
 
-import it.smartcommunitylab.aac.core.persistence.ClientEntity;
-import it.smartcommunitylab.aac.core.service.ClientEntityService;
+import it.smartcommunitylab.aac.clients.persistence.ClientEntity;
+import it.smartcommunitylab.aac.clients.service.ClientEntityService;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.persistence.OAuth2ClientEntity;

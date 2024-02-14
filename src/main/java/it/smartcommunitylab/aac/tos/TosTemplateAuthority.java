@@ -17,15 +17,16 @@
 package it.smartcommunitylab.aac.tos;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.authorities.TemplateProviderAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractSingleConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
+import it.smartcommunitylab.aac.templates.TemplateProviderAuthority;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfigurationProvider;
 import it.smartcommunitylab.aac.templates.provider.TemplateProviderConfigMap;
+import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.tos.provider.TosTemplateProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,9 @@ import org.springframework.util.Assert;
 
 @Service
 public class TosTemplateAuthority
-    extends AbstractSingleConfigurableProviderAuthority<TosTemplateProvider, TemplateModel, ConfigurableTemplateProvider, TemplateProviderConfigMap, RealmTemplateProviderConfig>
+    extends AbstractSingleConfigurableProviderAuthority<TosTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
     implements
-        TemplateProviderAuthority<TosTemplateProvider, TemplateModel, TemplateProviderConfigMap, RealmTemplateProviderConfig> {
+        TemplateProviderAuthority<TosTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
     // services
     private final TemplateService templateService;
@@ -54,10 +55,10 @@ public class TosTemplateAuthority
         this.templateService = templateService;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_TEMPLATE;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_TEMPLATE;
+    // }
 
     @Autowired
     public void setConfigProvider(RealmTemplateProviderConfigurationProvider configProvider) {
@@ -91,11 +92,12 @@ public class TosTemplateAuthority
                 RealmTemplateProviderConfig c = new RealmTemplateProviderConfig(
                     SystemKeys.AUTHORITY_TOS,
                     config.getProvider(),
-                    config.getRealm(),
-                    config.getConfigMap()
+                    config.getRealm()
                 );
-                c.setCustomStyle(config.getCustomStyle());
-                c.setLanguages(c.getLanguages());
+
+                c.setSettingsMap(config.getSettingsMap());
+                c.setConfigMap(config.getConfigMap());
+                c.setVersion(config.getVersion());
 
                 return c;
             });

@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.oauth2.sdk.ResponseType;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
@@ -61,7 +62,7 @@ public class OAuth2TestUtils {
     /*
      * Token helpers
      */
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private static final TypeReference<HashMap<String, Serializable>> typeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
 

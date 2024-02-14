@@ -17,19 +17,20 @@
 package it.smartcommunitylab.aac.password;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityAuthority;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
 import it.smartcommunitylab.aac.password.provider.PasswordFilterProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.password.service.InternalPasswordUserCredentialsService;
+import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
 
 @Service
 public class PasswordIdentityAuthority
-    extends AbstractIdentityAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+    extends AbstractIdentityProviderAuthority<PasswordIdentityProvider, InternalUserIdentity, PasswordIdentityProviderConfig, PasswordIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 
@@ -45,19 +46,20 @@ public class PasswordIdentityAuthority
     private final UserAccountService<InternalUserAccount> accountService;
 
     // password service
-    private final InternalPasswordUserCredentialsService passwordService;
+    private final InternalPasswordJpaUserCredentialsService passwordService;
 
     // filter provider
     private final PasswordFilterProvider filterProvider;
 
     // services
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
     private ResourceEntityService resourceService;
 
     public PasswordIdentityAuthority(
         UserAccountService<InternalUserAccount> userAccountService,
-        InternalPasswordUserCredentialsService passwordService,
+        InternalPasswordJpaUserCredentialsService passwordService,
         ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository
     ) {
         super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);
@@ -75,6 +77,11 @@ public class PasswordIdentityAuthority
     public void setConfigProvider(PasswordIdentityConfigurationProvider configProvider) {
         Assert.notNull(configProvider, "config provider is mandatory");
         this.configProvider = configProvider;
+    }
+
+    @Autowired
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 
     @Autowired
@@ -103,6 +110,7 @@ public class PasswordIdentityAuthority
         );
 
         // set services
+        idp.setRealmService(realmService);
         idp.setMailService(mailService);
         idp.setUriBuilder(uriBuilder);
         idp.setResourceService(resourceService);

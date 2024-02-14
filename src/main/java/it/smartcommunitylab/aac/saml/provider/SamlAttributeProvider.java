@@ -22,13 +22,13 @@ import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.OpenIdAttributesMapper;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
+import it.smartcommunitylab.aac.attributes.model.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityAttributeProvider;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityAttributeProvider;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -104,7 +104,9 @@ public class SamlAttributeProvider
 
         // override from account
         map.put(OpenIdAttributesSet.NAME, name);
-        map.put(OpenIdAttributesSet.FAMILY_NAME, surname);
+        if (StringUtils.hasText(surname)) {
+            map.put(OpenIdAttributesSet.FAMILY_NAME, surname);
+        }
         map.put(OpenIdAttributesSet.EMAIL, email);
         map.put(OpenIdAttributesSet.EMAIL_VERIFIED, account.isEmailVerified());
         map.put(OpenIdAttributesSet.PREFERRED_USERNAME, username);

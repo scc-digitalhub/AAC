@@ -18,17 +18,26 @@ package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
-import it.smartcommunitylab.aac.core.base.AbstractIdentityConfigurationProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PasswordIdentityConfigurationProvider
-    extends AbstractIdentityConfigurationProvider<PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+    extends AbstractIdentityConfigurationProvider<PasswordIdentityProviderConfig, PasswordIdentityProviderConfigMap> {
 
-    public PasswordIdentityConfigurationProvider(IdentityAuthoritiesProperties authoritiesProperties) {
-        super(SystemKeys.AUTHORITY_PASSWORD);
-        if (authoritiesProperties != null && authoritiesProperties.getPassword() != null) {
+    public PasswordIdentityConfigurationProvider(
+        ProviderConfigRepository<PasswordIdentityProviderConfig> registrationRepository,
+        IdentityAuthoritiesProperties authoritiesProperties
+    ) {
+        super(SystemKeys.AUTHORITY_PASSWORD, registrationRepository);
+        if (
+            authoritiesProperties != null &&
+            authoritiesProperties.getSettings() != null &&
+            authoritiesProperties.getPassword() != null
+        ) {
+            setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getPassword());
         } else {
             setDefaultConfigMap(new PasswordIdentityProviderConfigMap());
@@ -37,6 +46,10 @@ public class PasswordIdentityConfigurationProvider
 
     @Override
     protected PasswordIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new PasswordIdentityProviderConfig(cp, getConfigMap(cp.getConfiguration()));
+        return new PasswordIdentityProviderConfig(
+            cp,
+            getSettingsMap(cp.getSettings()),
+            getConfigMap(cp.getConfiguration())
+        );
     }
 }

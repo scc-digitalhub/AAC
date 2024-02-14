@@ -17,11 +17,11 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,10 +64,10 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
         this.repositoryId = providerId;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_SUBJECT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_SUBJECT;
+    // }
 
     @Transactional(readOnly = true)
     public Subject resolveBySubjectId(String subjectId) {
@@ -104,7 +104,7 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username {}", String.valueOf(username));
         SamlUserAccount account = accountService
-            .findAccountByUsername(repositoryId, username)
+            .findAccountsByUsername(repositoryId, username)
             .stream()
             .findFirst()
             .orElse(null);
@@ -125,7 +125,7 @@ public class SamlSubjectResolver extends AbstractProvider<SamlUserAccount> imple
 
         logger.debug("resolve by email {}", String.valueOf(email));
         SamlUserAccount account = accountService
-            .findAccountByEmail(repositoryId, email)
+            .findAccountsByEmail(repositoryId, email)
             .stream()
             .filter(a -> a.isEmailVerified())
             .findFirst()

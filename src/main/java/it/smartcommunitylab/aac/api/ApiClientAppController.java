@@ -17,24 +17,19 @@
 package it.smartcommunitylab.aac.api;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.api.scopes.ApiClientAppScope;
-import it.smartcommunitylab.aac.controller.BaseClientAppController;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
+import it.smartcommunitylab.aac.clients.controller.BaseClientAppController;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 /*
  * API controller for clientApp
  */
 @RestController
+@Validated
 @ApiSecurityTag(ApiClientAppScope.SCOPE)
 @Tag(name = "Client apps", description = "Manage client applications and their configuration")
-@RequestMapping(
-    value = "api",
-    consumes = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE },
-    produces = { MediaType.APPLICATION_JSON_VALUE, SystemKeys.MEDIA_TYPE_XYAML_VALUE }
-)
+@ApiRequestMapping
 public class ApiClientAppController extends BaseClientAppController {
 
     /*

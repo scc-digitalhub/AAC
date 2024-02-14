@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.utils;
 
 import it.smartcommunitylab.aac.config.ApplicationProperties;
-import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -72,11 +72,20 @@ public class MailService {
     @Value("${mail.protocol}")
     private String mailProtocol;
 
+    @Value("${mail.sender}")
+    private String mailFrom;
+
+    @Value("${mail.start-tls}")
+    private boolean enableStartTls;
+
+    @Value("${mail.debug}")
+    private boolean enableDebug;
+
     @Autowired
     private ApplicationProperties appProps;
 
-    @Value("classpath:/javamail.properties")
-    private org.springframework.core.io.Resource mailProps;
+    // @Value("classpath:/javamail.properties")
+    // private org.springframework.core.io.Resource mailProps;
 
     @Resource(name = "messageSource")
     private MessageSource messageSource;
@@ -95,16 +104,23 @@ public class MailService {
 
     @PostConstruct
     public void init() throws IOException {
+        Properties props = new Properties();
+
         mailSender.setHost(mailHost);
         mailSender.setPort(mailPort);
         mailSender.setProtocol(mailProtocol);
         if (StringUtils.hasText(mailPwd) && StringUtils.hasText(mailUser)) {
             mailSender.setPassword(mailPwd);
             mailSender.setUsername(mailUser);
+            props.setProperty("mail.smtp.auth", String.valueOf(true));
+        }
+        if (enableDebug) {
+            props.setProperty("mail.debug", String.valueOf(enableDebug));
+        }
+        if (enableStartTls) {
+            props.setProperty("mail.smtp.starttls.enable", String.valueOf(enableStartTls));
         }
 
-        Properties props = new Properties();
-        props.load(mailProps.getInputStream());
         mailSender.setJavaMailProperties(props);
     }
 
@@ -117,7 +133,8 @@ public class MailService {
 
         final Context ctx = new Context();
         Locale locale = lang != null ? Locale.forLanguageTag(lang) : Locale.forLanguageTag(appProps.getLang());
-        Realm realm = new Realm("", appProps.getName());
+        Realm realm = new Realm("");
+        realm.setName(appProps.getName());
 
         // build logo path
         String applicationLogo = appProps.getUrl() + "/logo";
@@ -166,7 +183,7 @@ public class MailService {
         String subjectText = realm.getName() + ": " + subject;
         message.setSubject(subjectText);
         try {
-            message.setFrom(mailUser, appProps.getEmail());
+            message.setFrom(mailFrom, appProps.getEmail());
         } catch (UnsupportedEncodingException | MessagingException e) {
             throw new MessagingException("invalid-mail-sender");
         }

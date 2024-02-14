@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+  <head th:fragment="header"> </head>
+
+  <body>
+    <div th:fragment="login">
+      <p
+        th:if="${authority.getDescription(#locale.language) != null}"
+        th:text="${authority.getDescription(#locale.language)}"
+      ></p>
+
+      <!-- no entries, default button with no action -->
+      <div th:if="${authority.entries.size() == 0}">
+        <a
+          class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login login-cie"
+          th:classAppend="${authority.cssClass}"
+          onclick=""
+        >
+          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
+            <svg class="icon icon-white icon-sm">
+              <use th:xlink:href="@{/svg/sprite-italia.svg#logo-cie-id}"></use>
+            </svg>
+          </span>
+          <span class="text-white btn-login-text" th:text="#{cie.login_button}"></span>
+        </a>
+      </div>
+
+      <!-- single entry, show direct button  -->
+      <div
+        th:if="${authority.entries.size() == 1}"
+        th:with="entry=${authority.entries.get(0)}"
+      >
+        <a
+          class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login login-cie"
+          th:classAppend="${authority.cssClass}"
+          th:href="${entry.loginUrl}"
+        >
+          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
+            <svg class="icon icon-white icon-sm">
+              <use th:xlink:href="@{/svg/sprite-italia.svg#logo-cie-id}"></use>
+            </svg>
+          </span>
+          <span class="text-white btn-login-text" th:text="#{cie.login_button}"></span>
+        </a>
+      </div>
+
+      <!-- multiple entries, dropdown button -->
+      <div th:if="${authority.entries.size() > 1}">
+        <a
+          th:each="entry: ${authority.entries}"
+          class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login login-cie"
+          th:classAppend="${authority.cssClass}"
+          th:href="${entry.loginUrl}"
+        >
+          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
+            <svg class="icon icon-white icon-sm">
+              <use th:xlink:href="@{/svg/sprite-italia.svg#logo-cie-id}"></use>
+            </svg>
+          </span>
+          <span class="text-white btn-login-text" th:text="#{cie.login_button}"></span>
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

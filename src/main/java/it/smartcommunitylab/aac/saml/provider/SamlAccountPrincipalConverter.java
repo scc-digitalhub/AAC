@@ -17,15 +17,16 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.SamlAttributesSet;
 import it.smartcommunitylab.aac.attributes.mapper.SamlAttributesMapper;
-import it.smartcommunitylab.aac.core.base.AbstractProvider;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AccountPrincipalConverter;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
+import it.smartcommunitylab.aac.base.provider.AbstractProvider;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
+import it.smartcommunitylab.aac.saml.SamlKeys;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.persistence.SamlUserAccount;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,10 +83,10 @@ public class SamlAccountPrincipalConverter
         this.samlMapper = new SamlAttributesMapper();
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     @Override
     public SamlUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
@@ -103,7 +104,13 @@ public class SamlAccountPrincipalConverter
 
         // attributes from provider
         String username = principal.getUsername();
-        Map<String, Serializable> attributes = principal.getAttributes();
+        //filter saml attributes to keep only user attributes
+        Map<String, Serializable> attributes = principal
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
         // map attributes to saml set and flatten to string
         // we also clean every attribute and allow only plain text
@@ -142,13 +149,11 @@ public class SamlAccountPrincipalConverter
         }
 
         // build model from scratch
-        SamlUserAccount account = new SamlUserAccount(getAuthority());
+        // NOTE: this is detached and thus has NO id
+        SamlUserAccount account = new SamlUserAccount(getAuthority(), getProvider(), getRealm(), null);
         account.setRepositoryId(repositoryId);
-        account.setProvider(getProvider());
-
         account.setSubjectId(subjectId);
         account.setUserId(userId);
-        account.setRealm(getRealm());
 
         account.setUsername(username);
         account.setIssuer(issuer);

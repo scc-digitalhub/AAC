@@ -17,8 +17,9 @@
 package it.smartcommunitylab.aac.saml.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractAccountServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.base.AbstractAccountServiceConfig;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 
 public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlIdentityProviderConfigMap> {
 
@@ -37,13 +38,30 @@ public class SamlAccountServiceConfig extends AbstractAccountServiceConfig<SamlI
     }
 
     public SamlAccountServiceConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm, new SamlIdentityProviderConfigMap());
+        super(authority, provider, realm, new AccountServiceSettingsMap(), new SamlIdentityProviderConfigMap());
     }
 
-    public SamlAccountServiceConfig(ConfigurableAccountProvider cp, SamlIdentityProviderConfigMap configMap) {
-        super(cp, configMap);
+    public SamlAccountServiceConfig(
+        ConfigurableAccountService cp,
+        AccountServiceSettingsMap settingsMap,
+        SamlIdentityProviderConfigMap configMap
+    ) {
+        super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private SamlAccountServiceConfig() {
+        super();
+    }
+
+    @Override
     public String getRepositoryId() {
         // not configurable for now
         return getProvider();

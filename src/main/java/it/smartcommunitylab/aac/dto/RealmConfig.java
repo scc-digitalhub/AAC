@@ -20,14 +20,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import it.smartcommunitylab.aac.core.base.AbstractAccount;
-import it.smartcommunitylab.aac.core.base.AbstractUserCredentials;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableTemplateProvider;
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
+import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -46,6 +46,7 @@ public class RealmConfig {
     // providers config
     private List<ConfigurableIdentityProvider> identityProviders;
     private List<ConfigurableAttributeProvider> attributeProviders;
+    private ConfigurableIdentityProvider idp;
     private ConfigurableTemplateProvider templates;
 
     // services
@@ -55,7 +56,7 @@ public class RealmConfig {
     private List<ClientApp> clientApps;
 
     // user accounts
-    private List<AbstractAccount> users;
+    private List<AbstractUserAccount> users;
 
     // credentials
     private List<AbstractUserCredentials> credentials;
@@ -115,11 +116,11 @@ public class RealmConfig {
         this.clientApps = clientApps;
     }
 
-    public List<AbstractAccount> getUsers() {
+    public List<AbstractUserAccount> getUsers() {
         return users;
     }
 
-    public void setUsers(List<AbstractAccount> users) {
+    public void setUsers(List<AbstractUserAccount> users) {
         this.users = users;
     }
 
@@ -129,5 +130,13 @@ public class RealmConfig {
 
     public void setCredentials(List<AbstractUserCredentials> credentials) {
         this.credentials = credentials;
+    }
+
+    public ConfigurableIdentityProvider getIdp() {
+        return idp;
+    }
+
+    public void setIdp(ConfigurableIdentityProvider idp) {
+        this.idp = idp;
     }
 }

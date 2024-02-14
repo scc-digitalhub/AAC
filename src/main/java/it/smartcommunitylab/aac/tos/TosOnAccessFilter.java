@@ -17,18 +17,14 @@
 package it.smartcommunitylab.aac.tos;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.MyUserManager;
-import it.smartcommunitylab.aac.core.RealmManager;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.service.RealmService;
-import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.tos.controller.TosController;
+import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -51,9 +47,7 @@ import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.WebUtils;
 
 public class TosOnAccessFilter extends OncePerRequestFilter {
 
@@ -77,8 +71,8 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
     private final RealmService realmService;
     private final UserService userService;
 
-    private static final String TOS_APRROVED = "Approve";
-    private static final String TOS_REFUSED = "Refuse";
+    public static final String TOS_APRROVED = "accept";
+    public static final String TOS_REFUSED = "reject";
     private static final String TOS_STATUS = "termsStatus";
 
     public TosOnAccessFilter(RealmService realmService, UserService userService) {

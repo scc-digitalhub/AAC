@@ -31,11 +31,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.Filter;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationRequestContext;
 import org.springframework.util.Assert;
 
-public class SamlFilterProvider implements FilterProvider {
+public class SamlFilterProvider implements FilterProvider, ApplicationEventPublisherAware {
 
     private final String authorityId;
 
@@ -43,6 +45,7 @@ public class SamlFilterProvider implements FilterProvider {
     private final SamlRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
     private AuthenticationManager authManager;
+    private ApplicationEventPublisher eventPublisher;
 
     public SamlFilterProvider(
         String authorityId,
@@ -68,6 +71,11 @@ public class SamlFilterProvider implements FilterProvider {
     }
 
     @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    @Override
     public List<Filter> getAuthFilters() {
         // build request repository bound to session
         Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
@@ -80,6 +88,7 @@ public class SamlFilterProvider implements FilterProvider {
             relyingPartyRegistrationRepository,
             buildFilterUrl("authenticate/{registrationId}")
         );
+        requestFilter.setApplicationEventPublisher(eventPublisher);
         requestFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
 
         SamlWebSsoAuthenticationFilter ssoFilter = new SamlWebSsoAuthenticationFilter(

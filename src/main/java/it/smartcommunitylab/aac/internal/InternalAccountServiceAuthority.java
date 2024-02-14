@@ -17,23 +17,26 @@
 package it.smartcommunitylab.aac.internal;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.authorities.AccountServiceAuthority;
-import it.smartcommunitylab.aac.core.base.AbstractProviderAuthority;
+import it.smartcommunitylab.aac.accounts.AccountServiceAuthority;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.base.authorities.AbstractProviderAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.UserEntityService;
 import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountService;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfig;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,9 +44,9 @@ import org.springframework.util.Assert;
 
 @Service
 public class InternalAccountServiceAuthority
-    extends AbstractProviderAuthority<InternalAccountService, InternalUserAccount, ConfigurableAccountProvider, InternalIdentityProviderConfigMap, InternalAccountServiceConfig>
+    extends AbstractProviderAuthority<InternalAccountService, InternalAccountServiceConfig>
     implements
-        AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
+        AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalEditableUserAccount, InternalAccountServiceConfig, InternalIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 
@@ -55,6 +58,7 @@ public class InternalAccountServiceAuthority
     private final UserAccountService<InternalUserAccount> accountService;
     private final InternalUserConfirmKeyService confirmKeyService;
 
+    private RealmService realmService;
     private MailService mailService;
     private RealmAwareUriBuilder uriBuilder;
 
@@ -78,6 +82,11 @@ public class InternalAccountServiceAuthority
     }
 
     @Autowired
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
+    }
+
+    @Autowired
     public void setMailService(MailService mailService) {
         this.mailService = mailService;
     }
@@ -87,10 +96,10 @@ public class InternalAccountServiceAuthority
         this.uriBuilder = uriBuilder;
     }
 
-    @Override
-    public String getType() {
-        return SystemKeys.RESOURCE_ACCOUNT;
-    }
+    // @Override
+    // public String getType() {
+    //     return SystemKeys.RESOURCE_ACCOUNT;
+    // }
 
     protected InternalAccountService buildProvider(InternalAccountServiceConfig config) {
         InternalAccountService service = new InternalAccountService(
@@ -102,6 +111,7 @@ public class InternalAccountServiceAuthority
             config.getRealm()
         );
 
+        service.setRealmService(realmService);
         service.setMailService(mailService);
         service.setUriBuilder(uriBuilder);
         service.setResourceService(resourceService);
@@ -118,5 +128,10 @@ public class InternalAccountServiceAuthority
             super(externalRepository);
             setConverter(new InternalAccountServiceConfigConverter());
         }
+    }
+
+    @Override
+    public ConfigurationProvider<InternalAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, InternalIdentityProviderConfigMap> getConfigurationProvider() {
+        return null;
     }
 }

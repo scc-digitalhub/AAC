@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.webauthn.service;
 
-import it.smartcommunitylab.aac.core.provider.UserAccountService;
-import it.smartcommunitylab.aac.internal.persistence.InternalUserAccount;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -32,6 +32,7 @@ public class WebAuthnUserHandleService {
     }
 
     public String getUserHandleForUsername(String repositoryId, String username) {
+        System.out.println("get handle for " + username);
         InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
         if (account == null) {
             return null;
@@ -46,6 +47,8 @@ public class WebAuthnUserHandleService {
     }
 
     public String getUsernameForUserHandle(String repositoryId, String userHandle) {
+        System.out.println("get username for " + userHandle);
+
         // userHandle is uuid
         InternalUserAccount account = userAccountService.findAccountByUuid(userHandle);
         if (account == null) {

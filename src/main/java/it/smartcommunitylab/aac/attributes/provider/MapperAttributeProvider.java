@@ -17,20 +17,18 @@
 package it.smartcommunitylab.aac.attributes.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeProvider;
 import it.smartcommunitylab.aac.attributes.mapper.BaseAttributesMapper;
 import it.smartcommunitylab.aac.attributes.mapper.DefaultAttributesMapper;
 import it.smartcommunitylab.aac.attributes.mapper.ExactAttributesMapper;
+import it.smartcommunitylab.aac.attributes.model.Attribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeSet;
+import it.smartcommunitylab.aac.attributes.model.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.core.base.AbstractConfigurableProvider;
-import it.smartcommunitylab.aac.core.base.DefaultUserAttributesImpl;
-import it.smartcommunitylab.aac.core.model.Attribute;
-import it.smartcommunitylab.aac.core.model.AttributeSet;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.core.provider.AttributeProvider;
+import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -46,8 +44,7 @@ import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 public class MapperAttributeProvider
-    extends AbstractConfigurableProvider<UserAttributes, ConfigurableAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig>
-    implements AttributeProvider<MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
+    extends AbstractAttributeProvider<DefaultUserAttributesImpl, MapperAttributeProviderConfig, MapperAttributeProviderConfigMap> {
 
     // services
     private final AttributeService attributeService;
@@ -60,8 +57,7 @@ public class MapperAttributeProvider
         MapperAttributeProviderConfig providerConfig,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_MAPPER, providerId, realm, providerConfig);
-        Assert.notNull(config, "provider config is mandatory");
+        super(SystemKeys.AUTHORITY_MAPPER, providerId, attributeService, providerConfig, realm);
         Assert.notNull(attributeService, "attribute service is mandatory");
         Assert.notNull(attributeStore, "attribute store is mandatory");
 

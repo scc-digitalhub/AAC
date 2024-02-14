@@ -10,7 +10,7 @@ server:
       protocol_header: ${SERVER_TOMCAT_PROTOCOL_HEADER:x-forwarded-proto}
    max-http-header-size: 32000     
    error:
-      include-stacktrace: ON_PARAM   
+      include-stacktrace: never
 
 # APPLICATION EXTERNAL URL
 application:
@@ -29,6 +29,7 @@ jdbc:
    user: ${JDBC_USER:ac}
    password: ${JDBC_PASS:ac}
    show-sql: false
+   initialize-schema: always
    
 persistence:
    repository:
@@ -94,9 +95,18 @@ jwt:
       includeInternalRoles: false
       includeResourceRoles: false
 
+# AUDIT
+audit:
+   issuer: ${AUDIT_ISSUER:${application.url}}
+   kid:
+      sig: ${AUDIT_KID_SIG:}         
+      enc: ${AUDIT_KID_ENC:}
+
 #EXTERNAL PROVIDERS
 authorities:
   account:
+     settings:
+        persistence: repository
      internal:
         confirmationValidity: 86400
         enableDelete: true
@@ -119,6 +129,9 @@ authorities:
         allowUntrustedAttestation: true
         registrationTimeout: 30
   identity:
+     settings:
+        linkable: true
+        persistence: repository
      internal:
         enableDelete: true
         maxSessionDuration: 86400
@@ -192,50 +205,16 @@ authorities:
 providers:
   identity:
     - provider: google
-      authority: oidc
+      authority: google
       type: identity
       name: Google
+      enabled: ${IDP_GOOGLE_ENABLE:false}
       configuration:
-          enable: ${IDP_GOOGLE_ENABLE:false}
           clientName: Google
           clientId: ${IDP_GOOGLE_CLIENT_ID}
           clientSecret: ${IDP_GOOGLE_CLIENT_SECRET}
-          clientAuthenticationMethod: client_secret_basic
-          scope: openid,profile,email
-          authorizationUri: https://accounts.google.com/o/oauth2/v2/auth
-          tokenUri: https://www.googleapis.com/oauth2/v4/token
-          jwkSetUri: https://www.googleapis.com/oauth2/v3/certs
-          issuerUri: https://accounts.google.com
-          userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
-          userNameAttributeName: email
   attributes:
-  templates:
-    internal:
-    saml:
-    oidc:
-      - clientName: Google
-        clientAuthenticationMethod: client_secret_basic
-        scope: openid,profile,email
-        authorizationUri: https://accounts.google.com/o/oauth2/v2/auth
-        tokenUri: https://www.googleapis.com/oauth2/v4/token
-        jwkSetUri: https://www.googleapis.com/oauth2/v3/certs
-        issuerUri: https://accounts.google.com
-        userInfoUri: https://www.googleapis.com/oauth2/v3/userinfo
-        userNameAttributeName: email
-      - clientName: Facebook
-        clientAuthenticationMethod: client_secret_post      
-        scope: public_profile,email
-        authorizationUri: https://www.facebook.com/v2.8/dialog/oauth
-        tokenUri: https://graph.facebook.com/v2.8/oauth/access_token
-        userInfoUri: https://graph.facebook.com/me?fields=id,name,email
-        userNameAttributeName: id
-      - clientName: GitHub
-        clientAuthenticationMethod: client_secret_basic      
-        scope: read:user
-        authorizationUri: https://github.com/login/oauth/authorize
-        tokenUri: https://github.com/login/oauth/access_token
-        userInfoUri: https://api.github.com/user
-        userNameAttributeName: id        
+    
 
 attributesets:
   sets:
@@ -282,6 +261,9 @@ mail:
    host: ${MAIL_HOST:localhost}
    port: ${MAIL_PORT:25}
    protocol: ${MAIL_PROTOCOL:smtp}
+   sender: ${MAIL_SENDER:${mail.username}}
+   start-tls: ${MAIL_TLS:false}
+   debug: ${MAIL_DEBUG:false}
 
 api:
    clients:

@@ -19,19 +19,20 @@ package it.smartcommunitylab.aac.claims;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.openid.connect.sdk.claims.IDTokenClaimsSet;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.model.UserAttributes;
-import it.smartcommunitylab.aac.core.service.UserService;
 import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,16 +82,15 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     private UserService userService;
 
     // object mapper
-    private final ObjectMapper mapper = new ObjectMapper();
-    //    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<HashMap<String, String>>() {
-    //    };
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .setSerializationInclusion(Include.NON_EMPTY);
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
 
     public DefaultClaimsService(ExtractorsRegistry extractorsRegistry) {
         Assert.notNull(extractorsRegistry, "extractors registry is mandatory");
         this.extractorsRegistry = extractorsRegistry;
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
     }
 
     public void setExecutionService(ScriptExecutionService executionService) {

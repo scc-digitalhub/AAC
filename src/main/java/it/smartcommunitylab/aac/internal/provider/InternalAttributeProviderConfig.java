@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.internal.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
-import it.smartcommunitylab.aac.core.base.AbstractAttributeProviderConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.base.AbstractAttributeProviderConfig;
+import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 
 public class InternalAttributeProviderConfig
     extends AbstractAttributeProviderConfig<InternalAttributeProviderConfigMap> {
@@ -29,14 +29,21 @@ public class InternalAttributeProviderConfig
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + InternalAttributeProviderConfigMap.RESOURCE_TYPE;
 
     public InternalAttributeProviderConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_INTERNAL, provider, realm, new InternalAttributeProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_INTERNAL,
+            provider,
+            realm,
+            new AttributeProviderSettingsMap(),
+            new InternalAttributeProviderConfigMap()
+        );
     }
 
     public InternalAttributeProviderConfig(
         ConfigurableAttributeProvider cp,
+        AttributeProviderSettingsMap settingsMap,
         InternalAttributeProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
     }
 
     public boolean isUsermode() {
@@ -51,6 +58,6 @@ public class InternalAttributeProviderConfig
      */
     @SuppressWarnings("unused")
     private InternalAttributeProviderConfig() {
-        super(SystemKeys.AUTHORITY_INTERNAL, (String) null, (String) null, new InternalAttributeProviderConfigMap());
+        super();
     }
 }

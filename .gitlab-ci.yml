@@ -33,7 +33,8 @@ update-backend-cache-image:
     - docker build -f Dockerfile-cache -t $CONTAINER_CACHE_IMAGE .
     - docker push $CONTAINER_CACHE_IMAGE
   rules:
-    - changes:
+    - if: $CI_COMMIT_REF_NAME == "5.x"
+      changes:
       - pom.xml
       - user-console/yarn.lock
       - user-console/package.json
@@ -56,7 +57,7 @@ backend-container-build:
     - docker push $CONTAINER_IMAGE
     - docker push $CONTAINER_IMAGE_LATEST
   only:
-    - 4.x
+    - 5.x
     - 4.x-platform
     - master
 
@@ -80,6 +81,10 @@ gemnasium-dependency_scanning:
   rules:
      - if: '$CI_COMMIT_REF_NAME == "master"'
 
+gemnasium-python-dependency_scanning:
+  rules:
+     - if: '$CI_COMMIT_REF_NAME == "master"'
+
 container_scanning:
   stage: test
   variables:
@@ -97,13 +102,13 @@ deploy-dev:
   stage: deploy
   image: smartcommunitylab/kubectl-alpine:latest
   environment:
-    name: platform-new
+    name: dslab
   script:
     - echo "deploy backend"
     - kubectl -n aac-dev set image deployments/aac-dev aac=$CONTAINER_IMAGE --record=true
     - kubectl -n aac-dev rollout status deployment aac-dev
   only:
-    - 4.x
+    - 5.x
 
 deploy-dslab:
   stage: deploy

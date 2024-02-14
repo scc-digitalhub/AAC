@@ -4,7 +4,7 @@
        <legend class="mb-4">Attribute Sets</legend>
        <div ng-if="attributeSets && attributeSets.length > 0">
            <table class="table table-hover border-bottom">
-               <tr ng-repeat="item in attributeSets" class="{{ap.attributeSets.includes(item.identifier) ? '' : 'text-muted'}}">
+               <tr ng-repeat="item in attributeSets" class="{{ap.settings.attributeSets.includes(item.identifier) ? '' : 'text-muted'}}">
                    <td class="align-middle">
                        <span class="h6">{{item.name}}</span> <br>
                        <small class="text-muted"> {{item.identifier }}</small>
@@ -13,7 +13,7 @@
                    <td class="text-right">
                      <div class="toggles">
                          <label>
-                             <input type="checkbox" ng-checked="ap.attributeSets.includes(item.identifier)" ng-click="toggleProviderAttributeSet(item)">
+                             <input type="checkbox" ng-checked="ap.settings.attributeSets.includes(item.identifier)" ng-click="toggleProviderAttributeSet(item)">
                              <span class="lever"></span>
                          </label>
                      </div>                      

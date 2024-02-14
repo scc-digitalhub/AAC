@@ -16,8 +16,10 @@
 
 package it.smartcommunitylab.aac.oauth.flow;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
@@ -35,7 +37,9 @@ import org.springframework.util.StringUtils;
 
 public class ScriptOAuthFlowExtensions implements OAuthFlowExtensions {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .setSerializationInclusion(Include.NON_NULL);
     private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
     private final TypeReference<HashMap<String, String>> stringMapTypeRef =

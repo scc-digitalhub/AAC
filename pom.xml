@@ -4,24 +4,28 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab</groupId>
 	<artifactId>aac</artifactId>
-	<version>4.3.0-SNAPSHOT</version>
+	<version>5.0.2-SNAPSHOT</version>
 	<name>aac</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.6</version>
+		<version>2.7.18</version>
 	</parent>
 
 	<properties>
 		<java.version>17</java.version>
-		<bouncycastle.version>1.71</bouncycastle.version>
-		<springdoc.version>1.6.9</springdoc.version>
-		<jsoup.version>1.15.3</jsoup.version>
+		<bouncycastle.version>1.74</bouncycastle.version>
+		<springdoc.version>1.6.15</springdoc.version>
+		<jsoup.version>1.17.2</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
-		<jsonschema.version>4.28.0</jsonschema.version>
+		<jsonschema.version>4.33.1</jsonschema.version>
 		<node.version>v16.15.0</node.version>
 		<yarn.version>v1.21.1</yarn.version>
+		<postgresql.version>42.7.1</postgresql.version>
+		<mysql.version>8.3.0</mysql.version>
+		<mariadb.version>3.3.2</mariadb.version>
+		<opensaml.version>4.1.1</opensaml.version>
 		<profile.authorization />
 	</properties>
 
@@ -36,6 +40,24 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.opensaml</groupId>
+			<artifactId>opensaml-core</artifactId>
+			<version>${opensaml.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.opensaml</groupId>
+			<artifactId>opensaml-saml-api</artifactId>
+			<version>${opensaml.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.opensaml</groupId>
+			<artifactId>opensaml-saml-impl</artifactId>
+			<version>${opensaml.version}</version>
 		</dependency>
 
 		<dependency>
@@ -144,8 +166,42 @@
 		</dependency>
 
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<version>${mysql.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>${postgresql.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mariadb.jdbc</groupId>
+			<artifactId>mariadb-java-client</artifactId>
+			<version>${mariadb.version}</version>
+		</dependency>
+
+
+		<!--		<dependency>-->
+		<!--			<groupId>com.github.tomakehurst</groupId>-->
+		<!--			<artifactId>wiremock</artifactId>-->
+		<!--			<version>1.58</version>-->
+		<!--			<scope>test</scope>-->
+		<!--		</dependency>-->
+
+		<dependency>
+			<groupId>com.maciejwalkowiak.spring</groupId>
+			<artifactId>wiremock-spring-boot</artifactId>
+			<version>1.0.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>oauth2-oidc-sdk</artifactId>
+			<version>10.14.2</version>
 		</dependency>
 
 		<!-- <dependency> -->
@@ -220,7 +276,8 @@
 		<!-- <artifactId>commons-logging</artifactId> -->
 		<!-- <version>1.2</version> -->
 		<!-- </dependency> -->
-		<!-- <dependency> <groupId>io.springfox</groupId> <artifactId>springfox-swagger2</artifactId> 
+		<!-- <dependency> <groupId>io.springfox</groupId>
+		<artifactId>springfox-swagger2</artifactId> 
 			<version>2.9.2</version> </dependency> <dependency> <groupId>io.springfox</groupId> 
 			<artifactId>springfox-swagger-ui</artifactId> <version>2.9.2</version> </dependency> -->
 		<dependency>
@@ -332,6 +389,7 @@
 			<artifactId>webauthn-server-core</artifactId>
 			<version>${yubico.version}</version>
 		</dependency>
+
 	</dependencies>
 
 	<!-- <profiles> -->
@@ -492,8 +550,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>11</source>
-					<target>11</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -501,11 +559,14 @@
 	</build>
 
 
-
 	<repositories>
 		<repository>
 			<id>SmartCommunity</id>
 			<url>https://repository.smartcommunitylab.it/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>Shibboleth</id>
+			<url>https://build.shibboleth.net/maven/releases</url>
 		</repository>
 		<!-- <repository> -->
 		<!-- <id>SmartCommunity snapshots</id> -->

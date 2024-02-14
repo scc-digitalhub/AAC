@@ -30,6 +30,7 @@ public class SystemKeys {
     public static final long AAC_APPLE_SERIAL_VERSION = 420L;
     public static final long AAC_WEBAUTHN_SERIAL_VERSION = 420L;
     public static final long AAC_INTERNAL_SERIAL_VERSION = 420L;
+    public static final long AAC_OPENIDFED_SERIAL_VERSION = 500L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";
@@ -50,6 +51,7 @@ public class SystemKeys {
     public static final String AUTHORITY_PASSWORD = "password";
     public static final String AUTHORITY_TEMPLATE = "template";
     public static final String AUTHORITY_TOS = "tos";
+    public static final String AUTHORITY_OPENIDFED = "openidfed";
 
     public static final String CLIENT_TYPE_OAUTH2 = "oauth2";
     public static final String CLIENT_TYPE_SAML = "saml";
@@ -85,6 +87,7 @@ public class SystemKeys {
     public static final String RESOURCE_CREDENTIALS_SERVICE = "credentials_service";
     public static final String RESOURCE_TEMPLATE_PROVIDER = "template_provider";
     public static final String RESOURCE_TEMPLATE = "template";
+    public static final String RESOURCE_SETTINGS = "settings";
 
     public static final String PATH_SEPARATOR = "/-/";
     public static final String ID_SEPARATOR = ":";
@@ -114,7 +117,7 @@ public class SystemKeys {
     public static final String ACTION_ENABLE = "enable";
     public static final String ACTION_DISABLE = "disable";
 
-    public static final String SLUG_PATTERN = "^[a-zA-Z0-9_-]+$";
+    public static final String SLUG_PATTERN = "^[a-zA-Z0-9._-]+$";
     public static final String ID_PATTERN = "^[a-zA-Z0-9_-|]+$";
     public static final String EMAIL_PATTERN = "^[a-zA-Z0-9._@-]+$";
     public static final String SCOPE_PATTERN = "^[a-zA-Z.:]{3,}$";
@@ -127,8 +130,11 @@ public class SystemKeys {
 
     public static final int DEFAULT_APPROVAL_VALIDITY = 60 * 60 * 24 * 30; // 30 days
 
-    public static final MediaType MEDIA_TYPE_YAML = MediaType.valueOf("text/yaml");
-    public static final MediaType MEDIA_TYPE_YML = MediaType.valueOf("text/yml");
-    public static final MediaType MEDIA_TYPE_XYAML = MediaType.valueOf("application/x-yaml");
-    public static final String MEDIA_TYPE_XYAML_VALUE = "application/x-yaml";
+    public static final MediaType MEDIA_TYPE_APPLICATION_YAML = new MediaType("application", "yaml");
+    public static final MediaType MEDIA_TYPE_TEXT_YAML = new MediaType("text", "yaml");
+    public static final MediaType MEDIA_TYPE_APPLICATION_XYAML = new MediaType("application", "x-yaml");
+
+    public static final String MEDIA_TYPE_APPLICATION_YAML_VALUE = "application/yaml";
+    public static final String MEDIA_TYPE_TEXT_YAML_VALUE = "text/yaml";
+    public static final String MEDIA_TYPE_APPLICATION_XYAML_VALUE = "application/x-yaml";
 }

@@ -89,7 +89,6 @@ public class WKNSecurityConfig {
 
     public static final String[] WKN_URLS = {
         OpenIDMetadataEndpoint.OPENID_CONFIGURATION_URL,
-        OpenIDMetadataEndpoint.WEBFINGER_URL,
         OAuth2MetadataEndpoint.OAUTH2_CONFIGURATION_URL,
         JWKSetPublishingEndpoint.JWKS_URL,
     };

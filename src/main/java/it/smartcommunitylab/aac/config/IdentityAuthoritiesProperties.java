@@ -16,9 +16,10 @@
 
 package it.smartcommunitylab.aac.config;
 
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.apple.provider.AppleIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.openid.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
@@ -28,6 +29,9 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 public class IdentityAuthoritiesProperties {
 
     // TODO add enable//disable flag on authorities
+
+    @NestedConfigurationProperty
+    IdentityProviderSettingsMap settings;
 
     @NestedConfigurationProperty
     private InternalIdentityProviderConfigMap internal;
@@ -49,6 +53,14 @@ public class IdentityAuthoritiesProperties {
 
     @NestedConfigurationProperty
     private List<CustomAuthoritiesProperties> custom;
+
+    public IdentityProviderSettingsMap getSettings() {
+        return settings;
+    }
+
+    public void setSettings(IdentityProviderSettingsMap settings) {
+        this.settings = settings;
+    }
 
     public InternalIdentityProviderConfigMap getInternal() {
         return internal;

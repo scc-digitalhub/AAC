@@ -17,8 +17,9 @@
 package it.smartcommunitylab.aac.password.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.base.AbstractCredentialsServiceConfig;
-import it.smartcommunitylab.aac.core.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsServiceConfig;
+import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 
 public class PasswordCredentialsServiceConfig
     extends AbstractCredentialsServiceConfig<PasswordIdentityProviderConfigMap> {
@@ -38,16 +39,36 @@ public class PasswordCredentialsServiceConfig
     private static final int PASSWORD_MAX_LENGTH = 75;
 
     public PasswordCredentialsServiceConfig(String provider, String realm) {
-        super(SystemKeys.AUTHORITY_PASSWORD, provider, realm, new PasswordIdentityProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_PASSWORD,
+            provider,
+            realm,
+            new CredentialsServiceSettingsMap(),
+            new PasswordIdentityProviderConfigMap()
+        );
     }
 
     public PasswordCredentialsServiceConfig(
         ConfigurableCredentialsProvider cp,
+        CredentialsServiceSettingsMap settingsMap,
         PasswordIdentityProviderConfigMap configMap
     ) {
-        super(cp, configMap);
+        super(cp, settingsMap, configMap);
     }
 
+    /**
+     * Private constructor for JPA and other serialization tools.
+     *
+     * We need to implement this to enable deserialization of resources via
+     * reflection
+     */
+
+    @SuppressWarnings("unused")
+    private PasswordCredentialsServiceConfig() {
+        super();
+    }
+
+    @Override
     public String getRepositoryId() {
         return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();
     }

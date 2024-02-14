@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.saml.provider;
 
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import org.springframework.core.convert.converter.Converter;
 
 public class SamlAccountServiceConfigConverter
@@ -34,8 +35,14 @@ public class SamlAccountServiceConfigConverter
 
         // we share the same configMap
         config.setConfigMap(source.getConfigMap());
-        config.setRepositoryId(source.getRepositoryId());
-        config.setPersistence(source.getPersistence());
+        config.setVersion(source.getVersion());
+
+        //build new settingsMap
+        AccountServiceSettingsMap settingsMap = new AccountServiceSettingsMap();
+        settingsMap.setPersistence(source.getPersistence());
+        settingsMap.setRepositoryId(source.getRepositoryId());
+        config.setSettingsMap(settingsMap);
+
         return config;
     }
 }

@@ -23,10 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
-import it.smartcommunitylab.aac.core.service.RealmService;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.model.Realm;
-import it.smartcommunitylab.aac.oauth.model.TosConfigurationMap;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,10 +80,12 @@ public class TosConfigTest {
         Realm realmUpdated = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'enabled'
@@ -104,10 +105,12 @@ public class TosConfigTest {
         Realm realmUpdated2 = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'disabled'
@@ -142,10 +145,12 @@ public class TosConfigTest {
         Realm realmUpdated = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'enabled'
@@ -165,10 +170,12 @@ public class TosConfigTest {
         Realm realmUpdated2 = realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            tosConfig.getConfiguration()
+            tosConfig.getConfiguration(),
+            null
         );
 
         //updated model shows 'disabled'
@@ -218,7 +225,7 @@ public class TosConfigTest {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get("/-/" + slug + TOS_TERMS);
 
         // expect error in response
-        MvcResult res = this.mockMvc.perform(req).andDo(print()).andExpect(status().is3xxRedirection()).andReturn();
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -237,10 +244,12 @@ public class TosConfigTest {
         realmService.updateRealm(
             slug,
             realm.getName(),
+            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
-            configMap.getConfiguration()
+            configMap.getConfiguration(),
+            null
         );
     }
 
