@@ -4,26 +4,26 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab</groupId>
 	<artifactId>aac</artifactId>
-	<version>5.0.1-SNAPSHOT</version>
+	<version>5.0.2-SNAPSHOT</version>
 	<name>aac</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.16</version>
+		<version>2.7.18</version>
 	</parent>
 
 	<properties>
 		<java.version>17</java.version>
 		<bouncycastle.version>1.74</bouncycastle.version>
-		<springdoc.version>1.6.9</springdoc.version>
-		<jsoup.version>1.16.1</jsoup.version>
+		<springdoc.version>1.6.15</springdoc.version>
+		<jsoup.version>1.17.2</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
-		<jsonschema.version>4.28.0</jsonschema.version>
+		<jsonschema.version>4.33.1</jsonschema.version>
 		<node.version>v16.15.0</node.version>
 		<yarn.version>v1.21.1</yarn.version>
-		<postgresql.version>42.3.8</postgresql.version>
-		<mysql.version>8.0.33</mysql.version>
+		<postgresql.version>42.7.1</postgresql.version>
+		<mysql.version>8.3.0</mysql.version>
 		<mariadb.version>3.3.2</mariadb.version>
 		<opensaml.version>4.1.1</opensaml.version>
 		<profile.authorization />
@@ -182,14 +182,14 @@
 			<artifactId>mariadb-java-client</artifactId>
 			<version>${mariadb.version}</version>
 		</dependency>
-		
 
-<!--		<dependency>-->
-<!--			<groupId>com.github.tomakehurst</groupId>-->
-<!--			<artifactId>wiremock</artifactId>-->
-<!--			<version>1.58</version>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
+
+		<!--		<dependency>-->
+		<!--			<groupId>com.github.tomakehurst</groupId>-->
+		<!--			<artifactId>wiremock</artifactId>-->
+		<!--			<version>1.58</version>-->
+		<!--			<scope>test</scope>-->
+		<!--		</dependency>-->
 
 		<dependency>
 			<groupId>com.maciejwalkowiak.spring</groupId>
