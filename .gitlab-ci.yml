@@ -33,7 +33,7 @@ update-backend-cache-image:
     - docker build -f Dockerfile-cache -t $CONTAINER_CACHE_IMAGE .
     - docker push $CONTAINER_CACHE_IMAGE
   rules:
-    - if: $CI_COMMIT_REF_NAME == "4.x" && $CI_COMMIT_REF_NAME == "4.x-plaform"
+    - if: $CI_COMMIT_REF_NAME == "5.x"
       changes:
       - pom.xml
       - user-console/yarn.lock
@@ -57,7 +57,7 @@ backend-container-build:
     - docker push $CONTAINER_IMAGE
     - docker push $CONTAINER_IMAGE_LATEST
   only:
-    - 4.x
+    - 5.x
     - 4.x-platform
     - master
 
@@ -108,7 +108,7 @@ deploy-dev:
     - kubectl -n aac-dev set image deployments/aac-dev aac=$CONTAINER_IMAGE --record=true
     - kubectl -n aac-dev rollout status deployment aac-dev
   only:
-    - 4.x
+    - 5.x
 
 deploy-dslab:
   stage: deploy
