@@ -6,7 +6,7 @@
   <body>
     <div th:fragment="login">
       <p
-        th:if="${authority.getDescription(#locale.language) != null}"
+        th:if="${authority.getDescription(#locale.language) != null} and authority.getDescription(#locale.language) != ''"
         th:text="${authority.getDescription(#locale.language)}"
       ></p>
 

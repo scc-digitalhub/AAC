@@ -8,7 +8,7 @@
 
 <body>
    <div th:fragment="login">
-      <p th:if="${authority.getDescription(#locale.language) != null}" th:text="${authority.getDescription(#locale.language)}"></p>
+      <p th:if="${authority.getDescription(#locale.language) != null and authority.getDescription(#locale.language) != ''}" th:text="${authority.getDescription(#locale.language)}"></p>
       <a class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login" th:classAppend="${authority.cssClass}"
          th:href="${authority.loginUrl}">
          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
