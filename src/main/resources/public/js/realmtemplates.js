@@ -108,7 +108,7 @@ angular.module('aac.controllers.realmtemplates', ['ngSanitize'])
 
         $scope.setQuery = function (query) {
             $scope.query.q = query;
-            $scope.page = 0;
+            $scope.query.page = 0;
             $scope.load();
         }
 

@@ -237,7 +237,7 @@ angular.module('aac.controllers.realmapps', [])
 
         $scope.setQuery = function (query) {
             $scope.query.q = query;
-            $scope.page = 0;
+            $scope.query.page = 0;
             $scope.load();
         }
 
