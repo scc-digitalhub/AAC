@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -126,7 +127,7 @@ public class User {
         // set consuming realm to source
         this.realm = source;
         this.authorities = Collections.emptySet();
-        this.identities = new HashSet<>();
+        this.identities = new LinkedHashSet<>();
         this.attributes = new ArrayList<>();
         this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
@@ -146,7 +147,7 @@ public class User {
                 .filter(a -> (a instanceof RealmGrantedAuthority))
                 .map(a -> (RealmGrantedAuthority) a)
                 .collect(Collectors.toSet());
-        this.identities = new HashSet<>(details.getIdentities());
+        this.identities = new LinkedHashSet<>(details.getIdentities());
         this.attributes = new ArrayList<>(details.getAttributeSets(false));
         this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
@@ -295,7 +296,7 @@ public class User {
     }
 
     public void setIdentities(Collection<UserIdentity> identities) {
-        this.identities = new HashSet<>();
+        this.identities = new LinkedHashSet<>();
         if (identities != null) {
             this.identities.addAll(identities);
             // add all attributes
