@@ -47,13 +47,15 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
 
     private int maxCpuTime;
     private int maxMemory;
+    private boolean removeComments;
 
     // custom jackson configuration with typeReference
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .setSerializationInclusion(Include.NON_NULL);
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     public LocalGraalExecutionService() {
         this.maxCpuTime = DEFAULT_MAX_CPU_TIME;
@@ -74,6 +76,14 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
 
     public void setMaxMemory(int maxMemory) {
         this.maxMemory = maxMemory;
+    }
+
+    public boolean isRemoveComments() {
+        return removeComments;
+    }
+
+    public void setRemoveComments(boolean removeComments) {
+        this.removeComments = removeComments;
     }
 
     // TODO implement a threadPool for sandboxes to avoid bootstrap
@@ -107,7 +117,10 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append("result = JSON.stringify(" + name + "(data));");
             writer.append("logs = JSON.stringify(_logs);");
 
-            String code = RemoveComments.perform(writer.toString());
+            String code = writer.toString();
+            if (removeComments) {
+                code = RemoveComments.perform(code);
+            }
             sandbox.eval(code);
 
             String output = (String) sandbox.get("result");
@@ -160,7 +173,10 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append("result = JSON.stringify(" + name + "(" + String.join(",", vars) + "));");
             writer.append("logs = JSON.stringify(_logs);");
 
-            String code = RemoveComments.perform(writer.toString());
+            String code = writer.toString();
+            if (removeComments) {
+                code = RemoveComments.perform(code);
+            }
             sandbox.eval(code);
 
             String output = (String) sandbox.get("result");
