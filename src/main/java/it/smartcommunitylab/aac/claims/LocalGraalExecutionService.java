@@ -44,6 +44,7 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
 
     public static final int DEFAULT_MAX_CPU_TIME = 100;
     public static final int DEFAULT_MAX_MEMORY = 10485760;
+    public static final boolean DEFAULT_REMOVE_COMMENTS = true;
 
     private int maxCpuTime;
     private int maxMemory;
@@ -53,13 +54,13 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .setSerializationInclusion(Include.NON_NULL);
-    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
-        HashMap<String, Serializable>
-    >() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef =
+        new TypeReference<HashMap<String, Serializable>>() {};
 
     public LocalGraalExecutionService() {
         this.maxCpuTime = DEFAULT_MAX_CPU_TIME;
         this.maxMemory = DEFAULT_MAX_MEMORY;
+        this.removeComments = DEFAULT_REMOVE_COMMENTS;
     }
 
     public int getMaxCpuTime() {
