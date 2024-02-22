@@ -250,6 +250,12 @@ spring:
     store-type: jdbc
     jdbc.initialize-schema: always   
 
+engine:
+   graal:
+      max-cpu-time: 100
+      max-memory: 10485760
+      remove-comments: ${REMOVE_COMMENTS_IN_SCRIPTS:true}
+
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
    contextSpace:
