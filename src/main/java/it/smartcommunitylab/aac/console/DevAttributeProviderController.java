@@ -54,6 +54,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
@@ -94,6 +97,27 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     /*
      * Providers
      */
+
+    @GetMapping("/aps/{realm}/search")
+    public Page<ConfigurableAttributeProvider> searchIdps(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
+    ) throws NoSuchRealmException {
+        Page<ConfigurableAttributeProvider> page = providerManager.searchProviders(realm, q, pageRequest);
+        return PageableExecutionUtils.getPage(
+            page
+                .getContent()
+                .stream()
+                .map(cp -> {
+                    cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
+                    return cp;
+                })
+                .collect(Collectors.toList()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
+    }
 
     @Override
     @GetMapping("/aps/{realm}/{providerId}")

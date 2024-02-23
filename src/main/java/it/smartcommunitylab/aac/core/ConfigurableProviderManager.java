@@ -35,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -69,6 +71,19 @@ public abstract class ConfigurableProviderManager<
     /*
      * Configurable Providers
      */
+
+    public Page<C> searchProviders(String realm, String keywords, Pageable pageRequest) throws NoSuchRealmException {
+        logger.debug(
+            "search providers for realm {} with keywords {}",
+            StringUtils.trimAllWhitespace(realm),
+            StringUtils.trimAllWhitespace(keywords)
+        );
+
+        String query = StringUtils.trimAllWhitespace(keywords);
+        Realm r = realmService.getRealm(realm);
+        return providerService.searchProviders(r.getSlug(), query, pageRequest);
+    }
+
     public Collection<C> listProviders(String realm) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(realm) || SystemKeys.REALM_SYSTEM.equals(realm)) {
             return providerService.listProviders(realm);

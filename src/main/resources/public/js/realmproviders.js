@@ -2,8 +2,23 @@ angular.module('aac.controllers.realmproviders', [])
     /**
       * Realm Data Services
       */
-    .service('RealmProviders', function ($http, $window) {
+    .service('RealmProviders', function ($http, $httpParamSerializer, $window) {
         var service = {};
+
+        var buildQuery = function (params) {
+            var q = Object.assign({}, params);
+            if (q.sort) {
+                var sort = [];
+                for (var [key, value] of Object.entries(q.sort)) {
+                    var s = key + ',' + (value > 0 ? 'asc' : 'desc');
+                    sort.push(s);
+                }
+                q.sort = sort;
+            }
+            var queryString = $httpParamSerializer(q);
+            return queryString;
+        }
+
         // authorities
         service.getIdentityProviderAuthorities = function (slug) {
             return $http.get('console/dev/idps/' + slug + '/authorities').then(function (data) {
@@ -20,6 +35,12 @@ angular.module('aac.controllers.realmproviders', [])
 
         service.getIdentityProviders = function (slug) {
             return $http.get('console/dev/idps/' + slug).then(function (data) {
+                return data.data;
+            });
+        }
+
+        service.searchIdentityProviders = function (slug, params) {
+            return $http.get('console/dev/idps/' + slug + '/search?' + buildQuery(params)).then(function (data) {
                 return data.data;
             });
         }
@@ -120,6 +141,12 @@ angular.module('aac.controllers.realmproviders', [])
             });
         }
 
+        service.searchAttributeProviders = function (slug, params) {
+            return $http.get('console/dev/aps/' + slug + '/search?' + buildQuery(params)).then(function (data) {
+                return data.data;
+            });
+        }
+
         service.removeAttributeProvider = function (slug, providerId) {
             return $http.delete('console/dev/aps/' + slug + '/' + providerId).then(function (data) {
                 return data.data;
@@ -186,27 +213,29 @@ angular.module('aac.controllers.realmproviders', [])
       */
     .controller('RealmIdentityProvidersController', function ($scope, $state, $stateParams, $window, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
+        $scope.query = {
+            page: 0,
+            size: 20,
+            sort: { name: 1 },
+            q: ''
+        }
+        $scope.keywords = '';
 
         $scope.load = function () {
-            RealmProviders.getIdentityProviders(slug)
+            RealmProviders.searchIdentityProviders(slug, $scope.query)
                 .then(function (data) {
-                    return data.map(idp => {
-                        return {
-                            ...idp,
-                            'icon': iconProvider(idp)
-                        };
+                    data.content.forEach(function (idp) {
+                        //add icon
+                        idp.icon = iconProvider(idp);
                     });
-                })
-                .then(function (data) {
                     $scope.providers = data;
-                    return data;
                 })
                 .then(function () {
                     return RealmAppsData.getClientApps(slug);
                 })
                 .then(function (data) {
                     $scope.apps = data;
-                    var providers = $scope.providers;
+                    var providers = $scope.providers.content;
                     //count num of active apps per provider
                     var cc = new Map(providers.map(p => [p.provider, 0]));
                     data.forEach(function (app) {
@@ -218,7 +247,7 @@ angular.module('aac.controllers.realmproviders', [])
                     providers.forEach(function (idp) {
                         idp.apps = cc.get(idp.provider);
                     });
-                    $scope.providers = providers;
+                    $scope.providers.content = providers;
 
                 })
                 .catch(function (err) {
@@ -236,6 +265,21 @@ angular.module('aac.controllers.realmproviders', [])
                     $scope.load();
                 })
         };
+
+        $scope.setPage = function (page) {
+            $scope.query.page = page;
+            $scope.load();
+        }
+
+        $scope.setQuery = function (query) {
+            $scope.query.q = query;
+            $scope.query.page = 0;
+            $scope.load();
+        }
+
+        $scope.runQuery = function () {
+            $scope.setQuery($scope.keywords);
+        }
 
         $scope.deleteProviderDlg = function (provider) {
             $scope.modProvider = provider;
@@ -1070,20 +1114,22 @@ angular.module('aac.controllers.realmproviders', [])
       */
     .controller('RealmAttributeProvidersController', function ($scope, $state, $stateParams, $window, RealmData, RealmProviders, RealmAppsData, Utils) {
         var slug = $stateParams.realmId;
+        $scope.query = {
+            page: 0,
+            size: 20,
+            sort: { name: 1 },
+            q: ''
+        }
+        $scope.keywords = '';
 
         $scope.load = function () {
-            RealmProviders.getAttributeProviders(slug)
+            RealmProviders.searchAttributeProviders(slug, $scope.query)
                 .then(function (data) {
-                    return data.map(ap => {
-                        return {
-                            ...ap,
-                            'icon': iconProvider(ap)
-                        };
+                    data.content.forEach(function (ap) {
+                        //add icon
+                        ap.icon = iconProvider(ap);
                     });
-                })
-                .then(function (data) {
                     $scope.providers = data;
-                    return data;
                 })
                 .catch(function (err) {
                     Utils.showError('Failed to load realm providers: ' + err.data.message);
@@ -1096,6 +1142,21 @@ angular.module('aac.controllers.realmproviders', [])
         var init = function () {
             $scope.load();
         };
+
+        $scope.setPage = function (page) {
+            $scope.query.page = page;
+            $scope.load();
+        }
+
+        $scope.setQuery = function (query) {
+            $scope.query.q = query;
+            $scope.query.page = 0;
+            $scope.load();
+        }
+
+        $scope.runQuery = function () {
+            $scope.setQuery($scope.keywords);
+        }
 
         $scope.deleteProviderDlg = function (provider) {
             $scope.modProvider = provider;

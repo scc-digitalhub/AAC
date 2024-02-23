@@ -31,9 +31,26 @@
   </div>
 </div>
 <div class="accordion" id="providers">
-  <div ng-if="providers && providers.length > 0">
+  <form name="searchProviders" class="" novalidate>
+    <div class="form-group col">
+      <div class="input-group">
+        <label for="keywords" class="{{keywords != '' ? 'active' : ''}}">Search</label>
+        <input type="text" class="form-control bg-transparent" id="keywords" ng-model="keywords">
+        </span>
+        <div class="input-group-append">
+          <button class="btn btn-primary btn-sm  text-right" ng-click="runQuery()">
+            <svg class="icon icon-sm icon-white">
+              <use xlink:href="./italia/svg/sprite.svg#it-search"></use>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </form>
+  <div ng-if="providers && providers.content.length > 0">
     <table class="table table-hover border-bottom">
-      <tr ng-repeat="item in providers">
+      <tr ng-repeat="item in providers.content">
 
         <td
           class="align-middle {{!item.enabled && !item.registered ? 'text-muted' : ''}} {{item.enabled && !item.registered ? 'text-danger' : ''}}">
@@ -143,9 +160,42 @@
 
       </tr>
     </table>
+
+    <nav class="pagination-wrapper" aria-label="pagination">
+      <ul class="pagination">
+        <li class="page-item" ng-class="{'disabled':providers.first}">
+          <a class="page-link" ng-click="setPage(query.page - 1)">
+            <svg class="icon icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-chevron-left"></use>
+            </svg>
+            <span class="sr-only">Previous page</span>
+          </a>
+        </li>
+        <li class="page-item" ng-if="providers.pageable.pageNumber - 1 > 0"><a class="page-link"
+                                                                               ng-click="setPage(providers.pageable.pageNumber - 2)">{{providers.pageable.pageNumber - 1}}</a></li>
+        <li class="page-item" ng-if="providers.pageable.pageNumber > 0"><a class="page-link"
+                                                                           ng-click="setPage(providers.pageable.pageNumber - 1)">{{providers.pageable.pageNumber}}</a></li>
+        <li class="page-item active">
+          <a class="page-link" aria-current="page"><span class="d-inline-block d-sm-none">Pagina
+				</span>{{providers.pageable.pageNumber + 1}}</a>
+        </li>
+        <li class="page-item" ng-if="providers.pageable.pageNumber + 1 < providers.totalPages"><a class="page-link"
+                                                                                                  ng-click="setPage(providers.pageable.pageNumber + 1)">{{providers.pageable.pageNumber + 2}}</a></li>
+        <li class="page-item" ng-if="providers.pageable.pageNumber + 2 < providers.totalPages"><a class="page-link"
+                                                                                                  ng-click="setPage(providers.pageable.pageNumber + 2)">{{providers.pageable.pageNumber + 3}}</a></li>
+        <li class="page-item" ng-class="{'disabled':providers.last}">
+          <a class="page-link" ng-click="setPage(query.page + 1)">
+            <span class="sr-only">Next page</span>
+            <svg class="icon icon-primary">
+              <use xlink:href="./italia/svg/sprite.svg#it-chevron-right"></use>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </nav>
   </div>
 
-  <div ng-if="providers && providers.length == 0">
+  <div ng-if="providers && providers.content.length == 0">
     <div class="it-hero-wrapper it-text-centered it-hero-small-size bg-secondary">
       <div class="container-fluid">
         <div class="row">
