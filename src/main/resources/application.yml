@@ -254,7 +254,7 @@ engine:
    graal:
       max-cpu-time: 100
       max-memory: 10485760
-      remove-comments: ${REMOVE_COMMENTS_IN_SCRIPTS:true}
+      remove-comments: ${ENGINE_GRAAL_REMOVE_COMMENTS:true}
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:
