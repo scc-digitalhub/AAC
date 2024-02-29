@@ -21,6 +21,8 @@ import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,22 @@ public class ConfigurableProviderEntityService {
         Assert.notNull(providerRepository, "provider repository is mandatory");
 
         this.providerRepository = providerRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProviderEntity> searchProviders(String type, String realm, String q, Pageable pageRequest) {
+        Page<ProviderEntity> page = StringUtils.hasText(q)
+            ? providerRepository.findByTypeAndRealmAndNameContainingIgnoreCaseOrTypeAndRealmAndProviderContainingIgnoreCase(
+                type,
+                realm,
+                q,
+                type,
+                realm,
+                q,
+                pageRequest
+            )
+            : providerRepository.findByTypeAndRealm(type, realm, pageRequest);
+        return page;
     }
 
     @Transactional(readOnly = true)
