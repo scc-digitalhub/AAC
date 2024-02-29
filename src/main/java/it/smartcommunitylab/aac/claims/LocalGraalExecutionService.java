@@ -44,9 +44,11 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
 
     public static final int DEFAULT_MAX_CPU_TIME = 100;
     public static final int DEFAULT_MAX_MEMORY = 10485760;
+    public static final boolean DEFAULT_REMOVE_COMMENTS = true;
 
     private int maxCpuTime;
     private int maxMemory;
+    private boolean removeComments;
 
     // custom jackson configuration with typeReference
     private final ObjectMapper mapper = new ObjectMapper()
@@ -58,6 +60,7 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
     public LocalGraalExecutionService() {
         this.maxCpuTime = DEFAULT_MAX_CPU_TIME;
         this.maxMemory = DEFAULT_MAX_MEMORY;
+        this.removeComments = DEFAULT_REMOVE_COMMENTS;
     }
 
     public int getMaxCpuTime() {
@@ -74,6 +77,14 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
 
     public void setMaxMemory(int maxMemory) {
         this.maxMemory = maxMemory;
+    }
+
+    public boolean isRemoveComments() {
+        return removeComments;
+    }
+
+    public void setRemoveComments(boolean removeComments) {
+        this.removeComments = removeComments;
     }
 
     // TODO implement a threadPool for sandboxes to avoid bootstrap
@@ -107,7 +118,10 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append("result = JSON.stringify(" + name + "(data));");
             writer.append("logs = JSON.stringify(_logs);");
 
-            String code = RemoveComments.perform(writer.toString());
+            String code = writer.toString();
+            if (removeComments) {
+                code = RemoveComments.perform(code);
+            }
             sandbox.eval(code);
 
             String output = (String) sandbox.get("result");
@@ -160,7 +174,10 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
             writer.append("result = JSON.stringify(" + name + "(" + String.join(",", vars) + "));");
             writer.append("logs = JSON.stringify(_logs);");
 
-            String code = RemoveComments.perform(writer.toString());
+            String code = writer.toString();
+            if (removeComments) {
+                code = RemoveComments.perform(code);
+            }
             sandbox.eval(code);
 
             String output = (String) sandbox.get("result");

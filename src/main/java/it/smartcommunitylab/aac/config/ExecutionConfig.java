@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.claims.LocalGraalExecutionService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -25,8 +26,21 @@ import org.springframework.core.annotation.Order;
 @Order(9)
 public class ExecutionConfig {
 
+    @Value("${engine.graal.max-cpu-time}")
+    private int graalMaxCpuTime;
+
+    @Value("${engine.graal.max-memory}")
+    private int graalMaxMemory;
+
+    @Value("${engine.graal.remove-comments}")
+    private boolean graalRemoveComments;
+
     @Bean
     public LocalGraalExecutionService localGraalExecutionService() {
-        return new LocalGraalExecutionService();
+        LocalGraalExecutionService executionService = new LocalGraalExecutionService();
+        executionService.setMaxMemory(graalMaxMemory);
+        executionService.setMaxCpuTime(graalMaxCpuTime);
+        executionService.setRemoveComments(graalRemoveComments);
+        return executionService;
     }
 }
