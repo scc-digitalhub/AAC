@@ -109,6 +109,7 @@ public class DefaultAttributesSet implements AttributeSet {
                             attr.setName(a.getName());
                             attr.setDescription(a.getDescription());
                             attr.setIsMultiple(a.getIsMultiple());
+                            attr.setIsRequired(a.getIsRequired());
                             return attr;
                         })
                         .collect(Collectors.toSet())
@@ -125,6 +126,7 @@ public class DefaultAttributesSet implements AttributeSet {
             attr.setName(attribute.getName());
             attr.setDescription(attribute.getDescription());
             attr.setIsMultiple(attribute.getIsMultiple());
+            attr.setIsRequired(attribute.getIsRequired());
             attributes.add(attr);
         }
     }
@@ -147,6 +149,7 @@ public class DefaultAttributesSet implements AttributeSet {
                         attr.setName(a.getName());
                         attr.setDescription(a.getDescription());
                         attr.setIsMultiple(a.getIsMultiple());
+                        attr.setIsRequired(a.getIsRequired());
                         return attr;
                     })
                     .collect(Collectors.toSet());

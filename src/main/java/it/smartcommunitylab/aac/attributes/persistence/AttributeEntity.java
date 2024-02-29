@@ -23,6 +23,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 
 @Entity
 @Table(
@@ -54,7 +55,13 @@ public class AttributeEntity {
      * If attribute is multiple
      */
     @Column(name = "is_multiple")
-    private boolean multiple;
+    private Boolean multiple;
+
+    /**
+     * If attribute is required (only when defined by the user)
+     */
+    @Column(name = "is_required")
+    private Boolean required;
 
     public Long getId() {
         return id;
@@ -89,6 +96,10 @@ public class AttributeEntity {
     }
 
     public boolean isMultiple() {
+        return multiple != null && multiple.booleanValue();
+    }
+
+    public Boolean getMultiple() {
         return multiple;
     }
 
@@ -110,5 +121,17 @@ public class AttributeEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isRequired() {
+        return required != null && required.booleanValue();
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 }

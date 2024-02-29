@@ -17,11 +17,14 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.attributes.AskAtLoginAttributeFilter;
+import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.core.auth.ExtendedLoginUrlAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.LoginUrlRequestConverter;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
+import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.oauth.auth.AuthorizationEndpointFilter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAwareLoginUrlConverter;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2IdpAwareLoginUrlConverter;
@@ -98,6 +101,12 @@ public class OAuth2UserSecurityConfig {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AttributeService attributeService;
+
+    @Autowired
+    private InternalAttributeAuthority internalAttributeAuthority;
+
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
@@ -173,6 +182,7 @@ public class OAuth2UserSecurityConfig {
         );
 
         TosOnAccessFilter tosFilter = new TosOnAccessFilter(realmService, userService);
+        AskAtLoginAttributeFilter hookAttributesFilter = new AskAtLoginAttributeFilter(userService, attributeService, internalAttributeAuthority);
 
         // disable logout post-reset for oauth2 urls
         passwordResetFilter.setLogoutAfterReset(false);
@@ -181,6 +191,7 @@ public class OAuth2UserSecurityConfig {
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(passwordResetFilter);
         filters.add(tosFilter);
+        filters.add(hookAttributesFilter);
 
         CompositeFilter filter = new CompositeFilter();
         filter.setFilters(filters);

@@ -155,6 +155,7 @@ public class AttributeEntityService {
         String key,
         AttributeType type,
         Boolean isMultiple,
+        Boolean isRequired,
         String name,
         String description
     ) throws NoSuchAttributeSetException {
@@ -164,6 +165,7 @@ public class AttributeEntityService {
 
         AttributeSetEntity as = getAttributeSet(set);
         boolean multiple = isMultiple != null ? isMultiple.booleanValue() : false;
+        boolean required = isRequired != null ? isRequired.booleanValue() : false;
         String attrType = type != null ? type.getValue() : AttributeType.STRING.getValue();
 
         AttributeEntity a = attributeRepository.findBySetAndKey(set, key);
@@ -176,6 +178,7 @@ public class AttributeEntityService {
         a.setKey(key);
         a.setType(attrType);
         a.setMultiple(multiple);
+        a.setRequired(required);
 
         a.setName(name);
         a.setDescription(description);
@@ -189,6 +192,7 @@ public class AttributeEntityService {
         String key,
         AttributeType type,
         Boolean isMultiple,
+        Boolean isRequired,
         String name,
         String description
     ) throws NoSuchAttributeException, NoSuchAttributeSetException {
@@ -197,6 +201,7 @@ public class AttributeEntityService {
         }
 
         boolean multiple = isMultiple != null ? isMultiple.booleanValue() : false;
+        boolean required = isRequired != null ? isRequired.booleanValue() : false;
         String attrType = type != null ? type.getValue() : AttributeType.STRING.getValue();
 
         AttributeEntity a = attributeRepository.findBySetAndKey(set, key);
@@ -206,6 +211,7 @@ public class AttributeEntityService {
 
         a.setType(attrType);
         a.setMultiple(multiple);
+        a.setRequired(required);
 
         a.setName(name);
         a.setDescription(description);

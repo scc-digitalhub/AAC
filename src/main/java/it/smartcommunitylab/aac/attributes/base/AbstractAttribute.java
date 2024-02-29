@@ -33,6 +33,8 @@ public abstract class AbstractAttribute implements Attribute {
     @JsonProperty("multiple")
     private Boolean isMultiple;
 
+    protected Boolean isRequired = false;
+
     @Override
     public String getKey() {
         return key;
@@ -76,5 +78,13 @@ public abstract class AbstractAttribute implements Attribute {
 
     public void setIsMultiple(Boolean isMultiple) {
         this.isMultiple = isMultiple;
+    }
+
+    public Boolean getIsRequired() {
+        return this.isRequired;
+    }
+
+    public void setIsRequired(Boolean isRequired) {
+        this.isRequired = isRequired;
     }
 }

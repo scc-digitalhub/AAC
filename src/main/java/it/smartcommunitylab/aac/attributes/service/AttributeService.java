@@ -159,6 +159,7 @@ public class AttributeService {
                         attr.getKey(),
                         attr.getType(),
                         attr.getIsMultiple(),
+                        attr.getIsRequired(),
                         attr.getName(),
                         attr.getDescription()
                     );
@@ -204,6 +205,7 @@ public class AttributeService {
                             attr.getKey(),
                             attr.getType(),
                             attr.getIsMultiple(),
+                            attr.getIsRequired(),
                             attr.getName(),
                             attr.getDescription()
                         );
@@ -215,6 +217,7 @@ public class AttributeService {
                                 attr.getKey(),
                                 attr.getType(),
                                 attr.getIsMultiple(),
+                                attr.getIsRequired(),
                                 attr.getName(),
                                 attr.getDescription()
                             );
@@ -317,7 +320,7 @@ public class AttributeService {
         attr.setName(ae.getName());
         attr.setDescription(ae.getDescription());
         attr.setIsMultiple(ae.isMultiple());
-
+        attr.setIsRequired(ae.isRequired());
         return attr;
     }
 }

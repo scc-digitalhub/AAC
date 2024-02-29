@@ -105,6 +105,7 @@ public class AttributesRegistration {
 
         private String name;
         private String description;
+        private Boolean isRequired;
 
         public String getKey() {
             return key;
@@ -145,6 +146,14 @@ public class AttributesRegistration {
         public void setDescription(String description) {
             this.description = description;
         }
+
+        public Boolean getIsRequired() {
+            return isRequired;
+        }
+
+        public void setIsRequired(Boolean required) {
+            isRequired = required;
+        }
     }
 
     public static AttributesRegistration from(AttributeSet attributeSet) {
@@ -163,7 +172,10 @@ public class AttributesRegistration {
                 dto.type = getFormType(a.getKey(), a.getType().getValue());
                 dto.name = StringUtils.hasText(a.getName()) ? a.getName() : a.getKey();
                 dto.description = a.getDescription();
-
+                dto.isRequired = false;
+                if (a.getIsRequired() != null) {
+                    dto.isRequired = a.getIsRequired();
+                }
                 return dto;
             })
             .collect(Collectors.toList());

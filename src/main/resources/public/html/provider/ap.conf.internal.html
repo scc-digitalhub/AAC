@@ -13,6 +13,16 @@
                     UI/API. By default attributes are managed by realm admins only.</small>
             </div>
         </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                     ng-click="ap.configuration.askAtLogin = (ap.configuration.usermode && !ap.configuration.askAtLogin)">
+                    <input class="form-check-input" type="checkbox" ng-model="ap.configuration.askAtLogin">
+                    <label>AskAtLogin</label>
+                </div>
+                <small class="form-text"> Enable ask at login to let users handle their attributes when performing a login attempt.</small>
+            </div>
+        </div>
 
     </fieldset>
 
