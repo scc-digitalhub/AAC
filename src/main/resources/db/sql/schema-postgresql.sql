@@ -20,3 +20,12 @@ CREATE TABLE
         attr_key VARCHAR(256),
         attr_value bytea
     );
+    
+CREATE TABLE
+    IF NOT EXISTS realm_files (
+        id VARCHAR(256),
+        realm VARCHAR(256),
+        file_id VARCHAR(256),
+        size BIGINT,
+        data bytea        
+    );

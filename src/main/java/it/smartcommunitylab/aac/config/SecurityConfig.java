@@ -71,7 +71,7 @@ public class SecurityConfig {
     private static final String LOGOUTPATH = "/logout";
     private static final String LOGOPATH = "/logo";
     private static final String TERMSPATH = "/terms";
-
+    
     @Autowired
     private RealmAwarePathUriBuilder realmUriBuilder;
 
@@ -179,7 +179,7 @@ public class SecurityConfig {
             //                .and()
             .csrf()
             //                .disable()
-            .ignoringAntMatchers("/logout", "/console/**", "/account/**")
+            .ignoringAntMatchers("/logout", "/console/**", "/account/**", "/files/**")
             .and()
             //                // TODO replace with filterRegistrationBean and explicitely map urls
             //                .addFilterBefore(new ExpiredUserAuthenticationFilter(), BasicAuthenticationFilter.class);

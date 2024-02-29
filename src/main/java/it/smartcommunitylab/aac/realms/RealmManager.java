@@ -39,7 +39,10 @@ import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
+import it.smartcommunitylab.aac.dto.FileInfoDTO;
 import it.smartcommunitylab.aac.dto.RealmConfig;
+import it.smartcommunitylab.aac.files.FileService;
+import it.smartcommunitylab.aac.files.persistence.FileInfoEntity;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
@@ -63,6 +66,8 @@ import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.users.UserManager;
 import it.smartcommunitylab.aac.users.service.UserService;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
+
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,6 +155,9 @@ public class RealmManager {
 
     @Autowired
     private UserCredentialsService<InternalUserPassword> internalUserPasswordService;
+    
+    @Autowired
+    private FileService fileService;
 
     //    @Autowired
     //    private SessionManager sessionManager;
@@ -241,7 +249,7 @@ public class RealmManager {
             localizationConfigMap = r.getLocalizationConfiguration().getConfiguration();
         }
 
-        Realm realm = realmService.updateRealm(
+        return realmService.updateRealm(
             slug,
             name,
             email,
@@ -251,8 +259,6 @@ public class RealmManager {
             tosConfigMap,
             localizationConfigMap
         );
-
-        return realm;
     }
 
     @Transactional(readOnly = true)
@@ -456,6 +462,16 @@ public class RealmManager {
                 } catch (Exception e) {
                     // skip
                 }
+            }
+            
+            // files
+            Collection<FileInfoDTO> files = fileService.getFilesByRealm(slug);
+            for (FileInfoDTO fileInfo: files) {
+            	try {
+					fileService.deleteFile(slug, fileInfo.getId());
+				} catch (FileNotFoundException e) {
+					// skip
+				}
             }
         }
 

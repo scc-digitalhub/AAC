@@ -177,7 +177,7 @@ public class RealmService implements InitializingBean {
         r.setOAuthConfigurationMap(oauthConfigurationMap);
         r.setTosConfigurationMap(tosConfigurationMap);
         r.setLocalizationConfigurationMap(locConfigurationMap);
-
+  
         r = realmRepository.save(r);
 
         return toRealm(r);
