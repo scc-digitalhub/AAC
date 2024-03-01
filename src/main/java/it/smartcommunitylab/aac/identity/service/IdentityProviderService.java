@@ -148,6 +148,10 @@ public class IdentityProviderService
                     cip.setSettings(settings.getConfiguration());
                     cip.setConfiguration(configuration);
 
+                    // add temporary version as it might be required by jdbc repository persistence
+                    int registeredVersion = (int) (System.currentTimeMillis() / (60*1000)); // current time in minutes
+                    cip.setVersion(registeredVersion);
+
                     // register
                     systemProviders.put(providerId, cip);
                 } catch (
