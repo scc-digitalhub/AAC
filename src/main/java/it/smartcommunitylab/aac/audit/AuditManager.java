@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -90,6 +91,23 @@ public class AuditManager {
             String.valueOf(b)
         );
         return auditStore.findByRealm(realm, a, b, type);
+    }
+
+    public List<AuditEvent> searchRealmEvents(String realm, String type, Date after, Date before, Pageable pageable) {
+        Instant a = after == null ? null : after.toInstant();
+        Instant b = before == null ? null : before.toInstant();
+
+        logger.debug(
+            "find audit events for realm " +
+            StringUtils.trimAllWhitespace(realm) +
+            " type " +
+            StringUtils.trimAllWhitespace(String.valueOf(type)) +
+            " interval after " +
+            String.valueOf(a) +
+            " before " +
+            String.valueOf(b)
+        );
+        return auditStore.searchByRealm(realm, a, b, type, pageable);
     }
 
     public List<AuditEvent> findPrincipalEvents(String realm, String principal, String type, Date after, Date before) {

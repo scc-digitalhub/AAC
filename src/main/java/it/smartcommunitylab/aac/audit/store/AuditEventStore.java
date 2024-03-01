@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.boot.actuate.audit.AuditEventRepository;
+import org.springframework.data.domain.Pageable;
 
 public interface AuditEventStore extends AuditEventRepository {
     public long countByRealm(String realm, Instant after, Instant before, String type);
@@ -29,6 +30,8 @@ public interface AuditEventStore extends AuditEventRepository {
     public long countByPrincipal(String principal, Instant after, Instant before, String type);
 
     public List<AuditEvent> findByRealm(String realm, Instant after, Instant before, String type);
+
+    public List<AuditEvent> searchByRealm(String realm, Instant after, Instant before, String type, Pageable pageable);
 
     public List<AuditEvent> findByTx(String realm, String type);
 
