@@ -249,6 +249,7 @@ public class DevController {
             bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
             List<AuditEvent> loginEvents = auditManager
                 .searchRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null, PageRequest.of(0, 5))
+                .getContent()
                 .stream()
                 .map(e -> {
                     // clear event details
@@ -264,6 +265,7 @@ public class DevController {
             bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
             List<AuditEvent> registrationEvents = auditManager
                 .searchRealmEvents(realm, "USER_REGISTRATION", after, null, PageRequest.of(0, 5))
+                .getContent()
                 .stream()
                 .map(e -> {
                     // clear event details

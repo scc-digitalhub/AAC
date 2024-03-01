@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -100,10 +99,6 @@ public class BaseAuditController implements InitializingBean {
     ) throws NoSuchRealmException {
         logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return PageableExecutionUtils.getPage(
-            auditManager.searchRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null), pageRequest),
-            pageRequest,
-            () -> auditManager.countRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null))
-        );
+        return auditManager.searchRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null), pageRequest);
     }
 }

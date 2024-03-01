@@ -40,12 +40,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
@@ -266,7 +269,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     }
 
     @Override
-    public List<AuditEvent> searchByRealm(String realm, Instant after, Instant before, String type, Pageable pageable) {
+    public Page<AuditEvent> searchByRealm(String realm, Instant after, Instant before, String type, @NotNull Pageable pageable) {
         StringBuilder query = new StringBuilder();
         query.append(selectByRealmAuditEvent);
 
@@ -291,13 +294,15 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        if (pageable != null) {
-            query.append(" ").append(offsetLimitCondition);
-            params.add(pageable.getOffset());
-            params.add(pageable.getPageSize());
-        }
+        query.append(" ").append(offsetLimitCondition);
+        params.add(pageable.getOffset());
+        params.add(pageable.getPageSize());
 
-        return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0]));
+        return PageableExecutionUtils.getPage(
+            jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0])),
+            pageable,
+            () -> countByRealm(realm, after, before, type)
+        );
     }
 
     @Override
