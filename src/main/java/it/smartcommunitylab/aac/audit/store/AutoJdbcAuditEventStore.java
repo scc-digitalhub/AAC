@@ -40,11 +40,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
@@ -79,6 +83,8 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private static final String TIME_BETWEEN_CONDITION = "event_time BETWEEN ? AND ? ";
     private static final String TYPE_CONDITION = "event_type = ?";
 
+    private static final String OFFSET_LIMIT_CONDITION = "OFFSET ? LIMIT ?";
+
     private static final String DEFAULT_ORDER_BY = "ORDER BY event_time DESC";
 
     private String insertAuditEventSql = DEFAULT_INSERT_STATEMENT;
@@ -93,6 +99,8 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private String timeAfterCondition = TIME_AFTER_CONDITION;
     private String timeBetweenCondition = TIME_BETWEEN_CONDITION;
     private String typeCondition = TYPE_CONDITION;
+
+    private String offsetLimitCondition = OFFSET_LIMIT_CONDITION;
 
     private String orderBy = DEFAULT_ORDER_BY;
 
@@ -258,6 +266,43 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         query.append(" ").append(orderBy);
 
         return jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0]));
+    }
+
+    @Override
+    public Page<AuditEvent> searchByRealm(String realm, Instant after, Instant before, String type, @NotNull Pageable pageable) {
+        StringBuilder query = new StringBuilder();
+        query.append(selectByRealmAuditEvent);
+
+        List<Object> params = new LinkedList<>();
+        params.add(realm);
+
+        if (StringUtils.hasText(type)) {
+            query.append(" AND ").append(typeCondition);
+            params.add(type);
+        }
+
+        if (after != null) {
+            if (before != null) {
+                query.append(" AND ").append(timeBetweenCondition);
+                params.add(new java.sql.Timestamp(after.toEpochMilli()));
+                params.add(new java.sql.Timestamp(before.toEpochMilli()));
+            } else {
+                query.append(" AND ").append(timeAfterCondition);
+                params.add(new java.sql.Timestamp(after.toEpochMilli()));
+            }
+        }
+
+        query.append(" ").append(orderBy);
+
+        query.append(" ").append(offsetLimitCondition);
+        params.add(pageable.getOffset());
+        params.add(pageable.getPageSize());
+
+        return PageableExecutionUtils.getPage(
+            jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0])),
+            pageable,
+            () -> countByRealm(realm, after, before, type)
+        );
     }
 
     @Override
