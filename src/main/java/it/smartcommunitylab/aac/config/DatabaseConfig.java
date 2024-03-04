@@ -16,20 +16,20 @@
 
 package it.smartcommunitylab.aac.config;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import it.smartcommunitylab.aac.autoconfigure.JdbcDataSourceInitializer;
 import it.smartcommunitylab.aac.repository.IsolationSupportHibernateJpaDialect;
 import java.beans.PropertyVetoException;
 import java.util.Properties;
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -94,74 +94,37 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaAuditing
 public class DatabaseConfig {
 
-    @Autowired
-    private Environment env;
-
-    //    @Bean
-    //    public ComboPooledDataSource getDataSource() throws PropertyVetoException {
-    //        ComboPooledDataSource bean = new ComboPooledDataSource();
-    //
-    //        bean.setDriverClass(env.getProperty("jdbc.driver"));
-    //        bean.setJdbcUrl(env.getProperty("jdbc.url"));
-    //        bean.setUser(env.getProperty("jdbc.user"));
-    //        bean.setPassword(env.getProperty("jdbc.password"));
-    //        bean.setAcquireIncrement(5);
-    //        bean.setIdleConnectionTestPeriod(60);
-    //        bean.setMaxPoolSize(100);
-    //        bean.setMaxStatements(50);
-    //        bean.setMinPoolSize(10);
-    //
-    //        return bean;
-    //    }
-
     @Bean(name = "jdbcDataSource")
-    public HikariDataSource jdbcDataSource() throws PropertyVetoException {
-        HikariDataSource bean = new HikariDataSource();
+    public HikariDataSource jdbcDataSource(@Qualifier("jdbcProperties") JdbcProperties properties)
+        throws PropertyVetoException {
+        HikariConfig config = buildDataSourceConfig(properties);
+        config.setPoolName("jdbcConnectionPool");
 
-        bean.setDriverClassName(env.getProperty("jdbc.driver"));
-        bean.setJdbcUrl(env.getProperty("jdbc.url"));
-        bean.setUsername(env.getProperty("jdbc.user"));
-        bean.setPassword(env.getProperty("jdbc.password"));
-
-        //
-        //        bean.setAcquireIncrement(5);
-        //        bean.setIdleConnectionTestPeriod(60);
-        //        bean.setMaxPoolSize(100);
-        //        bean.setMaxStatements(50);
-        bean.setMinimumIdle(10);
-
-        return bean;
+        return new HikariDataSource(config);
     }
 
     @Primary
     @Bean(name = "jpaDataSource")
-    public HikariDataSource jpaDataSource() throws PropertyVetoException {
-        HikariDataSource bean = new HikariDataSource();
+    public HikariDataSource jpaDataSource(@Qualifier("jdbcProperties") JdbcProperties properties)
+        throws PropertyVetoException {
+        HikariConfig config = buildDataSourceConfig(properties);
+        config.setPoolName("jpaConnectionPool");
 
-        bean.setDriverClassName(env.getProperty("jdbc.driver"));
-        bean.setJdbcUrl(env.getProperty("jdbc.url"));
-        bean.setUsername(env.getProperty("jdbc.user"));
-        bean.setPassword(env.getProperty("jdbc.password"));
-
-        //
-        //        bean.setAcquireIncrement(5);
-        //        bean.setIdleConnectionTestPeriod(60);
-        //        bean.setMaxPoolSize(100);
-        //        bean.setMaxStatements(50);
-        bean.setMinimumIdle(10);
-
-        return bean;
+        return new HikariDataSource(config);
     }
 
     @Bean(name = "entityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean getEntityManagerFactory() throws PropertyVetoException {
+    public LocalContainerEntityManagerFactoryBean getEntityManagerFactory(
+        @Qualifier("jdbcProperties") JdbcProperties properties,
+        @Qualifier("jpaDataSource") DataSource dataSource
+    ) throws PropertyVetoException {
         LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
         bean.setPersistenceUnitName("aac");
-        bean.setDataSource(jpaDataSource());
+        bean.setDataSource(dataSource);
 
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setDatabasePlatform(env.getProperty("jdbc.dialect"));
-        if (Boolean.parseBoolean(env.getProperty("jdbc.show-sql", "false"))) {
+        adapter.setDatabasePlatform(properties.getDialect());
+        if (properties.isShowSql()) {
             adapter.setShowSql(true);
         }
         adapter.setGenerateDdl(true);
@@ -201,9 +164,10 @@ public class DatabaseConfig {
     }
 
     @Bean(name = "transactionManager")
-    public JpaTransactionManager getTransactionManager() throws PropertyVetoException {
+    public JpaTransactionManager getTransactionManager(EntityManagerFactory entityManagerFactory)
+        throws PropertyVetoException {
         JpaTransactionManager bean = new JpaTransactionManager();
-        bean.setEntityManagerFactory(getEntityManagerFactory().getObject()); // ???
+        bean.setEntityManagerFactory(entityManagerFactory);
         return bean;
     }
 
@@ -230,5 +194,25 @@ public class DatabaseConfig {
         JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/audit/schema-@@platform@@.sql");
+    }
+
+    private HikariConfig buildDataSourceConfig(JdbcProperties properties) {
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(properties.getDriver());
+        config.setJdbcUrl(properties.getUrl());
+        config.setUsername(properties.getUser());
+        config.setPassword(properties.getPassword());
+
+        config.setMaximumPoolSize(properties.getMaxPoolSize());
+        config.setMinimumIdle(properties.getMinPoolSize());
+        config.setIdleTimeout(properties.getIdleTimeout());
+        config.setKeepaliveTime(properties.getKeepAliveTimeout());
+        config.setConnectionTimeout(properties.getConnectionTimeout());
+
+        if (properties.getDataSourceProperties() != null) {
+            properties.getDataSourceProperties().entrySet().forEach(e -> config.addDataSourceProperty(e.getKey(), e));
+        }
+
+        return config;
     }
 }
