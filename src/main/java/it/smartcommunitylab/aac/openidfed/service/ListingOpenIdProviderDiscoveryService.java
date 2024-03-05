@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 public class ListingOpenIdProviderDiscoveryService implements OpenIdProviderDiscoveryService {
@@ -109,7 +110,7 @@ public class ListingOpenIdProviderDiscoveryService implements OpenIdProviderDisc
     }
 
     @Override
-    public OIDCProviderMetadata findProvider(String entityId) {
+    public @Nullable OIDCProviderMetadata findProvider(String entityId) {
         try {
             //first check if provider is discovered
             if (!entities.get(trustAnchor).contains(entityId)) {
@@ -128,7 +129,7 @@ public class ListingOpenIdProviderDiscoveryService implements OpenIdProviderDisc
     }
 
     @Override
-    public FederationEntityMetadata loadProviderMetadata(String entityId) {
+    public @Nullable FederationEntityMetadata loadProviderMetadata(String entityId) {
         try {
             //first check if provider is discovered
             if (!entities.get(trustAnchor).contains(entityId)) {
