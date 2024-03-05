@@ -210,7 +210,7 @@ public class OpenIdFedIdentityProvider
                     FederationEntityMetadata meta = discoveryService.loadProviderMetadata(e);
 
                     if (op == null || meta == null) {
-                        logger.debug(
+                        logger.error(
                             "failed to create login for federation provider {}, provider id detail {}: the provider might be invalid or not reachable",
                             lp.getProvider(),
                             e
