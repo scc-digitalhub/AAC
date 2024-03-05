@@ -20,3 +20,6 @@ CREATE TABLE
         attr_key VARCHAR(256),
         attr_value bytea
     );
+
+CREATE INDEX attributes_provider_id_index ON public.attributes (provider_id);
+CREATE INDEX attributes_entity_id_index ON public.attributes (entity_id);
