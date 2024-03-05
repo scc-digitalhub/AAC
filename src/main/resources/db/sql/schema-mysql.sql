@@ -20,3 +20,6 @@ CREATE TABLE
         attr_key VARCHAR(256),
         attr_value BLOB
     );
+
+CREATE INDEX attributes_provider_id_index ON attributes (provider_id);
+CREATE INDEX attributes_entity_id_index ON attributes (entity_id);
