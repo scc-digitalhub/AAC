@@ -30,7 +30,7 @@
                                ng-model="idp.titleMap[selectedLanguage]">
                         <label for="title" class="{{idp.titleMap[selectedLanguage] != '' ? 'active' : ''}}">Title</label>
                     </div>
-                    <button class="btn btn-danger btn-sm text-right" ng-click="idp.titleMap = {}">
+                    <button class="btn btn-danger btn-sm text-right" ng-click="removeTitleMapLanguage(selectedLanguage)">
                         <svg class="icon icon-sm icon-white">
                             <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
                         </svg>
@@ -43,7 +43,7 @@
                         <label for="description"
                                class="{{idp.descriptionMap[selectedLanguage] != '' ? 'active' : ''}}">Description</label>
                     </div>
-                    <button class="btn btn-danger btn-sm text-right" ng-click="idp.descriptionMap = {}">
+                    <button class="btn btn-danger btn-sm text-right" ng-click="removeDescriptionMapLanguage(selectedLanguage)">
                         <svg class="icon icon-sm icon-white">
                             <use xlink:href="./italia/svg/sprite.svg#it-delete"></use>
                         </svg>
