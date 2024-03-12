@@ -888,6 +888,14 @@ angular.module('aac.controllers.realmproviders', [])
                 });
         }
 
+        $scope.removeTitleMapLanguage = function (language) {
+            delete $scope.idp.titleMap[language];
+        }
+
+        $scope.removeDescriptionMapLanguage = function (language) {
+            delete $scope.idp.descriptionMap[language];
+        }
+
         $scope.toggleProviderState = function (provider) {
             provider.enabled = !provider.enabled;
 
