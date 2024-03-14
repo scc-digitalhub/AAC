@@ -320,6 +320,14 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         accountRepository.deleteAllInBatch(accounts);
     }
 
+    @Override
+    public void deleteAllAccountsByRealm(@NotNull String realm) {
+        logger.debug("delete accounts for realm {} in all repositories", String.valueOf(realm));
+
+        List<SamlUserAccountEntity> accounts = accountRepository.findByRealm(realm);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
     /*
      * Helpers
      * TODO converters?

@@ -344,6 +344,14 @@ public class InternalJpaUserAccountService
         accountRepository.deleteAllInBatch(accounts);
     }
 
+    @Override
+    public void deleteAllAccountsByRealm(@NotNull String realm) {
+        logger.debug("delete accounts for realm {} in all repositories", String.valueOf(realm));
+
+        List<InternalUserAccountEntity> accounts = accountRepository.findByRealm(realm);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
     //TODO remove from here
     @Override
     public InternalUserAccount confirmAccount(String repository, String username, String key)

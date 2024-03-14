@@ -325,6 +325,14 @@ public class OIDCJpaUserAccountService implements UserAccountService<OIDCUserAcc
         accountRepository.deleteAllInBatch(accounts);
     }
 
+    @Override
+    public void deleteAllAccountsByRealm(@NotNull String realm) {
+        logger.debug("delete accounts for realm {} in all repositories", String.valueOf(realm));
+
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByRealm(realm);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
     /*
      * Helpers
      * TODO converters?

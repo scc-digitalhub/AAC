@@ -45,4 +45,6 @@ public interface UserAccountService<U extends UserAccount> {
     public void deleteAccount(@NotNull String repository, @NotNull String id);
 
     public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId);
+
+    public void deleteAllAccountsByRealm(@NotNull String realm);
 }
