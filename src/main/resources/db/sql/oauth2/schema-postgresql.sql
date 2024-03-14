@@ -35,5 +35,8 @@ CREATE TABLE
     );
 
 CREATE INDEX oauth_access_token_token_id_index ON public.oauth_access_token (token_id);
+CREATE INDEX oauth_access_token_token_user_index ON public.oauth_access_token (user_name);
+CREATE INDEX oauth_access_token_token_client_index ON public.oauth_access_token (client_id);
+CREATE INDEX oauth_access_token_token_refresh_token_index ON public.oauth_access_token (refresh_token);
 
 CREATE INDEX oauth_refresh_token_token_id_index ON public.oauth_refresh_token (token_id);
