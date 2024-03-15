@@ -314,6 +314,14 @@ public class OIDCJpaUserAccountService implements UserAccountService<OIDCUserAcc
     }
 
     @Override
+    public void deleteAllAccountsByUser(@NotNull String userId) {
+        logger.debug("delete accounts for user {}", String.valueOf(userId));
+
+        List<OIDCUserAccountEntity> accounts = accountRepository.findByUserId(userId);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
+    @Override
     public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId) {
         logger.debug(
             "delete accounts for user {} in repository {}",
