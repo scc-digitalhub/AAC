@@ -83,7 +83,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private static final String TIME_BETWEEN_CONDITION = "event_time BETWEEN ? AND ? ";
     private static final String TYPE_CONDITION = "event_type = ?";
 
-    private static final String OFFSET_LIMIT_CONDITION = "OFFSET ? LIMIT ?";
+    private static final String LIMIT_OFFSET_CONDITION = "LIMIT ? OFFSET ?";
 
     private static final String DEFAULT_ORDER_BY = "ORDER BY event_time DESC";
 
@@ -100,7 +100,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private String timeBetweenCondition = TIME_BETWEEN_CONDITION;
     private String typeCondition = TYPE_CONDITION;
 
-    private String offsetLimitCondition = OFFSET_LIMIT_CONDITION;
+    private String limitOffsetCondition = LIMIT_OFFSET_CONDITION;
 
     private String orderBy = DEFAULT_ORDER_BY;
 
@@ -269,7 +269,13 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     }
 
     @Override
-    public Page<AuditEvent> searchByRealm(String realm, Instant after, Instant before, String type, @NotNull Pageable pageable) {
+    public Page<AuditEvent> searchByRealm(
+        String realm,
+        Instant after,
+        Instant before,
+        String type,
+        @NotNull Pageable pageable
+    ) {
         StringBuilder query = new StringBuilder();
         query.append(selectByRealmAuditEvent);
 
@@ -294,9 +300,9 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         query.append(" ").append(orderBy);
 
-        query.append(" ").append(offsetLimitCondition);
-        params.add(pageable.getOffset());
+        query.append(" ").append(limitOffsetCondition);
         params.add(pageable.getPageSize());
+        params.add(pageable.getOffset());
 
         return PageableExecutionUtils.getPage(
             jdbcTemplate.query(query.toString(), rowMapper, params.toArray(new Object[0])),
