@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
+import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -56,8 +58,8 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     // when empty all idps will be registered
     private Set<String> idps;
     private String idpMetadataUrl;
-    private Set<String> spidAttributes; // TODO: check se Set<String> va bene. In openidfed, l'equivalente FORSE è Set<String> claims, però Matteo le flagga come "client setting", che avrebbe anche senso;
-
+    private Set<SpidAttribute> spidAttributes;
+    private SpidAuthnContext authnContext;
 
     public String getEntityId() {
         return entityId;
@@ -200,12 +202,20 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.idpMetadataUrl = idpMetadataUrl;
     }
 
-    public Set<String> getSpidAttributes() {
+    public Set<SpidAttribute> getSpidAttributes() {
         return spidAttributes;
     }
 
-    public void setSpidAttributes(Set<String> spidAttributes) {
+    public void setSpidAttributes(Set<SpidAttribute> spidAttributes) {
         this.spidAttributes = spidAttributes;
+    }
+
+    public SpidAuthnContext getAuthnContext() {
+        return authnContext;
+    }
+
+    public void setAuthnContext(SpidAuthnContext authnContext) {
+        this.authnContext = authnContext;
     }
 
     @JsonIgnore
@@ -227,6 +237,8 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.organizationUrl = map.getOrganizationUrl();
         this.idps = map.getIdps();
         this.idpMetadataUrl = map.getIdpMetadataUrl();
+        this.spidAttributes = map.getSpidAttributes();
+        this.authnContext = map.getAuthnContext();
     }
 
     @Override
