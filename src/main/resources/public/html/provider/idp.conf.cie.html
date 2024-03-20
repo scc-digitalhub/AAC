@@ -1,0 +1,200 @@
+<div class="pt-3 mb-5">
+
+    <fieldset>
+        <legend class="mb-4">OpenId RP Configuration</legend>
+        <div class="row">
+            <div class="form-group col">
+                <div class="input-group">
+                    <label for="openidfedMetadataUrl" class="active">EntityId</label>
+                    <input type="text" class="form-control" id="openidfedMetadataUrl" ng-model="openidfedMetadataUrl" readonly>
+                    </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary btn-sm  text-right" ng-click="copyText(openidfedMetadataUrl)">
+                            <svg class="icon icon-sm icon-white">
+                                <use xlink:href="./italia/svg/sprite.svg#it-copy"></use>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <legend class="mb-4">OpenId Client Configuration</legend>
+        <div class="form-group col ">
+            <label for="clientId">Client ID</label>
+            <input type="text" name="clientId" class="form-control form-control-sm" id="clientId"
+                ng-model="idp.configuration.clientId">
+        </div>
+        <div class="form-group col ">
+            <label for="clientName">Client Name</label>
+            <input type="text" name="clientName" class="form-control form-control-sm" id="clientName"
+                ng-model="idp.configuration.clientName">
+        </div>
+        <div class="form-group col ">
+            <label for="clientJwks">Client Key (JWK)*</label>
+            <textarea rows="5" required name="clientJwks" id="clientJwks" ng-model="idp.configuration.clientJwks"></textarea>
+        </div>
+
+        <div class="row">
+            <div class="form-group col ">
+                <label for="scope">Scopes</label>
+                <tags-input name="scope" type="text" placeholder="Scopes" ng-model="cieScope">
+                </tags-input>
+            </div>
+        </div>
+
+        <legend class="mb-4">OpenId Federation Configuration</legend>
+        <div class="form-group col ">
+            <label for="organizationName">Organization Name*</label>
+            <input type="text" required name="organizationName" class="form-control form-control-sm" id="organizationName"
+                ng-model="idp.configuration.organizationName">
+        </div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="contacts">Contacts</label>
+                <tags-input name="contacts" type="text" placeholder="contacts" ng-model="cieContacts">
+                </tags-input>
+            </div>
+        </div>   
+        <div class="form-group col ">
+            <label for="trustAnchor">Trust Anchor*</label>
+            <input type="text" required name="trustAnchor" class="form-control form-control-sm" id="trustAnchor"
+                ng-model="idp.configuration.trustAnchor">
+        </div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="authorityHints">Authority hints*</label>
+                <tags-input name="authorityHints" type="text" placeholder="authorityHints" ng-model="cieAuthorityHints">
+                </tags-input>
+            </div>
+        </div>     
+
+        <div class="form-group col ">
+            <label for="federationJwks">Federation Key (JWK)</label>
+            <textarea rows="5" name="federationJwks" id="federationJwks" ng-model="idp.configuration.federationJwks"></textarea>
+        </div>        
+        <div class="form-group col ">
+            <label for="trustMarks">Trust Marks</label>
+            <textarea rows="5" name="trustMarks" id="trustMarks" ng-model="idp.configuration.trustMarks"></textarea>
+        </div>        
+
+       
+        <legend class="mb-4">Advanced Configuration</legend>
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="userInfoJWEAlg">userInfoJWEAlg</label>
+                    <input type="text"  name="userInfoJWEAlg" class="form-control form-control-sm" id="userInfoJWEAlg"
+                    ng-model="idp.configuration.userInfoJWEAlg">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="userInfoJWEEnc">userInfoJWEEnc</label>
+                    <input type="text"  name="userInfoJWEEnc" class="form-control form-control-sm" id="userInfoJWEEnc"
+                    ng-model="idp.configuration.userInfoJWEEnc">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Prompt mode</label>
+                    <select title="Select" multiple="true" data-multiple-separator=""
+                        ng-model="idp.configuration.promptMode">
+                        <option ng-repeat="md in idp.schema.properties.promptMode.items.enum" ng-value="md"
+                            data-content="<span class='select-pill'><span class='select-pill-text'>{{md}}</span></span>">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">      
+            <div class="form-group col">
+                <div class="form-check form-check-inline"
+                    ng-click="idp.configuration.respectTokenExpiration = !idp.configuration.respectTokenExpiration">
+                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.respectTokenExpiration">
+                    <label>Use expiration from token for session</label>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <small class="form-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" ng-repeat="(key, value) in idp.configuration.supportedAcrValuesForClaims">{{key}}<br>{{value}}</li>
+                    </ul>
+                </small>
+            </div>
+            <div class="col-md-6">
+                <small class="form-text">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" ng-repeat="(key, value) in idp.configuration.supportedAcrValuesForLoa">{{key}}<br>{{value}}</li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+        <div class="row mb-2 pt-5">
+            <div class="col-md-6">
+                <div class="form-group col">
+                    <div class="bootstrap-select-wrapper border-bottom-0">
+                        <label>Default claims</label>
+                        <select title="Select" ng-model="idp.configuration.defaultAcrValueForClaims">
+                            <option ng-repeat="(key, value) in idp.configuration.supportedAcrValuesForClaims" ng-value="key"
+                                    ng-selected="idp.configuration.defaultAcrValueForClaims == key"
+                                    data-content="<span class='select-pill'><span class='select-pill-text'>{{key}}</span></span>">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group col">
+                    <div class="bootstrap-select-wrapper border-bottom-0">
+                        <label>Default acr values</label>
+                        <select title="Select" ng-model="idp.configuration.defaultAcrValueForLoa">
+                            <option ng-repeat="(key, value) in idp.configuration.supportedAcrValuesForLoa" ng-value="key"
+                                    ng-selected="idp.configuration.defaultAcrValueForLoa == key"
+                                    data-content="<span class='select-pill'><span class='select-pill-text'>{{key}}</span></span>">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </fieldset>
+    <fieldset>
+        <legend class="mb-4">Account Configuration</legend>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" name="trustEmailAddress" id="trustEmailAddress" type="checkbox"
+                        ng-model="idp.configuration.trustEmailAddress">
+                    <label for="trustEmailAddress">trustEmailAddress</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check">
+                    <input class="form-check-input" name="alwaysTrustEmailAddress" id="alwaysTrustEmailAddress"
+                        type="checkbox" ng-model="idp.configuration.alwaysTrustEmailAddress">
+                    <label for="alwaysTrustEmailAddress">alwaysTrustEmailAddress</label>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="form-group col-md-6">
+                <label for="userNameAttributeName">Username attribute*</label>
+                <input required type="text" name="userNameAttributeName" class="form-control form-control-sm"
+                    id="userNameAttributeName" ng-model="idp.configuration.userNameAttributeName">
+            </div>
+            <div class="form-group col-md-6 ">
+                <label for="subAttributeName">Subject attribute (if different from sub)</label>
+                <input type="text" name="subAttributeName" class="form-control form-control-sm"
+                    id="subAttributeName" ng-model="idp.configuration.subAttributeName">
+            </div>
+        </div>
+    </fieldset>
+</div>

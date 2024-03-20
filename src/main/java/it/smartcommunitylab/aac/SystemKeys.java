@@ -31,6 +31,7 @@ public class SystemKeys {
     public static final long AAC_WEBAUTHN_SERIAL_VERSION = 420L;
     public static final long AAC_INTERNAL_SERIAL_VERSION = 420L;
     public static final long AAC_OPENIDFED_SERIAL_VERSION = 500L;
+    public static final long AAC_CIE_SERIAL_VERSION = 510L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";

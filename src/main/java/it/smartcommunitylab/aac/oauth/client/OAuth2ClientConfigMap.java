@@ -27,6 +27,7 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.oauth.model.AcrValues;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -191,6 +192,14 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
 
     public void setIdTokenValidity(Integer idTokenValidity) {
         this.idTokenValidity = idTokenValidity;
+    }
+
+    public Set<AcrValues> getAcrValues() {
+        if (additionalConfig == null) {
+            return new HashSet<>();
+        }
+
+        return additionalConfig.getAcrValues() != null ? additionalConfig.getAcrValues() : new HashSet<>();
     }
 
     //    public String getJwks() {

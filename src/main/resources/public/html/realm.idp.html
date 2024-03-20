@@ -70,7 +70,12 @@
             class="nav-item">
             <a class="nav-link  {{activeView('conf.openidfed')}}" href ng-click="switchView('conf.openidfed')">OpenId Fed
                 Configuration</a>
-        </li>        
+        </li>
+        <li ng-if="idp.authority == 'cie'"
+            class="nav-item">
+            <a class="nav-link  {{activeView('conf.cie')}}" href ng-click="switchView('conf.cie')">CIE
+                Configuration</a>
+        </li>
         <li ng-if="idp.authority == 'saml'" class="nav-item">
             <a class="nav-link  {{activeView('conf.saml')}}" href ng-click="switchView('conf.saml')">SAML
                 Configuration</a>

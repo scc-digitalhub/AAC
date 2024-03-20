@@ -691,7 +691,33 @@ angular.module('aac.controllers.realmproviders', [])
                     });
                 }
                 $scope.openidfedAcrValues = acrValues;                 
-            }            
+            }
+
+            if (authority == 'cie') {
+                var scopes = [];
+                if(config.scope) {
+                    toChips(config.scope).forEach(function (s) {
+                        scopes.push({ 'text': s });
+                    });
+                }
+                $scope.cieScope = scopes;
+
+                var authorityHints = [];
+                if(config.authorityHints) {
+                    config.authorityHints.forEach(function (t) {
+                        authorityHints.push({ 'text': t });
+                    });
+                }
+                $scope.cieAuthorityHints = authorityHints;
+
+                var contacts = [];
+                if(config.contacts) {
+                    config.contacts.forEach(function (t) {
+                        contacts.push({ 'text': t });
+                    });
+                }
+                $scope.cieContacts = contacts;
+            }
 
             if (authority == 'saml') {
                 var authnContextClasses = [];
@@ -757,7 +783,36 @@ angular.module('aac.controllers.realmproviders', [])
                     return t;
                 });
                 config.acrValues = acrValues;           
-            }            
+            }
+            if (authority == 'cie') {
+                console.log('dump',$scope);
+                var scopes = $scope.cieScope.map(function (s) {
+                    if ('text' in s) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                config.scope = scopes.join(',');
+
+                var authorityHints = $scope.cieAuthorityHints.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.authorityHints = authorityHints;
+
+                var contacts = $scope.cieContacts.map(function (t) {
+                    if ('text' in t) {
+                        return t.text;
+                    }
+                    return t;
+                });
+                config.contacts = contacts;
+
+                // delete config.supportedAcrValuesForClaims;
+                // delete config.supportedAcrValuesForLoa;
+            }
             if (authority == 'saml') {
                 var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
                     if ('text' in s) {
@@ -821,7 +876,7 @@ angular.module('aac.controllers.realmproviders', [])
                 var loginUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/login/" + data.provider;
                 $scope.oidcRedirectUrl = loginUrl;
             }
-            if (data.authority == 'openidfed' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap') {
+            if (data.authority == 'openidfed' || data.authority == 'cie' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:openidfed:provider:OpenIdFedIdentityProviderConfigMap') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.openidfedMetadataUrl = metadataUrl;
             }

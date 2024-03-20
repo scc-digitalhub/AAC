@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConver
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
@@ -40,10 +41,17 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 public class PasswordIdentityProvider
-    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        InternalUserIdentity,
+        InternalUserAccount,
+        InternalPasswordUserAuthenticatedPrincipal,
+        PasswordIdentityProviderConfigMap,
+        PasswordIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -220,7 +228,7 @@ public class PasswordIdentityProvider
     }
 
     @Override
-    public InternalLoginProvider getLoginProvider() {
+    public InternalLoginProvider getLoginProvider(@Nullable OAuth2ClientDetails clientDetails) {
         InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
         ilp.setTitleMap(getTitleMap());
         ilp.setDescriptionMap(getDescriptionMap());

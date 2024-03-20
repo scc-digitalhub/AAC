@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.openidfed.provider;
+package it.smartcommunitylab.aac.openidfed.cie.provider;
 
 import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
@@ -32,8 +32,9 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAccountPrincipalConverter;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCSubjectResolver;
-import it.smartcommunitylab.aac.openidfed.auth.OpenIdFedClientRegistrationRepository;
+import it.smartcommunitylab.aac.openidfed.cie.auth.CieClientRegistrationRepository;
 import it.smartcommunitylab.aac.openidfed.model.OpenIdFedLogin;
+import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedLoginProvider;
 import it.smartcommunitylab.aac.openidfed.service.OpenIdProviderDiscoveryService;
 import java.net.MalformedURLException;
 import java.util.Collection;
@@ -46,38 +47,38 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
-public class OpenIdFedIdentityProvider
+public class CieIdentityProvider
     extends AbstractIdentityProvider<
         OIDCUserIdentity,
         OIDCUserAccount,
         OIDCUserAuthenticatedPrincipal,
-        OpenIdFedIdentityProviderConfigMap,
-        OpenIdFedIdentityProviderConfig
+        CieIdentityProviderConfigMap,
+        CieIdentityProviderConfig
     > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // providers
-    private final OpenIdFedAccountService accountService;
+    private final CieAccountService accountService;
     private final OIDCAccountPrincipalConverter principalConverter;
     private final OIDCAttributeProvider attributeProvider;
-    private final OpenIdFedAuthenticationProvider authenticationProvider;
+    private final CieAuthenticationProvider authenticationProvider;
     private final OIDCSubjectResolver subjectResolver;
 
-    public OpenIdFedIdentityProvider(
+    public CieIdentityProvider(
         String providerId,
         UserAccountService<OIDCUserAccount> userAccountService,
-        OpenIdFedIdentityProviderConfig config,
+        CieIdentityProviderConfig config,
         String realm
     ) {
-        this(SystemKeys.AUTHORITY_OPENIDFED, providerId, userAccountService, config, realm);
+        this(SystemKeys.AUTHORITY_CIE, providerId, userAccountService, config, realm);
     }
 
-    public OpenIdFedIdentityProvider(
+    public CieIdentityProvider(
         String authority,
         String providerId,
         UserAccountService<OIDCUserAccount> userAccountService,
-        OpenIdFedIdentityProviderConfig config,
+        CieIdentityProviderConfig config,
         String realm
     ) {
         super(authority, providerId, config, realm);
@@ -88,9 +89,9 @@ public class OpenIdFedIdentityProvider
         );
 
         // build resource providers, we use our providerId to ensure consistency
-        OpenIdFedAccountServiceConfigConverter configConverter = new OpenIdFedAccountServiceConfigConverter();
+        CieAccountServiceConfigConverter configConverter = new CieAccountServiceConfigConverter();
         this.accountService =
-            new OpenIdFedAccountService(providerId, userAccountService, configConverter.convert(config), realm);
+            new CieAccountService(providerId, userAccountService, configConverter.convert(config), realm);
 
         this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
@@ -102,8 +103,7 @@ public class OpenIdFedIdentityProvider
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // build custom authenticator
-        this.authenticationProvider =
-            new OpenIdFedAuthenticationProvider(providerId, userAccountService, config, realm);
+        this.authenticationProvider = new CieAuthenticationProvider(providerId, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null) {
@@ -135,7 +135,7 @@ public class OpenIdFedIdentityProvider
     }
 
     @Override
-    public OpenIdFedAuthenticationProvider getAuthenticationProvider() {
+    public CieAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 
@@ -145,7 +145,7 @@ public class OpenIdFedIdentityProvider
     }
 
     @Override
-    public OpenIdFedAccountService getAccountService() {
+    public CieAccountService getAccountService() {
         return accountService;
     }
 
@@ -186,6 +186,15 @@ public class OpenIdFedIdentityProvider
         return "/auth/" + getAuthority() + "/form/" + getProvider();
     }
 
+    private String getClientAcrValues(OAuth2ClientDetails clientDetails, CieClientRegistrationRepository repository) {
+        if (clientDetails != null && !clientDetails.getAcrValues().isEmpty()) {
+            String clientAcrValues = StringUtils.collectionToCommaDelimitedString(clientDetails.getAcrValues());
+            return "?clientAcrValues=" + repository.encode(clientAcrValues);
+        } else {
+            return "";
+        }
+    }
+
     @Override
     public OpenIdFedLoginProvider getLoginProvider(@Nullable OAuth2ClientDetails clientDetails) {
         OpenIdFedLoginProvider lp = new OpenIdFedLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
@@ -202,7 +211,7 @@ public class OpenIdFedIdentityProvider
         }
 
         //set providers
-        OpenIdFedClientRegistrationRepository repository = config.getClientRegistrationRepository();
+        CieClientRegistrationRepository repository = config.getClientRegistrationRepository();
         OpenIdProviderDiscoveryService discoveryService = config.getProviderService();
         if (repository != null && discoveryService != null) {
             List<OpenIdFedLogin> entries = discoveryService
@@ -210,9 +219,11 @@ public class OpenIdFedIdentityProvider
                 .stream()
                 .map(e -> {
                     String registrationId = repository.encode(e);
+                    String clientAcrValuesParam = getClientAcrValues(clientDetails, repository);
+
                     OpenIdFedLogin login = new OpenIdFedLogin(registrationId);
                     login.setEntityId(e);
-                    login.setLoginUrl(getAuthenticationUrl() + "/" + registrationId);
+                    login.setLoginUrl(getAuthenticationUrl() + "/" + registrationId + clientAcrValuesParam);
 
                     OIDCProviderMetadata op = discoveryService.findProvider(e);
                     FederationEntityMetadata meta = discoveryService.loadProviderMetadata(e);

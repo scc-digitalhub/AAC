@@ -27,6 +27,8 @@ import it.smartcommunitylab.aac.identity.provider.LoginProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.identity.service.IdentityServiceAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.realms.RealmManager;
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,6 +89,9 @@ public class LoginController {
 
     @Autowired
     private ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private OAuth2ClientDetailsService oAuth2ClientDetailsService;
 
     // TODO handle COMMON realm
     @RequestMapping(value = { "/login" }, method = RequestMethod.GET)
@@ -200,6 +205,7 @@ public class LoginController {
         }
 
         // fetch client if provided
+        ClientDetails details = null;
         if (clientId != null) {
             ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
             model.addAttribute("client", clientDetails);
@@ -218,14 +224,20 @@ public class LoginController {
                         .stream()
                         .filter(p -> clientDetails.getProviders().contains(p.getProvider()))
                         .collect(Collectors.toList());
+
+                details = clientDetails;
             }
         }
 
         // fetch login providers
         // TODO refactor with proper provider + model
+        OAuth2ClientDetails oAuth2ClientDetails = null;
+        if (details != null) {
+            oAuth2ClientDetails = oAuth2ClientDetailsService.loadClientByClientId(details.getClientId());
+        }
         List<LoginProvider> authorities = new ArrayList<>();
         for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-            LoginProvider a = idp.getLoginProvider();
+            LoginProvider a = idp.getLoginProvider(oAuth2ClientDetails);
             // lp is optional
             if (a != null) {
                 authorities.add(a);

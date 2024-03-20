@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.oauth.model.AcrValues;
 import it.smartcommunitylab.aac.oauth.model.EncryptionMethod;
 import it.smartcommunitylab.aac.oauth.model.JWEAlgorithm;
 import it.smartcommunitylab.aac.oauth.model.JWSAlgorithm;
@@ -104,6 +105,9 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
 
     @JsonProperty("request_uris")
     private Set<String> requestUris;
+
+    // acr values
+    private Set<AcrValues> acrValues;
 
     @SuppressWarnings("unchecked")
     public static Map<String, Serializable> read(String additionalConfiguration) {
@@ -270,5 +274,13 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
 
     public void setRefreshTokenRotation(Boolean refreshTokenRotation) {
         this.refreshTokenRotation = refreshTokenRotation;
+    }
+
+    public Set<AcrValues> getAcrValues() {
+        return acrValues;
+    }
+
+    public void setAcrValues(Set<AcrValues> acrValues) {
+        this.acrValues = acrValues;
     }
 }

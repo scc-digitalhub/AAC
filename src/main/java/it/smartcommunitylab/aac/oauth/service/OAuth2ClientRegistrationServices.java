@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.oauth.client.OAuth2ClientAdditionalConfig;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientConfigMap;
 import it.smartcommunitylab.aac.oauth.client.OAuth2ClientInfo;
 import it.smartcommunitylab.aac.oauth.common.HumanStringKeyGenerator;
+import it.smartcommunitylab.aac.oauth.model.AcrValues;
 import it.smartcommunitylab.aac.oauth.model.ApplicationType;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
@@ -351,6 +352,16 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             additional.setResponseTypes(responseTypes);
         }
 
+        if (reg.getAcrValues() != null) {
+            Set<AcrValues> acrValues = reg
+                .getAcrValues()
+                .stream()
+                .map(t -> AcrValues.parse(t))
+                .filter(t -> t != null)
+                .collect(Collectors.toSet());
+            additional.setAcrValues(acrValues);
+        }
+
         // jwt
         if (reg.getJwtSignAlgorithm() != null) {
             additional.setJwtSignAlgorithm(JWSAlgorithm.parse(reg.getJwtSignAlgorithm()));
@@ -439,6 +450,10 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
                 reg.setResponseTypes(
                     config.getResponseTypes().stream().map(t -> t.getValue()).collect(Collectors.toSet())
                 );
+            }
+
+            if (config.getAcrValues() != null) {
+                reg.setAcrValues(config.getAcrValues().stream().map(t -> t.getValue()).collect(Collectors.toSet()));
             }
 
             // TODO handle all response config as per openid DCR

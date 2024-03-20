@@ -28,14 +28,22 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 public class InternalIdentityProvider
-    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        InternalUserIdentity,
+        InternalUserAccount,
+        InternalUserAuthenticatedPrincipal,
+        InternalIdentityProviderConfigMap,
+        InternalIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -216,7 +224,7 @@ public class InternalIdentityProvider
     }
 
     @Override
-    public LoginProvider getLoginProvider() {
+    public LoginProvider getLoginProvider(@Nullable OAuth2ClientDetails clientDetails) {
         // no direct login available
         return null;
     }

@@ -35,15 +35,12 @@ import it.smartcommunitylab.aac.claims.ExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.InMemoryExtractorsRegistry;
 import it.smartcommunitylab.aac.claims.ResourceClaimsExtractorProvider;
 import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
-import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.internal.InternalIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.persistence.InternalUserAccountEntityRepository;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProviderConfig;
@@ -54,6 +51,7 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.persistence.OIDCUserAccountEntityRepository;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.service.OIDCJpaUserAccountService;
+import it.smartcommunitylab.aac.openidfed.cie.provider.CieIdentityProviderConfig;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
@@ -402,6 +400,11 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<OpenIdFedIdentityProviderConfig> openidFedIdentityProviderConfigRepository() {
         return buildProviderConfigRepository(OpenIdFedIdentityProviderConfig.class, SystemKeys.AUTHORITY_OPENIDFED);
+    }
+
+    @Bean
+    public ProviderConfigRepository<CieIdentityProviderConfig> cieIdentityProviderConfigRepository() {
+        return buildProviderConfigRepository(CieIdentityProviderConfig.class, SystemKeys.AUTHORITY_CIE);
     }
 
     @Bean

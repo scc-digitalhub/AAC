@@ -673,6 +673,16 @@ angular.module('aac.controllers.realmapps', [])
                 });
                 $scope.oauth2AuthenticationMethods = authMethods;
 
+                // acrValues
+                var acrValues = [];
+                schema.properties.acrValues.items["enum"].forEach(function (e) {
+                    acrValues.push({
+                        "key": e,
+                        "value": (config.acrValues.includes(e))
+                    })
+                });
+                $scope.oauth2AcrValues = acrValues;
+
 
                 // redirects
                 var redirectUris = [];
@@ -1706,11 +1716,13 @@ angular.module('aac.controllers.realmapps', [])
                         }
                     });
                 }
-
                 $scope.oauth2GrantTypes = grantTypes;
 
                 // authMethods
                 $scope.oauth2AuthenticationMethods = config.authenticationMethods;
+
+                // acrValues
+                $scope.oauth2AcrValues = config.acrValues;
 
                 // redirects
                 var redirectUris = [];
