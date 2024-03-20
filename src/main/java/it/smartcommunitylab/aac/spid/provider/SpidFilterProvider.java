@@ -2,13 +2,20 @@ package it.smartcommunitylab.aac.spid.provider;
 
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
+import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
+import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
+import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
+import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.util.Assert;
 
 import javax.servlet.Filter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class SpidFilterProvider implements FilterProvider, ApplicationEventPublisherAware {
     private String authorityId;
@@ -38,8 +45,18 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
 
     @Override
     public Collection<Filter> getAuthFilters() {
-        // TODO:
-        return null;
+        List<Filter> filters = new ArrayList<>();
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
+                new HttpSessionSaml2AuthenticationRequestRepository();
+
+        // build filters
+        SpidWebSsoAuthenticationRequestFilter requestFilter = new SpidWebSsoAuthenticationRequestFilter(
+                authorityId,
+                providerConfigRepository,
+                relyingPartyRegistrationRepository,
+                buildFilterUrl("authenticate/{registrationId}")
+        );
+        return filters;
     }
 
     @Override
@@ -52,6 +69,11 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
     public Collection<String> getCorsIgnoringAntMatchers() {
         // TODO:
         return null;
+    }
+
+    private String buildFilterUrl(String action) {
+        // always use same path building logic for saml
+        return "/auth/" + authorityId + "/" + action;
     }
 
     @Override

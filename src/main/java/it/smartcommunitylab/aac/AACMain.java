@@ -28,8 +28,8 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class AACMain {
 
-    @Autowired
-    BuildProperties buildProperties;
+//    @Autowired
+//    BuildProperties buildProperties;
 
     @Autowired
     private AACBootstrap bootstrap;
@@ -54,7 +54,8 @@ public class AACMain {
     }
 
     public void printBanner() {
-        String version = buildProperties.getVersion();
+//        String version = buildProperties.getVersion();
+        String version = "5-local";
         System.out.println("======================================");
         System.out.println("                    _____            ");
         System.out.println("     /\\       /\\   / ____|          ");
