@@ -72,83 +72,84 @@ public class SpidAuthenticationRequestContextConverter
 
     @Override
     public AuthnRequest convert(Saml2AuthenticationRequestContext context) {
-        return null;
-        // TODO: review
-//        // fetch registration id and complete configuration
-//        RelyingPartyRegistration relyingPartyRegistration = context.getRelyingPartyRegistration();
-//        String registrationId = relyingPartyRegistration.getRegistrationId();
-//
-//        // registrationId is providerId+idpkey
-//        String providerId = SpidIdentityProviderConfig.getProviderId(registrationId);
-//        SpidIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
-//        if (providerConfig == null) {
-//            Saml2Error saml2Error = new Saml2Error(Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
-//                    "No relying party registration found");
-//            throw new Saml2AuthenticationException(saml2Error);
-//        }
-//
-//        // extract baseUrl
-//        Map<String, String> acsVariables = new HashMap<>();
-//        acsVariables.put("baseUrl", "");
-//        acsVariables.put("registrationId", registrationId);
-//        UriComponents acsComponents = UriComponentsBuilder
-//                .fromUriString(SpidIdentityProviderConfig.DEFAULT_CONSUMER_URL)
-//                .replaceQuery(null).fragment(null)
-//                .buildAndExpand(acsVariables);
-//        UriComponents uriComponents = UriComponentsBuilder
-//                .fromHttpUrl(relyingPartyRegistration.getAssertionConsumerServiceLocation())
-//                .replacePath(acsComponents.getPath()).replaceQuery(null).fragment(null).build();
-//        String baseUrl = uriComponents.toUriString();
-//        String realmUrl = baseUrl + "/-/" + providerConfig.getRealm();
-//
-//        // build request base
-//        String issuer = context.getIssuer();
-//        String destination = context.getDestination();
-//        String protocolBinding = context.getRelyingPartyRegistration().getAssertionConsumerServiceBinding().getUrn();
-//
-//        AuthnRequest auth = authnRequestBuilder.buildObject();
-//        auth.setID("ARQ" + UUID.randomUUID().toString().substring(1));
-//        auth.setIssueInstant(Instant.now());
-//        auth.setProtocolBinding(protocolBinding);
-//
-//        Issuer iss = this.issuerBuilder.buildObject();
-//        iss.setValue(issuer);
-//        iss.setFormat(NameIDType.ENTITY);
-//        iss.setNameQualifier(realmUrl);
-//
-//        auth.setIssuer(iss);
-//        auth.setDestination(destination);
-//        auth.setAssertionConsumerServiceURL(context.getAssertionConsumerServiceUrl());
-//
-//        NameIDPolicy nameIDPolicy = nameIDPolicyBuilder.buildObject();
-//        nameIDPolicy.setFormat(NameIDType.TRANSIENT);
-//        auth.setNameIDPolicy(nameIDPolicy);
-//
-//        if (providerConfig.getRelyingPartyRegistrationIsForceAuthn() != null) {
-//            auth.setForceAuthn(providerConfig.getRelyingPartyRegistrationIsForceAuthn());
-//        }
-//
-//        if (providerConfig.getRelyingPartyRegistrationAuthnContextClassRefs() != null) {
-//            RequestedAuthnContext requestAuthnContext = this.reqAuthnContextBuilder.buildObject();
-//            requestAuthnContext.setComparison(AuthnContextComparisonTypeEnumeration.MINIMUM);
-//            providerConfig.getRelyingPartyRegistrationAuthnContextClassRefs().forEach((r) -> {
-//                AuthnContextClassRef authnContextClassRef = new AuthnContextClassRefBuilder().buildObject();
-////                authnContextClassRef.setAuthnContextClassRef(r);
-//                                    authnContextClassRef.setURI(r); // TODO: evaluate this option as a possible update from the previous deprecated method usage
-//                requestAuthnContext.getAuthnContextClassRefs().add(authnContextClassRef);
-//            });
-//
-//            auth.setRequestedAuthnContext(requestAuthnContext);
-//        }
-//
-//        // assertion consuming
-//        auth.setAssertionConsumerServiceIndex(0);
-//        auth.setAttributeConsumingServiceIndex(0);
-//
-////        Scoping scoping = new ScopingBuilder().buildObject();
-////        scoping.setProxyCount(0);
-////        auth.setScoping(scoping);
-//        return auth;
+        // fetch registration id and complete configuration
+        RelyingPartyRegistration relyingPartyRegistration = context.getRelyingPartyRegistration();
+        String registrationId = relyingPartyRegistration.getRegistrationId();
 
+        // registrationId is providerId+idpkey
+        String providerId = SpidIdentityProviderConfig.getProviderId(registrationId);
+        SpidIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+        if (providerConfig == null) {
+            Saml2Error saml2Error = new Saml2Error(Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
+                    "No relying party registration found");
+            throw new Saml2AuthenticationException(saml2Error);
+        }
+
+        // extract baseUrl
+        Map<String, String> acsVariables = new HashMap<>();
+        acsVariables.put("baseUrl", "");
+        acsVariables.put("registrationId", registrationId);
+        UriComponents acsComponents = UriComponentsBuilder
+                .fromUriString(SpidIdentityProviderConfig.DEFAULT_CONSUMER_URL)
+                .replaceQuery(null).fragment(null)
+                .buildAndExpand(acsVariables);
+        UriComponents uriComponents = UriComponentsBuilder
+                .fromHttpUrl(relyingPartyRegistration.getAssertionConsumerServiceLocation())
+                .replacePath(acsComponents.getPath()).replaceQuery(null).fragment(null).build();
+        String baseUrl = uriComponents.toUriString();
+        String realmUrl = baseUrl + "/-/" + providerConfig.getRealm();
+
+        // build request base
+        String issuer = context.getIssuer();
+        String destination = context.getDestination();
+        String protocolBinding = context.getRelyingPartyRegistration().getAssertionConsumerServiceBinding().getUrn();
+
+        AuthnRequest auth = authnRequestBuilder.buildObject();
+        auth.setID("ARQ" + UUID.randomUUID().toString().substring(1));
+        auth.setIssueInstant(Instant.now());
+        auth.setProtocolBinding(protocolBinding);
+
+        Issuer iss = this.issuerBuilder.buildObject();
+        iss.setValue(issuer);
+        iss.setFormat(NameIDType.ENTITY);
+        iss.setNameQualifier(realmUrl);
+
+        auth.setIssuer(iss);
+        auth.setDestination(destination);
+        auth.setAssertionConsumerServiceURL(context.getAssertionConsumerServiceUrl());
+
+        NameIDPolicy nameIDPolicy = nameIDPolicyBuilder.buildObject();
+        nameIDPolicy.setFormat(NameIDType.TRANSIENT);
+        auth.setNameIDPolicy(nameIDPolicy);
+
+        if (providerConfig.getRelyingPartyRegistrationIsForceAuthn() != null) {
+            auth.setForceAuthn(providerConfig.getRelyingPartyRegistrationIsForceAuthn());
+        }
+
+        if (providerConfig.getRelyingPartyRegistrationAuthnContextClassRefs() != null) {
+            RequestedAuthnContext requestAuthnContext = this.reqAuthnContextBuilder.buildObject();
+            requestAuthnContext.setComparison(AuthnContextComparisonTypeEnumeration.MINIMUM);
+            providerConfig
+                .getRelyingPartyRegistrationAuthnContextClassRefs()
+                .forEach(r -> {
+                    AuthnContextClassRef authnContextClassRef = new AuthnContextClassRefBuilder().buildObject();
+    //                authnContextClassRef.setAuthnContextClassRef(r);
+                    authnContextClassRef.setURI(r); // TODO: evaluate this option as a possible update from the previous deprecated method usage
+                    requestAuthnContext.getAuthnContextClassRefs().add(authnContextClassRef);
+            });
+
+            auth.setRequestedAuthnContext(requestAuthnContext);
+        }
+
+        // assertion consuming
+        // TODO: review with ACR
+        auth.setAssertionConsumerServiceIndex(0);
+        auth.setAttributeConsumingServiceIndex(0);
+
+//        Scoping scoping = new ScopingBuilder().buildObject();
+//        scoping.setProxyCount(0);
+//        auth.setScoping(scoping);
+        return auth;
+//        return null;
     }
 }

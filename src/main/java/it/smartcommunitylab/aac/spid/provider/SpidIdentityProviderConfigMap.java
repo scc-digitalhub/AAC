@@ -46,11 +46,11 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
 
     // <ContactPerson> options
     // TODO: second ContactPerson tag for private SP currently not supported
-    private String contactPerson_Company;
+    private String contactPerson_Telephone; // without spaces, includes internation prefix (such as +39 for Italy)
     private String contactPerson_EmailAddress;
     private String contactPerson_IPACode;
     private Boolean contactPerson_Public; // Public/Private
-    private String contactPerson_Type; // "other" for public, "billing" for private
+    private String contactPerson_Type; // "other" (mandatory), optionally includes "billing" (unless private SP, in which case "billing" is also mandatory)
 
     // AAC options
     // ap autoconfiguration
@@ -117,12 +117,12 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.ssoLogoutResponseLocation = ssoLogoutResponseLocation;
     }
 
-    public String getContactPerson_Company() {
-        return contactPerson_Company;
+    public String getContactPerson_Telephone() {
+        return contactPerson_Telephone;
     }
 
-    public void setContactPerson_Company(String contactPerson_Company) {
-        this.contactPerson_Company = contactPerson_Company;
+    public void setContactPerson_Telephone(String contactPerson_Telephone) {
+        this.contactPerson_Telephone = contactPerson_Telephone;
     }
 
     public String getContactPerson_EmailAddress() {
@@ -227,7 +227,7 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.ssoLogout = map.getSsoLogout();
         this.ssoLogoutBinding = map.getSsoLogoutBinding();
         this.ssoLogoutResponseLocation = map.getSsoLogoutResponseLocation();
-        this.contactPerson_Company = map.getContactPerson_Company();
+        this.contactPerson_Telephone = map.getContactPerson_Telephone();
         this.contactPerson_EmailAddress = map.getContactPerson_EmailAddress();
         this.contactPerson_IPACode = map.getContactPerson_IPACode();
         this.contactPerson_Public = map.getContactPerson_Public();

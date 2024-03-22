@@ -239,12 +239,13 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     // additional properties not supported by stock model
     public Boolean getRelyingPartyRegistrationIsForceAuthn() {
+        // According to specs, ForceAuthn cannot be chosen for SpidL2 or SpidL3
+
         // return always true due to check in spid validator
         return true;
     }
 
     public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
-        return configMap.getAuthnContext() == null ? Collections.emptySet()
-                : Collections.singleton(configMap.getAuthnContext().getValue());
+        return configMap.getAuthnContext() == null ? Collections.emptySet() : Collections.singleton(configMap.getAuthnContext().getValue());
     }
 }
