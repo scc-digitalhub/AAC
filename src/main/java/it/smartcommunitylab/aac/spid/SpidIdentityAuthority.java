@@ -2,7 +2,9 @@ package it.smartcommunitylab.aac.spid;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
@@ -22,7 +24,9 @@ public class SpidIdentityAuthority
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SPID + "/";
     private final UserAccountService<SpidUserAccount> accountService;
     private final SpidRelyingPartyRegistrationRepository registrationRepository;
-    private final SpidFilterProvider filterProvider; // TODO: a cosa serve?
+    private final SpidFilterProvider filterProvider;
+    private ScriptExecutionService executionService;
+    private ResourceEntityService resourceService;
 
     public SpidIdentityAuthority(
         String authorityId,
@@ -43,27 +47,36 @@ public class SpidIdentityAuthority
         this(SystemKeys.AUTHORITY_SPID, accountService, providerConfigRepository);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        super.afterPropertiesSet();
-    }
-
     @Autowired
     public void setConfigProvider(SpidIdentityConfigurationProvider configProvider) {
         this.configProvider = configProvider;
     }
 
+    @Autowired
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.executionService = executionService;
+    }
+
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        super.afterPropertiesSet();
+    }
 
     @Override
     protected SpidIdentityProvider buildProvider(SpidIdentityProviderConfig config) {
         String id = config.getProvider();
         SpidIdentityProvider idp = new SpidIdentityProvider(authorityId, id, accountService, config, config.getRealm());
-        // TODO: more setters
+        // TODO: more setters: idp.setExecutionService and idp.setResourceService
         return idp;
     }
 
     @Override
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-        // TODO
+        this.filterProvider.setApplicationEventPublisher(applicationEventPublisher);
     }
 }
