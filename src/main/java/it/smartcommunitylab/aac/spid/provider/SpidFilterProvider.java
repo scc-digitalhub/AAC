@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  *  a. SpidWebSsoAuthenticationRequestFilter, which initiates an authentication request
  *  b. SpidWebSsoAuthenticationFilter, which collects authentication responses
  *  c. SpidMetadataFilter, which displays the metadata of the service as SAML SP
- * For more oh what those filters, see this reference page on Spring Security Architecture
+ * For more oh what those filters are, see this reference page on Spring Security Architecture
  *  https://docs.spring.io/spring-security/reference/servlet/saml2/login/overview.html
  */
 public class SpidFilterProvider implements FilterProvider, ApplicationEventPublisherAware {

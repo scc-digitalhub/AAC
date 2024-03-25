@@ -24,7 +24,7 @@ public class SpidUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
     private Map<String, Serializable> attributes; // locally set attributes, for example after custom mapping
     // spid upstream idp
     private String idp;
-    // pidCode identifier
+    // spidCode identifier
     private String spidCode;
     private String username;
     private String emailAddress; // NOTE: spid email is always trusted

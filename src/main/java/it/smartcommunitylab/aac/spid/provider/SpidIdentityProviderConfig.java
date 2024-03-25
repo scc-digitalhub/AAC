@@ -9,6 +9,7 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.model.Credentials;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.model.SpidIdPRegistration;
+import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import org.opensaml.security.credential.BasicCredential;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.CredentialSupport;
@@ -247,5 +248,39 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
         return configMap.getAuthnContext() == null ? Collections.emptySet() : Collections.singleton(configMap.getAuthnContext().getValue());
+    }
+
+    public SpidUserAttribute getSubAttributeName() {
+        SpidUserAttribute subKey = configMap.getSubAttributeName();
+        return StringUtils.hasText(subKey.getValue()) ? subKey : null;
+    }
+
+    public SpidUserAttribute getUsernameAttributeName() {
+        SpidUserAttribute unKey = configMap.getSubAttributeName();
+        return StringUtils.hasText(unKey.getValue()) ? unKey : null;
+    }
+
+    public String getIdpKey(String idpMetadataUrl) throws URISyntaxException {
+        // check if registration
+        Optional<SpidIdPRegistration> reg = identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
+                .findFirst();
+        if (reg.isPresent()) {
+            return reg.get().getEntityLabel();
+        }
+
+        // extract name from url
+        URI uri = new URI(idpMetadataUrl);
+        return uri.getHost();
+    }
+
+    public Set<String> getRelyingPartyRegistrationIds() {
+        Set<String> idpMetadataUrls = getAssertingPartyMetadataUrls();
+        return idpMetadataUrls.stream().map(u -> {
+            try {
+                return evalRelyingPartyRegistrationId(getIdpKey(u));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
+            }
+        }).collect(Collectors.toSet());
     }
 }

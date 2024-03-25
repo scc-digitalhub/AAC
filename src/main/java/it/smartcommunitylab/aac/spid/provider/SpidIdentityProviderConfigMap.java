@@ -8,6 +8,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
+import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -32,12 +33,12 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     // <AssertionConsumerService> options - Currently only one supported at index 0, and binding MUST be post according to SPID specs, and must be tagged with isDefault="true"
 //    private final Integer ssoServiceIndex = 0;
 //    private final String ssoServiceBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
-    private String ssoServiceLocation;
+//    private String ssoServiceLocation;
 
     // <SingleLogoutService> options
-    private String ssoLogout;
-    private String ssoLogoutBinding;
-    private String ssoLogoutResponseLocation; //optional according to specs
+//    private String ssoLogout;
+//    private String ssoLogoutBinding;
+//    private String ssoLogoutResponseLocation; //optional according to specs
 
     // <Organization> options
     private String organizationDisplayName; // TODO: forse questa dovrebbe essere una map[string]string in cui la chiave è la lingua: per ora lang="it" only
@@ -60,6 +61,8 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     private String idpMetadataUrl;
     private Set<SpidAttribute> spidAttributes;
     private SpidAuthnContext authnContext;
+    private SpidUserAttribute subAttributeName;
+    private SpidUserAttribute usernameAttributeName;
 
     public String getEntityId() {
         return entityId;
@@ -85,37 +88,37 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.signingCertificate = signingCertificate;
     }
 
-    public String getSsoServiceLocation() {
-        return ssoServiceLocation;
-    }
-
-    public void setSsoServiceLocation(String ssoServiceLocation) {
-        this.ssoServiceLocation = ssoServiceLocation;
-    }
-
-    public String getSsoLogout() {
-        return ssoLogout;
-    }
-
-    public void setSsoLogout(String ssoLogout) {
-        this.ssoLogout = ssoLogout;
-    }
-
-    public String getSsoLogoutBinding() {
-        return ssoLogoutBinding;
-    }
-
-    public void setSsoLogoutBinding(String ssoLogoutBinding) {
-        this.ssoLogoutBinding = ssoLogoutBinding;
-    }
-
-    public String getSsoLogoutResponseLocation() {
-        return ssoLogoutResponseLocation;
-    }
-
-    public void setSsoLogoutResponseLocation(String ssoLogoutResponseLocation) {
-        this.ssoLogoutResponseLocation = ssoLogoutResponseLocation;
-    }
+//    public String getSsoServiceLocation() {
+//        return ssoServiceLocation;
+//    }
+//
+//    public void setSsoServiceLocation(String ssoServiceLocation) {
+//        this.ssoServiceLocation = ssoServiceLocation;
+//    }
+//
+//    public String getSsoLogout() {
+//        return ssoLogout;
+//    }
+//
+//    public void setSsoLogout(String ssoLogout) {
+//        this.ssoLogout = ssoLogout;
+//    }
+//
+//    public String getSsoLogoutBinding() {
+//        return ssoLogoutBinding;
+//    }
+//
+//    public void setSsoLogoutBinding(String ssoLogoutBinding) {
+//        this.ssoLogoutBinding = ssoLogoutBinding;
+//    }
+//
+//    public String getSsoLogoutResponseLocation() {
+//        return ssoLogoutResponseLocation;
+//    }
+//
+//    public void setSsoLogoutResponseLocation(String ssoLogoutResponseLocation) {
+//        this.ssoLogoutResponseLocation = ssoLogoutResponseLocation;
+//    }
 
     public String getContactPerson_Telephone() {
         return contactPerson_Telephone;
@@ -218,15 +221,32 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.authnContext = authnContext;
     }
 
+
+    public SpidUserAttribute getSubAttributeName() {
+        return this.subAttributeName;
+    }
+
+    public void setSubAttributeName(SpidUserAttribute subAttributeName) {
+        this.subAttributeName = subAttributeName;
+    }
+
+    public SpidUserAttribute getUsernameAttributeName() {
+        return usernameAttributeName;
+    }
+
+    public void setUsernameAttributeName(SpidUserAttribute usernameAttributeName) {
+        this.usernameAttributeName = usernameAttributeName;
+    }
+
     @JsonIgnore
     public void setConfiguration(final SpidIdentityProviderConfigMap map) {
         this.entityId = map.getEntityId();
         this.signingKey = map.getSigningKey();
         this.signingCertificate = map.getSigningKey();
-        this.ssoServiceLocation = map.getSsoServiceLocation();
-        this.ssoLogout = map.getSsoLogout();
-        this.ssoLogoutBinding = map.getSsoLogoutBinding();
-        this.ssoLogoutResponseLocation = map.getSsoLogoutResponseLocation();
+//        this.ssoServiceLocation = map.getSsoServiceLocation();
+//        this.ssoLogout = map.getSsoLogout();
+//        this.ssoLogoutBinding = map.getSsoLogoutBinding();
+//        this.ssoLogoutResponseLocation = map.getSsoLogoutResponseLocation();
         this.contactPerson_Telephone = map.getContactPerson_Telephone();
         this.contactPerson_EmailAddress = map.getContactPerson_EmailAddress();
         this.contactPerson_IPACode = map.getContactPerson_IPACode();
@@ -239,6 +259,8 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.idpMetadataUrl = map.getIdpMetadataUrl();
         this.spidAttributes = map.getSpidAttributes();
         this.authnContext = map.getAuthnContext();
+        this.subAttributeName = map.getSubAttributeName();
+        this.usernameAttributeName = map.getUsernameAttributeName();
     }
 
     @Override
