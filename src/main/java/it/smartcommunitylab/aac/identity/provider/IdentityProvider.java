@@ -26,7 +26,9 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import java.util.Collection;
+import org.springframework.lang.Nullable;
 
 /*
  * Identity providers handle authentication for users and produce a valid user identity
@@ -138,7 +140,7 @@ public interface IdentityProvider<
 
     public String getAuthenticationUrl();
 
-    public LoginProvider getLoginProvider();
+    public LoginProvider getLoginProvider(@Nullable OAuth2ClientDetails clientDetails);
 
     //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
 

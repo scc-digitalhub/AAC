@@ -30,7 +30,7 @@ public class OpenIdFedErrorHttpMessageHandler {
 
     private final OAuth2ErrorHttpMessageConverter messageConverter = new OAuth2ErrorHttpMessageConverter();
 
-    protected void handleError(OAuth2Error error, HttpServletResponse response)
+    public void handleError(OAuth2Error error, HttpServletResponse response)
         throws HttpMessageNotWritableException, IOException {
         //build a response message
         ServletServerHttpResponse httpResponse = new ServletServerHttpResponse(response);

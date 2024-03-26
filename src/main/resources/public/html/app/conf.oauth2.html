@@ -139,6 +139,20 @@
         <div class="row">
             <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
+                    <label>Acr values</label>
+                    <select title="Select" multiple="true" data-multiple-separator=""
+                            ng-model="app.configuration.acrValues">
+                        <option ng-repeat="av in configurationSchema.properties.acrValues.items.enum"
+                                ng-value="av"
+                                data-content="<span class='select-pill'><span class='select-pill-text'>{{av}}</span></span>">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0">
                     <label class="active" for="clientName">Application type</label>
                     <select id="applicationType" ng-model="app.configuration.applicationType">
                         <option ng-repeat="at in configurationSchema.properties.applicationType.enum" value="{{at}}"

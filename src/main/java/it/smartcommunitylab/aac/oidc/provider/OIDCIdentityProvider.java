@@ -23,18 +23,26 @@ import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Transactional
 public class OIDCIdentityProvider
-    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        OIDCUserIdentity,
+        OIDCUserAccount,
+        OIDCUserAuthenticatedPrincipal,
+        OIDCIdentityProviderConfigMap,
+        OIDCIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -159,7 +167,7 @@ public class OIDCIdentityProvider
     }
 
     @Override
-    public OIDCLoginProvider getLoginProvider() {
+    public OIDCLoginProvider getLoginProvider(@Nullable OAuth2ClientDetails clientDetails) {
         OIDCLoginProvider lp = new OIDCLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setTitleMap(getTitleMap());
         lp.setDescriptionMap(getDescriptionMap());

@@ -153,6 +153,9 @@ public class ClientRegistration {
     @JsonProperty("request_uris")
     private Set<String> requestUris;
 
+    @JsonProperty("acr_values")
+    private Set<String> acrValues;
+
     public String getClientId() {
         return clientId;
     }
@@ -471,5 +474,13 @@ public class ClientRegistration {
 
     public void setRequestUris(Set<String> requestUris) {
         this.requestUris = requestUris;
+    }
+
+    public Set<String> getAcrValues() {
+        return acrValues;
+    }
+
+    public void setAcrValues(Set<String> acrValues) {
+        this.acrValues = acrValues;
     }
 }

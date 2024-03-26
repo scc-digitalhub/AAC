@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConver
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.webauthn.WebAuthnIdentityAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
@@ -38,10 +39,17 @@ import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 public class WebAuthnIdentityProvider
-    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        InternalUserIdentity,
+        InternalUserAccount,
+        WebAuthnUserAuthenticatedPrincipal,
+        WebAuthnIdentityProviderConfigMap,
+        WebAuthnIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -197,7 +205,7 @@ public class WebAuthnIdentityProvider
     }
 
     @Override
-    public InternalLoginProvider getLoginProvider() {
+    public InternalLoginProvider getLoginProvider(@Nullable OAuth2ClientDetails clientDetails) {
         InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
         ilp.setTitleMap(getTitleMap());
         ilp.setDescriptionMap(getDescriptionMap());

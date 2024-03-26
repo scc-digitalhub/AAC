@@ -106,6 +106,12 @@ public class OAuth2ClientDetailsService implements ClientDetailsService {
                     );
                 }
 
+                if (config.getAcrValues() != null) {
+                    clientDetails.setAcrValues(
+                        config.getAcrValues().stream().map(t -> t.getValue()).collect(Collectors.toSet())
+                    );
+                }
+
                 // TODO handle all response config as per openid DCR
                 if (config.getJwtSignAlgorithm() != null) {
                     clientDetails.setJwtSignAlgorithm(config.getJwtSignAlgorithm().getValue());

@@ -95,6 +95,9 @@ public class OAuth2ClientDetails implements ClientDetails {
     @JsonProperty("response_types")
     private Set<String> responseTypes = Collections.emptySet();
 
+    @JsonProperty("acr_values")
+    private Set<String> acrValues = Collections.emptySet();
+
     @JsonProperty("jwt_signed_response_alg")
     private String jwtSignAlgorithm;
 
@@ -356,6 +359,14 @@ public class OAuth2ClientDetails implements ClientDetails {
 
     public void setResponseTypes(Set<String> responseTypes) {
         this.responseTypes = responseTypes;
+    }
+
+    public Set<String> getAcrValues() {
+        return acrValues;
+    }
+
+    public void setAcrValues(Set<String> acrValues) {
+        this.acrValues = acrValues;
     }
 
     public Map<String, Object> getAdditionalInformation() {
