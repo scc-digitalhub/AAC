@@ -238,7 +238,7 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     }
 
     @JsonIgnore
-    public void setConfiguration(final SpidIdentityProviderConfigMap map) {
+    public void setConfiguration(SpidIdentityProviderConfigMap map) {
         this.entityId = map.getEntityId();
         this.signingKey = map.getSigningKey();
         this.signingCertificate = map.getSigningKey();
