@@ -7,7 +7,7 @@ import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.util.Assert;
 
 public enum SpidError {
-    //    AUTENTICATION_SUCCESS(1),
+    //    AUTHENTICATION_SUCCESS(1, "authentication_success"),
     SYSTEM_UNAVAILABLE(2, "system_unavailable"),
     SYSTEM_ERROR(3, "system error"),
     INVALID_BINDING_FORMAT(4, "invalid binding format"),

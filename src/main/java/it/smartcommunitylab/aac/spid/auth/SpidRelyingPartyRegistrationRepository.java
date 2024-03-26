@@ -27,7 +27,11 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
         // TODO: problema concettuale: un provider SPID è assocuiato ad N registrazioni.
         //  Non ho la minima idea se questa soluzione sia idonea o meno, perché non so se
         //  la registrationId in argomento corrisponde effettivamente alla RPR di opensaml
-        Optional<RelyingPartyRegistration> registration = providerConfig.getRelyingPartyRegistrations().stream().filter(reg -> reg.getRegistrationId().equals(registrationId)).findFirst();
+        Optional<RelyingPartyRegistration> registration = providerConfig
+            .getRelyingPartyRegistrations()
+            .stream()
+            .filter(reg -> reg.getRegistrationId().equals(registrationId))
+            .findFirst();
         return registration.orElse(null);
     }
 }

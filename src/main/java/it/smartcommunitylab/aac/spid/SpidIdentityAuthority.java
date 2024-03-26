@@ -71,7 +71,8 @@ public class SpidIdentityAuthority
     protected SpidIdentityProvider buildProvider(SpidIdentityProviderConfig config) {
         String id = config.getProvider();
         SpidIdentityProvider idp = new SpidIdentityProvider(authorityId, id, accountService, config, config.getRealm());
-        // TODO: more setters: idp.setExecutionService and idp.setResourceService
+        idp.setExecutionService(executionService);
+        idp.setResourceService(resourceService);
         return idp;
     }
 
