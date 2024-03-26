@@ -19,7 +19,7 @@ public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> imple
     public SpidSubjectResolver(
         String authority,
         String providerId,
-        UserAccountService<SpidUserAccount>userAccountService,
+        UserAccountService<SpidUserAccount> userAccountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {

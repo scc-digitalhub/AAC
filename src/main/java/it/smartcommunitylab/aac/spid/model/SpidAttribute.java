@@ -53,4 +53,14 @@ public enum SpidAttribute {
 
         return null;
     }
+
+    public static boolean contains(String value) {
+//        return Objects.isNull(parse(value)):
+        for (SpidAttribute t : SpidAttribute.values()) {
+            if (t.value.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

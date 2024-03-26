@@ -5,8 +5,10 @@ import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
+import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.identity.provider.IdentityAttributeProvider;
@@ -17,15 +19,19 @@ import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 
 // TODO: review what class we are inheriting from
 public class SpidIdentityProvider extends AbstractIdentityProvider<SpidUserIdentity, SpidUserAccount, SpidUserAuthenticatedPrincipal, SpidIdentityProviderConfigMap, SpidIdentityProviderConfig> {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
     // internal providers
     private final SpidAccountService accountService;
-    private final SamlAccountPrincipalConverter principalConverter;
+    private final SpidAccountPrincipalConverter principalConverter;
     private final SpidAttributeProvider attributeProvider;
     private final SpidAuthenticationProvider authenticationProvider;
     private final SpidSubjectResolver subjectResolver;
@@ -48,69 +54,87 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidUserIdent
     ) {
         super(authority, providerId, config, realm);
         logger.debug("create spid provider with id {}", providerId);
-        this.accountService = null;
-        this.principalConverter = null;
-        this.attributeProvider = null;
-        this.authenticationProvider = null;
-        this.subjectResolver = null;
-        // TODO
-//        SpidAccountServiceConfig accountServiceConfig = new SpidAccountServiceConfigConverter().convert(config);
-//        this.accountService = new SpidAccountService(authority, providerId, userAccountService, accountServiceConfig, realm);
+        SpidAccountServiceConfigConverter configConverter = new SpidAccountServiceConfigConverter();
+        this.accountService = new SpidAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
+        this.principalConverter = new SpidAccountPrincipalConverter(authority, providerId, config, realm);
+        this.attributeProvider = new SpidAttributeProvider(authority, providerId, config, realm);
+        this.authenticationProvider = new SpidAuthenticationProvider(
+            providerId,
+            userAccountService, // TODO: remove? currently unused by AuthnProvider
+            config,
+            realm
+        );
+        this.subjectResolver = new SpidSubjectResolver(authority, providerId, userAccountService, config, realm);
 
+        // function hooks from config
+        if (config.getHookFunctions() != null) {
+            if (StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
+                this.authenticationProvider.setCustomMappingFunction(
+                        config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
+                );
+            }
+            if (StringUtils.hasText(config.getHookFunctions().get(AUTHORIZATION_FUNCTION))) {
+                this.authenticationProvider.setCustomAuthFunction(
+                        config.getHookFunctions().get(AUTHORIZATION_FUNCTION)
+                );
+            }
+        }
     }
 
 
     @Override
-    public ExtendedAuthenticationProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> getAuthenticationProvider() {
-        // TODO
-        return null;
+    public SpidAuthenticationProvider getAuthenticationProvider() {
+        return this.authenticationProvider;
     }
 
     @Override
     protected AccountPrincipalConverter<SpidUserAccount> getAccountPrincipalConverter() {
-        // TODO
-        return null;
+        return this.principalConverter;
     }
 
     @Override
     protected AccountProvider<SpidUserAccount> getAccountProvider() {
-        // TODO
-        return null;
+        return this.accountService;
     }
 
     @Override
-    protected AccountService<SpidUserAccount, ?, ?, ?> getAccountService() {
-        // TODO
-        return null;
+    protected SpidAccountService getAccountService() {
+        return this.accountService;
     }
 
     @Override
-    protected IdentityAttributeProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> getAttributeProvider() {
-        // TODO
-        return null;
+    protected SpidAttributeProvider getAttributeProvider() {
+        return this.attributeProvider;
     }
 
     @Override
     public SubjectResolver<SpidUserAccount> getSubjectResolver() {
-        // TODO
-        return null;
+        return this.subjectResolver;
     }
 
     @Override
     public String getAuthenticationUrl() {
-        // TODO
-        return null;
+        // TODO build a realm-bound url, need updates on filters
+        return "/auth/" + getAuthority() + "/authenticate/" + getProvider();
     }
 
     @Override
-    public LoginProvider getLoginProvider() {
-        // TODO
-        return null;
+    public SpidLoginProvider getLoginProvider() {
+        return new SpidLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
     }
 
     @Override
     protected SpidUserIdentity buildIdentity(SpidUserAccount account, SpidUserAuthenticatedPrincipal principal, Collection<UserAttributes> attributes) {
-        // TODO
-        return null;
+        SpidUserIdentity identity = new SpidUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
+        identity.setAttributes(attributes);
+        return identity;
+    }
+
+    public void setExecutionService(ScriptExecutionService executionService) {
+        this.authenticationProvider.setExecutionService(executionService);
+    }
+
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.accountService.setResourceService(resourceService);
     }
 }
