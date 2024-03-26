@@ -147,7 +147,7 @@
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label>Spid username attribute</label>
                     <select title="Select" ng-model="idp.configuration.usernameAttributeName">
-                        <option ng-repeat="at in idp.schema.properties.spidAttributes.items.enum"
+                        <option ng-repeat="at in idp.schema.properties.usernameAttributeName.enum"
                             value="{{at}}" ng-selected="idp.configuration.usernameAttributeName==at">{{at}}
                         </option>
                     </select>
@@ -157,7 +157,7 @@
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label>Spid subject attribute</label>
                     <select title="Select" ng-model="idp.configuration.subAttributeName">
-                        <option ng-repeat="at in idp.schema.properties.spidAttributes.items.enum"
+                        <option ng-repeat="at in idp.schema.properties.subAttributeName.enum"
                                 value="{{at}}" ng-selected="idp.configuration.subAttributeName==at">{{at}}
                         </option>
                     </select>
