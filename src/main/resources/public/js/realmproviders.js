@@ -813,7 +813,7 @@ angular.module('aac.controllers.realmproviders', [])
 
             $scope.authFunction = authFunction;            
 
-            if (data.authority == 'saml') {
+            if (data.authority == 'saml' || data.authority == 'spid') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
                 $scope.samlMetadataUrl = metadataUrl;
             }
