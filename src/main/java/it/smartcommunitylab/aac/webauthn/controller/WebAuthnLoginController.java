@@ -109,7 +109,7 @@ public class WebAuthnLoginController {
         model.addAttribute("displayName", displayName);
         model.addAttribute("customization", resources);
 
-        InternalLoginProvider a = idp.getLoginProvider();
+        InternalLoginProvider a = idp.getLoginProvider(null, null);
         // make sure we show the form
         // it should also point to login
         String form = idp.getLoginForm();

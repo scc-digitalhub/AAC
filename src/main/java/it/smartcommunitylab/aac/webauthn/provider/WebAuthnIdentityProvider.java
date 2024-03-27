@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.internal.model.InternalLoginProvider;
@@ -38,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 
 public class WebAuthnIdentityProvider
@@ -197,7 +199,7 @@ public class WebAuthnIdentityProvider
     }
 
     @Override
-    public InternalLoginProvider getLoginProvider() {
+    public InternalLoginProvider getLoginProvider(ClientDetails clientDetails, AuthorizationRequest authRequest) {
         InternalLoginProvider ilp = new InternalLoginProvider(getProvider(), getRealm(), getName());
         ilp.setTitleMap(getTitleMap());
         ilp.setDescriptionMap(getDescriptionMap());

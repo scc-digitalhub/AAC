@@ -63,7 +63,7 @@ public class OpenIdFedLoginController {
         model.addAttribute("realm", realm);
         model.addAttribute("displayName", realm);
 
-        OpenIdFedLoginProvider a = idp.getLoginProvider();
+        OpenIdFedLoginProvider a = idp.getLoginProvider(null, null);
         model.addAttribute("authorities", Collections.singleton(a));
 
         // check errors

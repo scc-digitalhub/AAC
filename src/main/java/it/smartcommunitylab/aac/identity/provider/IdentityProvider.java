@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
@@ -27,6 +28,8 @@ import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import java.util.Collection;
+import org.springframework.lang.Nullable;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 
 /*
  * Identity providers handle authentication for users and produce a valid user identity
@@ -138,7 +141,10 @@ public interface IdentityProvider<
 
     public String getAuthenticationUrl();
 
-    public LoginProvider getLoginProvider();
+    public LoginProvider getLoginProvider(
+        @Nullable ClientDetails clientDetails,
+        @Nullable AuthorizationRequest authRequest
+    );
 
     //    public AuthenticationEntryPoint getAuthenticationEntryPoint();
 

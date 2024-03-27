@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.store.AttributeStore;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
@@ -36,6 +37,8 @@ import it.smartcommunitylab.aac.oidc.provider.OIDCSubjectResolver;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -155,7 +158,7 @@ public class AppleIdentityProvider
     }
 
     @Override
-    public OIDCLoginProvider getLoginProvider() {
+    public OIDCLoginProvider getLoginProvider(ClientDetails clientDetails, AuthorizationRequest authRequest) {
         OIDCLoginProvider lp = new OIDCLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setTitleMap(getTitleMap());
         lp.setDescriptionMap(getDescriptionMap());
