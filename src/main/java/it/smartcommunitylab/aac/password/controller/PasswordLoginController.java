@@ -63,7 +63,7 @@ public class PasswordLoginController {
         model.addAttribute("realm", realm);
         model.addAttribute("displayName", realm);
 
-        InternalLoginProvider a = idp.getLoginProvider();
+        InternalLoginProvider a = idp.getLoginProvider(null, null);
         // make sure we show the form
         // it should also point to login
         String form = idp.getLoginForm();

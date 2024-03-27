@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
@@ -31,6 +32,7 @@ import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -216,7 +218,7 @@ public class InternalIdentityProvider
     }
 
     @Override
-    public LoginProvider getLoginProvider() {
+    public LoginProvider getLoginProvider(ClientDetails clientDetails, AuthorizationRequest authRequest) {
         // no direct login available
         return null;
     }

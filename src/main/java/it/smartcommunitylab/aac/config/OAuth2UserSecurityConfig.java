@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.oauth.endpoint.AuthorizationEndpoint;
 import it.smartcommunitylab.aac.oauth.endpoint.UserApprovalEndpoint;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.openid.endpoint.EndSessionEndpoint;
 import it.smartcommunitylab.aac.password.auth.InternalPasswordResetOnAccessFilter;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
@@ -98,6 +99,9 @@ public class OAuth2UserSecurityConfig {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AuthorizationRequestStore authorizationRequestStore;
+
     /*
      * Configure a separated security context for oauth2 tokenEndpoints
      */
@@ -117,7 +121,13 @@ public class OAuth2UserSecurityConfig {
             )
             .exceptionHandling()
             .authenticationEntryPoint(
-                authEntryPoint(loginPath, authorityService, idpProviderService, clientDetailsService)
+                authEntryPoint(
+                    loginPath,
+                    authorityService,
+                    idpProviderService,
+                    clientDetailsService,
+                    authorizationRequestStore
+                )
             )
             .accessDeniedPage("/accesserror")
             .and()
@@ -128,7 +138,13 @@ public class OAuth2UserSecurityConfig {
             .ignoringAntMatchers(AUTHORIZATION_ENDPOINT, END_SESSION_ENDPOINT)
             .and()
             .addFilterBefore(
-                getOAuth2UserFilters(idpProviderService, clientDetailsService, clientService, loginPath),
+                getOAuth2UserFilters(
+                    idpProviderService,
+                    clientDetailsService,
+                    clientService,
+                    authorizationRequestStore,
+                    loginPath
+                ),
                 BasicAuthenticationFilter.class
             )
             .addFilterAfter(getSessionFilters(), BasicAuthenticationFilter.class)
@@ -148,14 +164,17 @@ public class OAuth2UserSecurityConfig {
         IdentityProviderService providerService,
         OAuth2ClientDetailsService oauth2ClientDetailsService,
         OAuth2ClientService oauth2ClientService,
+        AuthorizationRequestStore authorizationRequestStore,
         String loginUrl
     ) {
         AuthorizationEndpointFilter authorizationFilter = new AuthorizationEndpointFilter(
             oauth2ClientService,
-            oauth2ClientDetailsService
+            oauth2ClientDetailsService,
+            authorizationRequestStore
         );
         LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
             oauth2ClientDetailsService,
+            authorizationRequestStore,
             loginUrl
         );
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(
@@ -192,7 +211,8 @@ public class OAuth2UserSecurityConfig {
         String loginUrl,
         IdentityProviderAuthorityService authorityService,
         IdentityProviderService providerService,
-        OAuth2ClientDetailsService oauth2ClientDetailsService
+        OAuth2ClientDetailsService oauth2ClientDetailsService,
+        AuthorizationRequestStore authorizationRequestStore
     ) {
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(loginUrl);
         List<LoginUrlRequestConverter> converters = new ArrayList<>();
@@ -202,6 +222,7 @@ public class OAuth2UserSecurityConfig {
         );
         LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
             oauth2ClientDetailsService,
+            authorizationRequestStore,
             loginUrl
         );
 
