@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.realms;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.AttributeSetsManager;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
@@ -150,6 +151,9 @@ public class RealmManager {
 
     @Autowired
     private UserCredentialsService<InternalUserPassword> internalUserPasswordService;
+
+    @Autowired
+    private List<UserAccountService<? extends UserAccount>> userAccountServices;
 
     //    @Autowired
     //    private SessionManager sessionManager;
@@ -457,6 +461,15 @@ public class RealmManager {
                     // skip
                 }
             }
+
+            //orphan user accounts
+            userAccountServices.forEach(accountService -> {
+                try {
+                    accountService.deleteAllAccountsByRealm(slug);
+                } catch (Exception e) {
+                    // skip
+                }
+            });
         }
 
         // remove realm

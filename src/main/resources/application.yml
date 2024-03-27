@@ -30,7 +30,14 @@ jdbc:
    password: ${JDBC_PASS:ac}
    show-sql: false
    initialize-schema: always
-   
+   max-pool-size: ${JDBC_MAX_POOL_SIZE:10}
+   min-pool-size: ${JDBC_MIN_POOL_SIZE:10}
+   idle-timeout: ${JDBC_IDLE_TIMEOUT:600000}
+   keep-alive-timeout: ${JDBC_KEEP_ALIVE_TIMEOUT:0}
+   connection-timeout: ${JDBC_CONNECTION_TIMEOUT:30000}
+   data-source-properties: {}
+
+
 persistence:
    repository:
       providerConfig: memory
@@ -249,6 +256,12 @@ spring:
    session:
     store-type: jdbc
     jdbc.initialize-schema: always   
+
+engine:
+   graal:
+      max-cpu-time: 100
+      max-memory: 10485760
+      remove-comments: ${ENGINE_GRAAL_REMOVE_COMMENTS:true}
 
 # ROLE PREFIX FOR AUTHORIZATION CHECK
 authorization:

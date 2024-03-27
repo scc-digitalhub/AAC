@@ -68,6 +68,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -247,9 +248,9 @@ public class DevController {
 
             bean.setLoginCount(auditManager.countRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null));
             List<AuditEvent> loginEvents = auditManager
-                .findRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null)
+                .searchRealmEvents(realm, "USER_AUTHENTICATION_SUCCESS", after, null, PageRequest.of(0, 5))
+                .getContent()
                 .stream()
-                .limit(5)
                 .map(e -> {
                     // clear event details
                     Map<String, Object> d = new HashMap<>(e.getData());
@@ -263,9 +264,9 @@ public class DevController {
 
             bean.setRegistrationCount(auditManager.countRealmEvents(realm, "USER_REGISTRATION", after, null));
             List<AuditEvent> registrationEvents = auditManager
-                .findRealmEvents(realm, "USER_REGISTRATION", after, null)
+                .searchRealmEvents(realm, "USER_REGISTRATION", after, null, PageRequest.of(0, 5))
+                .getContent()
                 .stream()
-                .limit(5)
                 .map(e -> {
                     // clear event details
                     Map<String, Object> d = new HashMap<>(e.getData());

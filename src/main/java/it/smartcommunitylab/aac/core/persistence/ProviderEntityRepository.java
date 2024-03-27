@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.core.persistence;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -30,4 +32,16 @@ public interface ProviderEntityRepository extends CustomJpaRepository<ProviderEn
     List<ProviderEntity> findByTypeAndRealm(String type, String realm);
 
     List<ProviderEntity> findByTypeAndAuthorityAndRealm(String type, String authority, String realm);
+
+    Page<ProviderEntity> findByTypeAndRealm(String type, String realm, Pageable page);
+
+    Page<ProviderEntity> findByTypeAndRealmAndNameContainingIgnoreCaseOrTypeAndRealmAndProviderContainingIgnoreCase(
+        String typen,
+        String realmn,
+        String name,
+        String typep,
+        String realmp,
+        String provider,
+        Pageable page
+    );
 }

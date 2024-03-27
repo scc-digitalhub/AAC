@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 public class StaticOpenIdProviderDiscoveryService implements OpenIdProviderDiscoveryService {
@@ -90,7 +91,7 @@ public class StaticOpenIdProviderDiscoveryService implements OpenIdProviderDisco
     }
 
     @Override
-    public OIDCProviderMetadata findProvider(String entityId) {
+    public @Nullable OIDCProviderMetadata findProvider(String entityId) {
         try {
             //first check if provider is in list
             if (!entities.contains(entityId)) {
@@ -106,7 +107,7 @@ public class StaticOpenIdProviderDiscoveryService implements OpenIdProviderDisco
     }
 
     @Override
-    public FederationEntityMetadata loadProviderMetadata(String entityId) {
+    public @Nullable FederationEntityMetadata loadProviderMetadata(String entityId) {
         try {
             //first check if provider is discovered
             if (!entities.contains(entityId)) {

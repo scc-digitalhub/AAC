@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +96,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
         this.username = identity.getAccount().getUsername();
 
         // identity sets, at minimum we handle first login identity
-        this.identities = new HashSet<>();
+        this.identities = new LinkedHashSet<>();
         addIdentity(identity);
 
         // attributes sets (outside identities)
@@ -131,7 +131,7 @@ public class UserDetails implements CredentialsContainer, Serializable {
         this.realm = realm;
 
         // identity sets, at minimum we handle first login identity
-        this.identities = new HashSet<>();
+        this.identities = new LinkedHashSet<>();
         for (UserIdentity identity : identities) {
             addIdentity(identity);
         }

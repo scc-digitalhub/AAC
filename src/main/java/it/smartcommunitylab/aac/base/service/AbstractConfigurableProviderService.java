@@ -52,6 +52,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -136,6 +139,16 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
     /*
      * CRUD via entities
      */
+    @Transactional(readOnly = true)
+    public Page<C> searchProviders(String realm, String q, Pageable pageRequest) {
+        Page<ProviderEntity> page = providerService.searchProviders(type, realm, q, pageRequest);
+        return PageableExecutionUtils.getPage(
+            page.getContent().stream().map(pe -> entityConverter.convert(pe)).collect(Collectors.toList()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
+    }
+
     @Transactional(readOnly = true)
     public Collection<C> listProviders(String realm) {
         logger.debug("list providers for realm {}", StringUtils.trimAllWhitespace(realm));

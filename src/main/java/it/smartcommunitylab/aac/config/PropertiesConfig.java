@@ -31,7 +31,7 @@ public class PropertiesConfig {
         return new ApplicationProperties();
     }
 
-    @Bean
+    @Bean(name = "jdbcProperties")
     @ConfigurationProperties(prefix = "jdbc")
     public JdbcProperties jdbcProps() {
         return new JdbcProperties();

@@ -37,6 +37,7 @@ import it.smartcommunitylab.aac.openidfed.service.OpenIdProviderDiscoveryService
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,6 +209,15 @@ public class OpenIdFedIdentityProvider
                     OIDCProviderMetadata op = discoveryService.findProvider(e);
                     FederationEntityMetadata meta = discoveryService.loadProviderMetadata(e);
 
+                    if (op == null || meta == null) {
+                        logger.error(
+                            "failed to create login for federation provider {}, provider id detail {}: the provider might be invalid or not reachable",
+                            lp.getProvider(),
+                            e
+                        );
+                        return null;
+                    }
+
                     String name = StringUtils.hasText(op.getOrganizationName())
                         ? op.getOrganizationName()
                         : meta.getOrganizationName();
@@ -230,6 +240,7 @@ public class OpenIdFedIdentityProvider
 
                     return login;
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
             lp.setEntries(entries);

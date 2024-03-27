@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.config;
 
+import java.util.Map;
 import org.springframework.boot.sql.init.DatabaseInitializationMode;
 
 public class JdbcProperties {
@@ -33,6 +34,14 @@ public class JdbcProperties {
     private String password;
 
     private boolean showSql;
+
+    private int maxPoolSize;
+    private int minPoolSize;
+    private int idleTimeout;
+    private int keepAliveTimeout;
+    private int connectionTimeout;
+
+    private Map<String, Object> dataSourceProperties;
 
     private DatabaseInitializationMode initializeSchema = DatabaseInitializationMode.EMBEDDED;
 
@@ -106,5 +115,57 @@ public class JdbcProperties {
 
     public void setInitializeSchema(DatabaseInitializationMode initializeSchema) {
         this.initializeSchema = initializeSchema;
+    }
+
+    public static String getDefaultSchemaLocation() {
+        return DEFAULT_SCHEMA_LOCATION;
+    }
+
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    public void setMaxPoolSize(int maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    public int getMinPoolSize() {
+        return minPoolSize;
+    }
+
+    public void setMinPoolSize(int minPoolSize) {
+        this.minPoolSize = minPoolSize;
+    }
+
+    public int getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    public void setIdleTimeout(int idleTimeout) {
+        this.idleTimeout = idleTimeout;
+    }
+
+    public int getKeepAliveTimeout() {
+        return keepAliveTimeout;
+    }
+
+    public void setKeepAliveTimeout(int keepAliveTimeout) {
+        this.keepAliveTimeout = keepAliveTimeout;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    public void setConnectionTimeout(int connectionTimeout) {
+        this.connectionTimeout = connectionTimeout;
+    }
+
+    public Map<String, Object> getDataSourceProperties() {
+        return dataSourceProperties;
+    }
+
+    public void setDataSourceProperties(Map<String, Object> dataSourceProperties) {
+        this.dataSourceProperties = dataSourceProperties;
     }
 }

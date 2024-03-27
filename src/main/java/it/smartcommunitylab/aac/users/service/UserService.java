@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
@@ -118,6 +119,9 @@ public class UserService {
 
     @Autowired
     private UserTranslatorService translator;
+
+    @Autowired
+    private List<it.smartcommunitylab.aac.accounts.persistence.UserAccountService<? extends UserAccount>> userAccountServices;
 
     /*
      * User translation
@@ -568,6 +572,15 @@ public class UserService {
 
         // roles
         spaceRoleService.deleteRoles(subjectId);
+
+        //orphan user accounts
+        userAccountServices.forEach(accountService -> {
+            try {
+                accountService.deleteAllAccountsByUser(subjectId);
+            } catch (Exception e) {
+                // skip
+            }
+        });
 
         // delete user
         userService.deleteUser(subjectId);

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -56,6 +57,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -96,6 +100,28 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Providers
      */
+
+    @GetMapping("/idps/{realm}/search")
+    public Page<ConfigurableIdentityProvider> searchIdps(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
+    ) throws NoSuchRealmException {
+        Page<ConfigurableIdentityProvider> page = providerManager.searchProviders(realm, q, pageRequest);
+        return PageableExecutionUtils.getPage(
+            page
+                .getContent()
+                .stream()
+                .map(cp -> {
+                    cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
+                    return cp;
+                })
+                .collect(Collectors.toList()),
+            pageRequest,
+            () -> page.getTotalElements()
+        );
+    }
+
     @Override
     @GetMapping("/idps/{realm}/{providerId}")
     public ConfigurableIdentityProvider getIdp(

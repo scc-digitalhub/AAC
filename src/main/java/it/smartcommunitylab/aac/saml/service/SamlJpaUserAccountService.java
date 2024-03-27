@@ -309,6 +309,14 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
     }
 
     @Override
+    public void deleteAllAccountsByUser(@NotNull String userId) {
+        logger.debug("delete accounts for user {} ", String.valueOf(userId));
+
+        List<SamlUserAccountEntity> accounts = accountRepository.findByUserId(userId);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
+    @Override
     public void deleteAllAccountsByUser(@NotNull String repository, @NotNull String userId) {
         logger.debug(
             "delete accounts for user {} in repository {}",
@@ -317,6 +325,14 @@ public class SamlJpaUserAccountService implements UserAccountService<SamlUserAcc
         );
 
         List<SamlUserAccountEntity> accounts = accountRepository.findByUserIdAndRepositoryId(userId, repository);
+        accountRepository.deleteAllInBatch(accounts);
+    }
+
+    @Override
+    public void deleteAllAccountsByRealm(@NotNull String realm) {
+        logger.debug("delete accounts for realm {} in all repositories", String.valueOf(realm));
+
+        List<SamlUserAccountEntity> accounts = accountRepository.findByRealm(realm);
         accountRepository.deleteAllInBatch(accounts);
     }
 

@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -80,5 +82,23 @@ public class BaseAuditController implements InitializingBean {
         logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
 
         return auditManager.findRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
+    }
+
+    @GetMapping("/audit/{realm}/search")
+    @Operation(summary = "find audit events from a given realm")
+    public Page<AuditEvent> searchEvents(
+            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+            @RequestParam(required = false, name = "type") Optional<String> type,
+            @RequestParam(required = false, name = "after") @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE_TIME
+            ) Optional<Date> after,
+            @RequestParam(required = false, name = "before") @DateTimeFormat(
+                    iso = DateTimeFormat.ISO.DATE_TIME
+            ) Optional<Date> before,
+            Pageable pageRequest
+    ) throws NoSuchRealmException {
+        logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
+
+        return auditManager.searchRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null), pageRequest);
     }
 }

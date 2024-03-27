@@ -16,12 +16,14 @@ package it.smartcommunitylab.aac.openidfed.service;
 
 import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
+import org.springframework.lang.Nullable;
+
 import java.util.Collection;
 
 public interface OpenIdProviderDiscoveryService {
     public Collection<String> discoverProviders();
 
-    public OIDCProviderMetadata findProvider(String entityId);
+    public @Nullable OIDCProviderMetadata findProvider(String entityId);
 
-    public FederationEntityMetadata loadProviderMetadata(String entityId);
+    public @Nullable FederationEntityMetadata loadProviderMetadata(String entityId);
 }
