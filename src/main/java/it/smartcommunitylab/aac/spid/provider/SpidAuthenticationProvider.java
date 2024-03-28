@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -7,8 +23,6 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
-import it.smartcommunitylab.aac.oidc.OIDCKeys;
-import it.smartcommunitylab.aac.saml.SamlKeys;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
@@ -18,6 +32,14 @@ import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.Response;
@@ -40,18 +62,8 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-
-public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
+public class SpidAuthenticationProvider
+    extends ExtendedAuthenticationProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final SpidUserAttribute SUBJECT_ATTRIBUTE = SpidUserAttribute.SUBJECT;
@@ -60,7 +72,6 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
     private final SpidUserAttribute subjectAttribute;
     private final SpidUserAttribute usernameAttribute;
     private final SpidResponseValidator spidValidator;
-
 
     private final OpenSaml4AuthenticationProvider samlAuthProvider;
     private ScriptExecutionService executionService;
@@ -151,11 +162,11 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
             // TODO handle all attributes not only strings.
             HashMap<String, Serializable> principalAttributes = new HashMap<>();
             user
-                    .getAttributes()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null)
-                    .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+                .getAttributes()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
             //TODO build context with relevant info
             HashMap<String, Serializable> contextAttributes = new HashMap<>();
@@ -167,22 +178,21 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
                 try {
                     // execute script
                     Boolean authResult = executionService.executeFunction(
-                            IdentityProvider.AUTHORIZATION_FUNCTION,
-                            customAuthFunction,
-                            Boolean.class,
-                            principalAttributes,
-                            contextAttributes
+                        IdentityProvider.AUTHORIZATION_FUNCTION,
+                        customAuthFunction,
+                        Boolean.class,
+                        principalAttributes,
+                        contextAttributes
                     );
 
                     if (authResult != null) {
                         if (authResult.booleanValue() == false) {
                             // TODO: SpidException?  Non c'è un equivalente di unauthorized, però
                             throw new SamlAuthenticationException(
-                                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "unauthorized")
+                                new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "unauthorized")
                             );
                         }
                     }
-
                 } catch (SystemException | InvalidDefinitionException ex) {
                     logger.debug("error executing authorize function via script: " + ex.getMessage());
                 }
@@ -193,21 +203,21 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
                 try {
                     // execute script
                     Map<String, Serializable> customAttributes = executionService.executeFunction(
-                            IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                            customMappingFunction,
-                            principalAttributes
+                        IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+                        customMappingFunction,
+                        principalAttributes
                     );
 
                     // update map
                     if (customAttributes != null) {
                         // replace attributes
                         customAttributes
-                                .entrySet()
-                                .stream()
-                                .filter(e -> e.getValue() != null)
-                                // each spid attribute is authoritative and cannot be overwritten or re-evaluated
-                                .filter(e -> SpidAttribute.contains(e.getKey()))
-                                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+                            .entrySet()
+                            .stream()
+                            .filter(e -> e.getValue() != null)
+                            // each spid attribute is authoritative and cannot be overwritten or re-evaluated
+                            .filter(e -> SpidAttribute.contains(e.getKey()))
+                            .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
                         user.setAttributes(principalAttributes);
                     }
                 } catch (SystemException | InvalidDefinitionException ex) {
@@ -226,9 +236,9 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
 
     private Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> buildProviderAssertionValidator() {
         // leverage opensaml default validator, then expand with custom logic and behaviour
-        Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> defaultValidator = OpenSaml4AuthenticationProvider
-                .createDefaultAssertionValidator();
-        return (assertionToken) -> {
+        Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> defaultValidator =
+            OpenSaml4AuthenticationProvider.createDefaultAssertionValidator();
+        return assertionToken -> {
             // call default
             Saml2ResponseValidatorResult result = defaultValidator.convert(assertionToken);
 
@@ -245,8 +255,8 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
     private Converter<OpenSaml4AuthenticationProvider.ResponseToken, ? extends AbstractAuthenticationToken> buildProviderResponseConverter() {
         // leverage opensaml default response authentication converter, then expand with custom logic and behaviour
         Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultResponseConverter =
-                OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
-        return (responseToken) -> {
+            OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+        return responseToken -> {
             Response response = responseToken.getResponse();
             Saml2Authentication auth = defaultResponseConverter.convert(responseToken);
 
@@ -257,21 +267,22 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
             Map<String, List<Object>> attributes = new HashMap<>();
             SpidAuthnContext authCtx = extractAcrValue(response);
             if (authCtx != null) {
-                attributes.put(ACR_ATTRIBUTE, Collections.singletonList((Object)(authCtx.getValue())));
+                attributes.put(ACR_ATTRIBUTE, Collections.singletonList((Object) (authCtx.getValue())));
             }
             // TODO: also add issuer and issueInstant? are they required by someone
 
             // rebuild auth
             DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
-                    auth.getName(),
-                    attributes
+                auth.getName(),
+                attributes
             );
             if (auth.getPrincipal() instanceof DefaultSaml2AuthenticatedPrincipal) {
-                principal = new DefaultSaml2AuthenticatedPrincipal(
-                            auth.getName(),
-                            attributes,
-                            ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
-                        );
+                principal =
+                    new DefaultSaml2AuthenticatedPrincipal(
+                        auth.getName(),
+                        attributes,
+                        ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
+                    );
             }
 
             return new Saml2Authentication(
@@ -289,12 +300,12 @@ public class SpidAuthenticationProvider extends ExtendedAuthenticationProvider<S
         }
 
         AuthnContext authnContext = assertion
-                .getAuthnStatements()
-                .stream()
-                .filter(a -> a.getAuthnContext() != null)
-                .findFirst()
-                .map(a -> a.getAuthnContext())
-                .orElse(null);
+            .getAuthnStatements()
+            .stream()
+            .filter(a -> a.getAuthnContext() != null)
+            .findFirst()
+            .map(a -> a.getAuthnContext())
+            .orElse(null);
 
         if (authnContext == null) {
             return null;

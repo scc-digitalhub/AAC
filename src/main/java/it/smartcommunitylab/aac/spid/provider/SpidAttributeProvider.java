@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -14,18 +30,18 @@ import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityAttributeProvider;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-public class SpidAttributeProvider extends AbstractIdentityAttributeProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
+public class SpidAttributeProvider
+    extends AbstractIdentityAttributeProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
 
     private final OpenIdAttributesMapper openidMapper;
     private final SpidAttributesMapper spidMapper;
@@ -34,7 +50,12 @@ public class SpidAttributeProvider extends AbstractIdentityAttributeProvider<Spi
         this(SystemKeys.AUTHORITY_SPID, providerId, providerConfig, realm);
     }
 
-    public SpidAttributeProvider(String authority, String providerId, SpidIdentityProviderConfig providerConfig, String realm) {
+    public SpidAttributeProvider(
+        String authority,
+        String providerId,
+        SpidIdentityProviderConfig providerConfig,
+        String realm
+    ) {
         super(authority, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         openidMapper = new OpenIdAttributesMapper();
@@ -42,15 +63,19 @@ public class SpidAttributeProvider extends AbstractIdentityAttributeProvider<Spi
     }
 
     @Override
-    protected List<UserAttributes> extractUserAttributes(SpidUserAccount account, Map<String, Serializable> principalAttributes) {
-        List<UserAttributes> attributes =new ArrayList<>();
+    protected List<UserAttributes> extractUserAttributes(
+        SpidUserAccount account,
+        Map<String, Serializable> principalAttributes
+    ) {
+        List<UserAttributes> attributes = new ArrayList<>();
         // userid
-        String userId =account.getUserId();
+        String userId = account.getUserId();
 
         // core attributes
         String email = account.getEmail();
         String name = account.getName() != null ? account.getName() : account.getSubjectId();
-        @Nullable String surname = account.getSurname();
+        @Nullable
+        String surname = account.getSurname();
         String username = account.getUsername() != null ? account.getUsername() : account.getEmail();
 
         BasicAttributesSet basicSet = new BasicAttributesSet();
@@ -94,11 +119,11 @@ public class SpidAttributeProvider extends AbstractIdentityAttributeProvider<Spi
         // provider, where we export all raw attributes
         if (principalAttributes != null) {
             DefaultUserAttributesImpl idpset = new DefaultUserAttributesImpl(
-                    getAuthority(),
-                    getProvider(),
-                    getRealm(),
-                    userId,
-                    "idp." + getProvider()
+                getAuthority(),
+                getProvider(),
+                getRealm(),
+                userId,
+                "idp." + getProvider()
             );
             // store everything as string - if not possible throw away the attribute
             for (Map.Entry<String, Serializable> e : principalAttributes.entrySet()) {

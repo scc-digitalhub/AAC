@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors
+ * Copyright 2024 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,9 +80,11 @@ public class SpidUserAccountEntity {
     private String issuer;
 
     private String email;
+
     // TODO: check for other mandatory attributes
     @Column(name = "fiscal_number")
     private String fiscalNumber;
+
     @Column(name = "spid_code")
     private String spidCode;
 
@@ -245,39 +247,39 @@ public class SpidUserAccountEntity {
 
     public String toString() {
         return (
-                "SpidUserAccount [repositoryId=" +
-                        repositoryId +
-                        ", subjectId=" +
-                        subjectId +
-                        ", uuid=" +
-                        uuid +
-                        ", userId=" +
-                        userId +
-                        ", realm=" +
-                        realm +
-                        ", status=" +
-                        status +
-                        ", username=" +
-                        username +
-                        ", issuer=" +
-                        issuer +
-                        ", email=" +
-                        email +
-                        ", fiscalNumber=" +
-                        fiscalNumber +
-                        ", spidCode" +
-                        spidCode +
-                        ", name=" +
-                        name +
-                        ", surname=" +
-                        surname +
-                        ", lang=" +
-                        lang +
-                        ", createDate=" +
-                        createDate +
-                        ", modifiedDate=" +
-                        modifiedDate +
-                        "]"
+            "SpidUserAccount [repositoryId=" +
+            repositoryId +
+            ", subjectId=" +
+            subjectId +
+            ", uuid=" +
+            uuid +
+            ", userId=" +
+            userId +
+            ", realm=" +
+            realm +
+            ", status=" +
+            status +
+            ", username=" +
+            username +
+            ", issuer=" +
+            issuer +
+            ", email=" +
+            email +
+            ", fiscalNumber=" +
+            fiscalNumber +
+            ", spidCode" +
+            spidCode +
+            ", name=" +
+            name +
+            ", surname=" +
+            surname +
+            ", lang=" +
+            lang +
+            ", createDate=" +
+            createDate +
+            ", modifiedDate=" +
+            modifiedDate +
+            "]"
         );
     }
 }
