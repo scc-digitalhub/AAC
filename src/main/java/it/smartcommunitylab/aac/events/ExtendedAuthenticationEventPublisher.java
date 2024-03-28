@@ -29,6 +29,8 @@ import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.oidc.auth.OIDCUserAuthenticationFailureEvent;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlUserAuthenticationFailureEvent;
+import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
+import it.smartcommunitylab.aac.spid.auth.SpidUserAuthenticationFailureEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -180,6 +182,15 @@ public class ExtendedAuthenticationEventPublisher
         AuthenticationException exception
     ) {
         // TODO use converters..
+        if (exception instanceof SpidAuthenticationException) {
+            return new SpidUserAuthenticationFailureEvent(
+                authority,
+                provider,
+                realm,
+                authentication,
+                (SpidAuthenticationException) exception
+            );
+        }
         if (exception instanceof SamlAuthenticationException) {
             return new SamlUserAuthenticationFailureEvent(
                 authority,
