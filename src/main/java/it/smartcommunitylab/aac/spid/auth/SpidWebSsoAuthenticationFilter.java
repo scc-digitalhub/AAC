@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -11,6 +27,12 @@ import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequest
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import java.io.IOException;
+import java.util.Objects;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.saml2.core.Saml2Error;
@@ -31,13 +53,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.Objects;
 
 /*
  * SpidWebSsoAuthenticationRequestFilter is the filter that intercepts SPID SAML authentication "responses" and
@@ -81,15 +96,19 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
 
         // build a default resolver, will lookup by registrationId, to create default token converter
-        DefaultRelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository);
-        this.authenticationConverter = new Saml2AuthenticationTokenConverter((RelyingPartyRegistrationResolver) registrationResolver);
+        DefaultRelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(
+            relyingPartyRegistrationRepository
+        );
+        this.authenticationConverter =
+            new Saml2AuthenticationTokenConverter((RelyingPartyRegistrationResolver) registrationResolver);
         setRequiresAuthenticationRequestMatcher(requestMatcher); // required by superclass logic and definition in order to intercept the /sso endpoint
 
         // redirect failed attempts to login
-        this.authenticationEntryPoint = Objects.requireNonNullElseGet(
-            authenticationEntryPoint,
-            () -> new RealmAwareAuthenticationEntryPoint("/login")
-        );
+        this.authenticationEntryPoint =
+            Objects.requireNonNullElseGet(
+                authenticationEntryPoint,
+                () -> new RealmAwareAuthenticationEntryPoint("/login")
+            );
 
         // enforce session id change to prevent fixation attacks
         setAllowSessionCreation(true);
@@ -97,24 +116,23 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
         // use a custom failureHandler to return to login form
         setAuthenticationFailureHandler(
-                new AuthenticationFailureHandler() {
-                    public void onAuthenticationFailure(
-                            HttpServletRequest request,
-                            HttpServletResponse response,
-                            AuthenticationException exception
-                    ) throws IOException, ServletException {
-                        // from SimpleUrlAuthenticationFailureHandler, save exception as session
-                        HttpSession session = request.getSession(true);
-                        if (session != null) {
-                            request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
-                        }
-
-                        getAuthenticationEntryPoint().commence(request, response, exception);
+            new AuthenticationFailureHandler() {
+                public void onAuthenticationFailure(
+                    HttpServletRequest request,
+                    HttpServletResponse response,
+                    AuthenticationException exception
+                ) throws IOException, ServletException {
+                    // from SimpleUrlAuthenticationFailureHandler, save exception as session
+                    HttpSession session = request.getSession(true);
+                    if (session != null) {
+                        request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
                     }
+
+                    getAuthenticationEntryPoint().commence(request, response, exception);
                 }
+            }
         );
     }
-
 
     public AuthenticationEntryPoint getAuthenticationEntryPoint() {
         return authenticationEntryPoint;
@@ -122,8 +140,9 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     @Override
     protected boolean requiresAuthentication(HttpServletRequest request, HttpServletResponse response) {
-        return (super.requiresAuthentication(request, response)
-                && StringUtils.hasText(request.getParameter("SAMLResponse")));
+        return (
+            super.requiresAuthentication(request, response) && StringUtils.hasText(request.getParameter("SAMLResponse"))
+        );
     }
 
     /*
@@ -134,7 +153,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
      * (3) if returns null -> incomplete authentication, assumes that it is completed later on
      */
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+        throws AuthenticationException, IOException, ServletException {
         // A. extract provider
         String registrationId = requestMatcher.matcher(request).getVariables().get("registrationId");
         String providerId = SpidIdentityProviderConfig.getProviderId(registrationId); // registrationId is providerId+IdPkey
@@ -142,7 +162,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         if (providerConfig == null) {
             Saml2Error saml2Error = new Saml2Error(
                 Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
-                "No relying party registration found");
+                "No relying party registration found"
+            );
             throw new Saml2AuthenticationException(saml2Error);
         }
         // set realm as request request attribute to enable fallback to login on error
@@ -162,7 +183,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
         // C. extract request associated to this response for extra validation - we handle only responses to locally initiated sessions
         // check that initiating request exists
-        SerializableSaml2AuthenticationRequestContext authnReqContext = authenticationRequestRepository.loadAuthenticationRequest(request);
+        SerializableSaml2AuthenticationRequestContext authnReqContext =
+            authenticationRequestRepository.loadAuthenticationRequest(request);
         if (authnReqContext == null) {
             // response doesn't belong here...
             Saml2Error saml2Error = new Saml2Error(
@@ -176,8 +198,10 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         RelyingPartyRegistration registration = authenticationRequest.getRelyingPartyRegistration();
         if (!registration.getRegistrationId().equals(authReqRPRegistrationId)) {
             // response doesn't belong here...
-            Saml2Error saml2Error = new Saml2Error(Saml2ErrorCodes.INVALID_DESTINATION,
-                    "Wrong destination for response");
+            Saml2Error saml2Error = new Saml2Error(
+                Saml2ErrorCodes.INVALID_DESTINATION,
+                "Wrong destination for response"
+            );
             throw new Saml2AuthenticationException(saml2Error);
         }
 
@@ -194,7 +218,9 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         return (UserAuthentication) getAuthenticationManager().authenticate(wrappedAuthRequest);
     }
 
-    public void setAuthenticationRequestRepository(Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository) {
+    public void setAuthenticationRequestRepository(
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
+    ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
 }

@@ -1,8 +1,31 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
+import java.security.cert.CertificateEncodingException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
 import net.shibboleth.utilities.java.support.xml.SerializeSupport;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -49,14 +72,12 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.w3c.dom.Element;
 
-import java.security.cert.CertificateEncodingException;
-import java.util.*;
-
-// Partial references:
-//  [1] https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/metadata.html#service-provider
-//  [2] https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf
-public class SpidMetadataResolver implements Saml2MetadataResolver  {
-
+/*
+ * Partial references:
+ *   [1] https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/metadata.html#service-provider
+ *   [2] https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf
+ */
+public class SpidMetadataResolver implements Saml2MetadataResolver {
     static {
         OpenSamlInitializationService.initialize();
     }
@@ -92,34 +113,61 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
     private final ExtensionsBuilder extensionsBuilder;
     private final XSAnyBuilder xsAnyBuilder;
 
-
-
     public SpidMetadataResolver(ProviderConfigRepository<SpidIdentityProviderConfig> configRepository) {
         this.configRepository = configRepository;
         // init builders
         XMLObjectProviderRegistry registry = ConfigurationService.get(XMLObjectProviderRegistry.class);
-        this.entityDescriptorBuilder = (EntityDescriptorBuilder) registry.getBuilderFactory().getBuilder(EntityDescriptor.DEFAULT_ELEMENT_NAME);
-        this.spSsoDescriptorBuilder = (SPSSODescriptorBuilder) registry.getBuilderFactory().getBuilder(SPSSODescriptor.DEFAULT_ELEMENT_NAME);
-        this.keyDescriptorBuilder = (KeyDescriptorBuilder) registry.getBuilderFactory().getBuilder(KeyDescriptor.DEFAULT_ELEMENT_NAME);
+        this.entityDescriptorBuilder =
+            (EntityDescriptorBuilder) registry.getBuilderFactory().getBuilder(EntityDescriptor.DEFAULT_ELEMENT_NAME);
+        this.spSsoDescriptorBuilder =
+            (SPSSODescriptorBuilder) registry.getBuilderFactory().getBuilder(SPSSODescriptor.DEFAULT_ELEMENT_NAME);
+        this.keyDescriptorBuilder =
+            (KeyDescriptorBuilder) registry.getBuilderFactory().getBuilder(KeyDescriptor.DEFAULT_ELEMENT_NAME);
         this.keyInfoBuilder = (KeyInfoBuilder) registry.getBuilderFactory().getBuilder(KeyInfo.DEFAULT_ELEMENT_NAME);
-        this.x509CertificateBuilder = (X509CertificateBuilder) registry.getBuilderFactory().getBuilder(X509Certificate.DEFAULT_ELEMENT_NAME);
+        this.x509CertificateBuilder =
+            (X509CertificateBuilder) registry.getBuilderFactory().getBuilder(X509Certificate.DEFAULT_ELEMENT_NAME);
         this.x509DataBuilder = (X509DataBuilder) registry.getBuilderFactory().getBuilder(X509Data.DEFAULT_ELEMENT_NAME);
-        this.assertionConsumerServiceBuilder = (AssertionConsumerServiceBuilder) registry.getBuilderFactory().getBuilder(AssertionConsumerService.DEFAULT_ELEMENT_NAME);
-        this.attributeConsumingServiceBuilder = (AttributeConsumingServiceBuilder) registry.getBuilderFactory().getBuilder(AssertionConsumerService.DEFAULT_ELEMENT_NAME);
-        this.singleLogoutServiceBuilder = (SingleLogoutServiceBuilder) registry.getBuilderFactory().getBuilder(SingleLogoutService.DEFAULT_ELEMENT_NAME);
-        this.serviceNameBuilder = (ServiceNameBuilder) registry.getBuilderFactory().getBuilder(ServiceName.DEFAULT_ELEMENT_NAME);
-        this.requestedAttributeBuilder = (RequestedAttributeBuilder) registry.getBuilderFactory().getBuilder(RequestedAttribute.DEFAULT_ELEMENT_NAME);
-        this.organizationBuilder = (OrganizationBuilder) registry.getBuilderFactory().getBuilder(Organization.DEFAULT_ELEMENT_NAME);
-        this.organizationNameBuilder = (OrganizationNameBuilder) registry.getBuilderFactory().getBuilder(OrganizationName.DEFAULT_ELEMENT_NAME);
-        this.organizationDisplayNameBuilder = (OrganizationDisplayNameBuilder) registry.getBuilderFactory().getBuilder(OrganizationDisplayName.DEFAULT_ELEMENT_NAME);
-        this.organizationURLBuilder = (OrganizationURLBuilder) registry.getBuilderFactory().getBuilder(OrganizationURL.DEFAULT_ELEMENT_NAME);
-        this.contactPersonBuilder = (ContactPersonBuilder) registry.getBuilderFactory().getBuilder(ContactPerson.DEFAULT_ELEMENT_NAME);
-        this.emailAddressBuilder = (EmailAddressBuilder) registry.getBuilderFactory().getBuilder(EmailAddress.DEFAULT_ELEMENT_NAME);
-        this.telephoneNumberBuilder = (TelephoneNumberBuilder) registry.getBuilderFactory().getBuilder(TelephoneNumber.DEFAULT_ELEMENT_NAME);
+        this.assertionConsumerServiceBuilder =
+            (AssertionConsumerServiceBuilder) registry
+                .getBuilderFactory()
+                .getBuilder(AssertionConsumerService.DEFAULT_ELEMENT_NAME);
+        this.attributeConsumingServiceBuilder =
+            (AttributeConsumingServiceBuilder) registry
+                .getBuilderFactory()
+                .getBuilder(AssertionConsumerService.DEFAULT_ELEMENT_NAME);
+        this.singleLogoutServiceBuilder =
+            (SingleLogoutServiceBuilder) registry
+                .getBuilderFactory()
+                .getBuilder(SingleLogoutService.DEFAULT_ELEMENT_NAME);
+        this.serviceNameBuilder =
+            (ServiceNameBuilder) registry.getBuilderFactory().getBuilder(ServiceName.DEFAULT_ELEMENT_NAME);
+        this.requestedAttributeBuilder =
+            (RequestedAttributeBuilder) registry
+                .getBuilderFactory()
+                .getBuilder(RequestedAttribute.DEFAULT_ELEMENT_NAME);
+        this.organizationBuilder =
+            (OrganizationBuilder) registry.getBuilderFactory().getBuilder(Organization.DEFAULT_ELEMENT_NAME);
+        this.organizationNameBuilder =
+            (OrganizationNameBuilder) registry.getBuilderFactory().getBuilder(OrganizationName.DEFAULT_ELEMENT_NAME);
+        this.organizationDisplayNameBuilder =
+            (OrganizationDisplayNameBuilder) registry
+                .getBuilderFactory()
+                .getBuilder(OrganizationDisplayName.DEFAULT_ELEMENT_NAME);
+        this.organizationURLBuilder =
+            (OrganizationURLBuilder) registry.getBuilderFactory().getBuilder(OrganizationURL.DEFAULT_ELEMENT_NAME);
+        this.contactPersonBuilder =
+            (ContactPersonBuilder) registry.getBuilderFactory().getBuilder(ContactPerson.DEFAULT_ELEMENT_NAME);
+        this.emailAddressBuilder =
+            (EmailAddressBuilder) registry.getBuilderFactory().getBuilder(EmailAddress.DEFAULT_ELEMENT_NAME);
+        this.telephoneNumberBuilder =
+            (TelephoneNumberBuilder) registry.getBuilderFactory().getBuilder(TelephoneNumber.DEFAULT_ELEMENT_NAME);
         this.extensionsBuilder = new ExtensionsBuilder();
         this.xsAnyBuilder = new XSAnyBuilder();
 
-        this.edMarshaller =  (EntityDescriptorMarshaller) registry.getMarshallerFactory().getMarshaller(EntityDescriptor.DEFAULT_ELEMENT_NAME);
+        this.edMarshaller =
+            (EntityDescriptorMarshaller) registry
+                .getMarshallerFactory()
+                .getMarshaller(EntityDescriptor.DEFAULT_ELEMENT_NAME);
     }
 
     @Override
@@ -127,7 +175,10 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
         String registrationId = relyingPartyRegistration.getRegistrationId();
         SpidIdentityProviderConfig providerConfig = configRepository.findByProviderId(registrationId);
         if (providerConfig == null) {
-            Saml2Error err = new Saml2Error(Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND, "No relying party registration found for " + registrationId);
+            Saml2Error err = new Saml2Error(
+                Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
+                "No relying party registration found for " + registrationId
+            );
             throw new Saml2AuthenticationException(err);
         }
         // The root element must be a _single_ <EntityDescriptor> as per SPID specs
@@ -144,7 +195,7 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
 
         // marshall to xml string
         try {
-            Element element =this.edMarshaller.marshall(ed);
+            Element element = this.edMarshaller.marshall(ed);
             // NOTE: pretty-print will invalidate signature (as the document is not the same byte-by-byte)
             return SerializeSupport.nodeToString(element);
         } catch (MarshallingException e) {
@@ -153,10 +204,7 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
     }
 
     // build an the Metadata root element, which is a single Entity Descriptor, except for signature
-    private EntityDescriptor build(
-        RelyingPartyRegistration registration,
-        SpidIdentityProviderConfig config
-    ) {
+    private EntityDescriptor build(RelyingPartyRegistration registration, SpidIdentityProviderConfig config) {
         // define <EntityDescriptor> base attributes
         EntityDescriptor ed = entityDescriptorBuilder.buildObject();
         ed.setEntityID(registration.getEntityId()); // REQUIRED // TODO: secondo me si può sostituire con config.getEntityId() ...
@@ -218,11 +266,13 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
         attributeConsumingService.getNames().add(attributeConsumingServiceName);
 
         SpidIdentityProviderConfigMap configMap = config.getConfigMap();
-        configMap.getSpidAttributes().forEach(attr -> {
-            RequestedAttribute attribute = requestedAttributeBuilder.buildObject();
-            attribute.setName(attr.getValue());
-            attributeConsumingService.getRequestedAttributes().add(attribute);
-        });
+        configMap
+            .getSpidAttributes()
+            .forEach(attr -> {
+                RequestedAttribute attribute = requestedAttributeBuilder.buildObject();
+                attribute.setName(attr.getValue());
+                attributeConsumingService.getRequestedAttributes().add(attribute);
+            });
         spSsoDescriptor.getAttributeConsumingServices().add(attributeConsumingService);
 
         // Add single logout service to <SPSSODescriptor>
@@ -231,16 +281,22 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
         acsVariables.put("baseUrl", "");
         acsVariables.put("registrationId", registration.getRegistrationId());
         UriComponents acsComponents = UriComponentsBuilder
-                .fromUriString(SpidIdentityProviderConfig.DEFAULT_CONSUMER_URL)
-                .replaceQuery(null).fragment(null)
-                .buildAndExpand(acsVariables);
+            .fromUriString(SpidIdentityProviderConfig.DEFAULT_CONSUMER_URL)
+            .replaceQuery(null)
+            .fragment(null)
+            .buildAndExpand(acsVariables);
         UriComponents uriComponents = UriComponentsBuilder
-                .fromHttpUrl(registration.getAssertionConsumerServiceLocation())
-                .replacePath(acsComponents.getPath()).replaceQuery(null).fragment(null).build();
+            .fromHttpUrl(registration.getAssertionConsumerServiceLocation())
+            .replacePath(acsComponents.getPath())
+            .replaceQuery(null)
+            .fragment(null)
+            .build();
         String baseUrl = uriComponents.toUriString();
         String sloLocation = resolveUrlTemplate(
-                config.getRelyingPartyRegistrationSingleLogoutConsumerServiceLocation(),
-                baseUrl, registration);
+            config.getRelyingPartyRegistrationSingleLogoutConsumerServiceLocation(),
+            baseUrl,
+            registration
+        );
         SingleLogoutService sloService = singleLogoutServiceBuilder.buildObject();
         sloService.setBinding(SAMLConstants.SAML2_POST_BINDING_URI);
         sloService.setLocation(sloLocation);
@@ -273,12 +329,12 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
     private ContactPerson buildContactPerson(SpidIdentityProviderConfig config) {
         SpidIdentityProviderConfigMap configMap = config.getConfigMap();
         boolean isPublic = true;
-            // TODO: consider removal as private is currently not supported
-//        if (configMap.getContactPerson_Public() != null) {
-//            isPublic = configMap.getContactPerson_Public();
-//        } else {
-//            isPublic = true;
-//        }
+        // TODO: consider removal as private is currently not supported
+        //        if (configMap.getContactPerson_Public() != null) {
+        //            isPublic = configMap.getContactPerson_Public();
+        //        } else {
+        //            isPublic = true;
+        //        }
 
         ContactPerson contactPerson = contactPersonBuilder.buildObject();
         contactPerson.setType(ContactPersonTypeEnumeration.OTHER);
@@ -287,33 +343,33 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
         emailAddress.setURI(configMap.getContactPerson_EmailAddress());
         contactPerson.getEmailAddresses().add(emailAddress);
 
-//        OPTIONAL
-//        if (StringUtils.hasText(configMap.getContactPerson_TelephoneNumber())) {
-//            TelephoneNumber telephoneNumber = telephoneNumberBuilder.buildObject();
-//            telephoneNumber.setNumber(configMap.getContactPerson_TelephoneNumber());
-//            contactPerson.getTelephoneNumbers().add(telephoneNumber);
-//        }
+        //        OPTIONAL
+        //        if (StringUtils.hasText(configMap.getContactPerson_TelephoneNumber())) {
+        //            TelephoneNumber telephoneNumber = telephoneNumberBuilder.buildObject();
+        //            telephoneNumber.setNumber(configMap.getContactPerson_TelephoneNumber());
+        //            contactPerson.getTelephoneNumbers().add(telephoneNumber);
+        //        }
 
         Extensions contactExtension = extensionsBuilder.buildObject();
         List<XMLObject> contactExtensions = new ArrayList<>();
-//        OPTIONAL FOR PUBLIC
-//        if (StringUtils.hasText(configMap.getContactPerson_VATNumber())) {
-//            XSAny vatNumber = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "VATNumber", SPID_NAMESPACE_PREFIX);
-//            vatNumber.setTextContent(configMap.getContactPerson_VATNumber());
-//            contactExtensions.add(vatNumber);
-//        }
+        //        OPTIONAL FOR PUBLIC
+        //        if (StringUtils.hasText(configMap.getContactPerson_VATNumber())) {
+        //            XSAny vatNumber = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "VATNumber", SPID_NAMESPACE_PREFIX);
+        //            vatNumber.setTextContent(configMap.getContactPerson_VATNumber());
+        //            contactExtensions.add(vatNumber);
+        //        }
 
         if (StringUtils.hasText(configMap.getContactPerson_IPACode()) && isPublic) {
             XSAny ipaCode = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "IPACode", SPID_NAMESPACE_PREFIX);
             ipaCode.setTextContent(configMap.getContactPerson_IPACode());
             contactExtensions.add(ipaCode);
         }
-//        OPTIONAL FOR PUBLIC
-//        if (StringUtils.hasText(configMap.getContactPerson_FiscalCode()) && !isPublic) {
-//            XSAny fiscalCode = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "FiscalCode", SPID_NAMESPACE_PREFIX);
-//            fiscalCode.setTextContent(configMap.getContactPerson_FiscalCode());
-//            contactExtensions.add(fiscalCode);
-//        }
+        //        OPTIONAL FOR PUBLIC
+        //        if (StringUtils.hasText(configMap.getContactPerson_FiscalCode()) && !isPublic) {
+        //            XSAny fiscalCode = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "FiscalCode", SPID_NAMESPACE_PREFIX);
+        //            fiscalCode.setTextContent(configMap.getContactPerson_FiscalCode());
+        //            contactExtensions.add(fiscalCode);
+        //        }
 
         if (isPublic) {
             contactExtensions.add(xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "Public", SPID_NAMESPACE_PREFIX));
@@ -362,8 +418,11 @@ public class SpidMetadataResolver implements Saml2MetadataResolver  {
         String entityId = relyingParty.getAssertingPartyDetails().getEntityId();
         String registrationId = relyingParty.getRegistrationId();
         Map<String, String> uriVariables = new HashMap<>();
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(baseUrl).replaceQuery(null).fragment(null)
-                .build();
+        UriComponents uriComponents = UriComponentsBuilder
+            .fromHttpUrl(baseUrl)
+            .replaceQuery(null)
+            .fragment(null)
+            .build();
         String scheme = uriComponents.getScheme();
         uriVariables.put("baseScheme", (scheme != null) ? scheme : "");
         String host = uriComponents.getHost();

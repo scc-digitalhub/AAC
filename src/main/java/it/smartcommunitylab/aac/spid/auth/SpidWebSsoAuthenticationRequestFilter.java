@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -11,6 +27,14 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,15 +58,6 @@ import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 /*
  * SpidWebSsoAuthenticationRequestFilter is the filter that intercepts SPID authentication requests, generates the SAML
  * request and then sends the sso authentication request to the selected (SPID) SAML identity provider.
@@ -56,7 +71,8 @@ public class SpidWebSsoAuthenticationRequestFilter
     extends OncePerRequestFilter
     implements ApplicationEventPublisherAware {
 
-    private static final String DEFAULT_FILTER_URI = SpidIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}"; // NOTE: if multiple upstream idps are possible, then registration id must somehow also encode which idp is target of the authentication request
+    private static final String DEFAULT_FILTER_URI =
+        SpidIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}"; // NOTE: if multiple upstream idps are possible, then registration id must somehow also encode which idp is target of the authentication request
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String authorityId;
     private final RequestMatcher requestMatcher;
@@ -67,8 +83,10 @@ public class SpidWebSsoAuthenticationRequestFilter
     private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
 
     //TODO replace with spid specific implementation, handling resolution via relayState AND/OR requestId
-    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository(
-            HttpSessionSaml2AuthenticationRequestRepository.class.getName() + ".SPID_AUTHORIZATION_REQUEST");
+    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
+        new HttpSessionSaml2AuthenticationRequestRepository(
+            HttpSessionSaml2AuthenticationRequestRepository.class.getName() + ".SPID_AUTHORIZATION_REQUEST"
+        );
 
     public SpidWebSsoAuthenticationRequestFilter(
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
@@ -90,9 +108,10 @@ public class SpidWebSsoAuthenticationRequestFilter
         this.authorityId = authorityId;
         this.registrationRepository = registrationRepository;
         // use custom implementation to add secure relayState param
-        this.authenticationRequestContextResolver = new CustomSaml2AuthenticationRequestContextResolver(
+        this.authenticationRequestContextResolver =
+            new CustomSaml2AuthenticationRequestContextResolver(
                 new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
-        );
+            );
         this.authenticationRequestFactory = getRequestFactory(registrationRepository);
 
         // set redirect to filterUrl
@@ -100,12 +119,12 @@ public class SpidWebSsoAuthenticationRequestFilter
     }
 
     private static Saml2AuthenticationRequestFactory getRequestFactory(
-            ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
+        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
     ) {
         org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationRequestFactory factory =
-                new org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationRequestFactory();
+            new org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationRequestFactory();
         factory.setAuthenticationRequestContextConverter(
-                new SpidAuthenticationRequestContextConverter(registrationRepository)
+            new SpidAuthenticationRequestContextConverter(registrationRepository)
         );
 
         return factory;
@@ -113,7 +132,7 @@ public class SpidWebSsoAuthenticationRequestFilter
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
         if (!requestMatcher.matches(request)) {
             filterChain.doFilter(request, response);
             return;
@@ -141,10 +160,10 @@ public class SpidWebSsoAuthenticationRequestFilter
         AbstractSaml2AuthenticationRequest authenticationRequest = resolve(context);
 
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
-                context.getRelyingPartyRegistration().getRegistrationId(),
-                context.getIssuer(),
-                context.getRelayState(),
-                authenticationRequest
+            context.getRelyingPartyRegistration().getRegistrationId(),
+            context.getIssuer(),
+            context.getRelayState(),
+            authenticationRequest
         );
 
         logger.debug("resolved context relayState: {}", ctx.getRelayState());
@@ -161,12 +180,12 @@ public class SpidWebSsoAuthenticationRequestFilter
 
         if (eventPublisher != null) {
             eventPublisher.publishEvent(
-                    new SamlAuthenticationRequestEvent(
-                            authorityId,
-                            config.getProvider(),
-                            config.getRealm(),
-                            authenticationRequest
-                    )
+                new SamlAuthenticationRequestEvent(
+                    authorityId,
+                    config.getProvider(),
+                    config.getRealm(),
+                    authenticationRequest
+                )
             );
         }
 
@@ -178,9 +197,9 @@ public class SpidWebSsoAuthenticationRequestFilter
     }
 
     private void sendRedirect(HttpServletResponse response, Saml2RedirectAuthenticationRequest authenticationRequest)
-            throws IOException {
+        throws IOException {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
-                authenticationRequest.getAuthenticationRequestUri()
+            authenticationRequest.getAuthenticationRequestUri()
         );
         addParameter("SAMLRequest", authenticationRequest.getSamlRequest(), uriBuilder);
         addParameter("RelayState", authenticationRequest.getRelayState(), uriBuilder);
@@ -200,14 +219,14 @@ public class SpidWebSsoAuthenticationRequestFilter
         Assert.hasText(name, "name cannot be empty or null");
         if (StringUtils.hasText(value)) {
             builder.queryParam(
-                    UriUtils.encode(name, StandardCharsets.ISO_8859_1),
-                    UriUtils.encode(value, StandardCharsets.ISO_8859_1)
+                UriUtils.encode(name, StandardCharsets.ISO_8859_1),
+                UriUtils.encode(value, StandardCharsets.ISO_8859_1)
             );
         }
     }
 
     private void sendPost(HttpServletResponse response, Saml2PostAuthenticationRequest authenticationRequest)
-            throws IOException {
+        throws IOException {
         String html = createSamlPostRequestFormData(authenticationRequest);
         logger.info("send post for request {}", authenticationRequest.getRelayState());
         if (logger.isTraceEnabled()) {
@@ -220,9 +239,9 @@ public class SpidWebSsoAuthenticationRequestFilter
 
     private AbstractSaml2AuthenticationRequest resolve(Saml2AuthenticationRequestContext context) {
         Saml2MessageBinding binding = context
-                .getRelyingPartyRegistration()
-                .getAssertingPartyDetails()
-                .getSingleSignOnServiceBinding();
+            .getRelyingPartyRegistration()
+            .getAssertingPartyDetails()
+            .getSingleSignOnServiceBinding();
 
         if (binding == Saml2MessageBinding.REDIRECT) {
             return this.authenticationRequestFactory.createRedirectAuthenticationRequest(context);
@@ -283,7 +302,7 @@ public class SpidWebSsoAuthenticationRequestFilter
         private final StringKeyGenerator stateGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder());
 
         public CustomSaml2AuthenticationRequestContextResolver(
-                Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver
+            Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver
         ) {
             this.relyingPartyRegistrationResolver = relyingPartyRegistrationResolver;
         }
@@ -300,20 +319,22 @@ public class SpidWebSsoAuthenticationRequestFilter
         }
 
         private Saml2AuthenticationRequestContext createRedirectAuthenticationRequestContext(
-                HttpServletRequest request,
-                RelyingPartyRegistration relyingParty
+            HttpServletRequest request,
+            RelyingPartyRegistration relyingParty
         ) {
             return Saml2AuthenticationRequestContext
-                    .builder()
-                    .issuer(relyingParty.getEntityId())
-                    .relyingPartyRegistration(relyingParty)
-                    .assertionConsumerServiceUrl(relyingParty.getAssertionConsumerServiceLocation())
-                    .relayState(stateGenerator.generateKey())
-                    .build();
+                .builder()
+                .issuer(relyingParty.getEntityId())
+                .relyingPartyRegistration(relyingParty)
+                .assertionConsumerServiceUrl(relyingParty.getAssertionConsumerServiceLocation())
+                .relayState(stateGenerator.generateKey())
+                .build();
         }
     }
 
-    public void setAuthenticationRequestRepository(Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository) {
+    public void setAuthenticationRequestRepository(
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
+    ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
 }

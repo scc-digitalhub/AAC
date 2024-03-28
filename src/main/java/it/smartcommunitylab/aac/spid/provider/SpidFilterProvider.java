@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.provider;
 
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
@@ -10,27 +26,27 @@ import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
 import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.util.Assert;
-
-import javax.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.Filter;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.util.Assert;
 
 /*
  * SpidFilterProvider generates 3 filters:
  *  a. SpidWebSsoAuthenticationRequestFilter, which initiates an authentication request
  *  b. SpidWebSsoAuthenticationFilter, which collects authentication responses
  *  c. SpidMetadataFilter, which displays the metadata of the service as SAML SP
- * For more oh what those filters are, see this reference page on Spring Security Architecture
+ * For more on what those filters are, see this reference page on Spring Security Architecture
  *  https://docs.spring.io/spring-security/reference/servlet/saml2/login/overview.html
  */
 public class SpidFilterProvider implements FilterProvider, ApplicationEventPublisherAware {
+
     private static final String[] NO_CORS_ENDPOINTS = { "authenticate/**", "sso/**" }; // must match filters endpoints
     private final String authorityId;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
@@ -63,7 +79,7 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
         List<Filter> filters = new ArrayList<>();
         // build request repository bound to session
         Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
-                new HttpSessionSaml2AuthenticationRequestRepository();
+            new HttpSessionSaml2AuthenticationRequestRepository();
 
         // build filters
         SpidWebSsoAuthenticationRequestFilter requestFilter = new SpidWebSsoAuthenticationRequestFilter(
@@ -105,10 +121,7 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
 
     @Override
     public Collection<String> getCorsIgnoringAntMatchers() {
-        return Arrays
-            .stream(NO_CORS_ENDPOINTS)
-            .map(a -> "/auth/" + authorityId + "/" + a)
-            .collect(Collectors.toList());
+        return Arrays.stream(NO_CORS_ENDPOINTS).map(a -> "/auth/" + authorityId + "/" + a).collect(Collectors.toList());
     }
 
     @Override

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.persistence;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -5,30 +21,33 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import org.springframework.util.StringUtils;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import org.springframework.util.StringUtils;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public class SpidUserAccount extends AbstractUserAccount {
+
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
-            SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SPID;
+        SystemKeys.RESOURCE_ACCOUNT + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SPID;
 
     @NotBlank
     private String repositoryId;
+
     // subject identifier from external provider
     @NotBlank
     private String subjectId;
+
     // unique uuid (subject entity)
     @NotBlank
     private String uuid;
+
     // login
     private String status;
     // attributes
@@ -66,23 +85,28 @@ public class SpidUserAccount extends AbstractUserAccount {
     public String getType() {
         return RESOURCE_TYPE;
     }
+
     @Override
     public String getUuid() {
         return uuid;
     }
+
     @Override
     public String getUsername() {
         return username;
     }
+
     @Override
     public String getAccountId() {
         // local id is subject id
         return subjectId;
     }
+
     @Override
     public String getEmailAddress() {
         return email;
     }
+
     @Override
     public boolean isEmailVerified() {
         return StringUtils.hasText(email);
@@ -109,6 +133,7 @@ public class SpidUserAccount extends AbstractUserAccount {
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
     }
+
     public String getRepositoryId() {
         return repositoryId;
     }
@@ -116,7 +141,6 @@ public class SpidUserAccount extends AbstractUserAccount {
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
     }
-
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
@@ -213,6 +237,7 @@ public class SpidUserAccount extends AbstractUserAccount {
     public void setIvaCode(String ivaCode) {
         this.ivaCode = ivaCode;
     }
+
     public Map<String, Serializable> getAttributes() {
         return attributes;
     }
@@ -223,23 +248,54 @@ public class SpidUserAccount extends AbstractUserAccount {
 
     @Override
     public String toString() {
-        return "SpidUserAccount{" +
-                "repositoryId='" + repositoryId + '\'' +
-                ", subjectId='" + subjectId + '\'' +
-                ", uuid='" + uuid + '\'' +
-                ", status='" + status + '\'' +
-                ", username='" + username + '\'' +
-                ", idp='" + idp + '\'' +
-                ", spidCode='" + spidCode + '\'' +
-                ", email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", phone='" + phone + '\'' +
-                ", fiscalNumber='" + fiscalNumber + '\'' +
-                ", ivaCode='" + ivaCode + '\'' +
-                ", attributes=" + attributes +
-                ", createDate=" + createDate +
-                ", modifiedDate=" + modifiedDate +
-                '}';
+        return (
+            "SpidUserAccount{" +
+            "repositoryId='" +
+            repositoryId +
+            '\'' +
+            ", subjectId='" +
+            subjectId +
+            '\'' +
+            ", uuid='" +
+            uuid +
+            '\'' +
+            ", status='" +
+            status +
+            '\'' +
+            ", username='" +
+            username +
+            '\'' +
+            ", idp='" +
+            idp +
+            '\'' +
+            ", spidCode='" +
+            spidCode +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", surname='" +
+            surname +
+            '\'' +
+            ", phone='" +
+            phone +
+            '\'' +
+            ", fiscalNumber='" +
+            fiscalNumber +
+            '\'' +
+            ", ivaCode='" +
+            ivaCode +
+            '\'' +
+            ", attributes=" +
+            attributes +
+            ", createDate=" +
+            createDate +
+            ", modifiedDate=" +
+            modifiedDate +
+            '}'
+        );
     }
 }

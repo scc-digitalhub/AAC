@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,6 +26,14 @@ import it.smartcommunitylab.aac.model.Credentials;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.model.SpidIdPRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.PrivateKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.opensaml.security.credential.BasicCredential;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.CredentialSupport;
@@ -20,23 +44,18 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.PrivateKey;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<SpidIdentityProviderConfigMap> {
 
     public static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE = SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + SpidIdentityProviderConfigMap.RESOURCE_TYPE;
+    public static final String RESOURCE_TYPE =
+        SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + SpidIdentityProviderConfigMap.RESOURCE_TYPE;
 
-    public static final String DEFAULT_METADATA_URL = "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
-    public static final String DEFAULT_CONSUMER_URL = "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
-    public static final String DEFAULT_LOGOUT_URL = "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/{registrationId}";
+    public static final String DEFAULT_METADATA_URL =
+        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
+    public static final String DEFAULT_CONSUMER_URL =
+        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
+    public static final String DEFAULT_LOGOUT_URL =
+        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/{registrationId}";
 
     private transient Set<RelyingPartyRegistration> relyingPartyRegistrations; // first time evaluated by the getter, then immutable
     private Map<String, SpidIdPRegistration> identityProviders;
@@ -112,7 +131,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
                 throw new RuntimeException("error building registration: " + e.getMessage());
             }
         }
-       return relyingPartyRegistrations;
+        return relyingPartyRegistrations;
     }
 
     // generate a registration (an RP/AP pair as defined by OpenSaml) for _each_
@@ -127,23 +146,27 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("spid provider failed to invalid metadata uri: " + e.getMessage());
         }
-        
+
         if (registrations.isEmpty()) {
-            throw new IllegalArgumentException("invalid configuration: failed to acquire any relaying party registration for spid provider " + getProvider());
+            throw new IllegalArgumentException(
+                "invalid configuration: failed to acquire any relaying party registration for spid provider " +
+                getProvider()
+            );
         }
-        
+
         // add a global registration for metadata
         RelyingPartyRegistration meta = RelyingPartyRegistration
-                .withRelyingPartyRegistration(registrations.iterator().next())
-                .registrationId(getProvider()).build();
+            .withRelyingPartyRegistration(registrations.iterator().next())
+            .registrationId(getProvider())
+            .build();
         registrations.add(meta);
-        
+
         return registrations;
     }
 
     // returns the list of metadata urls of upstream idps
     private Set<String> getAssertingPartyMetadataUrls() {
-        Set<String> idpMetadataUrls =new HashSet<>();
+        Set<String> idpMetadataUrls = new HashSet<>();
 
         // idp urls must be defined by either in configMap or application config (and passed to this.idps)
         if (StringUtils.hasText(configMap.getIdpMetadataUrl())) {
@@ -156,7 +179,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         }
         // if config map defined some specific idps, pick those, otherwise pick all
         if (configMap.getIdps() != null && !configMap.getIdps().isEmpty()) {
-            for (String idp: configMap.getIdps()) {
+            for (String idp : configMap.getIdps()) {
                 SpidIdPRegistration reg = identityProviders.get(idp);
                 if (reg != null) {
                     idpMetadataUrls.add(reg.getMetadataUrl());
@@ -178,7 +201,8 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     // the function might throws an exception if the provided the metadata url is not
     // a valid uri
     private String evalIdpKeyIdentifier(String idpMetadataUrl) throws URISyntaxException {
-        Optional<SpidIdPRegistration> reg = this.identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl)).findFirst();
+        Optional<SpidIdPRegistration> reg =
+            this.identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl)).findFirst();
         if (reg.isPresent()) {
             return reg.get().getEntityLabel();
         }
@@ -194,16 +218,17 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     // create a relying party registration for an upstream idp; only ap autoconfiguration
     // is supported, hence function parameters require an idp metadata url
-    private RelyingPartyRegistration toRelyingPartyRegistration(String idpMetadataUrl) throws IOException, CertificateException, URISyntaxException {
+    private RelyingPartyRegistration toRelyingPartyRegistration(String idpMetadataUrl)
+        throws IOException, CertificateException, URISyntaxException {
         // start from ap autoconfiguration ...
         String key = evalIdpKeyIdentifier(idpMetadataUrl);
         String registrationId = evalRelyingPartyRegistrationId(key);
-        RelyingPartyRegistration.Builder builder = RelyingPartyRegistrations.fromMetadataLocation(idpMetadataUrl).registrationId(registrationId);
+        RelyingPartyRegistration.Builder builder = RelyingPartyRegistrations
+            .fromMetadataLocation(idpMetadataUrl)
+            .registrationId(registrationId);
 
         // ... then expand with rp configuration (i.e. ourself)
-        builder
-                .entityId(getEntityId())
-                .assertionConsumerServiceLocation(DEFAULT_CONSUMER_URL);
+        builder.entityId(getEntityId()).assertionConsumerServiceLocation(DEFAULT_CONSUMER_URL);
         String signingKey = configMap.getSigningKey();
         String signingCertificate = configMap.getSigningCertificate();
         if (StringUtils.hasText(signingKey) && StringUtils.hasText(signingCertificate)) {
@@ -247,7 +272,9 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
-        return configMap.getAuthnContext() == null ? Collections.emptySet() : Collections.singleton(configMap.getAuthnContext().getValue());
+        return configMap.getAuthnContext() == null
+            ? Collections.emptySet()
+            : Collections.singleton(configMap.getAuthnContext().getValue());
     }
 
     public SpidUserAttribute getSubAttributeName() {
@@ -262,8 +289,11 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     public String getIdpKey(String idpMetadataUrl) throws URISyntaxException {
         // check if registration
-        Optional<SpidIdPRegistration> reg = identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
-                .findFirst();
+        Optional<SpidIdPRegistration> reg = identityProviders
+            .values()
+            .stream()
+            .filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
+            .findFirst();
         if (reg.isPresent()) {
             return reg.get().getEntityLabel();
         }
@@ -275,12 +305,15 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     public Set<String> getRelyingPartyRegistrationIds() {
         Set<String> idpMetadataUrls = getAssertingPartyMetadataUrls();
-        return idpMetadataUrls.stream().map(u -> {
-            try {
-                return evalRelyingPartyRegistrationId(getIdpKey(u));
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
-            }
-        }).collect(Collectors.toSet());
+        return idpMetadataUrls
+            .stream()
+            .map(u -> {
+                try {
+                    return evalRelyingPartyRegistrationId(getIdpKey(u));
+                } catch (URISyntaxException e) {
+                    throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
+                }
+            })
+            .collect(Collectors.toSet());
     }
 }

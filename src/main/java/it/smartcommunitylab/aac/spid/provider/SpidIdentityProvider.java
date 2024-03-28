@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
@@ -17,15 +33,15 @@ import it.smartcommunitylab.aac.saml.provider.SamlAccountPrincipalConverter;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-
 // TODO: review what class we are inheriting from
-public class SpidIdentityProvider extends AbstractIdentityProvider<SpidUserIdentity, SpidUserAccount, SpidUserAuthenticatedPrincipal, SpidIdentityProviderConfigMap, SpidIdentityProviderConfig> {
+public class SpidIdentityProvider
+    extends AbstractIdentityProvider<SpidUserIdentity, SpidUserAccount, SpidUserAuthenticatedPrincipal, SpidIdentityProviderConfigMap, SpidIdentityProviderConfig> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -55,15 +71,17 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidUserIdent
         super(authority, providerId, config, realm);
         logger.debug("create spid provider with id {}", providerId);
         SpidAccountServiceConfigConverter configConverter = new SpidAccountServiceConfigConverter();
-        this.accountService = new SpidAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
+        this.accountService =
+            new SpidAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
         this.principalConverter = new SpidAccountPrincipalConverter(authority, providerId, config, realm);
         this.attributeProvider = new SpidAttributeProvider(authority, providerId, config, realm);
-        this.authenticationProvider = new SpidAuthenticationProvider(
-            providerId,
-            userAccountService, // TODO: remove? currently unused by AuthnProvider
-            config,
-            realm
-        );
+        this.authenticationProvider =
+            new SpidAuthenticationProvider(
+                providerId,
+                userAccountService, // TODO: remove? currently unused by AuthnProvider
+                config,
+                realm
+            );
         this.subjectResolver = new SpidSubjectResolver(authority, providerId, userAccountService, config, realm);
 
         // function hooks from config
@@ -71,16 +89,15 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidUserIdent
             if (StringUtils.hasText(config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION))) {
                 this.authenticationProvider.setCustomMappingFunction(
                         config.getHookFunctions().get(ATTRIBUTE_MAPPING_FUNCTION)
-                );
+                    );
             }
             if (StringUtils.hasText(config.getHookFunctions().get(AUTHORIZATION_FUNCTION))) {
                 this.authenticationProvider.setCustomAuthFunction(
                         config.getHookFunctions().get(AUTHORIZATION_FUNCTION)
-                );
+                    );
             }
         }
     }
-
 
     @Override
     public SpidAuthenticationProvider getAuthenticationProvider() {
@@ -124,7 +141,11 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidUserIdent
     }
 
     @Override
-    protected SpidUserIdentity buildIdentity(SpidUserAccount account, SpidUserAuthenticatedPrincipal principal, Collection<UserAttributes> attributes) {
+    protected SpidUserIdentity buildIdentity(
+        SpidUserAccount account,
+        SpidUserAuthenticatedPrincipal principal,
+        Collection<UserAttributes> attributes
+    ) {
         SpidUserIdentity identity = new SpidUserIdentity(getAuthority(), getProvider(), getRealm(), account, principal);
         identity.setAttributes(attributes);
         return identity;

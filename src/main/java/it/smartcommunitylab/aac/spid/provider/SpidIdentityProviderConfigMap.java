@@ -1,3 +1,19 @@
+/*
+ * Copyright 2024 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package it.smartcommunitylab.aac.spid.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,15 +26,15 @@ import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
-
-import javax.validation.Valid;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements Serializable {
+
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_CONFIG +
@@ -35,14 +51,14 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     private String signingCertificate; // for <KeyDescriptor use="signing"><KeyInfo>
 
     // <AssertionConsumerService> options - Currently only one supported at index 0, and binding MUST be post according to SPID specs, and must be tagged with isDefault="true"
-//    private final Integer ssoServiceIndex = 0;
-//    private final String ssoServiceBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
-//    private String ssoServiceLocation;
+    //    private final Integer ssoServiceIndex = 0;
+    //    private final String ssoServiceBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST";
+    //    private String ssoServiceLocation;
 
     // <SingleLogoutService> options
-//    private String ssoLogout;
-//    private String ssoLogoutBinding;
-//    private String ssoLogoutResponseLocation; //optional according to specs
+    //    private String ssoLogout;
+    //    private String ssoLogoutBinding;
+    //    private String ssoLogoutResponseLocation; //optional according to specs
 
     // <Organization> options
     private String organizationDisplayName; // TODO: forse questa dovrebbe essere una map[string]string in cui la chiave è la lingua: per ora lang="it" only
@@ -92,37 +108,37 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.signingCertificate = signingCertificate;
     }
 
-//    public String getSsoServiceLocation() {
-//        return ssoServiceLocation;
-//    }
-//
-//    public void setSsoServiceLocation(String ssoServiceLocation) {
-//        this.ssoServiceLocation = ssoServiceLocation;
-//    }
-//
-//    public String getSsoLogout() {
-//        return ssoLogout;
-//    }
-//
-//    public void setSsoLogout(String ssoLogout) {
-//        this.ssoLogout = ssoLogout;
-//    }
-//
-//    public String getSsoLogoutBinding() {
-//        return ssoLogoutBinding;
-//    }
-//
-//    public void setSsoLogoutBinding(String ssoLogoutBinding) {
-//        this.ssoLogoutBinding = ssoLogoutBinding;
-//    }
-//
-//    public String getSsoLogoutResponseLocation() {
-//        return ssoLogoutResponseLocation;
-//    }
-//
-//    public void setSsoLogoutResponseLocation(String ssoLogoutResponseLocation) {
-//        this.ssoLogoutResponseLocation = ssoLogoutResponseLocation;
-//    }
+    //    public String getSsoServiceLocation() {
+    //        return ssoServiceLocation;
+    //    }
+    //
+    //    public void setSsoServiceLocation(String ssoServiceLocation) {
+    //        this.ssoServiceLocation = ssoServiceLocation;
+    //    }
+    //
+    //    public String getSsoLogout() {
+    //        return ssoLogout;
+    //    }
+    //
+    //    public void setSsoLogout(String ssoLogout) {
+    //        this.ssoLogout = ssoLogout;
+    //    }
+    //
+    //    public String getSsoLogoutBinding() {
+    //        return ssoLogoutBinding;
+    //    }
+    //
+    //    public void setSsoLogoutBinding(String ssoLogoutBinding) {
+    //        this.ssoLogoutBinding = ssoLogoutBinding;
+    //    }
+    //
+    //    public String getSsoLogoutResponseLocation() {
+    //        return ssoLogoutResponseLocation;
+    //    }
+    //
+    //    public void setSsoLogoutResponseLocation(String ssoLogoutResponseLocation) {
+    //        this.ssoLogoutResponseLocation = ssoLogoutResponseLocation;
+    //    }
 
     public String getContactPerson_Telephone() {
         return contactPerson_Telephone;
@@ -220,7 +236,6 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.authnContext = authnContext;
     }
 
-
     public SpidUserAttribute getSubAttributeName() {
         return this.subAttributeName;
     }
@@ -242,10 +257,10 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.entityId = map.getEntityId();
         this.signingKey = map.getSigningKey();
         this.signingCertificate = map.getSigningKey();
-//        this.ssoServiceLocation = map.getSsoServiceLocation();
-//        this.ssoLogout = map.getSsoLogout();
-//        this.ssoLogoutBinding = map.getSsoLogoutBinding();
-//        this.ssoLogoutResponseLocation = map.getSsoLogoutResponseLocation();
+        //        this.ssoServiceLocation = map.getSsoServiceLocation();
+        //        this.ssoLogout = map.getSsoLogout();
+        //        this.ssoLogoutBinding = map.getSsoLogoutBinding();
+        //        this.ssoLogoutResponseLocation = map.getSsoLogoutResponseLocation();
         this.contactPerson_Telephone = map.getContactPerson_Telephone();
         this.contactPerson_EmailAddress = map.getContactPerson_EmailAddress();
         this.contactPerson_IPACode = map.getContactPerson_IPACode();
