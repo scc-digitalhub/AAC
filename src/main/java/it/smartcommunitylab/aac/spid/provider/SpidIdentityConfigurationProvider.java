@@ -22,12 +22,16 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.spid.model.SpidRegistration;
+import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SpidIdentityConfigurationProvider
     extends AbstractIdentityConfigurationProvider<SpidIdentityProviderConfig, SpidIdentityProviderConfigMap> {
+
+    private Collection<SpidRegistration> localRegistry;
 
     @Autowired
     public SpidIdentityConfigurationProvider(
@@ -63,10 +67,20 @@ public class SpidIdentityConfigurationProvider
 
     @Override
     protected SpidIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new SpidIdentityProviderConfig(
+        SpidIdentityProviderConfig spidConfig = new SpidIdentityProviderConfig(
             cp,
             getSettingsMap(cp.getSettings()),
             getConfigMap(cp.getConfiguration())
         );
+        // TODO: how do I _know_ that local registry has been set by the time we invoke the buildConfig?
+        //  Check architecture and relationship with IdentityAuthority
+        if (this.localRegistry != null) {
+            spidConfig.setIdentityProviders(this.localRegistry);
+        }
+        return spidConfig;
+    }
+
+    public void setLocalRegistry(Collection<SpidRegistration> localRegistry) {
+        this.localRegistry = localRegistry;
     }
 }

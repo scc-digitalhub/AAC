@@ -29,7 +29,11 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
-import it.smartcommunitylab.aac.spid.provider.*;
+import it.smartcommunitylab.aac.spid.provider.SpidFilterProvider;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityConfigurationProvider;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +55,10 @@ public class SpidIdentityAuthority
     private ScriptExecutionService executionService;
     private ResourceEntityService resourceService;
 
+    // configuration
+    private SpidRegistry spidRegistry; // registry with upstream idp
+    private SpidProperties spidProperties;
+
     private final LoadingCache<String, SpidIdentityProvider> providers = CacheBuilder
         .newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS)
@@ -68,10 +76,6 @@ public class SpidIdentityAuthority
                 }
             }
         );
-
-    // configuration
-    private SpidRegistry spidRegistry; // registry with upstream idp
-    private SpidProperties spidProperties;
 
     public SpidIdentityAuthority(
         String authorityId,
@@ -108,13 +112,28 @@ public class SpidIdentityAuthority
         this.resourceService = resourceService;
     }
 
+    @Autowired
+    public void setSpidProperties(SpidProperties spidProperties) {
+        this.spidProperties = spidProperties;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
         if (spidProperties != null) {
             // TODO: fetch from online registry
+            //  for more, see https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n42-spid_bottone.pdf
             spidRegistry = new LocalSpidRegistry(spidProperties);
         }
+        // TODO: rivedere: questa cosa è una porcheria
+        SpidIdentityConfigurationProvider cfgProvider;
+        try {
+            cfgProvider = (SpidIdentityConfigurationProvider) configProvider;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException();
+        }
+        cfgProvider.setLocalRegistry(spidRegistry.getIdentityProviders());
+        setConfigProvider(cfgProvider);
     }
 
     @Override
@@ -129,5 +148,10 @@ public class SpidIdentityAuthority
     @Override
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.filterProvider.setApplicationEventPublisher(applicationEventPublisher);
+    }
+
+    @Override
+    public SpidFilterProvider getFilterProvider() {
+        return filterProvider;
     }
 }

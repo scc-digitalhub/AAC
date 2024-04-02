@@ -160,6 +160,13 @@ authorities:
      saml:
         signAuthNRequest: true
         ssoServiceBinding: HTTP-POST
+#     spid:
+#        userNameAttributeName: SPID_CODE
+#        idAttribute: SPID_CODE
+#        useSpidCodeAsNameId: true
+#        spidAttributes: SPID_CODE
+#        ssoServiceBinding: HTTP-POST
+#        authnContext: SPID_L2
      webauthn:
         allowUntrustedAttestation: true
         loginTimeout: 10
@@ -214,7 +221,57 @@ providers:
           clientId: ${IDP_GOOGLE_CLIENT_ID}
           clientSecret: ${IDP_GOOGLE_CLIENT_SECRET}
   attributes:
-    
+
+spid:
+   identityProviders:
+      - entityName: Aruba ID
+        entityId: https://loginspid.aruba.it
+        entityLabel: arubaid
+        metadataUrl: https://loginspid.aruba.it/metadata
+      - entityName: EtnaHitech S.C.p.A.
+        entityId: https://id.eht.eu
+        entityLabel: ethnahitech
+        metadataUrl: https://id.eht.eu/metadata.xml
+      - entityName: InfoCamere S.C.p.A.
+        entityId: https://loginspid.infocamere.it
+        entityLabel: infocamere
+        metadataUrl: https://loginspid.infocamere.it/metadata
+      - entityName: Infocert ID
+        entityId: https://identity.infocert.it
+        entityLabel: infocertid
+        metadataUrl: https://identity.infocert.it/metadata/metadata.xml
+      - entityName: Intesi Group S.p.A.
+        entityId: https://idp.intesigroup.com
+        entityLabel: intesigroup
+        metadataUrl: https://spid.intesigroup.com/metadata/metadata.xml
+      - entityName: Lepida ID
+        entityId: https://id.lepida.it/idp/shibboleth
+        entityLabel: lepidaid
+        metadataUrl: https://id.lepida.it/idp/shibboleth
+      - entityName: Namirial ID
+        entityId: https://idp.namirialtsp.com/idp
+        entityLabel: namirialid
+        metadataUrl: https://idp.namirialtsp.com/idp/metadata
+      - entityName: Poste ID
+        entityId: https://posteid.poste.it
+        entityLabel: posteid
+        metadataUrl: https://posteid.poste.it/jod-fs/metadata/metadata.xml
+      - entityName: Sielte ID
+        entityId: https://identity.sieltecloud.it
+        entityLabel: sielteid
+        metadataUrl: https://identity.sieltecloud.it/simplesaml/metadata.xml
+      - entityName: SPIDItalia Register.it
+        entityId: https://spid.register.it
+        entityLabel: spiditalia
+        metadataUrl: https://spid.register.it/login/metadata
+      - entityName: TeamSystem ID
+        entityId: https://spid.teamsystem.com/idp
+        entityLabel: teamsystem
+        metadataUrl: https://spid.teamsystem.com/idp
+      - entityName: Tim ID
+        entityId: https://login.id.tim.it/affwebservices/public/saml2sso
+        entityLabel: timid
+        metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp
 
 attributesets:
   sets:

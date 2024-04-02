@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.spid.provider;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
-import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;

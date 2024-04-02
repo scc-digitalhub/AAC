@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.service;
 
-import it.smartcommunitylab.aac.spid.model.SpidIdPRegistration;
+import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import java.util.Collection;
 
 /*
@@ -25,7 +25,7 @@ import java.util.Collection;
  *      https://registry.spid.gov.it/identity-providers
  */
 public interface SpidRegistry {
-    public Collection<SpidIdPRegistration> getIdentityProviders();
+    public Collection<SpidRegistration> getIdentityProviders();
 
-    public SpidIdPRegistration getIdentityProvider(String entityId);
+    public SpidRegistration getIdentityProvider(String entityId);
 }

@@ -1,20 +1,19 @@
 package it.smartcommunitylab.aac.config;
 
-import it.smartcommunitylab.aac.spid.model.SpidIdPRegistration;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-
+import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import java.util.List;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 public class SpidProperties {
 
     @NestedConfigurationProperty
-    private List<SpidIdPRegistration> identityProviders;
+    private List<SpidRegistration> identityProviders;
 
-    public List<SpidIdPRegistration> getIdentityProviders() {
+    public List<SpidRegistration> getIdentityProviders() {
         return identityProviders;
     }
 
-    public void setIdentityProviders(List<SpidIdPRegistration> identityProviders) {
+    public void setIdentityProviders(List<SpidRegistration> identityProviders) {
         this.identityProviders = identityProviders;
     }
 }
