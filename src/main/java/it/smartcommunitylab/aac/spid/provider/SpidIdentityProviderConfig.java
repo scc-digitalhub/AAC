@@ -22,9 +22,8 @@ import it.smartcommunitylab.aac.crypto.CertificateParser;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import it.smartcommunitylab.aac.model.Credentials;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
-import it.smartcommunitylab.aac.spid.model.SpidIdPRegistration;
+import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.IOException;
 import java.net.URI;
@@ -41,6 +40,7 @@ import org.opensaml.security.credential.UsageType;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
+import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -58,7 +58,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/{registrationId}";
 
     private transient Set<RelyingPartyRegistration> relyingPartyRegistrations; // first time evaluated by the getter, then immutable
-    private Map<String, SpidIdPRegistration> identityProviders;
+    private Map<String, SpidRegistration> identityProviders; // local registry
 
     public SpidIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_SPID, provider, realm);
@@ -100,9 +100,14 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return kp[0];
     }
 
-    public void setIdentityProviders(Collection<SpidIdPRegistration> idps) {
-        if (idps != null) {
-            this.identityProviders = idps.stream().collect(Collectors.toMap(SpidIdPRegistration::getEntityId, r -> r));
+    public Map<String, SpidRegistration> getIdentityProviders() {
+        return identityProviders;
+    }
+
+    public void setIdentityProviders(Collection<SpidRegistration> idpRegs) {
+        if (idpRegs != null) {
+            this.identityProviders =
+                idpRegs.stream().collect(Collectors.toMap(SpidRegistration::getEntityId, reg -> reg));
         }
     }
 
@@ -180,13 +185,13 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         // if config map defined some specific idps, pick those, otherwise pick all
         if (configMap.getIdps() != null && !configMap.getIdps().isEmpty()) {
             for (String idp : configMap.getIdps()) {
-                SpidIdPRegistration reg = identityProviders.get(idp);
+                SpidRegistration reg = identityProviders.get(idp);
                 if (reg != null) {
                     idpMetadataUrls.add(reg.getMetadataUrl());
                 }
             }
         } else {
-            for (SpidIdPRegistration reg : identityProviders.values()) {
+            for (SpidRegistration reg : identityProviders.values()) {
                 idpMetadataUrls.add(reg.getMetadataUrl());
             }
         }
@@ -201,7 +206,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     // the function might throws an exception if the provided the metadata url is not
     // a valid uri
     private String evalIdpKeyIdentifier(String idpMetadataUrl) throws URISyntaxException {
-        Optional<SpidIdPRegistration> reg =
+        Optional<SpidRegistration> reg =
             this.identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl)).findFirst();
         if (reg.isPresent()) {
             return reg.get().getEntityLabel();
@@ -228,7 +233,12 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
             .registrationId(registrationId);
 
         // ... then expand with rp configuration (i.e. ourself)
-        builder.entityId(getEntityId()).assertionConsumerServiceLocation(DEFAULT_CONSUMER_URL);
+        builder
+            .entityId(getEntityId())
+            .assertionConsumerServiceLocation(DEFAULT_CONSUMER_URL)
+            .assertionConsumerServiceBinding(Saml2MessageBinding.POST)
+            .singleLogoutServiceLocation(DEFAULT_LOGOUT_URL);
+
         String signingKey = configMap.getSigningKey();
         String signingCertificate = configMap.getSigningCertificate();
         if (StringUtils.hasText(signingKey) && StringUtils.hasText(signingCertificate)) {
@@ -289,7 +299,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     public String getIdpKey(String idpMetadataUrl) throws URISyntaxException {
         // check if registration
-        Optional<SpidIdPRegistration> reg = identityProviders
+        Optional<SpidRegistration> reg = identityProviders
             .values()
             .stream()
             .filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))

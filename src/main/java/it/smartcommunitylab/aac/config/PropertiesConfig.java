@@ -66,4 +66,10 @@ public class PropertiesConfig {
     public AttributeSetsProperties systemAttributeSets() {
         return new AttributeSetsProperties();
     }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spid")
+    public SpidProperties spidProperties() {
+        return new SpidProperties();
+    }
 }

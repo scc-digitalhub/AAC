@@ -76,10 +76,10 @@ public class SpidMetadataFilter extends OncePerRequestFilter {
         String metadata = metadataResolver.resolve(relyingPartyRegistration);
         // write response
         response.setContentType(MediaType.APPLICATION_XML_VALUE);
-        response.setHeader(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "attachment; filename=\"saml-" + registrationId + "-metadata.xml\""
-        );
+        //        response.setHeader(
+        //            HttpHeaders.CONTENT_DISPOSITION,
+        //            "attachment; filename=\"spid-" + registrationId + "-metadata.xml\""
+        //        );
         response.setContentLength(metadata.length());
         response.getWriter().write(metadata);
     }

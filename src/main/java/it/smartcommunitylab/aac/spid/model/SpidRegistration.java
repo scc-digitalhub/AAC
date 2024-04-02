@@ -20,7 +20,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 @Valid
-public class SpidIdPRegistration {
+public class SpidRegistration {
 
     @NotBlank
     private String entityId;

@@ -74,9 +74,9 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     private String contactPerson_Type; // "other" (mandatory), optionally includes "billing" (unless private SP, in which case "billing" is also mandatory)
 
     // AAC options
-    // ap autoconfiguration
-    // either idps as list of entityIds or single url
-    // when empty all idps will be registered
+    // NOTE: only one among {idps, idpMetadataUrl} can be non null
+    // NOTE: idps is intended to be a subset of the local SPID registry. Both idps and idpMetadataUrl are intended
+    //  to be used for testing purposes. If both are null, the full local SPID registry will be used instead.
     private Set<String> idps;
     private String idpMetadataUrl;
     private Set<SpidAttribute> spidAttributes;

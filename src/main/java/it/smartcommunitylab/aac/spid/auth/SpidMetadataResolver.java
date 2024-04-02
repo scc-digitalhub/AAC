@@ -17,13 +17,16 @@
 package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
@@ -134,7 +137,7 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         this.attributeConsumingServiceBuilder =
             (AttributeConsumingServiceBuilder) registry
                 .getBuilderFactory()
-                .getBuilder(AssertionConsumerService.DEFAULT_ELEMENT_NAME);
+                .getBuilder(AttributeConsumingService.DEFAULT_ELEMENT_NAME);
         this.singleLogoutServiceBuilder =
             (SingleLogoutServiceBuilder) registry
                 .getBuilderFactory()
@@ -257,22 +260,36 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
 
         // Add single attribute consuming service to <SPSSODescriptor>
         AttributeConsumingService attributeConsumingService = attributeConsumingServiceBuilder.buildObject();
+        // TODO: support multiple <AttributeConsumingService>, one per requested attribute set
+        //  - idea: default (index 0) is ask everything, additional sets might be asked from config map
         attributeConsumingService.setIndex(0);
         attributeConsumingService.setIsDefault(true);
 
-        ServiceName attributeConsumingServiceName = serviceNameBuilder.buildObject();
-        attributeConsumingServiceName.setXMLLang("it");
-        attributeConsumingServiceName.setValue(DEFAULT_SERVICE_NAME);
-        attributeConsumingService.getNames().add(attributeConsumingServiceName);
-
-        SpidIdentityProviderConfigMap configMap = config.getConfigMap();
-        configMap
-            .getSpidAttributes()
-            .forEach(attr -> {
-                RequestedAttribute attribute = requestedAttributeBuilder.buildObject();
-                attribute.setName(attr.getValue());
-                attributeConsumingService.getRequestedAttributes().add(attribute);
-            });
+        // TODO: below we support default set that asks for everything SPID related: support for more index sets to be added
+        ServiceName defaultServiceName = serviceNameBuilder.buildObject();
+        defaultServiceName.setValue(DEFAULT_SERVICE_NAME);
+        defaultServiceName.setXMLLang("it");
+        attributeConsumingService.getNames().add(defaultServiceName);
+        for (SpidAttribute attr : SpidAttribute.values()) {
+            RequestedAttribute reqAttribute = requestedAttributeBuilder.buildObject();
+            reqAttribute.setName(attr.getValue());
+            attributeConsumingService.getRequestedAttributes().add(reqAttribute);
+        }
+        //        Arrays
+        //            .stream(SpidAttribute.values())
+        //            .forEach(attr -> {
+        //                RequestedAttribute reqAttribute = requestedAttributeBuilder.buildObject();
+        //                reqAttribute.setName(attr.getValue());
+        //                attributeConsumingService.getRequestedAttributes().add(reqAttribute);
+        //            });
+        //        SpidIdentityProviderConfigMap configMap = config.getConfigMap();
+        //        configMap
+        //            .getSpidAttributes()
+        //            .forEach(attr -> {
+        //                RequestedAttribute attribute = requestedAttributeBuilder.buildObject();
+        //                attribute.setName(attr.getValue());
+        //                attributeConsumingService.getRequestedAttributes().add(attribute);
+        //            });
         spSsoDescriptor.getAttributeConsumingServices().add(attributeConsumingService);
 
         // Add single logout service to <SPSSODescriptor>

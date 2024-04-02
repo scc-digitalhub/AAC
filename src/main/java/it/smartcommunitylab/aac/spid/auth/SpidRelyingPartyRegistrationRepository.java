@@ -25,13 +25,13 @@ import org.springframework.util.Assert;
 
 public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegistrationRepository {
 
-    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
 
     public SpidRelyingPartyRegistrationRepository(
-        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
-        Assert.notNull(registrationRepository, "provider registration repository can not be null");
-        this.registrationRepository = registrationRepository;
+        Assert.notNull(providerConfigRepository, "provider registration repository can not be null");
+        this.providerConfigRepository = providerConfigRepository;
     }
 
     /*
@@ -40,11 +40,13 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
     @Override
     public RelyingPartyRegistration findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registration id can not be empty");
-        SpidIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(registrationId);
+        SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
         if (providerConfig == null) {
             return null;
         }
-        // TODO: problema concettuale: un provider SPID è associato ad N registrazioni.
+        // TODO:
+        //  Problema concettuale: un provider SPID è associato ad N registrazioni.
+        //  Soluzione: prendi la prima registrazione
         //  Non ho la minima idea se questa soluzione sia idonea o meno, perché non so se
         //  la registrationId in argomento corrisponde effettivamente alla RPR di opensaml
         Optional<RelyingPartyRegistration> registration = providerConfig
