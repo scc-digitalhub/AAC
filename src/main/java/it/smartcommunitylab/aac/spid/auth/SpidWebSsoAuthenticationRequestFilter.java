@@ -296,6 +296,12 @@ public class SpidWebSsoAuthenticationRequestFilter
         this.eventPublisher = applicationEventPublisher;
     }
 
+    public void setAuthenticationRequestRepository(
+        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
+    ) {
+        this.authenticationRequestRepository = authenticationRequestRepository;
+    }
+
     private class CustomSaml2AuthenticationRequestContextResolver implements Saml2AuthenticationRequestContextResolver {
 
         private final Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver;
@@ -330,11 +336,5 @@ public class SpidWebSsoAuthenticationRequestFilter
                 .relayState(stateGenerator.generateKey())
                 .build();
         }
-    }
-
-    public void setAuthenticationRequestRepository(
-        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
-    ) {
-        this.authenticationRequestRepository = authenticationRequestRepository;
     }
 }

@@ -1,0 +1,50 @@
+<!--
+  SPID Login fragment
+  There exists an official reference implementation for the SPID login button at the following source
+  [1] https://github.com/italia/spid-sp-access-button
+-->
+
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+<div th:fragment="login">
+   <p style="background-color: #e0a243">DELETE ME WHEN THINGS WORK</p>
+   <p th:if="${authority.getDescription(#locale.language) != null}" th:text="${authority.getDescription(#locale.language)}"></p>
+   <div class="dropdown-region">
+      <button class="italia-it-button italia-it-button-size-m button-spid spid-display-button"
+              spid-idp-button="#spid-idp-button-medium-get" aria-haspopup="true" aria-expanded="false"
+              onclick="expandDropdown()"
+              th:classAppend="${authority.cssClass}"
+      >
+            <span class="italia-it-button-icon spid-display-button">
+               <img th:src="@{/spid/img/spid-ico-circle-bb.svg}" onerror="this.onerror=null;" alt="" />
+            </span>
+         <span class="italia-it-button-text spid-display-button">Entra con SPID</span>
+      </button>
+      <div id="spid-idp-button-medium-get" class="spid-idp-button spid-idp-button-tip spid-idp-button-relative">
+         <ul id="spid-idp-list-medium-root-get" class="spid-idp-button-menu" data-spid-remote
+             aria-labelledby="spid-idp">
+            <li class="spid-idp-button-link" th:each="idp: ${authority.getIdpButtons()}"
+                th:data-idp="${idp.getEntityLabel()}">
+               <a th:href="${idp.getLoginUrl()}">
+                  <span class="spid-sr-only" th:text="${idp.getEntityName()}"></span>
+                  <img th:src="@{/}+${idp.getIconUrl()}"
+                       th:alt="${idp.getEntityName()}">
+               </a>
+            </li>
+            <li><a class="dropdown-item" href="https://www.spid.gov.it">Maggiori informazioni</a></li>
+            <li><a class="dropdown-item" href="https://www.spid.gov.it/richiedi-spid">Non hai SPID?</a></li>
+            <li><a class="dropdown-item" href="https://www.spid.gov.it/serve-aiuto">Serve aiuto?</a></li>
+         </ul>
+      </div>
+   </div>
+   <script type="text/javascript" th:src="@{/spid/js/spid-button.js}"></script>
+</div>
+</body>
+
+</html>

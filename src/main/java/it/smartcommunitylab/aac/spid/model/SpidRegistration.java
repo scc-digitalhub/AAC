@@ -32,6 +32,7 @@ public class SpidRegistration {
     private String metadataUrl;
 
     private String entityLabel;
+    private String iconUrl;
 
     public String getEntityId() {
         return entityId;
@@ -63,5 +64,13 @@ public class SpidRegistration {
 
     public void setEntityLabel(String entityLabel) {
         this.entityLabel = entityLabel;
+    }
+
+    public String getIconUrl() {
+        return iconUrl;
+    }
+
+    public void setIconUrl(String iconUrl) {
+        this.iconUrl = iconUrl;
     }
 }
