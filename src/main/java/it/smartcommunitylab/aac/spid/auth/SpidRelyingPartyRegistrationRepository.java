@@ -40,20 +40,27 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
     @Override
     public RelyingPartyRegistration findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registration id can not be empty");
-        SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
-        if (providerConfig == null) {
-            return null;
+
+        String[] s = registrationId.split("\\|");
+        if (s.length < 2) {
+            SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
+            if (providerConfig == null) {
+                return null;
+            }
+
+            return providerConfig.getRelyingPartyRegistration();
+        } else {
+            SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(s[0]);
+            if (providerConfig == null) {
+                return null;
+            }
+
+            return providerConfig
+                .getRelyingPartyRegistrations()
+                .stream()
+                .filter(reg -> reg.getRegistrationId().equals(registrationId))
+                .findAny()
+                .orElse(null);
         }
-        // TODO:
-        //  Problema concettuale: un provider SPID è associato ad N registrazioni.
-        //  Soluzione: prendi la prima registrazione
-        //  Non ho la minima idea se questa soluzione sia idonea o meno, perché non so se
-        //  la registrationId in argomento corrisponde effettivamente alla RPR di opensaml
-        Optional<RelyingPartyRegistration> registration = providerConfig
-            .getRelyingPartyRegistrations()
-            .stream()
-            .filter(reg -> reg.getRegistrationId().equals(registrationId))
-            .findFirst();
-        return registration.orElse(null);
     }
 }

@@ -92,7 +92,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         Assert.hasText(registrationId, "registrationId can not be blank");
 
         // registrationId is providerId+idpkey
-        String[] kp = registrationId.split("-");
+        String[] kp = registrationId.split("\\|");
         if (kp.length < 2) {
             throw new IllegalArgumentException();
         }
@@ -218,7 +218,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     // to identify a relying party registration
     private String evalRelyingPartyRegistrationId(String idpKeyIdentifier) {
         // NOTE: this function is 'inverted' by getProviderId(..)
-        return getProvider() + "-" + idpKeyIdentifier;
+        return getProvider() + "|" + idpKeyIdentifier;
     }
 
     // create a relying party registration for an upstream idp; only ap autoconfiguration
@@ -325,5 +325,13 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
                 }
             })
             .collect(Collectors.toSet());
+    }
+
+    public RelyingPartyRegistration getRelyingPartyRegistration() {
+        return getRelyingPartyRegistrations()
+            .stream()
+            .findAny()
+            .map(r -> RelyingPartyRegistration.withRelyingPartyRegistration(r).registrationId(getProvider()).build())
+            .orElse(null);
     }
 }

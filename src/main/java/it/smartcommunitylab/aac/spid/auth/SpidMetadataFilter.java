@@ -24,12 +24,16 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
+import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
+import org.springframework.security.saml2.provider.service.web.Saml2MetadataFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
@@ -43,6 +47,7 @@ public class SpidMetadataFilter extends OncePerRequestFilter {
     private final RequestMatcher requestMatcher;
     private final RelyingPartyRegistrationResolver registrationResolver;
     private final SpidMetadataResolver metadataResolver;
+    private final Saml2MetadataFilter samlMetadataFilter;
 
     public SpidMetadataFilter(
         ProviderConfigRepository<SpidIdentityProviderConfig> configRepository,
@@ -54,33 +59,53 @@ public class SpidMetadataFilter extends OncePerRequestFilter {
 
         requestMatcher = new AntPathRequestMatcher(DEFAULT_FILTER_URI);
         metadataResolver = new SpidMetadataResolver(configRepository);
+
+        // build a converter and a resolver for the filter
+        Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver =
+            new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository);
+
+        samlMetadataFilter = new Saml2MetadataFilter(relyingPartyRegistrationResolver, metadataResolver);
+
+        samlMetadataFilter.setRequestMatcher(requestMatcher);
+        samlMetadataFilter.setBeanName("SamlMetadataFilter" + "." + SpidIdentityAuthority.AUTHORITY_URL);
+    }
+
+    @Nullable
+    protected String getFilterName() {
+        return getClass().getName() + "." + SpidIdentityAuthority.AUTHORITY_URL;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
-        RequestMatcher.MatchResult matcher = this.requestMatcher.matcher(request);
-        if (!matcher.isMatch()) {
-            // not a request toward a metadata endpoint: move on
-            filterChain.doFilter(request, response);
-            return;
-        }
-        // fetch registration
-        String registrationId = matcher.getVariables().get("registrationId");
-        RelyingPartyRegistration relyingPartyRegistration = registrationResolver.resolve(request, registrationId);
-        if (relyingPartyRegistration == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-        // generate metadata xml
-        String metadata = metadataResolver.resolve(relyingPartyRegistration);
-        // write response
-        response.setContentType(MediaType.APPLICATION_XML_VALUE);
-        //        response.setHeader(
-        //            HttpHeaders.CONTENT_DISPOSITION,
-        //            "attachment; filename=\"spid-" + registrationId + "-metadata.xml\""
-        //        );
-        response.setContentLength(metadata.length());
-        response.getWriter().write(metadata);
+        // delegate
+        samlMetadataFilter.doFilter(request, response, filterChain);
     }
+    // @Override
+    // protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    //     throws ServletException, IOException {
+    //     RequestMatcher.MatchResult matcher = this.requestMatcher.matcher(request);
+    //     if (!matcher.isMatch()) {
+    //         // not a request toward a metadata endpoint: move on
+    //         filterChain.doFilter(request, response);
+    //         return;
+    //     }
+    //     // fetch registration
+    //     String registrationId = matcher.getVariables().get("registrationId");
+    //     RelyingPartyRegistration relyingPartyRegistration = registrationResolver.resolve(request, registrationId);
+    //     if (relyingPartyRegistration == null) {
+    //         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    //         return;
+    //     }
+    //     // generate metadata xml
+    //     String metadata = metadataResolver.resolve(relyingPartyRegistration);
+    //     // write response
+    //     response.setContentType(MediaType.APPLICATION_XML_VALUE);
+    //     //        response.setHeader(
+    //     //            HttpHeaders.CONTENT_DISPOSITION,
+    //     //            "attachment; filename=\"spid-" + registrationId + "-metadata.xml\""
+    //     //        );
+    //     response.setContentLength(metadata.length());
+    //     response.getWriter().write(metadata);
+    // }
 }

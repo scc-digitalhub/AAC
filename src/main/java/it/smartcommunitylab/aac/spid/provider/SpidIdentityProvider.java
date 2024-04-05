@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.util.StringUtils;
 
 // TODO: review what class we are inheriting from
@@ -143,30 +144,50 @@ public class SpidIdentityProvider
 
         lp.setLoginUrl(getAuthenticationUrl());
         List<SpidLoginProvider.SpidIdpButton> spidIdpsLogin = new LinkedList<>();
-        for (SpidRegistration reg : getConfig().getIdentityProviders().values()) {
-            String loginUrl;
-            try {
-                // TODO: should be exposes by a dedicated method
-                loginUrl = getAuthenticationUrl() + "-" + getConfig().evalIdpKeyIdentifier(reg.getMetadataUrl());
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException(
-                    "invalid url when producing an upstream login url for " +
-                    reg.getEntityName() +
-                    ", " +
-                    e.getMessage()
-                );
-            }
+        for (RelyingPartyRegistration reg : config.getRelyingPartyRegistrations()) {
+            // TODO: should be exposes by a dedicated method
+
+            String loginUrl = getAuthenticationUrl() + "|" + reg.getRegistrationId();
+
+            SpidRegistration spidReg = getConfig()
+                .getIdentityProviders()
+                .get(reg.getAssertingPartyDetails().getEntityId());
+
             spidIdpsLogin.add(
                 new SpidLoginProvider.SpidIdpButton(
-                    reg.getEntityId(),
-                    reg.getEntityName(),
-                    reg.getMetadataUrl(),
-                    reg.getEntityLabel(),
-                    reg.getIconUrl(),
+                    reg.getAssertingPartyDetails().getEntityId(),
+                    spidReg.getEntityName(),
+                    spidReg.getMetadataUrl(),
+                    spidReg.getEntityLabel(),
+                    spidReg.getIconUrl(),
                     loginUrl
                 )
             );
         }
+        // for (SpidRegistration reg : getConfig().getIdentityProviders().values()) {
+        //     String loginUrl;
+        //     try {
+        //         // TODO: should be exposes by a dedicated method
+        //         loginUrl = getAuthenticationUrl() + "-" + getConfig().evalIdpKeyIdentifier(reg.getMetadataUrl());
+        //     } catch (URISyntaxException e) {
+        //         throw new IllegalArgumentException(
+        //             "invalid url when producing an upstream login url for " +
+        //             reg.getEntityName() +
+        //             ", " +
+        //             e.getMessage()
+        //         );
+        //     }
+        //     spidIdpsLogin.add(
+        //         new SpidLoginProvider.SpidIdpButton(
+        //             reg.getEntityId(),
+        //             reg.getEntityName(),
+        //             reg.getMetadataUrl(),
+        //             reg.getEntityLabel(),
+        //             reg.getIconUrl(),
+        //             loginUrl
+        //         )
+        //     );
+        // }
         lp.setIdpButtons(spidIdpsLogin);
         return lp;
     }
