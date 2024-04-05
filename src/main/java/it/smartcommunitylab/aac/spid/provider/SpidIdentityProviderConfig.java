@@ -205,7 +205,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     // the key is fetched from configuration file (is present), otherwise host is used
     // the function might throws an exception if the provided the metadata url is not
     // a valid uri
-    private String evalIdpKeyIdentifier(String idpMetadataUrl) throws URISyntaxException {
+    public String evalIdpKeyIdentifier(String idpMetadataUrl) throws URISyntaxException {
         Optional<SpidRegistration> reg =
             this.identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl)).findFirst();
         if (reg.isPresent()) {
