@@ -45,9 +45,6 @@ public class RealmEntity {
     @NotNull
     private String name;
 
-    @Column(name = "email_address")
-    private String email;
-
     // audit
     @CreatedDate
     @Column(name = "created_date")
@@ -75,12 +72,17 @@ public class RealmEntity {
     @Column(name = "tos_configuration_map")
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> tosConfigurationMap;
-
-    // TODO move to localizationConfigProvider
-    @Lob
-    @Column(name = "localization_configuration_map")
-    @Convert(converter = HashMapConverter.class)
-    private Map<String, Serializable> localizationConfigurationMap;
+    
+	// TODO move to localizationConfigProvider
+	@Lob
+	@Column(name = "localization_configuration_map")
+	@Convert(converter = HashMapConverter.class)
+	private Map<String, Serializable> localizationConfigurationMap;
+	
+	@Lob
+	@Column(name = "styles_configuration_map")
+	@Convert(converter = HashMapConverter.class)
+	private Map<String, Serializable> stylesConfigurationMap;
 
     public String getName() {
         return name;
@@ -88,14 +90,6 @@ public class RealmEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getSlug() {
@@ -154,11 +148,20 @@ public class RealmEntity {
         this.tosConfigurationMap = tosConfigurationMap;
     }
 
-    public Map<String, Serializable> getLocalizationConfigurationMap() {
-        return localizationConfigurationMap;
-    }
+	public Map<String, Serializable> getLocalizationConfigurationMap() {
+		return localizationConfigurationMap;
+	}
 
-    public void setLocalizationConfigurationMap(Map<String, Serializable> localizationConfigurationMap) {
-        this.localizationConfigurationMap = localizationConfigurationMap;
-    }
+	public void setLocalizationConfigurationMap(Map<String, Serializable> localizationConfigurationMap) {
+		this.localizationConfigurationMap = localizationConfigurationMap;
+	}
+
+	public Map<String, Serializable> getStylesConfigurationMap() {
+		return stylesConfigurationMap;
+	}
+
+	public void setStylesConfigurationMap(Map<String, Serializable> stylesConfigurationMap) {
+		this.stylesConfigurationMap = stylesConfigurationMap;
+	}	
+	
 }

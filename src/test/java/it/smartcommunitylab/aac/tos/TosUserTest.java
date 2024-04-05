@@ -31,8 +31,6 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.users.service.UserService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,15 +77,6 @@ public class TosUserTest {
             assertThat(slug).isNotBlank();
         }
         //make sure user has NOT approved
-    }
-
-    @AfterEach
-    public void cleanUp() throws NoSuchRealmException {
-        if (slug != null) {
-            TosConfigurationMap configMap = new TosConfigurationMap();
-            configMap.setEnableTOS(null);
-            updateTos(slug, configMap);
-        }
     }
 
     @Test
@@ -170,9 +159,6 @@ public class TosUserTest {
 
         // expect not a redirect in response
         this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
-
-        //reset tos on user
-        updateUserTos(userId, null);
     }
 
     @Test
@@ -201,9 +187,6 @@ public class TosUserTest {
         //follow redirect and expect tos page
         String redirectedUrl = res.getResponse().getRedirectedUrl();
         assertThat(redirectedUrl).isEqualTo(TOS_TERMS_REJECT);
-
-        //reset tos on user
-        updateUserTos(userId, null);
     }
 
     @Test
@@ -257,11 +240,11 @@ public class TosUserTest {
         realmService.updateRealm(
             slug,
             realm.getName(),
-            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
+            null,
             null
         );
     }

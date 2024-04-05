@@ -8,7 +8,7 @@
 <body>
    <div th:fragment="card-logo">
       <div class="card-logo">
-         <img class="" th:src="@{/logo}" th:alt="${displayName}">
+         <img class="" th:src="@{${'/-/' + realm + '/logo'}}" th:alt="${displayName}">
          <h4 class="text-center" th:text="${displayName}">AAC</h4>
       </div>
    </div>

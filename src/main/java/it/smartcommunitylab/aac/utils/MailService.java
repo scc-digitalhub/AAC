@@ -117,7 +117,7 @@ public class MailService {
 
         final Context ctx = new Context();
         Locale locale = lang != null ? Locale.forLanguageTag(lang) : Locale.forLanguageTag(appProps.getLang());
-        Realm realm = new Realm("");
+        Realm realm = new Realm();
         realm.setName(appProps.getName());
 
         // build logo path

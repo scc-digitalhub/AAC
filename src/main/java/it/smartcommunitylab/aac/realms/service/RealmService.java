@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.realms.persistence.RealmEntity;
 import it.smartcommunitylab.aac.realms.persistence.RealmEntityRepository;
+import it.smartcommunitylab.aac.styles.StylesConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
 import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import java.io.Serializable;
@@ -67,15 +68,13 @@ public class RealmService implements InitializingBean {
         this.realmRepository = realmRepository;
 
         // build system realm
-        systemRealm = new Realm(SystemKeys.REALM_SYSTEM);
-        systemRealm.setName(SystemKeys.REALM_SYSTEM);
+        systemRealm = new Realm(SystemKeys.REALM_SYSTEM, SystemKeys.REALM_SYSTEM);
         systemRealm.setEditable(false);
         systemRealm.setPublic(false);
         if (realmRepository.findBySlug(SystemKeys.REALM_SYSTEM) == null) {
             RealmEntity re = new RealmEntity();
             re.setSlug(systemRealm.getSlug());
             re.setName(systemRealm.getName());
-            re.setEmail(systemRealm.getEmail());
             re.setEditable(false);
             re.setPublic(false);
             realmRepository.save(re);
@@ -87,8 +86,7 @@ public class RealmService implements InitializingBean {
         Assert.notNull(systemRealm, "system realm can not be null");
     }
 
-    public Realm addRealm(String slug, String name, String email, boolean isEditable, boolean isPublic)
-        throws RegistrationException {
+    public Realm addRealm(String slug, String name, boolean isEditable, boolean isPublic) throws RegistrationException {
         if (!StringUtils.hasText(slug)) {
             throw new InvalidDataException("slug");
         }
@@ -113,7 +111,6 @@ public class RealmService implements InitializingBean {
         r = new RealmEntity();
         r.setSlug(slug);
         r.setName(name);
-        r.setEmail(email);
         r.setEditable(isEditable);
         r.setPublic(isPublic);
 
@@ -153,12 +150,12 @@ public class RealmService implements InitializingBean {
     public Realm updateRealm(
         String slug,
         String name,
-        String email,
         boolean isEditable,
         boolean isPublic,
         Map<String, Serializable> oauthConfigurationMap,
         Map<String, Serializable> tosConfigurationMap,
-        Map<String, Serializable> locConfigurationMap
+        Map<String, Serializable> locConfigurationMap,
+        Map<String, Serializable> stylesConfigurationMap
     ) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
@@ -170,14 +167,14 @@ public class RealmService implements InitializingBean {
         }
 
         r.setName(name);
-        r.setEmail(email);
         r.setEditable(isEditable);
         r.setPublic(isPublic);
 
         r.setOAuthConfigurationMap(oauthConfigurationMap);
         r.setTosConfigurationMap(tosConfigurationMap);
         r.setLocalizationConfigurationMap(locConfigurationMap);
-  
+        r.setStylesConfigurationMap(stylesConfigurationMap);
+
         r = realmRepository.save(r);
 
         return toRealm(r);
@@ -251,9 +248,7 @@ public class RealmService implements InitializingBean {
      * Helpers
      */
     private Realm toRealm(RealmEntity re) {
-        Realm r = new Realm(re.getSlug());
-        r.setName(re.getName());
-        r.setEmail(re.getEmail());
+        Realm r = new Realm(re.getSlug(), re.getName());
         r.setEditable(re.isEditable());
         r.setPublic(re.isPublic());
 
@@ -274,6 +269,12 @@ public class RealmService implements InitializingBean {
             locConfigMap.setConfiguration(re.getLocalizationConfigurationMap());
         }
         r.setLocalizationConfiguration(locConfigMap);
+        
+        StylesConfigurationMap stylesConfigMap = new StylesConfigurationMap();
+        if (re.getStylesConfigurationMap() != null) {
+        	stylesConfigMap.setConfiguration(re.getStylesConfigurationMap());
+        }
+        r.setStylesConfiguration(stylesConfigMap);
 
         return r;
     }

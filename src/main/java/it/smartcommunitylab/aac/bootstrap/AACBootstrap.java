@@ -402,8 +402,7 @@ public class AACBootstrap {
                     if (realm == null) {
                         logger.debug("add realm {}", r.getSlug());
 
-                        realm =
-                            realmService.addRealm(r.getSlug(), r.getName(), r.getEmail(), r.isEditable(), r.isPublic());
+                        realm = realmService.addRealm(r.getSlug(), r.getName(), r.isEditable(), r.isPublic());
                     } else {
                         logger.debug("update realm {}", r.getSlug());
 
@@ -413,9 +412,9 @@ public class AACBootstrap {
                             realmService.updateRealm(
                                 r.getSlug(),
                                 r.getName(),
-                                r.getEmail(),
                                 r.isEditable(),
                                 r.isPublic(),
+                                null,
                                 null,
                                 null,
                                 null

@@ -59,7 +59,8 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
         "/lib/**",
         "/fonts/**",
         "/italia/**",
-        "/i18n/**"
+        "/i18n/**",
+        "/-/**/logo"
     };
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

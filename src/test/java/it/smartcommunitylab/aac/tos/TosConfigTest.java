@@ -80,11 +80,11 @@ public class TosConfigTest {
         Realm realmUpdated = realmService.updateRealm(
             slug,
             realm.getName(),
-            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -105,11 +105,11 @@ public class TosConfigTest {
         Realm realmUpdated2 = realmService.updateRealm(
             slug,
             realm.getName(),
-            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -145,11 +145,11 @@ public class TosConfigTest {
         Realm realmUpdated = realmService.updateRealm(
             slug,
             realm.getName(),
-            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -170,11 +170,11 @@ public class TosConfigTest {
         Realm realmUpdated2 = realmService.updateRealm(
             slug,
             realm.getName(),
-            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
+            null,
             null
         );
 
@@ -225,7 +225,7 @@ public class TosConfigTest {
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get("/-/" + slug + TOS_TERMS);
 
         // expect error in response
-        MvcResult res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
+        MvcResult res = this.mockMvc.perform(req).andDo(print()).andExpect(status().is3xxRedirection()).andReturn();
 
         // expect a redirect in response
         assertThat(res.getResponse().getContentAsString()).isBlank();
@@ -244,11 +244,11 @@ public class TosConfigTest {
         realmService.updateRealm(
             slug,
             realm.getName(),
-            realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
+            null,
             null
         );
     }
