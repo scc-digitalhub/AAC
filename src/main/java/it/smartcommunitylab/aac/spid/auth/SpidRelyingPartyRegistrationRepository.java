@@ -18,10 +18,10 @@ package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
-import java.util.Optional;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegistrationRepository {
 
@@ -35,25 +35,38 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
     }
 
     /*
-     * read access as per interface
+     * findByRegistrationId provides read access as per interface
+     * Spid implements two different patterns for registration ids, that are:
+     * (1) {providerId}
+     * (2) {providerId}|{entityLabel}
+     * where entity labels is the upstream SPID identity provider in the registry
      */
     @Override
     public RelyingPartyRegistration findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registration id can not be empty");
-        SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
+
+        String[] s = StringUtils.split(registrationId, "|");
+        if (s == null) {
+            // registrationId is providerId
+            SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
+            if (providerConfig == null) {
+                return null;
+            }
+
+            return providerConfig.getRelyingPartyRegistration();
+        }
+        // registrationId is {providerId}|{entityLabel}
+        // s[0], s[1] = providerId, entityLabel
+        SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(s[0]);
         if (providerConfig == null) {
             return null;
         }
-        // TODO:
-        //  Problema concettuale: un provider SPID è associato ad N registrazioni.
-        //  Soluzione: prendi la prima registrazione
-        //  Non ho la minima idea se questa soluzione sia idonea o meno, perché non so se
-        //  la registrationId in argomento corrisponde effettivamente alla RPR di opensaml
-        Optional<RelyingPartyRegistration> registration = providerConfig
+
+        return providerConfig
             .getRelyingPartyRegistrations()
             .stream()
             .filter(reg -> reg.getRegistrationId().equals(registrationId))
-            .findFirst();
-        return registration.orElse(null);
+            .findAny()
+            .orElse(null);
     }
 }

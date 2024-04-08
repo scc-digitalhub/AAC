@@ -298,22 +298,18 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         acsVariables.put("baseUrl", "");
         acsVariables.put("registrationId", registration.getRegistrationId());
         UriComponents acsComponents = UriComponentsBuilder
-            .fromUriString(SpidIdentityProviderConfig.DEFAULT_CONSUMER_URL)
+            .fromUriString(config.getConsumerUrl())
             .replaceQuery(null)
             .fragment(null)
             .buildAndExpand(acsVariables);
         UriComponents uriComponents = UriComponentsBuilder
             .fromHttpUrl(registration.getAssertionConsumerServiceLocation())
-            .replacePath(acsComponents.getPath())
+            .replacePath(null)
             .replaceQuery(null)
             .fragment(null)
             .build();
         String baseUrl = uriComponents.toUriString();
-        String sloLocation = resolveUrlTemplate(
-            config.getRelyingPartyRegistrationSingleLogoutConsumerServiceLocation(),
-            baseUrl,
-            registration
-        );
+        String sloLocation = resolveUrlTemplate(config.getLogoutUrl(), baseUrl, registration);
         SingleLogoutService sloService = singleLogoutServiceBuilder.buildObject();
         sloService.setBinding(SAMLConstants.SAML2_POST_BINDING_URI);
         sloService.setLocation(sloLocation);

@@ -50,12 +50,12 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + SpidIdentityProviderConfigMap.RESOURCE_TYPE;
 
-    public static final String DEFAULT_METADATA_URL =
-        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
-    public static final String DEFAULT_CONSUMER_URL =
-        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
-    public static final String DEFAULT_LOGOUT_URL =
-        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/{registrationId}";
+    //    public static final String DEFAULT_METADATA_URL =
+    //        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
+    //    public static final String DEFAULT_CONSUMER_URL =
+    //        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
+    //    public static final String DEFAULT_LOGOUT_URL =
+    //        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/{registrationId}";
 
     private transient Set<RelyingPartyRegistration> relyingPartyRegistrations; // first time evaluated by the getter, then immutable
     private Map<String, SpidRegistration> identityProviders; // local registry
@@ -91,12 +91,12 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     public static String getProviderId(String registrationId) {
         Assert.hasText(registrationId, "registrationId can not be blank");
 
-        // registrationId is providerId+idpkey
-        String[] kp = registrationId.split("-");
-        if (kp.length < 2) {
+        // registrationId is {providerId}|{idpkey}
+        String[] kp = StringUtils.split(registrationId, "|");
+        if (kp == null) {
             throw new IllegalArgumentException();
         }
-
+        //kp[0], kp[1] = providerId, idpKey
         return kp[0];
     }
 
@@ -111,20 +111,8 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         }
     }
 
-    public String getMetadataUrl() {
-        return DEFAULT_METADATA_URL;
-    }
-
     public String getEntityId() {
         return configMap.getEntityId() != null ? configMap.getEntityId() : getMetadataUrl();
-    }
-
-    public String getRepositoryIds() {
-        return getProvider(); // TODO: reconsider when more of this will become clear
-    }
-
-    public String getRelyingPartyRegistrationSingleLogoutConsumerServiceLocation() {
-        return DEFAULT_LOGOUT_URL;
     }
 
     @JsonIgnore
@@ -218,7 +206,19 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     // to identify a relying party registration
     private String evalRelyingPartyRegistrationId(String idpKeyIdentifier) {
         // NOTE: this function is 'inverted' by getProviderId(..)
-        return getProvider() + "-" + idpKeyIdentifier;
+        return getProvider() + "|" + idpKeyIdentifier;
+    }
+
+    public String getConsumerUrl() {
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/" + getProvider();
+    }
+
+    public String getLogoutUrl() {
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/" + getProvider();
+    }
+
+    public String getMetadataUrl() {
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/" + getProvider();
     }
 
     // create a relying party registration for an upstream idp; only ap autoconfiguration
@@ -235,9 +235,9 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         // ... then expand with rp configuration (i.e. ourself)
         builder
             .entityId(getEntityId())
-            .assertionConsumerServiceLocation(DEFAULT_CONSUMER_URL)
+            .assertionConsumerServiceLocation(getConsumerUrl())
             .assertionConsumerServiceBinding(Saml2MessageBinding.POST)
-            .singleLogoutServiceLocation(DEFAULT_LOGOUT_URL);
+            .singleLogoutServiceLocation(getLogoutUrl());
 
         String signingKey = configMap.getSigningKey();
         String signingCertificate = configMap.getSigningCertificate();
@@ -325,5 +325,18 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
                 }
             })
             .collect(Collectors.toSet());
+    }
+
+    /*
+     * getRelyingPartyRegistration yields a _single_ relying party registration with id equals to providerId.
+     * This is required for cases where the registration does not require any asserting party details,
+     * such as SPID metadata.
+     */
+    public RelyingPartyRegistration getRelyingPartyRegistration() {
+        return getRelyingPartyRegistrations()
+            .stream()
+            .findAny()
+            .map(r -> RelyingPartyRegistration.withRelyingPartyRegistration(r).registrationId(getProvider()).build())
+            .orElse(null);
     }
 }

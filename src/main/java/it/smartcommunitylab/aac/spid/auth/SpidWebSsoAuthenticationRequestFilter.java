@@ -19,16 +19,12 @@ package it.smartcommunitylab.aac.spid.auth;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
-import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationRequestContextConverter;
-import it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationRequestFilter;
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
 import it.smartcommunitylab.aac.saml.events.SamlAuthenticationRequestEvent;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import javax.servlet.FilterChain;
@@ -80,7 +76,7 @@ public class SpidWebSsoAuthenticationRequestFilter
     private final Saml2AuthenticationRequestContextResolver authenticationRequestContextResolver;
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
     private ApplicationEventPublisher eventPublisher;
-    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
 
     //TODO replace with spid specific implementation, handling resolution via relayState AND/OR requestId
     private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
@@ -89,30 +85,35 @@ public class SpidWebSsoAuthenticationRequestFilter
         );
 
     public SpidWebSsoAuthenticationRequestFilter(
-        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository,
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository
     ) {
-        this(SystemKeys.AUTHORITY_SPID, registrationRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI);
+        this(
+            SystemKeys.AUTHORITY_SPID,
+            providerConfigRepository,
+            relyingPartyRegistrationRepository,
+            DEFAULT_FILTER_URI
+        );
     }
 
     public SpidWebSsoAuthenticationRequestFilter(
         String authorityId,
-        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository,
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
         String filterProcessingUrl
     ) {
-        Assert.notNull(registrationRepository, "registration repository cannot be null");
+        Assert.notNull(providerConfigRepository, "registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
         this.authorityId = authorityId;
-        this.registrationRepository = registrationRepository;
+        this.providerConfigRepository = providerConfigRepository;
         // use custom implementation to add secure relayState param
         this.authenticationRequestContextResolver =
             new CustomSaml2AuthenticationRequestContextResolver(
                 new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
             );
-        this.authenticationRequestFactory = getRequestFactory(registrationRepository);
+        this.authenticationRequestFactory = getRequestFactory(providerConfigRepository);
 
         // set redirect to filterUrl
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
@@ -146,9 +147,11 @@ public class SpidWebSsoAuthenticationRequestFilter
             return;
         }
 
-        //resolve provider
+        //resolve provider - registrationId is {providerId}|{idpKey}
         String registrationId = context.getRelyingPartyRegistration().getRegistrationId();
-        SpidIdentityProviderConfig config = registrationRepository.findByProviderId(registrationId);
+        SpidIdentityProviderConfig config = providerConfigRepository.findByProviderId(
+            SpidIdentityProviderConfig.getProviderId(registrationId)
+        );
         if (config == null) {
             logger.error("error retrieving provider for registration {}", registrationId);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

@@ -29,12 +29,12 @@ import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.util.StringUtils;
 
 // TODO: review what class we are inheriting from
@@ -130,7 +130,7 @@ public class SpidIdentityProvider
     @Override
     public String getAuthenticationUrl() {
         // TODO build a realm-bound url, need updates on filters
-        return "/auth/" + getAuthority() + "/authenticate/" + getProvider();
+        return "/auth/" + getAuthority() + "/authenticate/";
     }
 
     @Override
@@ -141,28 +141,24 @@ public class SpidIdentityProvider
         lp.setDescriptionMap(getDescriptionMap());
         lp.setPosition(getConfig().getPosition());
 
-        lp.setLoginUrl(getAuthenticationUrl());
+        lp.setLoginUrl(getAuthenticationUrl() + getProvider()); // TODO: Remove? this is not a login to anywhere
         List<SpidLoginProvider.SpidIdpButton> spidIdpsLogin = new LinkedList<>();
-        for (SpidRegistration reg : getConfig().getIdentityProviders().values()) {
-            String loginUrl;
-            try {
-                // TODO: should be exposes by a dedicated method
-                loginUrl = getAuthenticationUrl() + "-" + getConfig().evalIdpKeyIdentifier(reg.getMetadataUrl());
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException(
-                    "invalid url when producing an upstream login url for " +
-                    reg.getEntityName() +
-                    ", " +
-                    e.getMessage()
-                );
-            }
+        for (RelyingPartyRegistration reg : config.getRelyingPartyRegistrations()) {
+            // TODO: should be exposes by a dedicated method
+
+            String loginUrl = getAuthenticationUrl() + reg.getRegistrationId();
+
+            SpidRegistration spidReg = getConfig()
+                .getIdentityProviders()
+                .get(reg.getAssertingPartyDetails().getEntityId());
+
             spidIdpsLogin.add(
                 new SpidLoginProvider.SpidIdpButton(
-                    reg.getEntityId(),
-                    reg.getEntityName(),
-                    reg.getMetadataUrl(),
-                    reg.getEntityLabel(),
-                    reg.getIconUrl(),
+                    reg.getAssertingPartyDetails().getEntityId(),
+                    spidReg.getEntityName(),
+                    spidReg.getMetadataUrl(),
+                    spidReg.getEntityLabel(),
+                    spidReg.getIconUrl(),
                     loginUrl
                 )
             );

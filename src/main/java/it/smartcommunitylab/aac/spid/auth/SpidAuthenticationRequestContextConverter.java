@@ -109,7 +109,7 @@ public class SpidAuthenticationRequestContextConverter
         acsVariables.put("baseUrl", "");
         acsVariables.put("registrationId", registrationId);
         UriComponents acsComponents = UriComponentsBuilder
-            .fromUriString(SpidIdentityProviderConfig.DEFAULT_CONSUMER_URL)
+            .fromUriString(providerConfig.getConsumerUrl())
             .replaceQuery(null)
             .fragment(null)
             .buildAndExpand(acsVariables);
