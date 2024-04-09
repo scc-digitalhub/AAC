@@ -127,6 +127,12 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return relyingPartyRegistrations;
     }
 
+    @JsonIgnore
+    public Set<RelyingPartyRegistration> getUpstreamRelyingPartyRegistrations() {
+        Set<RelyingPartyRegistration> regs = getRelyingPartyRegistrations();
+        return regs.stream().filter(reg -> reg.getRegistrationId().contains("|")).collect(Collectors.toSet());
+    }
+
     // generate a registration (an RP/AP pair as defined by OpenSaml) for _each_
     // configured upstream idps
     private Set<RelyingPartyRegistration> toRelyingPartyRegistrations() throws IOException, CertificateException {
@@ -254,6 +260,14 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         }
 
         return builder.build();
+    }
+
+    public X509Certificate getSigningCertificate() throws CertificateException, IOException {
+        return CertificateParser.parseX509(configMap.getSigningCertificate());
+    }
+
+    public PrivateKey getSigningKey() throws IOException {
+        return CertificateParser.parsePrivateWithUndefinedHeader(configMap.getSigningKey());
     }
 
     public List<Credential> getRelyingPartySigningCredentials() {

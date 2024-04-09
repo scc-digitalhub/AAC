@@ -1,4 +1,10 @@
-@import url(titillium.css);
+/*html {*/
+/*    scrollbar-gutter: stable;*/
+/*}*/
+
+body {
+    padding-left: calc(100vw - 100%);
+}
 
 .italia-it-button {
     display: inline-block;
@@ -31,12 +37,6 @@
     padding: .95em 1em .85em 1em;
     font-size: 1.15em;
     text-align: center
-}
-
-svg {
-    width: 1.8em;
-    height: 1.8em;
-    fill: #fff
 }
 
 .italia-it-block {
@@ -89,7 +89,7 @@ svg {
 
 .button-spid {
     background-color: #06C;
-    color: #FFF
+    color: #FFF;
 }
 
 .button-spid svg {
@@ -104,6 +104,10 @@ svg {
 .button-spid:active {
     background-color: #83BEED;
     color: #036
+}
+
+.button-spid:focus {
+    outline: none !important;
 }
 
 .spid-idp-button {
@@ -194,7 +198,8 @@ svg {
     list-style: none;
     padding: 0 0;
     margin: 0;
-    line-height: 18px
+    line-height: 18px;
+    text-align: left !important;
 }
 
 .spid-idp-button .spid-idp-button-menu li>a,
@@ -208,7 +213,7 @@ svg {
     line-height: 18px;
     padding-top: 5px;
     white-space: nowrap;
-    border-bottom: 1px solid #ddd
+    border-bottom: 1px solid #ddd;
 }
 
 .spid-idp-button .spid-idp-button-menu li>a:hover,
@@ -220,7 +225,8 @@ svg {
 
 .spid-idp-button .spid-idp-button-menu li>a img {
     height: 25px;
-    /*padding: 10px 0 10px 10px;*/
+    padding: 10px 0 10px 10px;
+    box-sizing: content-box !important;
     border: 0
 }
 
@@ -271,4 +277,9 @@ svg {
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0
+}
+
+.dropdown-region {
+    margin: auto;
+    width: fit-content;
 }

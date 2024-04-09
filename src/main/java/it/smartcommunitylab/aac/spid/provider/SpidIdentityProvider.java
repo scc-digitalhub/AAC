@@ -143,9 +143,8 @@ public class SpidIdentityProvider
 
         lp.setLoginUrl(getAuthenticationUrl() + getProvider()); // TODO: Remove? this is not a login to anywhere
         List<SpidLoginProvider.SpidIdpButton> spidIdpsLogin = new LinkedList<>();
-        for (RelyingPartyRegistration reg : config.getRelyingPartyRegistrations()) {
+        for (RelyingPartyRegistration reg : config.getUpstreamRelyingPartyRegistrations()) {
             // TODO: should be exposes by a dedicated method
-
             String loginUrl = getAuthenticationUrl() + reg.getRegistrationId();
 
             SpidRegistration spidReg = getConfig()

@@ -17,6 +17,7 @@
  */
 
 @charset "UTF-8";
+@import url(spid-sp-access-button.css);
 
 body {
 	background-size: 100% auto;
