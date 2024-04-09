@@ -15,8 +15,19 @@ function toggleDropdown(dropdownMenu) {
   }
 }
 
-function expandDropdown() {
-  let dropdownMenu = document.getElementById("spid-idp-button-medium-get");
+function closeOpenItems(provider) {
+  let openMenus = document.querySelectorAll(".spid-idp-button");
+  openMenus.forEach(function(openMenu) {
+    if (!openMenu.id.includes(provider)){
+      openMenu.classList.remove("spid-idp-button-open");
+      closeDropdown(openMenu);
+    }
+  });
+}
+
+function expandDropdown(provider) {
+  closeOpenItems(provider);
+  let dropdownMenu = document.getElementById("spid-dropdown-" + provider);
   toggleDropdown(dropdownMenu);
 }
 
