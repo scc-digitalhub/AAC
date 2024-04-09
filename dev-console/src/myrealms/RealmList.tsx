@@ -28,36 +28,34 @@ const RealmListContent = () => {
     }
 
     return (
-        <>
-            <MList>
-                {realms.map(realm => (
-                    <RecordContextProvider key={realm.id} value={realm}>
-                        <ListItem>
-                            <ListItemText
-                                primary={`${realm.slug}`}
-                                secondary={`${realm.name}`}
-                            ></ListItemText>
-                            {realm.slug !== 'system' && (
-                                <EditButton
-                                    sx={{ fontSize: '14.4px' }}
-                                    to={`/myrealms/${realm.slug}/edit`}
-                                />
-                            )}
-                            {realm.slug !== 'system' && (
-                                <DeleteButtonDialog
-                                    confirmTitle="Realm Deletion"
-                                    redirect={`/myrealms`}
-                                />
-                            )}
-                            <ManageButton
-                                selectedId={realm.id}
-                                selectedName={realm.name}
-                            ></ManageButton>
-                        </ListItem>
-                    </RecordContextProvider>
-                ))}
-            </MList>
-        </>
+        <MList>
+            {realms.map(realm => (
+                <RecordContextProvider key={realm.id} value={realm}>
+                    <ListItem>
+                        <ListItemText
+                            primary={`${realm.slug}`}
+                            secondary={`${realm.name}`}
+                        ></ListItemText>
+                        {realm.slug !== 'system' && (
+                            <EditButton
+                                sx={{ fontSize: '14.4px' }}
+                                to={`/myrealms/${realm.slug}/edit`}
+                            />
+                        )}
+                        {realm.slug !== 'system' && (
+                            <DeleteButtonDialog
+                                confirmTitle="Realm Deletion"
+                                redirect={`/myrealms`}
+                            />
+                        )}
+                        <ManageButton
+                            selectedId={realm.id}
+                            selectedName={realm.name}
+                        ></ManageButton>
+                    </ListItem>
+                </RecordContextProvider>
+            ))}
+        </MList>
     );
 };
 
