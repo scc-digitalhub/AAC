@@ -314,7 +314,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public SpidUserAttribute getUsernameAttributeName() {
-        SpidUserAttribute unKey = configMap.getSubAttributeName();
+        SpidUserAttribute unKey = configMap.getUsernameAttributeName();
         return StringUtils.hasText(unKey.getValue()) ? unKey : null;
     }
 
