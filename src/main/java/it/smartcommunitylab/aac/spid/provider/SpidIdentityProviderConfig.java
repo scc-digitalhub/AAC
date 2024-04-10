@@ -28,6 +28,8 @@ import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
@@ -89,12 +91,15 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         super();
     }
 
+    /*
+     * Extract a provider from a registration with pattern {providerId}|{idpKey}
+     * where idpKey is the key of the upstream SPID identity provider
+     */
     public static String getProviderId(String registrationId) {
         Assert.hasText(registrationId, "registrationId can not be blank");
 
-        String decodedId = decodeRegistrationId(registrationId);
-        // decodedId is {providerId}|{idpkey}
-        String[] kp = StringUtils.split(decodedId, "|");
+        // registrationId is {providerId}|{idpKey}
+        String[] kp = StringUtils.split(registrationId, "|");
         if (kp == null) {
             throw new IllegalArgumentException();
         }
@@ -132,10 +137,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     @JsonIgnore
     public Set<RelyingPartyRegistration> getUpstreamRelyingPartyRegistrations() {
         Set<RelyingPartyRegistration> regs = getRelyingPartyRegistrations();
-        return regs
-            .stream()
-            .filter(reg -> decodeRegistrationId(reg.getRegistrationId()).contains("|"))
-            .collect(Collectors.toSet());
+        return regs.stream().filter(reg -> !reg.getRegistrationId().equals(getProvider())).collect(Collectors.toSet());
     }
 
     // generate a registration (an RP/AP pair as defined by OpenSaml) for _each_
@@ -217,7 +219,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     // to identify a relying party registration
     private String evalRelyingPartyRegistrationId(String idpKeyIdentifier) {
         // NOTE: this function is 'inverted' by getProviderId(..)
-        return encodeRegistrationId(getProvider() + "|" + idpKeyIdentifier);
+        return getProvider() + "|" + idpKeyIdentifier;
     }
 
     public String getConsumerUrl() {
@@ -360,10 +362,10 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public static String encodeRegistrationId(String regId) {
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(regId.getBytes(StandardCharsets.UTF_8));
+        return URLEncoder.encode(regId, StandardCharsets.UTF_8);
     }
 
     public static String decodeRegistrationId(String encodedRegId) {
-        return new String(Base64.getUrlDecoder().decode(encodedRegId), StandardCharsets.UTF_8);
+        return URLDecoder.decode(encodedRegId, StandardCharsets.UTF_8);
     }
 }

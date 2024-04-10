@@ -38,7 +38,7 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
      * findByRegistrationId provides read access as per interface
      * Spid implements two different patterns for registration ids, that are:
      * (1) {providerId}
-     * (2) Base64URLEncoded({providerId}|{entityLabel})
+     * (2) {providerId}|{entityLabel}
      * where entity labels is the upstream SPID identity provider in the registry
      * The function try to guess which one we use in order to return the correct
      * relying party registration.
@@ -47,8 +47,7 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
     public RelyingPartyRegistration findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registration id can not be empty");
 
-        String decodedId = SpidIdentityProviderConfig.decodeRegistrationId(registrationId);
-        String[] s = StringUtils.split(decodedId, "|");
+        String[] s = StringUtils.split(registrationId, "|");
         if (s == null) {
             // registrationId is providerId
             SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
