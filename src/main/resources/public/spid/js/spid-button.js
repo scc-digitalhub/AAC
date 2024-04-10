@@ -1,26 +1,8 @@
-function openDropdown(dropdownMenu) {
-  dropdownMenu.style.display = "block";
-}
-
-function closeDropdown(dropdownMenu) {
-  dropdownMenu.style.display = "none";
-}
-
-function toggleDropdown(dropdownMenu) {
-  dropdownMenu.classList.toggle("spid-idp-button-open");
-  if (dropdownMenu.matches(".spid-idp-button-open")) {
-    openDropdown(dropdownMenu);
-  } else {
-    closeDropdown(dropdownMenu);
-  }
-}
-
 function closeOpenItems(provider) {
   let openMenus = document.querySelectorAll(".spid-idp-button");
   openMenus.forEach(function(openMenu) {
     if (!openMenu.id.includes(provider)){
       openMenu.classList.remove("spid-idp-button-open");
-      closeDropdown(openMenu);
     }
   });
 }
@@ -28,7 +10,7 @@ function closeOpenItems(provider) {
 function expandDropdown(provider) {
   closeOpenItems(provider);
   let dropdownMenu = document.getElementById("spid-dropdown-" + provider);
-  toggleDropdown(dropdownMenu);
+  dropdownMenu.classList.toggle("spid-idp-button-open");
 }
 
 window.onclick = function (event) {
@@ -39,7 +21,6 @@ window.onclick = function (event) {
       let openDropdown = dropdowns[i];
       if (openDropdown.classList.contains("spid-idp-button-open")) {
         openDropdown.classList.remove("spid-idp-button-open");
-        closeDropdown(openDropdown);
       }
     }
   }
