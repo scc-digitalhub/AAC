@@ -309,13 +309,11 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public SpidUserAttribute getSubAttributeName() {
-        SpidUserAttribute subKey = configMap.getSubAttributeName();
-        return StringUtils.hasText(subKey.getValue()) ? subKey : null;
+        return configMap.getSubAttributeName();
     }
 
     public SpidUserAttribute getUsernameAttributeName() {
-        SpidUserAttribute unKey = configMap.getUsernameAttributeName();
-        return StringUtils.hasText(unKey.getValue()) ? unKey : null;
+        return configMap.getUsernameAttributeName();
     }
 
     public String getIdpKey(String idpMetadataUrl) throws URISyntaxException {

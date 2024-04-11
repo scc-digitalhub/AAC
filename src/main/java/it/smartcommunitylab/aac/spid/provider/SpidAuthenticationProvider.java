@@ -315,14 +315,14 @@ public class SpidAuthenticationProvider
         return SpidAuthnContext.parse(acrValue);
     }
 
-    private @Nullable String evaluateSubjectIdFromPrincipal(Saml2AuthenticatedPrincipal principal) {
-        return StringUtils.hasText(subjectAttribute.getValue())
+    private String evaluateSubjectIdFromPrincipal(Saml2AuthenticatedPrincipal principal) {
+        return subjectAttribute != null
             ? principal.getFirstAttribute(subjectAttribute.getValue())
             : principal.getName();
     }
 
-    private @Nullable String evaluateUsernameFromPrincipal(Saml2AuthenticatedPrincipal principal) {
-        return StringUtils.hasText(usernameAttribute.getValue())
+    private String evaluateUsernameFromPrincipal(Saml2AuthenticatedPrincipal principal) {
+        return usernameAttribute != null
             ? principal.getFirstAttribute(usernameAttribute.getValue())
             : principal.getName();
     }
