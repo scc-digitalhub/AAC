@@ -127,14 +127,13 @@
     <fieldset>
         <legend class="mb-4">SPID IdP Configuration</legend>
 
-        <div class="pt-0 mb-4"> Auto-configuration will enable all idps in the SPID federation, otherwise
+        <div class="pt-0 mb-4 pb-4"> Auto-configuration will enable all idps in the SPID federation, otherwise
             manually configure asserting parties below. </div>
         <div class="form-group col">
             <div class="bootstrap-select-wrapper border-bottom-0">
-                <label>IdP</label>
-                <select title="Select" multiple="true" data-multiple-separator="" ng-model="idp.configuration.idps">
-<!--                    <option> ??? </option>-->
-                </select>
+                <label>Identity providers</label>
+                <tags-input type="text" placeholder="Add identity providers" ng-model="spidIdps">
+                </tags-input>
             </div>
         </div>
         <div class="pt-0 pb-3 text-center"> -- OR -- </div>

@@ -704,6 +704,17 @@ angular.module('aac.controllers.realmproviders', [])
                 $scope.samlAuthnContextClasses = authnContextClasses;
             }
 
+            if (authority == 'spid') {
+                var idps = [];
+                if (config.idps) {
+                    config.idps.forEach(function (s) {
+                        idps.push({ 'text': s });
+                    });
+                }
+
+                $scope.spidIdps = idps;
+            }
+
         }
 
         var extractConfiguration = function (authority, config, schema) {
@@ -769,6 +780,21 @@ angular.module('aac.controllers.realmproviders', [])
                     config.authnContextClasses = authnContextClasses;
                 } else {
                     config.authnContextClasses = null;
+                }
+
+            }
+
+            if (authority == 'spid') {
+                var idps = $scope.spidIdps.map(function (s) {
+                    if ('text' in s) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                if (idps && idps.length) {
+                    config.idps = idps;
+                } else {
+                    config.idps = null;
                 }
 
             }
