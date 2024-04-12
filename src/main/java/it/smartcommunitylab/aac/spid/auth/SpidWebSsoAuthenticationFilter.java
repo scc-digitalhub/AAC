@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
+import it.smartcommunitylab.aac.saml.service.Saml2AuthenticationTokenConverter;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import java.io.IOException;
@@ -43,7 +44,6 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
-import org.springframework.security.saml2.provider.service.web.Saml2AuthenticationTokenConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -72,7 +72,9 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     private final Saml2AuthenticationTokenConverter authenticationConverter;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
-        new HttpSessionSaml2AuthenticationRequestRepository();
+        new HttpSessionSaml2AuthenticationRequestRepository(
+            HttpSessionSaml2AuthenticationRequestRepository.class.getName() + ".SPID_AUTHORIZATION_REQUEST"
+        );
 
     public SpidWebSsoAuthenticationFilter(
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
@@ -146,8 +148,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     }
 
     /*
-     * attemptAuthentication is invoked by the doFilter of the parent class
-     * this class usage behaviour is as follows:
+     * attemptAuthentication is invoked by the doFilter of the parent class.
+     * This class usage behaviour can be described as follows:
      * (1) if returns valid Authentication -> passed to successfulAuthentication
      * (2) if invalid, throws AuthenticationException -> passed to unsuccessfulAuthentication
      * (3) if returns null -> incomplete authentication, assumes that it is completed later on
@@ -157,7 +159,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         throws AuthenticationException, IOException, ServletException {
         // A. extract provider
         String registrationId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        String providerId = SpidIdentityProviderConfig.getProviderId(registrationId); // registrationId is providerId+IdPkey
+        String providerId = SpidIdentityProviderConfig.getProviderId(registrationId); // registrationId is {providerId}|{IdPkey}
         SpidIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
         if (providerConfig == null) {
             Saml2Error saml2Error = new Saml2Error(
@@ -194,9 +196,9 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
             throw new Saml2AuthenticationException(saml2Error);
         }
         // chat that auth request and initiating request has matching RP registration id
-        String authReqRPRegistrationId = authnReqContext.getRelyingPartyRegistrationId();
+        String authRequestRegistrationId = authnReqContext.getRelyingPartyRegistrationId();
         RelyingPartyRegistration registration = authenticationRequest.getRelyingPartyRegistration();
-        if (!registration.getRegistrationId().equals(authReqRPRegistrationId)) {
+        if (!registration.getRegistrationId().equals(authRequestRegistrationId)) {
             // response doesn't belong here...
             Saml2Error saml2Error = new Saml2Error(
                 Saml2ErrorCodes.INVALID_DESTINATION,

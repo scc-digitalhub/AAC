@@ -93,8 +93,9 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     /*
-     * Extract a provider from a registration with pattern {providerId}|{idpKey}
-     * where idpKey is the key of the upstream SPID identity provider
+     * Extract a provider from a registration with pattern either {providerId}
+     * or {providerId}|{idpKey} where idpKey is the key of the upstream
+     * SPID identity provider.
      */
     public static String getProviderId(String registrationId) {
         Assert.hasText(registrationId, "registrationId can not be blank");
@@ -102,7 +103,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         // registrationId is {providerId}|{idpKey}
         String[] kp = StringUtils.split(registrationId, "|");
         if (kp == null) {
-            throw new IllegalArgumentException();
+            return registrationId;
         }
         //kp[0], kp[1] = providerId, idpKey
         return kp[0];
@@ -341,7 +342,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     public Set<String> getRelyingPartyRegistrationIds() {
         Set<String> idpMetadataUrls = getAssertingPartyMetadataUrls();
-        return idpMetadataUrls
+        Set<String> ids = idpMetadataUrls
             .stream()
             .map(u -> {
                 try {
@@ -351,6 +352,8 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
                 }
             })
             .collect(Collectors.toSet());
+        ids.add(getProvider());
+        return ids;
     }
 
     /*

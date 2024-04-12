@@ -115,7 +115,7 @@ public class SpidAuthenticationRequestContextConverter
             .buildAndExpand(acsVariables);
         UriComponents uriComponents = UriComponentsBuilder
             .fromHttpUrl(relyingPartyRegistration.getAssertionConsumerServiceLocation())
-            .replacePath(acsComponents.getPath())
+            .replacePath(null)
             .replaceQuery(null)
             .fragment(null)
             .build();
@@ -125,21 +125,24 @@ public class SpidAuthenticationRequestContextConverter
         // build request base
         String issuer = context.getIssuer();
         String destination = context.getDestination();
+        //        String destination = context
+        //            .getRelyingPartyRegistration()
+        //            .getAssertingPartyDetails()
+        //            .getSingleSignOnServiceLocation();
         String protocolBinding = context.getRelyingPartyRegistration().getAssertionConsumerServiceBinding().getUrn();
 
         AuthnRequest auth = authnRequestBuilder.buildObject();
         auth.setID("ARQ" + UUID.randomUUID().toString().substring(1));
         auth.setIssueInstant(Instant.now());
-        auth.setProtocolBinding(protocolBinding);
 
         Issuer iss = this.issuerBuilder.buildObject();
         iss.setValue(issuer);
         iss.setFormat(NameIDType.ENTITY);
-        iss.setNameQualifier(realmUrl);
+        //        iss.setNameQualifier(realmUrl); // TODO: perché realmUrl? non capisco il requisito della spec
+        iss.setNameQualifier(issuer);
 
         auth.setIssuer(iss);
         auth.setDestination(destination);
-        auth.setAssertionConsumerServiceURL(context.getAssertionConsumerServiceUrl());
 
         NameIDPolicy nameIDPolicy = nameIDPolicyBuilder.buildObject();
         nameIDPolicy.setFormat(NameIDType.TRANSIENT);
@@ -151,7 +154,7 @@ public class SpidAuthenticationRequestContextConverter
 
         if (providerConfig.getRelyingPartyRegistrationAuthnContextClassRefs() != null) {
             RequestedAuthnContext requestAuthnContext = this.reqAuthnContextBuilder.buildObject();
-            requestAuthnContext.setComparison(AuthnContextComparisonTypeEnumeration.MINIMUM);
+            requestAuthnContext.setComparison(AuthnContextComparisonTypeEnumeration.MINIMUM); // TODO: configurable?
             providerConfig
                 .getRelyingPartyRegistrationAuthnContextClassRefs()
                 .forEach(r -> {
@@ -168,6 +171,9 @@ public class SpidAuthenticationRequestContextConverter
         // TODO: review with ACR
         auth.setAssertionConsumerServiceIndex(0);
         auth.setAttributeConsumingServiceIndex(0);
+        // If assertion consuming service index is not set, the following should be used instead
+        //        auth.setProtocolBinding(protocolBinding);
+        //        auth.setAssertionConsumerServiceURL(context.getAssertionConsumerServiceUrl());
 
         //        Scoping scoping = new ScopingBuilder().buildObject();
         //        scoping.setProxyCount(0);

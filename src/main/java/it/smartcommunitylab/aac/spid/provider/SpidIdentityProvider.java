@@ -152,6 +152,14 @@ public class SpidIdentityProvider
                 .getIdentityProviders()
                 .get(reg.getAssertingPartyDetails().getEntityId());
 
+            if (spidReg == null) {
+                throw new RuntimeException(
+                    "unable to associate the registration " +
+                    reg.getRegistrationId() +
+                    " with a SPID provider in the local registry"
+                );
+            }
+
             spidIdpsLogin.add(
                 new SpidLoginProvider.SpidIdpButton(
                     reg.getAssertingPartyDetails().getEntityId(),

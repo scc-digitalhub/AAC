@@ -110,7 +110,7 @@ public class SpidWebSsoAuthenticationRequestFilter
         this.providerConfigRepository = providerConfigRepository;
         // use custom implementation to add secure relayState param
         this.authenticationRequestContextResolver =
-            new CustomSaml2AuthenticationRequestContextResolver(
+            new CustomSpidAuthenticationRequestContextResolver(
                 new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
             );
         this.authenticationRequestFactory = getRequestFactory(providerConfigRepository);
@@ -162,8 +162,12 @@ public class SpidWebSsoAuthenticationRequestFilter
         // TODO drop and adopt resolver+request as per spring 5.6+
         AbstractSaml2AuthenticationRequest authenticationRequest = resolve(context);
 
+        String authRequestId = SpidIdentityProviderConfig.getProviderId(
+            context.getRelyingPartyRegistration().getRegistrationId()
+        ); // must be matched by the response calling the sso url
+
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
-            context.getRelyingPartyRegistration().getRegistrationId(),
+            authRequestId,
             context.getIssuer(),
             context.getRelayState(),
             authenticationRequest
@@ -305,12 +309,12 @@ public class SpidWebSsoAuthenticationRequestFilter
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
 
-    private class CustomSaml2AuthenticationRequestContextResolver implements Saml2AuthenticationRequestContextResolver {
+    private class CustomSpidAuthenticationRequestContextResolver implements Saml2AuthenticationRequestContextResolver {
 
         private final Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver;
         private final StringKeyGenerator stateGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder());
 
-        public CustomSaml2AuthenticationRequestContextResolver(
+        public CustomSpidAuthenticationRequestContextResolver(
             Converter<HttpServletRequest, RelyingPartyRegistration> relyingPartyRegistrationResolver
         ) {
             this.relyingPartyRegistrationResolver = relyingPartyRegistrationResolver;
@@ -324,10 +328,10 @@ public class SpidWebSsoAuthenticationRequestFilter
                 return null;
             }
 
-            return createRedirectAuthenticationRequestContext(request, relyingParty);
+            return createAuthenticationRequestContext(request, relyingParty);
         }
 
-        private Saml2AuthenticationRequestContext createRedirectAuthenticationRequestContext(
+        private Saml2AuthenticationRequestContext createAuthenticationRequestContext(
             HttpServletRequest request,
             RelyingPartyRegistration relyingParty
         ) {

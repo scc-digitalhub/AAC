@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
+import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
@@ -68,12 +69,14 @@ public class SpidAuthenticationProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final SpidUserAttribute SUBJECT_ATTRIBUTE = SpidUserAttribute.SUBJECT;
     private static final String ACR_ATTRIBUTE = "authnContextClassRef";
+    private final UserAccountService<SpidUserAccount> accountService;
     private final Set<String> registrationIds;
     private final SpidUserAttribute subjectAttribute;
     private final SpidUserAttribute usernameAttribute;
     private final SpidResponseValidator spidValidator;
+    private final String accountRepositoryId;
 
-    private final OpenSaml4AuthenticationProvider samlAuthProvider;
+    private final OpenSaml4AuthenticationProvider openSamlProvider;
     private ScriptExecutionService executionService;
     private String customMappingFunction;
     protected String customAuthFunction;
@@ -95,14 +98,17 @@ public class SpidAuthenticationProvider
         String realm
     ) {
         super(authority, providerId, realm);
+        this.accountService = accountService;
         this.registrationIds = config.getRelyingPartyRegistrationIds();
         this.subjectAttribute = config.getSubAttributeName();
         this.usernameAttribute = config.getUsernameAttributeName();
 
         this.spidValidator = new SpidResponseValidator();
-        this.samlAuthProvider = new OpenSaml4AuthenticationProvider();
-        this.samlAuthProvider.setAssertionValidator(buildProviderAssertionValidator());
-        this.samlAuthProvider.setResponseAuthenticationConverter(buildProviderResponseConverter());
+        this.openSamlProvider = new OpenSaml4AuthenticationProvider();
+        this.openSamlProvider.setAssertionValidator(buildProviderAssertionValidator());
+        this.openSamlProvider.setResponseAuthenticationConverter(buildProviderResponseConverter());
+
+        this.accountRepositoryId = providerId;
     }
 
     @Override
@@ -116,9 +122,36 @@ public class SpidAuthenticationProvider
 
         String serializedResponse = loginAuthenticationToken.getSaml2Response();
         try {
-            Authentication token = samlAuthProvider.authenticate(authentication);
-            Saml2Authentication auth = (Saml2Authentication) token;
-            // TODO: here Saml (0) checks that the token has a subject, (1) checks that account isn't locked and (2) inserts a default role "ROLE_USER" - is this required? Btw this uses the (currently unused) accountService
+            Authentication auth = openSamlProvider.authenticate(authentication);
+            if (auth != null) {
+                // TODO: here Saml does the following (0) checks that the token has a subject, (1) checks that account isn't locked and (2) inserts a default role "ROLE_USER" - is this required? Btw this uses the (currently unused) accountService
+                // convert to local token, after checking that the authentication is not associated to a locked account
+                Saml2Authentication authSamlToken = (Saml2Authentication) auth;
+                // extract sub identifier
+                String subject = authSamlToken.getName();
+                if (!StringUtils.hasText(subject)) {
+                    throw new SamlAuthenticationException(
+                        new Saml2Error(Saml2ErrorCodes.USERNAME_NOT_FOUND, "username_not_found")
+                    );
+                }
+                // check if account is locked
+                SpidUserAccount account = accountService.findAccountById(accountRepositoryId, subject);
+                if (account != null && account.isLocked()) {
+                    throw new SamlAuthenticationException(
+                        new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "account_unavailable"),
+                        "account not available",
+                        null,
+                        serializedResponse
+                    );
+                }
+                auth =
+                    new SamlAuthenticationToken(
+                        subject,
+                        (Saml2AuthenticatedPrincipal) authSamlToken.getPrincipal(),
+                        serializedResponse,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+            }
             return auth;
         } catch (Saml2AuthenticationException e) {
             // check if wrapped spid ex
@@ -264,12 +297,14 @@ public class SpidAuthenticationProvider
             spidValidator.validateResponse(responseToken);
 
             // extract extra information and add as attribute, then rebuild auth with new enriched attributes and default authority
-            Map<String, List<Object>> attributes = new HashMap<>();
+            Map<String, List<Object>> attributes = new HashMap<>(
+                ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
+            );
             SpidAuthnContext authCtx = extractAcrValue(response);
             if (authCtx != null) {
                 attributes.put(ACR_ATTRIBUTE, Collections.singletonList((Object) (authCtx.getValue())));
             }
-            // TODO: also add issuer and issueInstant? are they required by someone
+            // TODO: also add issuer and issueInstant? are they required by someone?
 
             // rebuild auth
             DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
