@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.IOException;
@@ -300,6 +301,12 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
         // return always true due to check in spid validator
         return true;
+    }
+
+    public Set<SpidAttribute> getSpidAttributes() {
+        return configMap.getSpidAttributes() == null
+            ? Collections.emptySet()
+            : configMap.getSpidAttributes();
     }
 
     public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {

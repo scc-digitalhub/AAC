@@ -265,31 +265,30 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         attributeConsumingService.setIndex(0);
         attributeConsumingService.setIsDefault(true);
 
-        // TODO: below we support default set that asks for everything SPID related: support for more index sets to be added
+        //        // TODO: below we support default set that asks for everything SPID related: support for more index sets to be added
+        //        ServiceName defaultServiceName = serviceNameBuilder.buildObject();
+        //        defaultServiceName.setValue(DEFAULT_SERVICE_NAME);
+        //        defaultServiceName.setXMLLang("it");
+        //        attributeConsumingService.getNames().add(defaultServiceName);
+        //        for (SpidAttribute attr : SpidAttribute.values()) {
+        //            RequestedAttribute reqAttribute = requestedAttributeBuilder.buildObject();
+        //            reqAttribute.setName(attr.getValue());
+        //            attributeConsumingService.getRequestedAttributes().add(reqAttribute);
+        //        }
+
+        // TODO: below we support default set that asks for what is configured in the provider config map: support for more index sets to be added
         ServiceName defaultServiceName = serviceNameBuilder.buildObject();
         defaultServiceName.setValue(DEFAULT_SERVICE_NAME);
         defaultServiceName.setXMLLang("it");
         attributeConsumingService.getNames().add(defaultServiceName);
-        for (SpidAttribute attr : SpidAttribute.values()) {
-            RequestedAttribute reqAttribute = requestedAttributeBuilder.buildObject();
-            reqAttribute.setName(attr.getValue());
-            attributeConsumingService.getRequestedAttributes().add(reqAttribute);
-        }
-        //        Arrays
-        //            .stream(SpidAttribute.values())
-        //            .forEach(attr -> {
-        //                RequestedAttribute reqAttribute = requestedAttributeBuilder.buildObject();
-        //                reqAttribute.setName(attr.getValue());
-        //                attributeConsumingService.getRequestedAttributes().add(reqAttribute);
-        //            });
-        //        SpidIdentityProviderConfigMap configMap = config.getConfigMap();
-        //        configMap
-        //            .getSpidAttributes()
-        //            .forEach(attr -> {
-        //                RequestedAttribute attribute = requestedAttributeBuilder.buildObject();
-        //                attribute.setName(attr.getValue());
-        //                attributeConsumingService.getRequestedAttributes().add(attribute);
-        //            });
+        config
+            .getSpidAttributes()
+            .forEach(attr -> {
+                RequestedAttribute attribute = requestedAttributeBuilder.buildObject();
+                attribute.setName(attr.getValue());
+                attributeConsumingService.getRequestedAttributes().add(attribute);
+            });
+
         spSsoDescriptor.getAttributeConsumingServices().add(attributeConsumingService);
 
         // Add single logout service to <SPSSODescriptor>
