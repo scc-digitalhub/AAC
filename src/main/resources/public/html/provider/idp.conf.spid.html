@@ -99,9 +99,11 @@
         <div class="row">
             <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label>Spid level</label>
+                    <label ng-if="idp.configuration.authnContext">Spid level</label>
+                    <label ng-if="!idp.configuration.authnContext" class="text-danger">Spid level</label>
                     <select title="Select" ng-model="idp.configuration.authnContext">
-                        <option ng-repeat="c in idp.schema.properties.authnContext.enum" value="{{c}}" ng-selected="idp.configuration.authnContext == c">{{c}}
+                        <option ng-repeat="c in idp.schema.properties.authnContext.enum" value="{{c}}"
+                                ng-selected="idp.configuration.authnContext == c">{{c}}
                         </option>
                     </select>
                 </div>
@@ -150,6 +152,7 @@
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label>Spid username attribute</label>
                     <select title="Select" ng-model="idp.configuration.usernameAttributeName">
+                        <option value=""></option>
                         <option ng-repeat="at in idp.schema.properties.usernameAttributeName.enum"
                             value="{{at}}" ng-selected="idp.configuration.usernameAttributeName==at">{{at}}
                         </option>
@@ -160,6 +163,7 @@
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label>Spid subject attribute</label>
                     <select title="Select" ng-model="idp.configuration.subAttributeName">
+                        <option value=""></option>
                         <option ng-repeat="at in idp.schema.properties.subAttributeName.enum"
                                 value="{{at}}" ng-selected="idp.configuration.subAttributeName==at">{{at}}
                         </option>
