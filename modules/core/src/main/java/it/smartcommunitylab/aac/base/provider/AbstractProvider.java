@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.base.provider;
 
-import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
+import it.smartcommunitylab.aac.model.Resource;
 
 public abstract class AbstractProvider<R extends Resource> implements ResourceProvider<R> {
 

@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.core.provider;
 
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
-import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.model.Resource;
 import java.util.Collection;
 
 /*

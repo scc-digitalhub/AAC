@@ -18,6 +18,8 @@ package it.smartcommunitylab.aac.core.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.ResourceContext;
 import java.util.List;
 import java.util.Map;
 import org.springframework.util.Assert;

@@ -18,11 +18,11 @@ package it.smartcommunitylab.aac.base.service;
 
 import it.smartcommunitylab.aac.core.authorities.ConfigurableAuthorityService;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
+import it.smartcommunitylab.aac.model.ConfigMap;
+import it.smartcommunitylab.aac.model.Resource;
 
 public abstract class AbstractConfigurableAuthorityService<
     A extends ConfigurableProviderAuthority<

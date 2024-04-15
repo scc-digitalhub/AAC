@@ -22,9 +22,9 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
-import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.model.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

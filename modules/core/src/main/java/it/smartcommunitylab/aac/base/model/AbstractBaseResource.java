@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.base.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.model.Resource;
 import javax.persistence.Transient;
 
 public abstract class AbstractBaseResource implements Resource {

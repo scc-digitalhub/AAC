@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>it.smartcommunitylab</groupId>
+    <artifactId>aac</artifactId>
+    <name>aac</name>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <revision>6.0.0-SNAPSHOT</revision>
+        <java.version>17</java.version>
+        <spring-boot.version>2.7.18</spring-boot.version>
+        <bouncycastle.version>1.74</bouncycastle.version>
+        <springdoc.version>2.2.0</springdoc.version>
+        <jsoup.version>1.17.2</jsoup.version>
+        <jackson.version>2.13.5</jackson.version>
+        <jsonschema.version>4.33.1</jsonschema.version>
+        <slf4j.version>2.0.9</slf4j.version>
+        <maven.compiler.release>17</maven.compiler.release>
+        <lombok.version>1.18.30</lombok.version>
+    </properties>
+
+    <modules>
+        <module>modules/commons</module>
+        <module>modules/core</module>
+        <!-- <module>application</module> -->
+    </modules>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

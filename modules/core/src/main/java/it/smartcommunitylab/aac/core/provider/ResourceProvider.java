@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.core.provider;
 
-import it.smartcommunitylab.aac.core.model.Resource;
+import it.smartcommunitylab.aac.model.Resource;
 
 /*
  * A provider for resources of a given type, for a specific authority

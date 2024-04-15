@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.core.model.Resource;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
+import it.smartcommunitylab.aac.model.Resource;
 import java.util.List;
 
 /*
