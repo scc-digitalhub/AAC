@@ -1,0 +1,118 @@
+# SERVER ENDPOINT
+server:
+   host: localhost:8080
+   port: 8080
+
+management:
+   server:
+    port: 8082
+   endpoints:
+    enabled-by-default: true    
+
+admin:
+   username: admin
+   password: ${ADMIN_PASSWORD:admin}
+
+mail:
+   username: test
+   password: test
+   host: localhost
+   port: 1025
+   
+# APPLICATION EXTERNAL URL
+application:
+   name: Test AAC local
+   email: paperopiero@local   
+   #logo: file:///home/mat/Scaricati/googlelogo_color_272x92dp.png
+   #url: http://localhost:9090
+   #url: http://172.17.0.1:9090
+   url: https://9311-217-77-82-238.ngrok.io
+   #url: https://17b1-87-0-104-137.ngrok.io
+   #url : https://95b7-82-52-46-248.ngrok.io
+   #url: http://192.168.42.61:9090/aac
+   #url : http://192.168.30.31:9090
+   #url: https://ce6b-217-77-82-231.ngrok.io
+# DB CONFIGURATION
+jdbc:
+   dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+   driver: com.mysql.jdbc.Driver
+   url: jdbc:mysql://127.0.0.1:3306/aac42?useSSL=false&useUnicode=yes&characterEncoding=UTF-8
+   user: root
+   password: aac
+#jdbc:
+#  dialect: org.hibernate.dialect.H2Dialect
+#  driver: org.h2.Driver
+#  url: jdbc:h2:mem:myDb;DB_CLOSE_DELAY=-1
+#  user: ac
+#  password: ac
+
+persistence:
+   repository:
+      providerConfig: jdbc
+
+     
+# LOGGING CONFIGURATION
+logging:
+   level:
+      it.smartcommunitylab.aac: TRACE
+      it.smartcommunitylab.aac.password.auth.InternalLoginAuthenticationFilter: DEBUG
+      it.smartcommunitylab.aac.internal.auth.InternalConfirmKeyAuthenticationFilter: DEBUG
+      it.smartcommunitylab.aac.password.auth.InternalResetKeyAuthenticationFilter: DEBUG
+      it.smartcommunitylab.aac.saml.auth.SamlWebSsoAuthenticationFilter: DEBUG
+      it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter: DEBUG
+      it.smartcommunitylab.aac.oidc.auth.OIDCLoginAuthenticationFilter: DEBUG
+      it.smartcommunitylab.aac.oidc.apple.auth.AppleLoginAuthenticationFilter: DEBUG
+#      org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter: TRACE
+#      org.springframework: DEBUG
+#      org.springframework.security: DEBUG
+#      org.springframework.web.cors: DEBUG
+      #org.springframework.security.web: TRACE
+      #org.springframework.security.authentication: DEBUG
+      #org.springframework.security.web.authentication: DEBUG
+      # org.springframework.web.filter: TRACE
+      #org.springframework.security.web.csrf: TRACE
+      #org.springframework.security.saml: TRACE
+      #org.springframework.security.web.savedrequest: TRACE
+      #org.springframework.security.saml2.provider.service.authentication: TRACE
+#      org.springframework.security.oauth2.server.resource.web: TRACE
+      #org.opensaml: DEBUG
+      #org.hibernate.SQL: DEBUG
+      
+# SECURITY PROPERTIES
+security:
+   keystore: file:///home/mat/Develop/smartcommunitylab/AAC/test/keystore.jwks
+   console.cors.origins: "http://localhost:3000"
+
+oauth2:
+   accesstoken:
+      validity: 3600
+   refreshtoken:
+      #validity: 8640000
+      validity: 2592000
+   authcode:
+      validity: 60
+
+
+
+#DEV
+spring:
+  thymeleaf:
+    cache: false
+  jpa:
+    show-sql: true
+    properties.hibernate.format_sql: true
+  session:
+    store-type: jdbc
+    jdbc.initialize-schema: always
+
+providers:
+  identity:
+    - provider: google
+      authority: google
+      type: identity
+      name: Google
+      configuration:
+          clientId: 776995207870-bi6sgup0a1fm1g5pk7hqjujufv0equtt.apps.googleusercontent.com
+          clientSecret: MefHQIW1DXA_cLRSmffG10Z7  
+
+     
