@@ -9,9 +9,10 @@ buildNumber.properties
 .mvn/timing.properties
 
 .project
-
+.vscode
+.factorypath
 .classpath
-
+.project
 *.prefs
 
 .settings/org.eclipse.wst.common.project.facet.core.xml
@@ -20,7 +21,8 @@ buildNumber.properties
 
 
 .DS_Store
-
+*.tar
+*.zip
 aac.log
 
 *.log
@@ -30,3 +32,5 @@ aac.log
 *.jar
 /test/
 node_modules
+
+*-local.yaml
