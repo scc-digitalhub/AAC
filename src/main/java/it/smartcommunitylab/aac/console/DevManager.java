@@ -36,7 +36,6 @@ import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.ScopeType;
@@ -158,117 +157,117 @@ public class DevManager {
     @Autowired
     private TemplateAuthority templateAuthority;
 
-    /*
-     * Claims
-     */
+    // /*
+    //  * Claims
+    //  */
 
-    public FunctionValidationBean testServiceClaimMapping(
-        String realm,
-        String serviceId,
-        FunctionValidationBean functionBean
-    ) throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
-        // extract function call
-        String kind = functionBean.getName();
-        String functionCode = StringUtils.hasText(functionBean.getCode())
-            ? new String(Base64.getDecoder().decode(functionBean.getCode()))
-            : null;
-        Set<String> scopes = functionBean.getScopes() != null ? functionBean.getScopes() : Collections.emptySet();
+    // public FunctionValidationBean testServiceClaimMapping(
+    //     String realm,
+    //     String serviceId,
+    //     FunctionValidationBean functionBean
+    // ) throws NoSuchRealmException, NoSuchServiceException, SystemException, InvalidDefinitionException {
+    //     // extract function call
+    //     String kind = functionBean.getName();
+    //     String functionCode = StringUtils.hasText(functionBean.getCode())
+    //         ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+    //         : null;
+    //     Set<String> scopes = functionBean.getScopes() != null ? functionBean.getScopes() : Collections.emptySet();
 
-        // TODO handle context init here
-        // TODO handle errors
-        // TODO handle log
+    //     // TODO handle context init here
+    //     // TODO handle errors
+    //     // TODO handle log
 
-        UserDetails userDetails = authHelper.getUserDetails();
-        if (userDetails == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
+    //     UserDetails userDetails = authHelper.getUserDetails();
+    //     if (userDetails == null) {
+    //         throw new InsufficientAuthenticationException("invalid or missing user authentication");
+    //     }
 
-        // mock clientDetails
-        String clientId = UUID.randomUUID().toString();
-        Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
-        ClientDetails clientDetails = new ClientDetails(
-            clientId,
-            realm,
-            SystemKeys.CLIENT_TYPE_OAUTH2,
-            clientAuthorities
-        );
+    //     // mock clientDetails
+    //     String clientId = UUID.randomUUID().toString();
+    //     Set<GrantedAuthority> clientAuthorities = Collections.singleton(new SimpleGrantedAuthority(Config.R_CLIENT));
+    //     ClientDetails clientDetails = new ClientDetails(
+    //         clientId,
+    //         realm,
+    //         SystemKeys.CLIENT_TYPE_OAUTH2,
+    //         clientAuthorities
+    //     );
 
-        // fetch and validate scopes?
-        // not really needed for testing
-        Set<String> approvedScopes = new HashSet<>();
-        for (String s : scopes) {
-            Scope scope = scopeRegistry.findScope(s);
-            if (scope != null) {
-                approvedScopes.add(scope.getScope());
-            }
-        }
+    //     // fetch and validate scopes?
+    //     // not really needed for testing
+    //     Set<String> approvedScopes = new HashSet<>();
+    //     for (String s : scopes) {
+    //         Scope scope = scopeRegistry.findScope(s);
+    //         if (scope != null) {
+    //             approvedScopes.add(scope.getScope());
+    //         }
+    //     }
 
-        clientDetails.setScopes(approvedScopes);
+    //     clientDetails.setScopes(approvedScopes);
 
-        // fetch service
-        Service service = servicesService.getService(serviceId);
+    //     // fetch service
+    //     Service service = servicesService.getService(serviceId);
 
-        // clear hookFunctions already set and pass only test function
-        Map<String, String> functions = new HashMap<>();
-        functions.put(kind, functionCode);
-        service.setClaimMapping(functions);
+    //     // clear hookFunctions already set and pass only test function
+    //     Map<String, String> functions = new HashMap<>();
+    //     functions.put(kind, functionCode);
+    //     service.setClaimMapping(functions);
 
-        // build extractor
-        ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
-        e.setExecutionService(executionService);
+    //     // build extractor
+    //     ScriptServiceClaimExtractor e = new ScriptServiceClaimExtractor(service);
+    //     e.setExecutionService(executionService);
 
-        if ("user".equals(kind)) {
-            // map user and load attributes
-            User user = userService.getUser(userDetails, realm);
-            // narrow attributes
-            if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
-                user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
-            }
+    //     if ("user".equals(kind)) {
+    //         // map user and load attributes
+    //         User user = userService.getUser(userDetails, realm);
+    //         // narrow attributes
+    //         if (!approvedScopes.contains(Config.SCOPE_FULL_PROFILE)) {
+    //             user.setAttributes(claimsService.narrowUserAttributes(user.getAttributes(), approvedScopes));
+    //         }
 
-            if (!approvedScopes.contains(Config.SCOPE_USER_ROLE)) {
-                user.setAuthorities(null);
-                user.setRealmRoles(null);
-                user.setSpaceRoles(null);
-            }
+    //         if (!approvedScopes.contains(Config.SCOPE_USER_ROLE)) {
+    //             user.setAuthorities(null);
+    //             user.setRealmRoles(null);
+    //             user.setSpaceRoles(null);
+    //         }
 
-            // build context to populate result
-            Map<String, Serializable> ctx = e.buildUserContext(user, clientDetails, approvedScopes, null);
+    //         // build context to populate result
+    //         Map<String, Serializable> ctx = e.buildUserContext(user, clientDetails, approvedScopes, null);
 
-            // execute
-            ClaimsSet claimsSet = e.extractUserClaims(
-                service.getNamespace(),
-                user,
-                clientDetails,
-                approvedScopes,
-                null
-            );
-            // get map via claimsService (hack)
-            Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+    //         // execute
+    //         ClaimsSet claimsSet = e.extractUserClaims(
+    //             service.getNamespace(),
+    //             user,
+    //             clientDetails,
+    //             approvedScopes,
+    //             null
+    //         );
+    //         // get map via claimsService (hack)
+    //         Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
 
-            // save result
-            functionBean.setContext(ctx);
-            functionBean.setResult(claims);
-            // TODO log
+    //         // save result
+    //         functionBean.setContext(ctx);
+    //         functionBean.setResult(claims);
+    //         // TODO log
 
-        } else if ("client".equals(kind)) {
-            // build context to populate result
-            Map<String, Serializable> ctx = e.buildClientContext(clientDetails, approvedScopes, null);
+    //     } else if ("client".equals(kind)) {
+    //         // build context to populate result
+    //         Map<String, Serializable> ctx = e.buildClientContext(clientDetails, approvedScopes, null);
 
-            // execute
-            ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(), clientDetails, approvedScopes, null);
-            // get map via claimsService (hack)
-            Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
+    //         // execute
+    //         ClaimsSet claimsSet = e.extractClientClaims(service.getNamespace(), clientDetails, approvedScopes, null);
+    //         // get map via claimsService (hack)
+    //         Map<String, Serializable> claims = claimsService.claimsToMap(claimsSet.getClaims());
 
-            // save result
-            functionBean.setContext(ctx);
-            functionBean.setResult(claims);
-            // TODO log
-        } else {
-            throw new IllegalArgumentException("unsupported function kind");
-        }
+    //         // save result
+    //         functionBean.setContext(ctx);
+    //         functionBean.setResult(claims);
+    //         // TODO log
+    //     } else {
+    //         throw new IllegalArgumentException("unsupported function kind");
+    //     }
 
-        return functionBean;
-    }
+    //     return functionBean;
+    // }
 
     //    public Map<String, Serializable> testServiceUserClaimMapping(String realm, String serviceId, String functionCode,
     //            Collection<String> scopes)
@@ -454,104 +453,104 @@ public class DevManager {
         return functionBean;
     }
 
-    public FunctionValidationBean testIdpClaimMapping(
-        String realm,
-        String clientId,
-        FunctionValidationBean functionBean,
-        UserAuthenticatedPrincipal principal
-    ) throws NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
-        // TODO handle context init here
-        // TODO handle errors
-        // TODO handle log
+    // public FunctionValidationBean testIdpClaimMapping(
+    //     String realm,
+    //     String clientId,
+    //     FunctionValidationBean functionBean,
+    //     UserAuthenticatedPrincipal principal
+    // ) throws NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+    //     // TODO handle context init here
+    //     // TODO handle errors
+    //     // TODO handle log
 
-        List<String> errors = new ArrayList<>();
-        String functionCode = StringUtils.hasText(functionBean.getCode())
-            ? new String(Base64.getDecoder().decode(functionBean.getCode()))
-            : null;
+    //     List<String> errors = new ArrayList<>();
+    //     String functionCode = StringUtils.hasText(functionBean.getCode())
+    //         ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+    //         : null;
 
-        if (!StringUtils.hasText(functionCode)) {
-            errors.add("empty function");
-        } else {
-            // TODO handle all attributes not only strings.
-            HashMap<String, Serializable> principalAttributes = new HashMap<>();
-            principal
-                .getAttributes()
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() != null)
-                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+    //     if (!StringUtils.hasText(functionCode)) {
+    //         errors.add("empty function");
+    //     } else {
+    //         // TODO handle all attributes not only strings.
+    //         HashMap<String, Serializable> principalAttributes = new HashMap<>();
+    //         principal
+    //             .getAttributes()
+    //             .entrySet()
+    //             .stream()
+    //             .filter(e -> e.getValue() != null)
+    //             .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
-            functionBean.setContext(Collections.singletonMap("attributes", principalAttributes));
+    //         functionBean.setContext(Collections.singletonMap("attributes", principalAttributes));
 
-            try {
-                // execute script
-                Map<String, Serializable> customAttributes = executionService.executeFunction(
-                    IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
-                    functionCode,
-                    principalAttributes
-                );
+    //         try {
+    //             // execute script
+    //             Map<String, Serializable> customAttributes = executionService.executeFunction(
+    //                 IdentityProvider.ATTRIBUTE_MAPPING_FUNCTION,
+    //                 functionCode,
+    //                 principalAttributes
+    //             );
 
-                functionBean.setResult(customAttributes);
-            } catch (SystemException | InvalidDefinitionException ex) {}
-        }
+    //             functionBean.setResult(customAttributes);
+    //         } catch (SystemException | InvalidDefinitionException ex) {}
+    //     }
 
-        functionBean.setErrors(errors);
+    //     functionBean.setErrors(errors);
 
-        return functionBean;
-    }
+    //     return functionBean;
+    // }
 
-    public FunctionValidationBean testIdpAuthFunction(
-        String realm,
-        String clientId,
-        FunctionValidationBean functionBean,
-        UserAuthenticatedPrincipal principal
-    ) throws NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
-        // TODO handle context init here
-        // TODO handle errors
-        // TODO handle log
+    // public FunctionValidationBean testIdpAuthFunction(
+    //     String realm,
+    //     String clientId,
+    //     FunctionValidationBean functionBean,
+    //     UserAuthenticatedPrincipal principal
+    // ) throws NoSuchProviderException, SystemException, NoSuchResourceException, InvalidDefinitionException {
+    //     // TODO handle context init here
+    //     // TODO handle errors
+    //     // TODO handle log
 
-        List<String> errors = new ArrayList<>();
-        String functionCode = StringUtils.hasText(functionBean.getCode())
-            ? new String(Base64.getDecoder().decode(functionBean.getCode()))
-            : null;
+    //     List<String> errors = new ArrayList<>();
+    //     String functionCode = StringUtils.hasText(functionBean.getCode())
+    //         ? new String(Base64.getDecoder().decode(functionBean.getCode()))
+    //         : null;
 
-        if (!StringUtils.hasText(functionCode)) {
-            errors.add("empty function");
-        } else {
-            // TODO handle all attributes not only strings.
-            HashMap<String, Serializable> principalAttributes = new HashMap<>();
-            principal
-                .getAttributes()
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() != null)
-                .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
+    //     if (!StringUtils.hasText(functionCode)) {
+    //         errors.add("empty function");
+    //     } else {
+    //         // TODO handle all attributes not only strings.
+    //         HashMap<String, Serializable> principalAttributes = new HashMap<>();
+    //         principal
+    //             .getAttributes()
+    //             .entrySet()
+    //             .stream()
+    //             .filter(e -> e.getValue() != null)
+    //             .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
-            //TODO build context with relevant info
-            HashMap<String, Serializable> contextAttributes = new HashMap<>();
-            contextAttributes.put("timestamp", Instant.now().getEpochSecond());
-            contextAttributes.put("errors", new ArrayList<Serializable>());
+    //         //TODO build context with relevant info
+    //         HashMap<String, Serializable> contextAttributes = new HashMap<>();
+    //         contextAttributes.put("timestamp", Instant.now().getEpochSecond());
+    //         contextAttributes.put("errors", new ArrayList<Serializable>());
 
-            functionBean.setContext(Map.of("principal", principalAttributes, "context", contextAttributes));
+    //         functionBean.setContext(Map.of("principal", principalAttributes, "context", contextAttributes));
 
-            try {
-                // execute script
-                Boolean authResult = executionService.executeFunction(
-                    IdentityProvider.AUTHORIZATION_FUNCTION,
-                    functionCode,
-                    Boolean.class,
-                    principalAttributes,
-                    contextAttributes
-                );
+    //         try {
+    //             // execute script
+    //             Boolean authResult = executionService.executeFunction(
+    //                 IdentityProvider.AUTHORIZATION_FUNCTION,
+    //                 functionCode,
+    //                 Boolean.class,
+    //                 principalAttributes,
+    //                 contextAttributes
+    //             );
 
-                functionBean.setResult(Map.of("result", authResult));
-            } catch (SystemException | InvalidDefinitionException ex) {}
-        }
+    //             functionBean.setResult(Map.of("result", authResult));
+    //         } catch (SystemException | InvalidDefinitionException ex) {}
+    //     }
 
-        functionBean.setErrors(errors);
+    //     functionBean.setErrors(errors);
 
-        return functionBean;
-    }
+    //     return functionBean;
+    // }
 
     /*
      * Realm templates
@@ -658,147 +657,147 @@ public class DevManager {
         return html;
     }
 
-    /*
-     * OAuth2
-     */
+    // /*
+    //  * OAuth2
+    //  */
 
-    public OAuth2AccessToken testOAuth2Flow(String realm, String clientId, String grantType)
-        throws NoSuchClientException {
-        // TODO evaluate mock userDetails for testing
-        UserAuthentication userAuth = authHelper.getUserAuthentication();
-        if (userAuth == null) {
-            throw new InsufficientAuthenticationException("invalid or missing user authentication");
-        }
-        UserDetails userDetails = userAuth.getUser();
+    // public OAuth2AccessToken testOAuth2Flow(String realm, String clientId, String grantType)
+    //     throws NoSuchClientException {
+    //     // TODO evaluate mock userDetails for testing
+    //     UserAuthentication userAuth = authHelper.getUserAuthentication();
+    //     if (userAuth == null) {
+    //         throw new InsufficientAuthenticationException("invalid or missing user authentication");
+    //     }
+    //     UserDetails userDetails = userAuth.getUser();
 
-        ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
-        OAuth2ClientDetails oauthClientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);
-        if (!clientDetails.getRealm().equals(realm)) {
-            throw new IllegalArgumentException("realm mismatch");
-        }
+    //     ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
+    //     OAuth2ClientDetails oauthClientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);
+    //     if (!clientDetails.getRealm().equals(realm)) {
+    //         throw new IllegalArgumentException("realm mismatch");
+    //     }
 
-        // check if flow is enabled
-        AuthorizationGrantType gt = AuthorizationGrantType.parse(grantType);
-        if (gt == null || !oauthClientDetails.getAuthorizedGrantTypes().contains(grantType)) {
-            throw new IllegalArgumentException("unauthorized grant type");
-        }
+    //     // check if flow is enabled
+    //     AuthorizationGrantType gt = AuthorizationGrantType.parse(grantType);
+    //     if (gt == null || !oauthClientDetails.getAuthorizedGrantTypes().contains(grantType)) {
+    //         throw new IllegalArgumentException("unauthorized grant type");
+    //     }
 
-        ScopeType scopeType = (gt == AuthorizationGrantType.CLIENT_CREDENTIALS ? ScopeType.CLIENT : ScopeType.USER);
-        Set<String> approvedScopes = getClientApprovedScopes(
-            clientDetails,
-            userDetails,
-            scopeType,
-            oauthClientDetails.getScope()
-        );
+    //     ScopeType scopeType = (gt == AuthorizationGrantType.CLIENT_CREDENTIALS ? ScopeType.CLIENT : ScopeType.USER);
+    //     Set<String> approvedScopes = getClientApprovedScopes(
+    //         clientDetails,
+    //         userDetails,
+    //         scopeType,
+    //         oauthClientDetails.getScope()
+    //     );
 
-        // build base params
-        Map<String, String> requestParams = new HashMap<>();
-        requestParams.put("realm", realm);
-        requestParams.put("client_id", clientId);
-        requestParams.put("scope", String.join(" ", approvedScopes));
-        requestParams.put("resource_id", String.join(" ", clientDetails.getResourceIds()));
+    //     // build base params
+    //     Map<String, String> requestParams = new HashMap<>();
+    //     requestParams.put("realm", realm);
+    //     requestParams.put("client_id", clientId);
+    //     requestParams.put("scope", String.join(" ", approvedScopes));
+    //     requestParams.put("resource_id", String.join(" ", clientDetails.getResourceIds()));
 
-        // build flow params
-        if (gt == AuthorizationGrantType.AUTHORIZATION_CODE || gt == AuthorizationGrantType.IMPLICIT) {
-            if (oauthClientDetails.getRegisteredRedirectUri().isEmpty()) {
-                throw new IllegalArgumentException("missing redirect uri");
-            }
+    //     // build flow params
+    //     if (gt == AuthorizationGrantType.AUTHORIZATION_CODE || gt == AuthorizationGrantType.IMPLICIT) {
+    //         if (oauthClientDetails.getRegisteredRedirectUri().isEmpty()) {
+    //             throw new IllegalArgumentException("missing redirect uri");
+    //         }
 
-            String responseType = "code";
-            if (gt == AuthorizationGrantType.IMPLICIT) {
-                responseType = "token";
-            }
+    //         String responseType = "code";
+    //         if (gt == AuthorizationGrantType.IMPLICIT) {
+    //             responseType = "token";
+    //         }
 
-            String state = RandomStringUtils.randomAlphanumeric(8);
-            String nonce = RandomStringUtils.randomAlphanumeric(12);
-            String redirectUri = oauthClientDetails.getRegisteredRedirectUri().iterator().next();
+    //         String state = RandomStringUtils.randomAlphanumeric(8);
+    //         String nonce = RandomStringUtils.randomAlphanumeric(12);
+    //         String redirectUri = oauthClientDetails.getRegisteredRedirectUri().iterator().next();
 
-            requestParams.put("response_type", responseType);
-            requestParams.put("state", state);
-            requestParams.put("nonce", nonce);
-            requestParams.put("redirect_uri", redirectUri);
+    //         requestParams.put("response_type", responseType);
+    //         requestParams.put("state", state);
+    //         requestParams.put("nonce", nonce);
+    //         requestParams.put("redirect_uri", redirectUri);
 
-            OAuth2AccessToken accessToken = testOAuth2AuthorizationFlow(
-                realm,
-                userAuth,
-                oauthClientDetails,
-                requestParams
-            );
+    //         OAuth2AccessToken accessToken = testOAuth2AuthorizationFlow(
+    //             realm,
+    //             userAuth,
+    //             oauthClientDetails,
+    //             requestParams
+    //         );
 
-            return accessToken;
-        } else if (gt == AuthorizationGrantType.CLIENT_CREDENTIALS) {
-            requestParams.put("grant_type", gt.getValue());
+    //         return accessToken;
+    //     } else if (gt == AuthorizationGrantType.CLIENT_CREDENTIALS) {
+    //         requestParams.put("grant_type", gt.getValue());
 
-            OAuth2AccessToken accessToken = testOAuth2TokenFlow(realm, oauthClientDetails, requestParams);
+    //         OAuth2AccessToken accessToken = testOAuth2TokenFlow(realm, oauthClientDetails, requestParams);
 
-            return accessToken;
-        }
+    //         return accessToken;
+    //     }
 
-        // we don't support any other flow
-        return null;
-    }
+    //     // we don't support any other flow
+    //     return null;
+    // }
 
-    private OAuth2AccessToken testOAuth2AuthorizationFlow(
-        String realm,
-        UserAuthentication userAuth,
-        OAuth2ClientDetails clientDetails,
-        Map<String, String> authorizationParams
-    ) {
-        UserDetails userDetails = userAuth.getUser();
-        User user = userService.getUser(userDetails, realm);
+    // private OAuth2AccessToken testOAuth2AuthorizationFlow(
+    //     String realm,
+    //     UserAuthentication userAuth,
+    //     OAuth2ClientDetails clientDetails,
+    //     Map<String, String> authorizationParams
+    // ) {
+    //     UserDetails userDetails = userAuth.getUser();
+    //     User user = userService.getUser(userDetails, realm);
 
-        // build request, temporary replace realm to enable access to all users
-        authorizationParams.put("realm", "common");
-        AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestFactory.createAuthorizationRequest(
-            authorizationParams,
-            clientDetails,
-            user
-        );
+    //     // build request, temporary replace realm to enable access to all users
+    //     authorizationParams.put("realm", "common");
+    //     AuthorizationRequest authorizationRequest = oauth2AuthorizationRequestFactory.createAuthorizationRequest(
+    //         authorizationParams,
+    //         clientDetails,
+    //         user
+    //     );
 
-        // set approved for test, we override approval stage because we
-        // are sure scopes are allowed
-        authorizationRequest.setApproved(true);
+    //     // set approved for test, we override approval stage because we
+    //     // are sure scopes are allowed
+    //     authorizationRequest.setApproved(true);
 
-        Set<String> responseTypes = authorizationRequest.getResponseTypes();
-        if (responseTypes.contains("token")) {
-            // fetch implicit token
-            String grantType = AuthorizationGrantType.IMPLICIT.getValue();
-            TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(authorizationRequest, grantType);
-            OAuth2Request storedOAuth2Request = oauth2AuthorizationRequestFactory.createOAuth2Request(
-                authorizationRequest,
-                clientDetails
-            );
-            ImplicitTokenRequest implicitRequest = new ImplicitTokenRequest(tokenRequest, storedOAuth2Request);
-            OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, implicitRequest);
+    //     Set<String> responseTypes = authorizationRequest.getResponseTypes();
+    //     if (responseTypes.contains("token")) {
+    //         // fetch implicit token
+    //         String grantType = AuthorizationGrantType.IMPLICIT.getValue();
+    //         TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(authorizationRequest, grantType);
+    //         OAuth2Request storedOAuth2Request = oauth2AuthorizationRequestFactory.createOAuth2Request(
+    //             authorizationRequest,
+    //             clientDetails
+    //         );
+    //         ImplicitTokenRequest implicitRequest = new ImplicitTokenRequest(tokenRequest, storedOAuth2Request);
+    //         OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, implicitRequest);
 
-            return accessToken;
-        } else {
-            // fetch code and exchange
-            String grantType = AuthorizationGrantType.AUTHORIZATION_CODE.getValue();
-            OAuth2Request storedOAuth2Request = oauth2AuthorizationRequestFactory.createOAuth2Request(
-                authorizationRequest,
-                clientDetails
-            );
+    //         return accessToken;
+    //     } else {
+    //         // fetch code and exchange
+    //         String grantType = AuthorizationGrantType.AUTHORIZATION_CODE.getValue();
+    //         OAuth2Request storedOAuth2Request = oauth2AuthorizationRequestFactory.createOAuth2Request(
+    //             authorizationRequest,
+    //             clientDetails
+    //         );
 
-            OAuth2Authentication combinedAuth = new OAuth2Authentication(storedOAuth2Request, userAuth);
-            String code = authorizationCodeServices.createAuthorizationCode(combinedAuth);
+    //         OAuth2Authentication combinedAuth = new OAuth2Authentication(storedOAuth2Request, userAuth);
+    //         String code = authorizationCodeServices.createAuthorizationCode(combinedAuth);
 
-            // exchange
-            Map<String, String> tokenParams = new HashMap<>();
-            tokenParams.put("realm", realm);
-            tokenParams.put("client_id", authorizationParams.get("client_id"));
-            tokenParams.put("scope", authorizationParams.get("scope"));
-            tokenParams.put("resource_id", authorizationParams.get("resource_id"));
-            tokenParams.put("grant_type", grantType);
-            tokenParams.put("code", code);
-            tokenParams.put("redirect_uri", authorizationParams.get("redirect_uri"));
+    //         // exchange
+    //         Map<String, String> tokenParams = new HashMap<>();
+    //         tokenParams.put("realm", realm);
+    //         tokenParams.put("client_id", authorizationParams.get("client_id"));
+    //         tokenParams.put("scope", authorizationParams.get("scope"));
+    //         tokenParams.put("resource_id", authorizationParams.get("resource_id"));
+    //         tokenParams.put("grant_type", grantType);
+    //         tokenParams.put("code", code);
+    //         tokenParams.put("redirect_uri", authorizationParams.get("redirect_uri"));
 
-            TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(tokenParams, clientDetails);
-            OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, tokenRequest);
+    //         TokenRequest tokenRequest = oauth2TokenRequestFactory.createTokenRequest(tokenParams, clientDetails);
+    //         OAuth2AccessToken accessToken = oauth2TokenGranter.grant(grantType, tokenRequest);
 
-            return accessToken;
-        }
-    }
+    //         return accessToken;
+    //     }
+    // }
 
     private OAuth2AccessToken testOAuth2TokenFlow(
         String realm,

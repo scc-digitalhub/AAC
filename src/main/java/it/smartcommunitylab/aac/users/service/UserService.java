@@ -132,9 +132,6 @@ public class UserService {
     @Autowired
     private SpaceRoleService spaceRoleService;
 
-    @Autowired
-    private UserTranslatorService translator;
-
     /*
      * User translation
      */

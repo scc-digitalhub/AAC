@@ -521,7 +521,8 @@ public class MyUserManager {
         Set<UserAttributes> attributes = new HashSet<>();
 
         // add all attributes from context
-        attributes.addAll(details.getAttributeSets(!includeIdentities));
+        //TODO
+        // attributes.addAll(details.getAttributeSets(!includeIdentities));
 
         // refresh attributes from additional providers
         // TODO

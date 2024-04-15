@@ -172,79 +172,79 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
         return provider;
     }
 
-    /*
-     * Test
-     */
-    @GetMapping("/aps/{realm}/{providerId}/test")
-    public ResponseEntity<FunctionValidationBean> testRealmProvider(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
-        Authentication auth,
-        HttpServletResponse res
-    ) throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException, NoSuchAuthorityException {
-        ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
+    // /*
+    //  * Test
+    //  */
+    // @GetMapping("/aps/{realm}/{providerId}/test")
+    // public ResponseEntity<FunctionValidationBean> testRealmProvider(
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
+    //     Authentication auth,
+    //     HttpServletResponse res
+    // ) throws NoSuchProviderException, NoSuchRealmException, SystemException, IOException, NoSuchAuthorityException {
+    //     ConfigurableAttributeProvider provider = providerManager.getProvider(realm, providerId);
 
-        // check if registered
-        boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
-        if (!isRegistered) {
-            throw new IllegalArgumentException("provider is not active");
-        }
+    //     // check if registered
+    //     boolean isRegistered = providerManager.isProviderRegistered(realm, provider);
+    //     if (!isRegistered) {
+    //         throw new IllegalArgumentException("provider is not active");
+    //     }
 
-        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
-            .getAuthority(provider.getAuthority())
-            .getProvider(providerId);
+    //     AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
+    //         .getAuthority(provider.getAuthority())
+    //         .getProvider(providerId);
 
-        // authentication should be a user authentication
-        if (!(auth instanceof UserAuthentication)) {
-            throw new InsufficientAuthenticationException("not a user authentication");
-        }
+    //     // authentication should be a user authentication
+    //     if (!(auth instanceof UserAuthentication)) {
+    //         throw new InsufficientAuthenticationException("not a user authentication");
+    //     }
 
-        UserAuthentication userAuth = (UserAuthentication) auth;
-        UserAuthenticatedPrincipal principal = userAuth.getAuthentications().iterator().next().getPrincipal();
-        FunctionValidationBean function = new FunctionValidationBean();
-        function.setName("attributes");
-        function.setCode(providerId);
+    //     UserAuthentication userAuth = (UserAuthentication) auth;
+    //     UserAuthenticatedPrincipal principal = userAuth.getAuthentications().iterator().next().getPrincipal();
+    //     FunctionValidationBean function = new FunctionValidationBean();
+    //     function.setName("attributes");
+    //     function.setCode(providerId);
 
-        // mock mapping done by provider
-        Map<String, Serializable> principalAttributes = new HashMap<>();
-        // get all attributes from principal
-        Map<String, Serializable> attributes = principal.getAttributes();
-        // TODO handle all attributes not only strings.
-        principalAttributes.putAll(
-            attributes.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))
-        );
+    //     // mock mapping done by provider
+    //     Map<String, Serializable> principalAttributes = new HashMap<>();
+    //     // get all attributes from principal
+    //     Map<String, Serializable> attributes = principal.getAttributes();
+    //     // TODO handle all attributes not only strings.
+    //     principalAttributes.putAll(
+    //         attributes.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))
+    //     );
 
-        // we use also name from principal
-        String name = principal.getName();
-        principalAttributes.put("name", name);
+    //     // we use also name from principal
+    //     String name = principal.getName();
+    //     principalAttributes.put("name", name);
 
-        // add auth info
-        principalAttributes.put("authority", principal.getAuthority());
-        principalAttributes.put("provider", principal.getProvider());
-        principalAttributes.put("realm", principal.getRealm());
-        function.setContext(principalAttributes);
+    //     // add auth info
+    //     principalAttributes.put("authority", principal.getAuthority());
+    //     principalAttributes.put("provider", principal.getProvider());
+    //     principalAttributes.put("realm", principal.getRealm());
+    //     function.setContext(principalAttributes);
 
-        try {
-            Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(
-                principal,
-                userAuth.getSubjectId()
-            );
-            if (userAttributes == null) {
-                userAttributes = Collections.emptyList();
-            }
+    //     try {
+    //         Collection<UserAttributes> userAttributes = ap.convertPrincipalAttributes(
+    //             principal,
+    //             userAuth.getSubjectId()
+    //         );
+    //         if (userAttributes == null) {
+    //             userAttributes = Collections.emptyList();
+    //         }
 
-            Map<String, Serializable> result = new HashMap<>();
-            for (UserAttributes attr : userAttributes) {
-                result.put(attr.getAttributesId(), new ArrayList<>(attr.getAttributes()));
-            }
-            function.setResult(result);
-        } catch (RuntimeException e) {
-            // translate error
-            function.addError(e.getMessage());
-        }
+    //         Map<String, Serializable> result = new HashMap<>();
+    //         for (UserAttributes attr : userAttributes) {
+    //             result.put(attr.getAttributesId(), new ArrayList<>(attr.getAttributes()));
+    //         }
+    //         function.setResult(result);
+    //     } catch (RuntimeException e) {
+    //         // translate error
+    //         function.addError(e.getMessage());
+    //     }
 
-        return ResponseEntity.ok(function);
-    }
+    //     return ResponseEntity.ok(function);
+    // }
 
     /*
      * Import/export for console

@@ -153,7 +153,7 @@ public class OpenIdFedIdentityProvider
         return attributeProvider;
     }
 
-    @Override
+    // @Override
     public OIDCSubjectResolver getSubjectResolver() {
         return subjectResolver;
     }

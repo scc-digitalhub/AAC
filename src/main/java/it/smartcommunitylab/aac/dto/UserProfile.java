@@ -70,16 +70,17 @@ public class UserProfile {
         this.realm = user.getRealm();
         this.username = user.getUsername();
 
-        Set<String> groups = user.getGroups() != null
-            ? user.getGroups().stream().map(g -> g.getGroup()).collect(Collectors.toSet())
-            : null;
-        setGroups(groups);
+        //TODO
+        // Set<String> groups = user.getGroups() != null
+        //     ? user.getGroups().stream().map(g -> g.getGroup()).collect(Collectors.toSet())
+        //     : null;
+        // setGroups(groups);
 
-        Set<String> roles = user.getRoles() != null
-            ? user.getRoles().stream().map(r -> r.getRole()).collect(Collectors.toSet())
-            : null;
-        setRoles(roles);
-        setAttributes(user.getAttributes());
+        // Set<String> roles = user.getRoles() != null
+        //     ? user.getRoles().stream().map(r -> r.getRole()).collect(Collectors.toSet())
+        //     : null;
+        // setRoles(roles);
+        // setAttributes(user.getAttributes());
     }
 
     public String getRealm() {

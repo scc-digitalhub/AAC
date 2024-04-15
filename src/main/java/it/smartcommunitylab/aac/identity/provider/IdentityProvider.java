@@ -16,22 +16,18 @@
 
 package it.smartcommunitylab.aac.identity.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
 import it.smartcommunitylab.aac.users.provider.UserResolver;
-import it.smartcommunitylab.aac.users.provider.UserResourceProvider;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
@@ -55,6 +51,7 @@ public interface IdentityProvider<
     extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M>, UserPersistedResourceProvider<I> {
     @Deprecated
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
+
     public static final String AUTHORIZATION_FUNCTION = "authorize";
 
     /*

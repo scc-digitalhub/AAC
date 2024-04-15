@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.model.UserDetails;
@@ -99,7 +100,8 @@ public class DefaultClientAuthenticationToken extends AbstractAuthenticationToke
         this.details = clientDetails;
 
         //build user context
-        this.client = new Client(clientId, realm);
+        //TODO refactor, use oauth2 for now
+        this.client = new OAuth2Client(realm, clientId);
 
         //store tokens
         this.tokens = Collections.unmodifiableSet(new HashSet<>(tokens));
