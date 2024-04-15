@@ -180,6 +180,7 @@ public class SpidJpaUserAccountService implements UserAccountService<SpidUserAcc
             entity.setPhone(reg.getPhone());
             entity.setFiscalNumber(reg.getFiscalNumber());
             entity.setIvaCode(reg.getIvaCode());
+            entity.setAttributes(reg.getAttributes());
 
             // set account as active
             entity.setStatus(SubjectStatus.ACTIVE.getValue());
@@ -234,6 +235,7 @@ public class SpidJpaUserAccountService implements UserAccountService<SpidUserAcc
             entity.setPhone(reg.getPhone());
             entity.setFiscalNumber(reg.getFiscalNumber());
             entity.setIvaCode(reg.getIvaCode());
+            entity.setAttributes(reg.getAttributes());
 
             // set account as active
             entity.setStatus(reg.getStatus());
@@ -306,6 +308,7 @@ public class SpidJpaUserAccountService implements UserAccountService<SpidUserAcc
         account.setIdp(entity.getIdp());
         account.setFiscalNumber(entity.getFiscalNumber());
         account.setIvaCode(entity.getIvaCode());
+        account.setAttributes(entity.getAttributes());
 
         account.setAttributes(entity.getAttributes());
         account.setCreateDate(entity.getCreateDate());

@@ -57,7 +57,7 @@ import org.springframework.web.util.UriUtils;
 /*
  * SpidWebSsoAuthenticationRequestFilter is the filter that intercepts SPID authentication requests, generates the SAML
  * request and then sends the sso authentication request to the selected (SPID) SAML identity provider.
- * This is a filter accordingly with the Spring Security architecture.
+ * This is a filter mostly aligned with the with the Spring Security architecture.
  * For more on how SPID authentication requests are made, see
  *  https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html
  * For more on the Spring Security architecture and why an AuthenticationRequestFilter is required, see

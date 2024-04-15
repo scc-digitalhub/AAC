@@ -70,6 +70,7 @@ public class SpidAccountPrincipalConverter
         account.setIdp(principal.getIdp());
 
         // TODO: check that values are non-trivial
+        // TODO: I', not sure if selected tables should be used in the account. We should consider just making the account with generic attributes, and that's it
         if (principal.getAttributes().get(SpidAttribute.FAMILY_NAME.getValue()) != null) {
             account.setSurname((String) principal.getAttributes().get(SpidAttribute.FAMILY_NAME.getValue()));
         }

@@ -69,6 +69,7 @@ public class SpidAuthenticationProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final SpidUserAttribute SUBJECT_ATTRIBUTE = SpidUserAttribute.SUBJECT;
     private static final String ACR_ATTRIBUTE = "authnContextClassRef";
+    private static final String ISSUER_ATTRIBUTE = "spidIssuer";
     private final UserAccountService<SpidUserAccount> accountService;
     private final Set<String> registrationIds;
     private final SpidUserAttribute subjectAttribute;
@@ -212,7 +213,17 @@ public class SpidAuthenticationProvider
                 user.setEmailAddress(email);
             }
         }
-        // TODO: inserire l'upstream idp tra gli attributi: deve essere prima inserito negli attributi dal saml respose converter
+        if (samlDetails.getAttributes().containsKey(ISSUER_ATTRIBUTE)) {
+            String issuerIdp = (String) samlDetails
+                .getAttributes()
+                .get(ISSUER_ATTRIBUTE)
+                .stream()
+                .findFirst()
+                .orElse(null);
+            if (StringUtils.hasText(issuerIdp)) {
+                user.setIdp(issuerIdp);
+            }
+        }
 
         HashMap<String, Serializable> principalAttributes = new HashMap<>();
         for (SpidAttribute attr : SpidAttribute.values()) {
@@ -340,8 +351,11 @@ public class SpidAuthenticationProvider
             if (authCtx != null) {
                 attributes.put(ACR_ATTRIBUTE, Collections.singletonList((Object) (authCtx.getValue())));
             }
-            // TODO: also add issuer and issueInstant? are they required by someone?
 
+            String issuer = extractIssuer(response);
+            if (issuer != null) {
+                attributes.put(ISSUER_ATTRIBUTE, Collections.singletonList(issuer));
+            }
             // rebuild auth
             DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
                 auth.getName(),
@@ -364,6 +378,10 @@ public class SpidAuthenticationProvider
         };
     }
 
+    /*
+     * extractAcrValue parse and returns the ACR from a SPID SAML response.
+     * If no ACR is successfully parser, null value is returned.
+     */
     private static @Nullable SpidAuthnContext extractAcrValue(Response response) {
         Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
         if (assertion == null) {
@@ -384,6 +402,20 @@ public class SpidAuthenticationProvider
 
         String acrValue = authnContext.getAuthnContextClassRef().getURI();
         return SpidAuthnContext.parse(acrValue);
+    }
+
+    /*
+     * extractIssuer parse and returns the identity provider from a SPID SAML
+     * response. If not identity provider is successfully parser, null value
+     * is returned.
+     */
+    private static @Nullable String extractIssuer(Response response) {
+        Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
+        if (assertion == null || assertion.getIssuer() == null) {
+            return null;
+        }
+
+        return assertion.getIssuer().getValue();
     }
 
     private String evaluateSubjectIdFromPrincipal(Saml2AuthenticatedPrincipal principal) {
