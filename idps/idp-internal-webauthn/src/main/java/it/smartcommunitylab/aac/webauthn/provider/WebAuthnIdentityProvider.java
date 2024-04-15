@@ -44,7 +44,13 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 
 public class WebAuthnIdentityProvider
-    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, WebAuthnUserAuthenticatedPrincipal, WebAuthnIdentityProviderConfigMap, WebAuthnIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        InternalUserIdentity,
+        InternalUserAccount,
+        WebAuthnUserAuthenticatedPrincipal,
+        WebAuthnIdentityProviderConfigMap,
+        WebAuthnIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -74,53 +80,48 @@ public class WebAuthnIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_WEBAUTHN, providerId, realm);
-        this.accountProvider =
-            new InternalAccountProvider(
-                SystemKeys.AUTHORITY_WEBAUTHN,
-                providerId,
-                userAccountService,
-                repositoryId,
-                realm
-            );
-        this.principalConverter =
-            new InternalAccountPrincipalConverter(
-                SystemKeys.AUTHORITY_WEBAUTHN,
-                providerId,
-                userAccountService,
-                repositoryId,
-                realm
-            );
+        this.accountProvider = new InternalAccountProvider(
+            SystemKeys.AUTHORITY_WEBAUTHN,
+            providerId,
+            userAccountService,
+            repositoryId,
+            realm
+        );
+        this.principalConverter = new InternalAccountPrincipalConverter(
+            SystemKeys.AUTHORITY_WEBAUTHN,
+            providerId,
+            userAccountService,
+            repositoryId,
+            realm
+        );
 
         // build providers
-        this.credentialsService =
-            new WebAuthnIdentityCredentialsService(
-                providerId,
-                userAccountService,
-                userCredentialsService,
-                config,
-                realm
-            );
-        this.authenticationProvider =
-            new WebAuthnIdentityAuthenticationProvider(
-                providerId,
-                userAccountService,
-                credentialsService,
-                config,
-                realm
-            );
+        this.credentialsService = new WebAuthnIdentityCredentialsService(
+            providerId,
+            userAccountService,
+            userCredentialsService,
+            config,
+            realm
+        );
+        this.authenticationProvider = new WebAuthnIdentityAuthenticationProvider(
+            providerId,
+            userAccountService,
+            credentialsService,
+            config,
+            realm
+        );
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.userResolver =
-            new InternalUserResolver(
-                SystemKeys.AUTHORITY_WEBAUTHN,
-                providerId,
-                userEntityService,
-                userAccountService,
-                config.getRepositoryId(),
-                config.isLinkable(),
-                realm
-            );
+        this.userResolver = new InternalUserResolver(
+            SystemKeys.AUTHORITY_WEBAUTHN,
+            providerId,
+            userEntityService,
+            userAccountService,
+            config.getRepositoryId(),
+            config.isLinkable(),
+            realm
+        );
     }
 
     public void setResourceService(ResourceEntityService resourceService) {

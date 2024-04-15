@@ -119,6 +119,7 @@ public class OIDCRpInitiatedLogoutTest {
         METADATA = Collections.unmodifiableSortedSet(set);
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

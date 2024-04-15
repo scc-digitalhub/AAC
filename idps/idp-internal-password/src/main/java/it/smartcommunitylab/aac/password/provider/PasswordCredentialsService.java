@@ -58,7 +58,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class PasswordCredentialsService
-    extends AbstractCredentialsService<InternalUserPassword, InternalEditableUserPassword, PasswordIdentityProviderConfigMap, PasswordCredentialsServiceConfig> {
+    extends AbstractCredentialsService<
+        InternalUserPassword,
+        InternalEditableUserPassword,
+        PasswordIdentityProviderConfigMap,
+        PasswordCredentialsServiceConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

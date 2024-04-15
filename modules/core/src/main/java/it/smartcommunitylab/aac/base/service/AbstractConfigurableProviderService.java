@@ -71,7 +71,9 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
     protected final String type;
 
     protected final ConfigurableProviderEntityService providerService;
-    protected final ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ? extends ConfigMap>> authorityService;
+    protected final ConfigurableAuthorityService<
+        ? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ? extends ConfigMap>
+    > authorityService;
 
     // keep a local map for system providers since these are not in db
     // key is providerId
@@ -84,7 +86,9 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
 
     protected AbstractConfigurableProviderService(
         String type,
-        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ?>> providerAuthorityService,
+        ConfigurableAuthorityService<
+            ? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ?>
+        > providerAuthorityService,
         ConfigurableProviderEntityService providerService,
         Supplier<C> factory
     ) {
@@ -122,9 +126,12 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
         this.entityConverter = entityConverter;
     }
 
-    protected ConfigurationProvider<? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?> getConfigurationProvider(
-        String authority
-    ) throws NoSuchAuthorityException {
+    protected ConfigurationProvider<
+        ? extends ProviderConfig<S, ?>,
+        ? extends ConfigurableProvider<S>,
+        S,
+        ?
+    > getConfigurationProvider(String authority) throws NoSuchAuthorityException {
         ConfigurationProvider<? extends ProviderConfig<S, ?>, ? extends ConfigurableProvider<S>, S, ?> cp =
             authorityService.getAuthority(authority).getConfigurationProvider();
 
@@ -377,8 +384,10 @@ public abstract class AbstractConfigurableProviderService<C extends Configurable
                 // throw new RegistrationException(errorMsg);
                 MethodParameter methodParameter;
                 try {
-                    methodParameter =
-                        new MethodParameter(this.getClass().getMethod("validateConfigMap", ConfigMap.class), 0);
+                    methodParameter = new MethodParameter(
+                        this.getClass().getMethod("validateConfigMap", ConfigMap.class),
+                        0
+                    );
                     throw new MethodArgumentNotValidException(methodParameter, binder.getBindingResult());
                 } catch (NoSuchMethodException | SecurityException ex) {
                     StringBuilder sb = new StringBuilder();

@@ -69,7 +69,6 @@ public class UserProfile {
         this.subjectId = user.getUserId();
         this.realm = user.getRealm();
         this.username = user.getUsername();
-
         //TODO
         // Set<String> groups = user.getGroups() != null
         //     ? user.getGroups().stream().map(g -> g.getGroup()).collect(Collectors.toSet())

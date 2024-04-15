@@ -124,12 +124,11 @@ public class WebAuthnIdentityAuthenticationProvider
                 }
 
                 // update usage counter
-                credential =
-                    credentialsService.updateCredentialCounter(
-                        userHandle,
-                        credentialId,
-                        assertionResult.getSignatureCount()
-                    );
+                credential = credentialsService.updateCredentialCounter(
+                    userHandle,
+                    credentialId,
+                    assertionResult.getSignatureCount()
+                );
             } catch (RegistrationException | NoSuchCredentialException | NoSuchUserException e) {
                 // don't leak credential is invalid
                 throw new WebAuthnAuthenticationException(account.getUserId(), "invalid credentials");

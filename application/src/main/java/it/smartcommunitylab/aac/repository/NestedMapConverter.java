@@ -26,8 +26,9 @@ import javax.persistence.AttributeConverter;
 public class NestedMapConverter implements AttributeConverter<Map<String, Map<String, String>>, String> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final TypeReference<Map<String, Map<String, String>>> typeRef =
-        new TypeReference<Map<String, Map<String, String>>>() {};
+    private final TypeReference<Map<String, Map<String, String>>> typeRef = new TypeReference<
+        Map<String, Map<String, String>>
+    >() {};
 
     @Override
     public String convertToDatabaseColumn(Map<String, Map<String, String>> map) {

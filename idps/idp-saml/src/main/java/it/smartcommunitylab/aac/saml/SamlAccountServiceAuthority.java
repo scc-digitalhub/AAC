@@ -41,7 +41,13 @@ import org.springframework.util.Assert;
 public class SamlAccountServiceAuthority
     extends AbstractProviderAuthority<SamlAccountService, SamlAccountServiceConfig>
     implements
-        AccountServiceAuthority<SamlAccountService, SamlUserAccount, SamlEditableUserAccount, SamlAccountServiceConfig, SamlIdentityProviderConfigMap> {
+        AccountServiceAuthority<
+            SamlAccountService,
+            SamlUserAccount,
+            SamlEditableUserAccount,
+            SamlAccountServiceConfig,
+            SamlIdentityProviderConfigMap
+        > {
 
     // account service
     private final UserAccountService<SamlUserAccount> accountService;
@@ -93,7 +99,12 @@ public class SamlAccountServiceAuthority
     }
 
     @Override
-    public ConfigurationProvider<SamlAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, SamlIdentityProviderConfigMap> getConfigurationProvider() {
+    public ConfigurationProvider<
+        SamlAccountServiceConfig,
+        ConfigurableAccountService,
+        AccountServiceSettingsMap,
+        SamlIdentityProviderConfigMap
+    > getConfigurationProvider() {
         return null;
     }
 }

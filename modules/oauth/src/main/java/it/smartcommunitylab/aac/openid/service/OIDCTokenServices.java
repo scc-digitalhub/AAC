@@ -486,11 +486,10 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 ((AACOAuth2AccessToken) accessToken).getClaims()
                     .entrySet()
                     .stream()
-                    .filter(e ->
-                        (
-                            !IdToken.REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                            !IdToken.STANDARD_CLAIM_NAMES.contains(e.getKey())
-                        )
+                    .filter(
+                        e ->
+                            (!IdToken.REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                                !IdToken.STANDARD_CLAIM_NAMES.contains(e.getKey()))
                     )
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             userClaims.putAll(accessTokenClaims);

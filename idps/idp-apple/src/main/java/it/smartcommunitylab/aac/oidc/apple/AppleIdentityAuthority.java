@@ -37,7 +37,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class AppleIdentityAuthority
-    extends AbstractSingleProviderIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfig, AppleIdentityProviderConfigMap> {
+    extends AbstractSingleProviderIdentityAuthority<
+        AppleIdentityProvider,
+        OIDCUserIdentity,
+        AppleIdentityProviderConfig,
+        AppleIdentityProviderConfigMap
+    > {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_APPLE + "/";
 

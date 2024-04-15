@@ -71,8 +71,9 @@ import org.yaml.snakeyaml.Yaml;
 public class DevTemplatesController extends BaseTemplatesController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<TemplateModel>>> typeRef =
-        new TypeReference<Map<String, List<TemplateModel>>>() {};
+    private final TypeReference<Map<String, List<TemplateModel>>> typeRef = new TypeReference<
+        Map<String, List<TemplateModel>>
+    >() {};
     private final String LIST_KEY = "templates";
 
     @Autowired

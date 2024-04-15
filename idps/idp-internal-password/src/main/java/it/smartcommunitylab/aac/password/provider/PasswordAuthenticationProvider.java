@@ -76,20 +76,24 @@ public class PasswordAuthenticationProvider
         this.passwordEncoder = new InternalPasswordEncoder();
 
         // build our internal auth provider
-        authProvider =
-            new UsernamePasswordAuthenticationProvider(
-                providerId,
-                userAccountService,
-                passwordService,
-                repositoryId,
-                realm
-            );
+        authProvider = new UsernamePasswordAuthenticationProvider(
+            providerId,
+            userAccountService,
+            passwordService,
+            repositoryId,
+            realm
+        );
         //        // we use our password encoder
         //        authProvider.setPasswordEncoder(passwordEncoder);
 
         // build additional providers
-        resetKeyProvider =
-            new ResetKeyAuthenticationProvider(providerId, userAccountService, passwordService, repositoryId, realm);
+        resetKeyProvider = new ResetKeyAuthenticationProvider(
+            providerId,
+            userAccountService,
+            passwordService,
+            repositoryId,
+            realm
+        );
     }
 
     @Override

@@ -200,8 +200,9 @@ public class OIDCTokenEnhancer implements TokenEnhancer {
                 ((AACOAuth2AccessToken) accessToken).getClaims()
                     .entrySet()
                     .stream()
-                    .filter(e ->
-                        (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) && !STANDARD_CLAIM_NAMES.contains(e.getKey()))
+                    .filter(
+                        e ->
+                            (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) && !STANDARD_CLAIM_NAMES.contains(e.getKey()))
                     )
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             userClaims.putAll(accessTokenClaims);

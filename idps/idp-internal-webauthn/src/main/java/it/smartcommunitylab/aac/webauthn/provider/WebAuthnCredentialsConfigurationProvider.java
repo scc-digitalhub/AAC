@@ -25,7 +25,10 @@ import org.springframework.stereotype.Service;
 
 // @Service
 public class WebAuthnCredentialsConfigurationProvider
-    extends AbstractCredentialsConfigurationProvider<WebAuthnCredentialsServiceConfig, WebAuthnIdentityProviderConfigMap> {
+    extends AbstractCredentialsConfigurationProvider<
+        WebAuthnCredentialsServiceConfig,
+        WebAuthnIdentityProviderConfigMap
+    > {
 
     public WebAuthnCredentialsConfigurationProvider(
         ProviderConfigRepository<WebAuthnCredentialsServiceConfig> registrationRepository,

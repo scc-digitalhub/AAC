@@ -66,8 +66,9 @@ public class OAuth2DCRSecurityConfig {
         // registration as anonymous
         http
             .requestMatcher(getRequestMatcher())
-            .authorizeRequests(authorizeRequests ->
-                authorizeRequests.anyRequest().hasAnyAuthority(Config.R_CLIENT, Config.R_USER, "ROLE_ANONYMOUS")
+            .authorizeRequests(
+                authorizeRequests ->
+                    authorizeRequests.anyRequest().hasAnyAuthority(Config.R_CLIENT, Config.R_USER, "ROLE_ANONYMOUS")
             )
             // bare authentication manager with only anonymous+bearer
             .authenticationManager(
@@ -77,8 +78,8 @@ public class OAuth2DCRSecurityConfig {
                 )
             )
             // use bearer token auth, will add filter
-            .oauth2ResourceServer(oauth2 ->
-                oauth2.opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
+            .oauth2ResourceServer(
+                oauth2 -> oauth2.opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
             )
             // disable request cache, we override redirects but still better enforce it
             .requestCache(requestCache -> requestCache.disable())
@@ -100,8 +101,7 @@ public class OAuth2DCRSecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(OAUTH2_DCR_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_DCR_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

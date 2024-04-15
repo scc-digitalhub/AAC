@@ -836,23 +836,21 @@ public class DevManager {
                     approval = sa.approveClientScope(s, clientDetails, clientScopes);
                 }
                 if (ScopeType.USER == scope.getType() && userDetails != null) {
-                    approval =
-                        sa.approveUserScope(
+                    approval = sa.approveUserScope(
+                        s,
+                        userService.getUser(userDetails, sa.getRealm()),
+                        clientDetails,
+                        clientScopes
+                    );
+                }
+                if (ScopeType.GENERIC == scope.getType()) {
+                    if (userDetails != null) {
+                        approval = sa.approveUserScope(
                             s,
                             userService.getUser(userDetails, sa.getRealm()),
                             clientDetails,
                             clientScopes
                         );
-                }
-                if (ScopeType.GENERIC == scope.getType()) {
-                    if (userDetails != null) {
-                        approval =
-                            sa.approveUserScope(
-                                s,
-                                userService.getUser(userDetails, sa.getRealm()),
-                                clientDetails,
-                                clientScopes
-                            );
                     } else {
                         approval = sa.approveClientScope(s, clientDetails, clientScopes);
                     }

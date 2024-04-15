@@ -26,7 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class SamlAccountService
-    extends AbstractAccountService<SamlUserAccount, SamlEditableUserAccount, SamlAccountServiceConfig, SamlIdentityProviderConfigMap> {
+    extends AbstractAccountService<
+        SamlUserAccount,
+        SamlEditableUserAccount,
+        SamlAccountServiceConfig,
+        SamlIdentityProviderConfigMap
+    > {
 
     public SamlAccountService(
         String providerId,

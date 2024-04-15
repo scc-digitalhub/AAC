@@ -83,13 +83,11 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
         Set<PublicKeyCredentialDescriptor> descriptors = new HashSet<>();
         for (WebAuthnUserCredentialEntity c : credentials) {
             try {
-                Set<AuthenticatorTransport> transports = StringUtils
-                    .commaDelimitedListToSet(c.getTransports())
+                Set<AuthenticatorTransport> transports = StringUtils.commaDelimitedListToSet(c.getTransports())
                     .stream()
                     .map(t -> AuthenticatorTransport.of(t))
                     .collect(Collectors.toSet());
-                PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor
-                    .builder()
+                PublicKeyCredentialDescriptor descriptor = PublicKeyCredentialDescriptor.builder()
                     .id(ByteArray.fromBase64Url(c.getCredentialId()))
                     .type(PublicKeyCredentialType.PUBLIC_KEY)
                     .transports(transports)
@@ -182,8 +180,7 @@ public class WebAuthnYubicoCredentialsRepository implements CredentialRepository
 
     private RegisteredCredential toRegisteredCredential(WebAuthnUserCredentialEntity credential)
         throws Base64UrlException {
-        return RegisteredCredential
-            .builder()
+        return RegisteredCredential.builder()
             .credentialId(ByteArray.fromBase64Url(credential.getCredentialId()))
             .userHandle(new ByteArray(credential.getUserHandle().getBytes()))
             .publicKeyCose(ByteArray.fromBase64(credential.getPublicKeyCose()))

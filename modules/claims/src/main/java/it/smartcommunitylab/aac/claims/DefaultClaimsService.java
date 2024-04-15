@@ -85,8 +85,9 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .setSerializationInclusion(Include.NON_EMPTY);
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     public DefaultClaimsService(ExtractorsRegistry extractorsRegistry) {
         Assert.notNull(extractorsRegistry, "extractors registry is mandatory");
@@ -268,13 +269,12 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                 Map<String, Serializable> allowedClaims = customClaims
                     .entrySet()
                     .stream()
-                    .filter(e ->
-                        (
-                            !reservedKeys.contains(e.getKey()) &&
-                            !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
-                            !SYSTEM_CLAIM_NAMES.contains(e.getKey())
-                        )
+                    .filter(
+                        e ->
+                            (!reservedKeys.contains(e.getKey()) &&
+                                !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                                !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                                !SYSTEM_CLAIM_NAMES.contains(e.getKey()))
                     )
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
                 claims.putAll(allowedClaims);
@@ -347,13 +347,12 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
             Map<String, Serializable> allowedClaims = customClaims
                 .entrySet()
                 .stream()
-                .filter(e ->
-                    (
-                        !reservedKeys.contains(e.getKey()) &&
-                        !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                        !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
-                        !SYSTEM_CLAIM_NAMES.contains(e.getKey())
-                    )
+                .filter(
+                    e ->
+                        (!reservedKeys.contains(e.getKey()) &&
+                            !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                            !SYSTEM_CLAIM_NAMES.contains(e.getKey()))
                 )
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             claims.putAll(allowedClaims);
@@ -378,12 +377,11 @@ public class DefaultClaimsService implements ClaimsService, InitializingBean {
                 return map
                     .entrySet()
                     .stream()
-                    .filter(e ->
-                        (
-                            !REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
-                            !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
-                            !SYSTEM_CLAIM_NAMES.contains(e.getKey())
-                        )
+                    .filter(
+                        e ->
+                            (!REGISTERED_CLAIM_NAMES.contains(e.getKey()) &&
+                                !STANDARD_CLAIM_NAMES.contains(e.getKey()) &&
+                                !SYSTEM_CLAIM_NAMES.contains(e.getKey()))
                     )
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             }

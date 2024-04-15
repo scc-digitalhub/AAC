@@ -50,28 +50,26 @@ public class ConfigurableProviderConverter
         Map<String, String> titleMap = null;
         if (reg.getTitleMap() != null) {
             // cleanup every field via safelist
-            titleMap =
-                reg
-                    .getTitleMap()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null)
-                    .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            titleMap = reg
+                .getTitleMap()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
         pe.setTitleMap(titleMap);
 
         Map<String, String> descriptionMap = null;
         if (reg.getDescriptionMap() != null) {
             // cleanup every field via safelist
-            descriptionMap =
-                reg
-                    .getDescriptionMap()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getValue() != null)
-                    .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            descriptionMap = reg
+                .getDescriptionMap()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .map(e -> Map.entry(e.getKey(), Jsoup.clean(e.getValue(), Safelist.none())))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
         pe.setDescriptionMap(descriptionMap);
 

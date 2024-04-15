@@ -35,9 +35,20 @@ import org.springframework.util.Assert;
 
 @Service
 public class TemplateAuthority
-    extends AbstractSingleConfigurableProviderAuthority<TemplateTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
+    extends AbstractSingleConfigurableProviderAuthority<
+        TemplateTemplateProvider,
+        ConfigurableTemplateProvider,
+        RealmTemplateProviderConfig,
+        TemplateProviderSettingsMap,
+        TemplateProviderConfigMap
+    >
     implements
-        TemplateProviderAuthority<TemplateTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
+        TemplateProviderAuthority<
+            TemplateTemplateProvider,
+            TemplateModel,
+            RealmTemplateProviderConfig,
+            TemplateProviderConfigMap
+        > {
 
     // services
     private final TemplateService templateService;

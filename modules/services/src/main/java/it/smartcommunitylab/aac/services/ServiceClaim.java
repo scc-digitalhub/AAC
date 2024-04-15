@@ -139,10 +139,8 @@ public class ServiceClaim extends AbstractClaim {
         }
 
         if (
-            v instanceof String &&
-            type.equals(AttributeType.STRING) ||
-            v instanceof Map &&
-            type.equals(AttributeType.OBJECT)
+            (v instanceof String && type.equals(AttributeType.STRING)) ||
+            (v instanceof Map && type.equals(AttributeType.OBJECT))
         ) {
             return true;
         }
@@ -166,14 +164,13 @@ public class ServiceClaim extends AbstractClaim {
             switch (claim.getType()) {
                 case BOOLEAN:
                     return Boolean.parseBoolean(value);
-                case NUMBER:
-                    {
-                        try {
-                            return Integer.parseInt(value);
-                        } catch (Exception e) {
-                            return Double.parseDouble(value);
-                        }
+                case NUMBER: {
+                    try {
+                        return Integer.parseInt(value);
+                    } catch (Exception e) {
+                        return Double.parseDouble(value);
                     }
+                }
                 case STRING:
                     return mapper.readValue(value, String.class);
                 case OBJECT:

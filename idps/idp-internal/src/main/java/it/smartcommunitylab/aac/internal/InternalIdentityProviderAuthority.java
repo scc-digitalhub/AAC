@@ -36,7 +36,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class InternalIdentityProviderAuthority
-    extends AbstractSingleProviderIdentityAuthority<InternalIdentityProvider, InternalUserIdentity, InternalIdentityProviderConfig, InternalIdentityProviderConfigMap> {
+    extends AbstractSingleProviderIdentityAuthority<
+        InternalIdentityProvider,
+        InternalUserIdentity,
+        InternalIdentityProviderConfig,
+        InternalIdentityProviderConfigMap
+    > {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 
@@ -70,8 +75,11 @@ public class InternalIdentityProviderAuthority
         this.confirmKeyService = confirmKeyService;
 
         // build filter provider
-        this.filterProvider =
-            new InternalIdentityFilterProvider(userAccountService, confirmKeyService, registrationRepository);
+        this.filterProvider = new InternalIdentityFilterProvider(
+            userAccountService,
+            confirmKeyService,
+            registrationRepository
+        );
     }
 
     @Autowired

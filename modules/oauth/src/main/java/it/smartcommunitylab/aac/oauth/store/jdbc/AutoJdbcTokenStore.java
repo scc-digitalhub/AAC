@@ -86,16 +86,15 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
         String key = extractTokenKey(tokenValue);
 
         try {
-            accessToken =
-                jdbcTemplate.queryForObject(
-                    selectAccessTokenFromRefreshTokenSql,
-                    new RowMapper<OAuth2AccessToken>() {
-                        public OAuth2AccessToken mapRow(ResultSet rs, int rowNum) throws SQLException {
-                            return deserializeAccessToken(rs.getBytes(2));
-                        }
-                    },
-                    key
-                );
+            accessToken = jdbcTemplate.queryForObject(
+                selectAccessTokenFromRefreshTokenSql,
+                new RowMapper<OAuth2AccessToken>() {
+                    public OAuth2AccessToken mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return deserializeAccessToken(rs.getBytes(2));
+                    }
+                },
+                key
+            );
         } catch (EmptyResultDataAccessException e) {
             if (logger.isInfoEnabled()) {
                 logger.debug("Failed to find access token for refresh " + tokenValue);

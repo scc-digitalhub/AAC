@@ -38,7 +38,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class OpenIdFedIdentityAuthority
-    extends AbstractIdentityProviderAuthority<OpenIdFedIdentityProvider, OIDCUserIdentity, OpenIdFedIdentityProviderConfig, OpenIdFedIdentityProviderConfigMap>
+    extends AbstractIdentityProviderAuthority<
+        OpenIdFedIdentityProvider,
+        OIDCUserIdentity,
+        OpenIdFedIdentityProviderConfig,
+        OpenIdFedIdentityProviderConfigMap
+    >
     implements ApplicationEventPublisherAware {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OPENIDFED + "/";

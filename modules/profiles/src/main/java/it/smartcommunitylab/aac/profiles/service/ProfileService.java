@@ -83,8 +83,7 @@ public class ProfileService {
     //            });
 
     // loading cache for set dump extractors
-    private final LoadingCache<String, UserProfileExtractor> setExtractors = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<String, UserProfileExtractor> setExtractors = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(

@@ -172,8 +172,9 @@ public class SamlIdentityProviderMetadataTest {
             .getAssertionConsumerServices();
 
         assertThat(assertionConsumerServices.get(0).getBinding()).isEqualTo(Saml2MessageBinding.POST.getUrn());
-        assertThat(assertionConsumerServices.get(0).getLocation())
-            .isEqualTo(signingIdpAssertionConsumerServiceLocation);
+        assertThat(assertionConsumerServices.get(0).getLocation()).isEqualTo(
+            signingIdpAssertionConsumerServiceLocation
+        );
     }
 
     @Test
@@ -230,9 +231,9 @@ public class SamlIdentityProviderMetadataTest {
         InputStream metadataSigningCertificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(metadataSigningCertificate.getBytes())
         );
-        X509Certificate metadataSigningCertificateX509 = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(metadataSigningCertificateStream);
+        X509Certificate metadataSigningCertificateX509 = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(metadataSigningCertificateStream);
 
         String strippedIdpSigningCertificate = signingIdpSigningCertificate
             .replace(BEGIN_CERT, "")
@@ -242,9 +243,9 @@ public class SamlIdentityProviderMetadataTest {
         InputStream idpSigningCertificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(strippedIdpSigningCertificate.getBytes())
         );
-        X509Certificate idpSigningCertificateX509 = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(idpSigningCertificateStream);
+        X509Certificate idpSigningCertificateX509 = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(idpSigningCertificateStream);
 
         assertThat(metadataSigningCertificateX509).isEqualTo(idpSigningCertificateX509);
     }
@@ -290,9 +291,9 @@ public class SamlIdentityProviderMetadataTest {
         InputStream metadataSigningCertificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(metadataSigningCertificate.getBytes())
         );
-        X509Certificate metadataSigningCertificateX509 = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(metadataSigningCertificateStream);
+        X509Certificate metadataSigningCertificateX509 = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(metadataSigningCertificateStream);
 
         String strippedIdpSigningCertificate = signingAndCryptIdpSigningCertificate
             .replace(BEGIN_CERT, "")
@@ -302,9 +303,9 @@ public class SamlIdentityProviderMetadataTest {
         InputStream idpSigningCertificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(strippedIdpSigningCertificate.getBytes())
         );
-        X509Certificate idpSigningCertificateX509 = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(idpSigningCertificateStream);
+        X509Certificate idpSigningCertificateX509 = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(idpSigningCertificateStream);
 
         assertThat(metadataSigningCertificateX509).isEqualTo(idpSigningCertificateX509);
 
@@ -321,9 +322,9 @@ public class SamlIdentityProviderMetadataTest {
         InputStream metadataCryptCertificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(metadataCryptCertificate.getBytes())
         );
-        X509Certificate metadataCryptCertificateX509 = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(metadataCryptCertificateStream);
+        X509Certificate metadataCryptCertificateX509 = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(metadataCryptCertificateStream);
 
         String strippedIdpCryptCertificate = signingAndCryptIdpCryptCertificate
             .replace(BEGIN_CERT, "")
@@ -333,9 +334,9 @@ public class SamlIdentityProviderMetadataTest {
         InputStream idpCryptCertificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(strippedIdpCryptCertificate.getBytes())
         );
-        X509Certificate idpCryptCertificateX509 = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(idpCryptCertificateStream);
+        X509Certificate idpCryptCertificateX509 = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(idpCryptCertificateStream);
 
         assertThat(metadataCryptCertificateX509).isEqualTo(idpCryptCertificateX509);
     }

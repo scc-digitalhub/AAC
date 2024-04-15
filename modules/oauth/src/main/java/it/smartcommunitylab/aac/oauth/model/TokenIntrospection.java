@@ -222,12 +222,11 @@ public class TokenIntrospection {
     }
 
     public void setClaims(Map<String, Serializable> claims) {
-        this.claims =
-            claims
-                .entrySet()
-                .stream()
-                .filter(c -> !RESERVED_CLAIM_NAMES.contains(c.getKey()))
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        this.claims = claims
+            .entrySet()
+            .stream()
+            .filter(c -> !RESERVED_CLAIM_NAMES.contains(c.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
     public void addClaim(String key, Serializable value) {

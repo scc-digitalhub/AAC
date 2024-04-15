@@ -28,7 +28,13 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 
 public interface IdentityProviderAuthority<
-    P extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, M, C>,
+    P extends IdentityProvider<
+        ? extends UserIdentity,
+        ? extends UserAccount,
+        ? extends UserAuthenticatedPrincipal,
+        M,
+        C
+    >,
     C extends IdentityProviderConfig<M>,
     M extends ConfigMap
 >

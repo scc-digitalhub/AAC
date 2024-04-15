@@ -32,11 +32,38 @@ import org.springframework.util.Assert;
 
 @Service
 public class AccountServiceAuthorityService
-    extends AbstractConfigurableAuthorityService<AccountServiceAuthority<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>, ? extends UserAccount, ? extends EditableUserAccount, ? extends AccountServiceConfig<? extends ConfigMap>, ? extends ConfigMap>, AccountServiceSettingsMap>
+    extends AbstractConfigurableAuthorityService<
+        AccountServiceAuthority<
+            ? extends AccountService<
+                ? extends UserAccount,
+                ? extends EditableUserAccount,
+                ? extends ConfigMap,
+                ? extends AccountServiceConfig<? extends ConfigMap>
+            >,
+            ? extends UserAccount,
+            ? extends EditableUserAccount,
+            ? extends AccountServiceConfig<? extends ConfigMap>,
+            ? extends ConfigMap
+        >,
+        AccountServiceSettingsMap
+    >
     implements InitializingBean {
 
     public AccountServiceAuthorityService(
-        Collection<AccountServiceAuthority<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>, ? extends UserAccount, ? extends EditableUserAccount, ? extends AccountServiceConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+        Collection<
+            AccountServiceAuthority<
+                ? extends AccountService<
+                    ? extends UserAccount,
+                    ? extends EditableUserAccount,
+                    ? extends ConfigMap,
+                    ? extends AccountServiceConfig<? extends ConfigMap>
+                >,
+                ? extends UserAccount,
+                ? extends EditableUserAccount,
+                ? extends AccountServiceConfig<? extends ConfigMap>,
+                ? extends ConfigMap
+            >
+        > authorities
     ) {
         super(SystemKeys.RESOURCE_ACCOUNT);
         this.setAuthorities(authorities);

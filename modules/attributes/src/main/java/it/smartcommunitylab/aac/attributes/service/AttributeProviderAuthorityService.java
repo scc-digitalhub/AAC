@@ -31,11 +31,32 @@ import org.springframework.util.Assert;
 
 @Service
 public class AttributeProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<AttributeProviderAuthority<? extends AttributeProvider<? extends UserAttributes, ? extends ConfigMap, ? extends AttributeProviderConfig<? extends ConfigMap>>, ? extends AttributeProviderConfig<? extends ConfigMap>, ? extends ConfigMap>, AttributeProviderSettingsMap>
+    extends AbstractConfigurableAuthorityService<
+        AttributeProviderAuthority<
+            ? extends AttributeProvider<
+                ? extends UserAttributes,
+                ? extends ConfigMap,
+                ? extends AttributeProviderConfig<? extends ConfigMap>
+            >,
+            ? extends AttributeProviderConfig<? extends ConfigMap>,
+            ? extends ConfigMap
+        >,
+        AttributeProviderSettingsMap
+    >
     implements InitializingBean {
 
     public AttributeProviderAuthorityService(
-        Collection<AttributeProviderAuthority<? extends AttributeProvider<? extends UserAttributes, ? extends ConfigMap, ? extends AttributeProviderConfig<? extends ConfigMap>>, ? extends AttributeProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+        Collection<
+            AttributeProviderAuthority<
+                ? extends AttributeProvider<
+                    ? extends UserAttributes,
+                    ? extends ConfigMap,
+                    ? extends AttributeProviderConfig<? extends ConfigMap>
+                >,
+                ? extends AttributeProviderConfig<? extends ConfigMap>,
+                ? extends ConfigMap
+            >
+        > authorities
     ) {
         super(SystemKeys.RESOURCE_ATTRIBUTES);
         this.setAuthorities(authorities);

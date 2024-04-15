@@ -60,9 +60,19 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class InternalAccountService
-    extends AbstractConfigurableResourceProvider<InternalUserAccount, InternalAccountServiceConfig, AccountServiceSettingsMap, InternalIdentityProviderConfigMap>
+    extends AbstractConfigurableResourceProvider<
+        InternalUserAccount,
+        InternalAccountServiceConfig,
+        AccountServiceSettingsMap,
+        InternalIdentityProviderConfigMap
+    >
     implements
-        AccountService<InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalAccountServiceConfig> {
+        AccountService<
+            InternalUserAccount,
+            InternalEditableUserAccount,
+            InternalIdentityProviderConfigMap,
+            InternalAccountServiceConfig
+        > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

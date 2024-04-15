@@ -25,7 +25,10 @@ import org.springframework.stereotype.Service;
 
 // @Service
 public class PasswordCredentialsConfigurationProvider
-    extends AbstractCredentialsConfigurationProvider<PasswordCredentialsServiceConfig, PasswordIdentityProviderConfigMap> {
+    extends AbstractCredentialsConfigurationProvider<
+        PasswordCredentialsServiceConfig,
+        PasswordIdentityProviderConfigMap
+    > {
 
     public PasswordCredentialsConfigurationProvider(
         ProviderConfigRepository<PasswordCredentialsServiceConfig> registrationRepository,

@@ -238,32 +238,31 @@ public class OAuth2ClientAppService implements ClientAppService {
         OAuth2ClientConfigMap configMap = new OAuth2ClientConfigMap(configuration);
 
         // update
-        client =
-            clientService.updateClient(
-                clientId,
-                name,
-                description,
-                Arrays.asList(app.getScopes()),
-                Arrays.asList(app.getResourceIds()),
-                Arrays.asList(app.getProviders()),
-                app.getHookFunctions(),
-                app.getHookWebUrls(),
-                app.getHookUniqueSpaces(),
-                configMap.getAuthorizedGrantTypes(),
-                configMap.getRedirectUris(),
-                configMap.getApplicationType(),
-                configMap.getTokenType(),
-                configMap.getSubjectType(),
-                configMap.getAuthenticationMethods(),
-                configMap.getIdTokenClaims(),
-                configMap.getFirstParty(),
-                configMap.getAccessTokenValidity(),
-                configMap.getRefreshTokenValidity(),
-                configMap.getIdTokenValidity(),
-                configMap.getJwksUri(),
-                configMap.getAdditionalConfig(),
-                configMap.getAdditionalInformation()
-            );
+        client = clientService.updateClient(
+            clientId,
+            name,
+            description,
+            Arrays.asList(app.getScopes()),
+            Arrays.asList(app.getResourceIds()),
+            Arrays.asList(app.getProviders()),
+            app.getHookFunctions(),
+            app.getHookWebUrls(),
+            app.getHookUniqueSpaces(),
+            configMap.getAuthorizedGrantTypes(),
+            configMap.getRedirectUris(),
+            configMap.getApplicationType(),
+            configMap.getTokenType(),
+            configMap.getSubjectType(),
+            configMap.getAuthenticationMethods(),
+            configMap.getIdTokenClaims(),
+            configMap.getFirstParty(),
+            configMap.getAccessTokenValidity(),
+            configMap.getRefreshTokenValidity(),
+            configMap.getIdTokenValidity(),
+            configMap.getJwksUri(),
+            configMap.getAdditionalConfig(),
+            configMap.getAdditionalInformation()
+        );
 
         return toApp(client);
     }

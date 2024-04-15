@@ -65,14 +65,13 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         this.authenticationManager = authenticationManager;
 
         // build auth converters ordered by priority
-        this.authenticationConverter =
-            new DelegatingAuthenticationConverter(
-                new ClientJwtAssertionAuthenticationConverter(),
-                new ClientPKCEAuthenticationConverter(),
-                new ClientRefreshAuthenticationConverter(),
-                new ClientSecretBasicAuthenticationConverter(),
-                new ClientSecretPostAuthenticationConverter()
-            );
+        this.authenticationConverter = new DelegatingAuthenticationConverter(
+            new ClientJwtAssertionAuthenticationConverter(),
+            new ClientPKCEAuthenticationConverter(),
+            new ClientRefreshAuthenticationConverter(),
+            new ClientSecretBasicAuthenticationConverter(),
+            new ClientSecretPostAuthenticationConverter()
+        );
 
         // build request matcher
         requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
@@ -111,8 +110,7 @@ public class OAuth2ClientAuthFilter extends OncePerRequestFilter {
         this.authenticationConverter = authenticationConverter;
 
         // configure OR request matcher, we want to support global AND realm paths
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(filterProcessingUrl)
+        List<RequestMatcher> antMatchers = Arrays.stream(filterProcessingUrl)
             .filter(u -> StringUtils.hasText(u))
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());

@@ -85,8 +85,7 @@ public class TosOnAccessFilter extends OncePerRequestFilter {
     }
 
     private RequestMatcher buildRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(SKIP_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(SKIP_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

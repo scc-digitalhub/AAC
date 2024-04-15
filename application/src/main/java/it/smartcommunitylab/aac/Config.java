@@ -183,8 +183,7 @@ public class Config {
 
     public static final String WELL_KNOWN_URL = "/.well-known";
 
-    public static final Safelist WHITELIST_RELAXED_NOIMG = Safelist
-        .relaxed()
+    public static final Safelist WHITELIST_RELAXED_NOIMG = Safelist.relaxed()
         .removeTags("img")
         .addTags("nav", "button", "hr")
         .addProtocols("a", "href", "#")

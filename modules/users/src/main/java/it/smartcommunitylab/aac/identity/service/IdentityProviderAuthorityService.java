@@ -32,11 +32,36 @@ import org.springframework.util.Assert;
 
 //@Service
 public class IdentityProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>, IdentityProviderSettingsMap>
+    extends AbstractConfigurableAuthorityService<
+        IdentityProviderAuthority<
+            ? extends IdentityProvider<
+                ? extends UserIdentity,
+                ? extends UserAccount,
+                ? extends UserAuthenticatedPrincipal,
+                ? extends ConfigMap,
+                ? extends IdentityProviderConfig<? extends ConfigMap>
+            >,
+            ? extends IdentityProviderConfig<? extends ConfigMap>,
+            ? extends ConfigMap
+        >,
+        IdentityProviderSettingsMap
+    >
     implements InitializingBean {
 
     public IdentityProviderAuthorityService(
-        Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+        Collection<
+            IdentityProviderAuthority<
+                ? extends IdentityProvider<
+                    ? extends UserIdentity,
+                    ? extends UserAccount,
+                    ? extends UserAuthenticatedPrincipal,
+                    ? extends ConfigMap,
+                    ? extends IdentityProviderConfig<? extends ConfigMap>
+                >,
+                ? extends IdentityProviderConfig<? extends ConfigMap>,
+                ? extends ConfigMap
+            >
+        > authorities
     ) {
         super(SystemKeys.RESOURCE_IDENTITY);
         this.setAuthorities(authorities);

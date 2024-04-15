@@ -26,7 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class OIDCAccountService
-    extends AbstractAccountService<OIDCUserAccount, OIDCEditableUserAccount, OIDCAccountServiceConfig, OIDCIdentityProviderConfigMap> {
+    extends AbstractAccountService<
+        OIDCUserAccount,
+        OIDCEditableUserAccount,
+        OIDCAccountServiceConfig,
+        OIDCIdentityProviderConfigMap
+    > {
 
     public OIDCAccountService(
         String providerId,

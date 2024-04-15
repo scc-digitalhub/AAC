@@ -60,7 +60,12 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class WebAuthnCredentialsService
-    extends AbstractCredentialsService<WebAuthnUserCredential, WebAuthnEditableUserCredential, WebAuthnIdentityProviderConfigMap, WebAuthnCredentialsServiceConfig> {
+    extends AbstractCredentialsService<
+        WebAuthnUserCredential,
+        WebAuthnEditableUserCredential,
+        WebAuthnIdentityProviderConfigMap,
+        WebAuthnCredentialsServiceConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

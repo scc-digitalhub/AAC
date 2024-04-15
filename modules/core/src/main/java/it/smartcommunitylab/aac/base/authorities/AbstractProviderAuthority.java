@@ -38,7 +38,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 public abstract class AbstractProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<? extends Resource, C, ? extends AbstractSettingsMap, ? extends AbstractConfigMap>,
+    P extends AbstractConfigurableResourceProvider<
+        ? extends Resource,
+        C,
+        ? extends AbstractSettingsMap,
+        ? extends AbstractConfigMap
+    >,
     C extends AbstractProviderConfig<? extends AbstractSettingsMap, ? extends AbstractConfigMap>
 >
     implements ProviderAuthority<P> {
@@ -53,8 +58,7 @@ public abstract class AbstractProviderAuthority<
     // loading cache for idps
     // TODO replace with external loadableProviderRepository for
     // ProviderRepository<InternalIdentityProvider>
-    protected final LoadingCache<String, P> providers = CacheBuilder
-        .newBuilder()
+    protected final LoadingCache<String, P> providers = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(

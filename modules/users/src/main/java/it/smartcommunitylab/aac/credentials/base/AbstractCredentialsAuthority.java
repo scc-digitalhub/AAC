@@ -32,7 +32,13 @@ public abstract class AbstractCredentialsAuthority<
     C extends AbstractCredentialsServiceConfig<M>,
     M extends AbstractConfigMap
 >
-    extends AbstractSingleConfigurableProviderAuthority<S, ConfigurableCredentialsProvider, C, CredentialsServiceSettingsMap, M>
+    extends AbstractSingleConfigurableProviderAuthority<
+        S,
+        ConfigurableCredentialsProvider,
+        C,
+        CredentialsServiceSettingsMap,
+        M
+    >
     implements CredentialsServiceAuthority<S, R, E, M, C> {
 
     // configuration provider

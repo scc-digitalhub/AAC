@@ -46,7 +46,13 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.Assert;
 
 public class PasswordIdentityProvider
-    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalPasswordUserAuthenticatedPrincipal, PasswordIdentityProviderConfigMap, PasswordIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        InternalUserIdentity,
+        InternalUserAccount,
+        InternalPasswordUserAuthenticatedPrincipal,
+        PasswordIdentityProviderConfigMap,
+        PasswordIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -76,41 +82,48 @@ public class PasswordIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_PASSWORD, providerId, realm);
-        this.accountProvider =
-            new InternalAccountProvider(
-                SystemKeys.AUTHORITY_PASSWORD,
-                providerId,
-                userAccountService,
-                repositoryId,
-                realm
-            );
-        this.principalConverter =
-            new InternalAccountPrincipalConverter(
-                SystemKeys.AUTHORITY_PASSWORD,
-                providerId,
-                userAccountService,
-                repositoryId,
-                realm
-            );
+        this.accountProvider = new InternalAccountProvider(
+            SystemKeys.AUTHORITY_PASSWORD,
+            providerId,
+            userAccountService,
+            repositoryId,
+            realm
+        );
+        this.principalConverter = new InternalAccountPrincipalConverter(
+            SystemKeys.AUTHORITY_PASSWORD,
+            providerId,
+            userAccountService,
+            repositoryId,
+            realm
+        );
 
         // build providers
-        this.passwordService =
-            new PasswordIdentityCredentialsService(providerId, userAccountService, userPasswordService, config, realm);
-        this.authenticationProvider =
-            new PasswordAuthenticationProvider(providerId, userAccountService, passwordService, config, realm);
+        this.passwordService = new PasswordIdentityCredentialsService(
+            providerId,
+            userAccountService,
+            userPasswordService,
+            config,
+            realm
+        );
+        this.authenticationProvider = new PasswordAuthenticationProvider(
+            providerId,
+            userAccountService,
+            passwordService,
+            config,
+            realm
+        );
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.userResolver =
-            new InternalUserResolver(
-                SystemKeys.AUTHORITY_PASSWORD,
-                providerId,
-                userEntityService,
-                userAccountService,
-                config.getRepositoryId(),
-                config.isLinkable(),
-                realm
-            );
+        this.userResolver = new InternalUserResolver(
+            SystemKeys.AUTHORITY_PASSWORD,
+            providerId,
+            userEntityService,
+            userAccountService,
+            config.getRepositoryId(),
+            config.isLinkable(),
+            realm
+        );
     }
 
     public void setRealmService(RealmService realmService) {

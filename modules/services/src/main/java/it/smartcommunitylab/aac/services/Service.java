@@ -149,19 +149,18 @@ public class Service {
     @JsonProperty("claimMapping")
     public void setClaimMappingBase64(Map<String, String> claimMapping) {
         if (claimMapping != null) {
-            this.claimMapping =
-                claimMapping
-                    .entrySet()
-                    .stream()
-                    .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(
-                        Collectors.toMap(
-                            e -> e.getKey(),
-                            e -> {
-                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                            }
-                        )
-                    );
+            this.claimMapping = claimMapping
+                .entrySet()
+                .stream()
+                .filter(e -> StringUtils.hasText(e.getValue()))
+                .collect(
+                    Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> {
+                            return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                        }
+                    )
+                );
         }
     }
 

@@ -116,8 +116,7 @@ public class TemplatesManager
                 settingsMap.setLanguages(r.getLocalizationConfiguration().getLanguages());
             } else {
                 settingsMap.setLanguages(
-                    Arrays
-                        .asList(LanguageService.LANGUAGES)
+                    Arrays.asList(LanguageService.LANGUAGES)
                         .stream()
                         .map(l -> Language.parse(l))
                         .collect(Collectors.toSet())
@@ -319,13 +318,12 @@ public class TemplatesManager
         // cleanup unregistered keys
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content =
-                reg
-                    .getContent()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> keys.contains(e.getKey()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            content = reg
+                .getContent()
+                .entrySet()
+                .stream()
+                .filter(e -> keys.contains(e.getKey()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
         reg.setContent(content);
 
@@ -370,13 +368,12 @@ public class TemplatesManager
         // cleanup unregistered keys
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content =
-                reg
-                    .getContent()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> keys.contains(e.getKey()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            content = reg
+                .getContent()
+                .entrySet()
+                .stream()
+                .filter(e -> keys.contains(e.getKey()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
         reg.setContent(content);
 
@@ -429,13 +426,12 @@ public class TemplatesManager
         // cleanup unregistered keys
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content =
-                reg
-                    .getContent()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> keys.contains(e.getKey()))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+            content = reg
+                .getContent()
+                .entrySet()
+                .stream()
+                .filter(e -> keys.contains(e.getKey()))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
         reg.setContent(content);
 

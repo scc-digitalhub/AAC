@@ -124,18 +124,17 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
     public OAuth2Authentication load(String code) {
         Pair<OAuth2Authentication, Long> authentication;
         try {
-            authentication =
-                jdbcTemplate.queryForObject(
-                    selectAuthenticationSql,
-                    new RowMapper<Pair<OAuth2Authentication, Long>>() {
-                        public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
-                            OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
-                            Long e = rs.getTimestamp("expiresAt").getTime();
-                            return Pair.of(a, e);
-                        }
-                    },
-                    code
-                );
+            authentication = jdbcTemplate.queryForObject(
+                selectAuthenticationSql,
+                new RowMapper<Pair<OAuth2Authentication, Long>>() {
+                    public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
+                        Long e = rs.getTimestamp("expiresAt").getTime();
+                        return Pair.of(a, e);
+                    }
+                },
+                code
+            );
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -156,18 +155,17 @@ public class AutoJdbcAuthorizationCodeServices implements AuthorizationCodeServi
     public OAuth2Authentication remove(String code) {
         Pair<OAuth2Authentication, Long> authentication;
         try {
-            authentication =
-                jdbcTemplate.queryForObject(
-                    selectAuthenticationSql,
-                    new RowMapper<Pair<OAuth2Authentication, Long>>() {
-                        public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
-                            OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
-                            Long e = rs.getTimestamp("expiresAt").getTime();
-                            return Pair.of(a, e);
-                        }
-                    },
-                    code
-                );
+            authentication = jdbcTemplate.queryForObject(
+                selectAuthenticationSql,
+                new RowMapper<Pair<OAuth2Authentication, Long>>() {
+                    public Pair<OAuth2Authentication, Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        OAuth2Authentication a = SerializationUtils.deserialize(rs.getBytes("authentication"));
+                        Long e = rs.getTimestamp("expiresAt").getTime();
+                        return Pair.of(a, e);
+                    }
+                },
+                code
+            );
         } catch (EmptyResultDataAccessException e) {
             return null;
         }

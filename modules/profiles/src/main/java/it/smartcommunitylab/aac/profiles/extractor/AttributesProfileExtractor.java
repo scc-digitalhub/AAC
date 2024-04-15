@@ -65,8 +65,7 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public CustomProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch custom attributes
-        List<UserAttributes> userAttributes = UserAttributesResourceContext
-            .from(user)
+        List<UserAttributes> userAttributes = UserAttributesResourceContext.from(user)
             .getAttributes()
             .stream()
             .filter(ua -> !ua.getIdentifier().startsWith("aac."))
@@ -90,8 +89,7 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public Collection<? extends CustomProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
         // fetch custom attributes
-        List<UserAttributes> userAttributes = UserAttributesResourceContext
-            .from(user)
+        List<UserAttributes> userAttributes = UserAttributesResourceContext.from(user)
             .getAttributes()
             .stream()
             .filter(ua -> !ua.getIdentifier().startsWith("aac."))

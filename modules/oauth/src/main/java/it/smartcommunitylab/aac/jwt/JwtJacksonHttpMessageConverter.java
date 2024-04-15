@@ -74,13 +74,12 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
         Assert.hasText(jweAlgorithm, "jweAlgorithm is required");
         Assert.hasText(jweMethod, "jweMethod is required");
 
-        decoder =
-            new JwtDecoderBuilder()
-                .jwksUri(jwksUri)
-                .jweKey(jweKey)
-                .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
-                .jweMethod(EncryptionMethod.parse(jweMethod))
-                .build();
+        decoder = new JwtDecoderBuilder()
+            .jwksUri(jwksUri)
+            .jweKey(jweKey)
+            .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
+            .jweMethod(EncryptionMethod.parse(jweMethod))
+            .build();
     }
 
     public JwtJacksonHttpMessageConverter(JWKSet jwks, JWK jweKey, String jweAlgorithm, String jweMethod) {
@@ -90,13 +89,12 @@ public class JwtJacksonHttpMessageConverter extends TypeConstrainedMappingJackso
         Assert.hasText(jweAlgorithm, "jweAlgorithm is required");
         Assert.hasText(jweMethod, "jweMethod is required");
 
-        decoder =
-            new JwtDecoderBuilder()
-                .jwks(jwks)
-                .jweKey(jweKey)
-                .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
-                .jweMethod(EncryptionMethod.parse(jweMethod))
-                .build();
+        decoder = new JwtDecoderBuilder()
+            .jwks(jwks)
+            .jweKey(jweKey)
+            .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
+            .jweMethod(EncryptionMethod.parse(jweMethod))
+            .build();
     }
 
     @Override

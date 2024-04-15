@@ -31,7 +31,11 @@ import org.springframework.util.Assert;
 
 @Service
 public class InternalAttributeAuthority
-    extends AbstractAttributeAuthority<InternalAttributeService, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
+    extends AbstractAttributeAuthority<
+        InternalAttributeService,
+        InternalAttributeProviderConfigMap,
+        InternalAttributeProviderConfig
+    > {
 
     // attributes sets service
     protected final AttributeService attributeService;

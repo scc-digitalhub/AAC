@@ -86,12 +86,11 @@ public class JwtHttpMessageConverter extends AbstractHttpMessageConverter<Map<St
         Assert.hasText(jweAlgorithm, "jweAlgorithm is required");
         Assert.hasText(jweMethod, "jweMethod is required");
 
-        decoder =
-            new JwkSetUriJwtDecoderBuilder(jwksUri)
-                .jweKey(jweKey)
-                .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
-                .jweMethod(EncryptionMethod.parse(jweMethod))
-                .build();
+        decoder = new JwkSetUriJwtDecoderBuilder(jwksUri)
+            .jweKey(jweKey)
+            .jweAlgorithm(JWEAlgorithm.parse(jweAlgorithm))
+            .jweMethod(EncryptionMethod.parse(jweMethod))
+            .build();
     }
 
     // public JwtHttpMessageConverter(String jwksUri, JWK jwk) {

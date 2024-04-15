@@ -25,7 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class AppleAccountService
-    extends AbstractAccountService<OIDCUserAccount, OIDCEditableUserAccount, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
+    extends AbstractAccountService<
+        OIDCUserAccount,
+        OIDCEditableUserAccount,
+        AppleAccountServiceConfig,
+        AppleIdentityProviderConfigMap
+    > {
 
     public AppleAccountService(
         String providerId,

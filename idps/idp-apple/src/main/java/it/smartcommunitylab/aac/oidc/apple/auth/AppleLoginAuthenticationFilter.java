@@ -116,11 +116,10 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         }
 
         // build a resolver for requests to support external
-        this.authorizationRequestResolver =
-            new DefaultOAuth2AuthorizationRequestResolver(
-                clientRegistrationRepository,
-                AppleIdentityAuthority.AUTHORITY_URL + "authorize"
-            );
+        this.authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(
+            clientRegistrationRepository,
+            AppleIdentityAuthority.AUTHORITY_URL + "authorize"
+        );
 
         // enforce session id change to prevent fixation attacks
         setAllowSessionCreation(true);
@@ -228,8 +227,7 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 
-        String redirectUri = UriComponentsBuilder
-            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+        String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
             .replaceQuery(null)
             .build()
             .toUriString();
@@ -315,8 +313,7 @@ public class AppleLoginAuthenticationFilter extends AbstractAuthenticationProces
         } else {
             String errorDescription = params.get(OAuth2ParameterNames.ERROR_DESCRIPTION);
             String errorUri = params.get(OAuth2ParameterNames.ERROR_URI);
-            return OAuth2AuthorizationResponse
-                .error(errorCode)
+            return OAuth2AuthorizationResponse.error(errorCode)
                 .redirectUri(redirectUri)
                 .errorDescription(errorDescription)
                 .errorUri(errorUri)

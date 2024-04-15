@@ -83,12 +83,11 @@ public class TosTemplateTest {
         //TODO remove, this should be auto-created
         RealmTemplateProviderConfig conf = registrationRepository.findByProviderId(slug);
         if (conf == null) {
-            conf =
-                new RealmTemplateProviderConfig(
-                    new ConfigurableTemplateProvider(SystemKeys.AUTHORITY_TEMPLATE, slug, slug),
-                    new TemplateProviderSettingsMap(),
-                    new TemplateProviderConfigMap()
-                );
+            conf = new RealmTemplateProviderConfig(
+                new ConfigurableTemplateProvider(SystemKeys.AUTHORITY_TEMPLATE, slug, slug),
+                new TemplateProviderSettingsMap(),
+                new TemplateProviderConfigMap()
+            );
 
             registrationRepository.addRegistration(conf);
         }
@@ -163,9 +162,9 @@ public class TosTemplateTest {
         TemplateModel template = createTemplate(slug, id);
         assertThat(template.getContent()).isEqualTo(TEMPLATE_CONTENT);
 
-        Map<String, String> content = Arrays
-            .stream(TosTemplate.KEYS)
-            .collect(Collectors.toMap(k -> k, k -> "TEST_TEMPLATE_UPDATED"));
+        Map<String, String> content = Arrays.stream(TosTemplate.KEYS).collect(
+            Collectors.toMap(k -> k, k -> "TEST_TEMPLATE_UPDATED")
+        );
 
         template.setContent(content);
         TemplateModel templateUpdated = templateService.updateTemplate(template.getId(), template);
@@ -197,7 +196,7 @@ public class TosTemplateTest {
         return templateService.addTemplate(id, SystemKeys.AUTHORITY_TOS, slug, reg);
     }
 
-    public static final Map<String, String> TEMPLATE_CONTENT = Arrays
-        .stream(TosTemplate.KEYS)
-        .collect(Collectors.toMap(k -> k, k -> "TEST_TEMPLATE"));
+    public static final Map<String, String> TEMPLATE_CONTENT = Arrays.stream(TosTemplate.KEYS).collect(
+        Collectors.toMap(k -> k, k -> "TEST_TEMPLATE")
+    );
 }

@@ -227,32 +227,31 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             // TODO read software_statement and update config
             //
             // update selectively
-            client =
-                clientService.updateClient(
-                    clientId,
-                    name,
-                    description,
-                    registration.getScope(),
-                    registration.getResourceIds(),
-                    providers,
-                    client.getHookFunctions(),
-                    client.getHookWebUrls(),
-                    client.getHookUniqueSpaces(),
-                    configMap.getAuthorizedGrantTypes(),
-                    configMap.getRedirectUris(),
-                    configMap.getApplicationType(),
-                    configMap.getTokenType(),
-                    configMap.getSubjectType(),
-                    configMap.getAuthenticationMethods(),
-                    configMap.getIdTokenClaims(),
-                    configMap.getFirstParty(),
-                    configMap.getAccessTokenValidity(),
-                    configMap.getRefreshTokenValidity(),
-                    configMap.getIdTokenValidity(),
-                    configMap.getJwksUri(),
-                    configMap.getAdditionalConfig(),
-                    configMap.getAdditionalInformation()
-                );
+            client = clientService.updateClient(
+                clientId,
+                name,
+                description,
+                registration.getScope(),
+                registration.getResourceIds(),
+                providers,
+                client.getHookFunctions(),
+                client.getHookWebUrls(),
+                client.getHookUniqueSpaces(),
+                configMap.getAuthorizedGrantTypes(),
+                configMap.getRedirectUris(),
+                configMap.getApplicationType(),
+                configMap.getTokenType(),
+                configMap.getSubjectType(),
+                configMap.getAuthenticationMethods(),
+                configMap.getIdTokenClaims(),
+                configMap.getFirstParty(),
+                configMap.getAccessTokenValidity(),
+                configMap.getRefreshTokenValidity(),
+                configMap.getIdTokenValidity(),
+                configMap.getJwksUri(),
+                configMap.getAdditionalConfig(),
+                configMap.getAdditionalInformation()
+            );
 
             ClientRegistration result = toRegistration(client);
 

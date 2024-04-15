@@ -61,7 +61,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 public class WebhookAttributeProvider
-    extends AbstractAttributeProvider<DefaultUserAttributesImpl, WebhookAttributeProviderConfig, WebhookAttributeProviderConfigMap> {
+    extends AbstractAttributeProvider<
+        DefaultUserAttributesImpl,
+        WebhookAttributeProviderConfig,
+        WebhookAttributeProviderConfigMap
+    > {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookAttributeProvider.class);
 
@@ -69,8 +73,9 @@ public class WebhookAttributeProvider
     private static final int DEFAULT_TIMEOUT = 5000;
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     // services
     private final AttributeService attributeService;
@@ -111,8 +116,7 @@ public class WebhookAttributeProvider
 
         // build client
         int timeout = config.getConfigMap().getTimeout() != null ? config.getConfigMap().getTimeout() : DEFAULT_TIMEOUT;
-        RequestConfig rconfig = RequestConfig
-            .custom()
+        RequestConfig rconfig = RequestConfig.custom()
             .setConnectTimeout(timeout)
             .setConnectionRequestTimeout(timeout)
             .setSocketTimeout(timeout)

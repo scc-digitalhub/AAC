@@ -109,8 +109,9 @@ public class UserConsoleController {
         tokenMapper = mapper;
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     @Autowired
     private AuthenticationHelper authHelper;

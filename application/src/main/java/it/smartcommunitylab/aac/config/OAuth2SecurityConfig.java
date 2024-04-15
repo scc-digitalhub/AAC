@@ -182,8 +182,7 @@ public class OAuth2SecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(OAUTH2_CLIENT_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_CLIENT_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

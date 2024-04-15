@@ -63,8 +63,9 @@ public class OAuth2TestUtils {
      * Token helpers
      */
     private static final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     public static String getUserAccessTokenViaAuthCodeWithBasicAuth(
         MockMvc mockMvc,
@@ -86,8 +87,7 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, scope);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -118,12 +118,10 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -147,8 +145,7 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -179,12 +176,10 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -205,8 +200,7 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OPENID);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -237,12 +231,10 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -265,8 +257,7 @@ public class OAuth2TestUtils {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -299,8 +290,7 @@ public class OAuth2TestUtils {
             params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, tokenTypeHint);
         }
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);

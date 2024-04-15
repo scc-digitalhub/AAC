@@ -187,7 +187,7 @@ public class SpaceRole {
         }
 
         // space empty only if context is empty
-        if (r.space == null && r.context != null || r.space != null && !r.space.matches("[\\w\\.]+")) {
+        if ((r.space == null && r.context != null) || (r.space != null && !r.space.matches("[\\w\\.]+"))) {
             throw new IllegalArgumentException(
                 "Invalid role space value: only alpha-numeric characters and '_.' allowed"
             );

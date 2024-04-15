@@ -182,13 +182,12 @@ public class OAuth2TokenRevocationTest {
         assertThat(metadata.get(OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS)).isNotNull().isInstanceOf(List.class);
 
         // it contains expected but not NONE
-        List<String> authMethods = Stream
-            .of(
-                AuthenticationMethod.CLIENT_SECRET_BASIC,
-                AuthenticationMethod.CLIENT_SECRET_POST,
-                AuthenticationMethod.CLIENT_SECRET_JWT,
-                AuthenticationMethod.PRIVATE_KEY_JWT
-            )
+        List<String> authMethods = Stream.of(
+            AuthenticationMethod.CLIENT_SECRET_BASIC,
+            AuthenticationMethod.CLIENT_SECRET_POST,
+            AuthenticationMethod.CLIENT_SECRET_JWT,
+            AuthenticationMethod.PRIVATE_KEY_JWT
+        )
             .map(a -> a.getValue())
             .collect(Collectors.toList());
 
@@ -213,15 +212,14 @@ public class OAuth2TokenRevocationTest {
 
         // since we expect secret_jwt and private_key to be supported this should be set
         // to contain at minimum base algs
-        List<String> algs = Stream
-            .of(
-                JWSAlgorithm.HS256,
-                JWSAlgorithm.HS384,
-                JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256,
-                JWSAlgorithm.RS384,
-                JWSAlgorithm.RS512
-            )
+        List<String> algs = Stream.of(
+            JWSAlgorithm.HS256,
+            JWSAlgorithm.HS384,
+            JWSAlgorithm.HS512,
+            JWSAlgorithm.RS256,
+            JWSAlgorithm.RS384,
+            JWSAlgorithm.RS512
+        )
             .map(a -> a.getName())
             .collect(Collectors.toList());
 
@@ -256,8 +254,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -298,8 +295,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -340,8 +336,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -382,8 +377,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, "invalid-token-type");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -423,8 +417,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -465,8 +458,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -507,8 +499,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -549,8 +540,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, "invalid-token-type");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -589,8 +579,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -630,8 +619,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -653,12 +641,10 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        req =
-            MockMvcRequestBuilders
-                .post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -683,8 +669,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -715,12 +700,10 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -751,12 +734,10 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        req =
-            MockMvcRequestBuilders
-                .post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -781,8 +762,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -813,12 +793,10 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -849,12 +827,10 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -873,12 +849,10 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        req =
-            MockMvcRequestBuilders
-                .post(REVOCATION_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(REVOCATION_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -907,8 +881,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -945,8 +918,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1003,8 +975,7 @@ public class OAuth2TokenRevocationTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1064,8 +1035,7 @@ public class OAuth2TokenRevocationTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1094,8 +1064,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // no client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1120,8 +1089,7 @@ public class OAuth2TokenRevocationTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use client 2 auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(REVOCATION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(REVOCATION_URL)
             .with(httpBasic(client2Id, client2Secret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1160,18 +1128,18 @@ public class OAuth2TokenRevocationTest {
         "revocation_endpoint_auth_signing_alg_values_supported";
 
     static {
-        REQUIRED_METADATA =
-            Collections.unmodifiableSortedSet(
-                new TreeSet<>(
-                    List.of(
-                        OAUTH2_METADATA_REVOCATION_ENDPOINT,
-                        OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS,
-                        OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG
-                    )
+        REQUIRED_METADATA = Collections.unmodifiableSortedSet(
+            new TreeSet<>(
+                List.of(
+                    OAUTH2_METADATA_REVOCATION_ENDPOINT,
+                    OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_METHODS,
+                    OAUTH2_METADATA_REVOCATION_ENDPOINT_AUTH_SIGNIN_ALG
                 )
-            );
+            )
+        );
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

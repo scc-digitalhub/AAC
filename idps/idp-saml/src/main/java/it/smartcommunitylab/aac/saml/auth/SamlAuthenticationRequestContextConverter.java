@@ -68,17 +68,19 @@ public class SamlAuthenticationRequestContextConverter
 
         // fetch opensaml builders
         XMLObjectProviderRegistry registry = ConfigurationService.get(XMLObjectProviderRegistry.class);
-        this.marshaller =
-            (AuthnRequestMarshaller) registry.getMarshallerFactory().getMarshaller(AuthnRequest.DEFAULT_ELEMENT_NAME);
-        this.authnRequestBuilder =
-            (AuthnRequestBuilder) registry.getBuilderFactory().getBuilder(AuthnRequest.DEFAULT_ELEMENT_NAME);
+        this.marshaller = (AuthnRequestMarshaller) registry
+            .getMarshallerFactory()
+            .getMarshaller(AuthnRequest.DEFAULT_ELEMENT_NAME);
+        this.authnRequestBuilder = (AuthnRequestBuilder) registry
+            .getBuilderFactory()
+            .getBuilder(AuthnRequest.DEFAULT_ELEMENT_NAME);
         this.issuerBuilder = (IssuerBuilder) registry.getBuilderFactory().getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
-        this.nameIDPolicyBuilder =
-            (NameIDPolicyBuilder) registry.getBuilderFactory().getBuilder(NameIDPolicy.DEFAULT_ELEMENT_NAME);
-        this.reqAuthnContextBuilder =
-            (RequestedAuthnContextBuilder) registry
-                .getBuilderFactory()
-                .getBuilder(RequestedAuthnContext.DEFAULT_ELEMENT_NAME);
+        this.nameIDPolicyBuilder = (NameIDPolicyBuilder) registry
+            .getBuilderFactory()
+            .getBuilder(NameIDPolicy.DEFAULT_ELEMENT_NAME);
+        this.reqAuthnContextBuilder = (RequestedAuthnContextBuilder) registry
+            .getBuilderFactory()
+            .getBuilder(RequestedAuthnContext.DEFAULT_ELEMENT_NAME);
     }
 
     @Override

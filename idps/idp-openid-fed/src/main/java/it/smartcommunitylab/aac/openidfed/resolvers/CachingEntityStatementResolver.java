@@ -36,8 +36,7 @@ public class CachingEntityStatementResolver extends DefaultEntityStatementResolv
     private int maxRetries = DEFAULT_RETRIES;
 
     //loading cache only for resolved
-    private final LoadingCache<Pair<String, String>, TrustChain> chains = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<Pair<String, String>, TrustChain> chains = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS)
         .maximumSize(100)
         .build(

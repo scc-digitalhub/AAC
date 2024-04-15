@@ -223,10 +223,9 @@ public class SamlIdentityProviderConfigurationTest {
             IDP_VERIFICATION_CERTIFICATE // (8)
         );
         mockIdPServer.stubFor(
-            get(urlEqualTo(IDP_METADATA_ENDPOINT))
-                .willReturn(
-                    aResponse().withStatus(200).withHeader("Content-Type", "application/xml").withBody(idpMetadata)
-                )
+            get(urlEqualTo(IDP_METADATA_ENDPOINT)).willReturn(
+                aResponse().withStatus(200).withHeader("Content-Type", "application/xml").withBody(idpMetadata)
+            )
         );
 
         SamlIdentityProviderConfigMap idProvCfgMap = new SamlIdentityProviderConfigMap();
@@ -251,9 +250,9 @@ public class SamlIdentityProviderConfigurationTest {
         PrivateKey obtainedPrivateKey = credential.getPrivateKey();
         // NOTE: key parsing approach inspired by https://github.com/spring-projects/spring-security/blob/main/saml2/saml2-service-provider/src/test/java/org/springframework/security/saml2/provider/service/registration/OpenSamlMetadataRelyingPartyRegistrationConverterTests.java#L189
         InputStream keyStream = new ByteArrayInputStream(Base64.getDecoder().decode(SIGN_PRIV_KEY.getBytes()));
-        PrivateKey expectedPrivateKey = KeyFactory
-            .getInstance(KEY_PAIR_ALGORITHM)
-            .generatePrivate(new PKCS8EncodedKeySpec(keyStream.readAllBytes()));
+        PrivateKey expectedPrivateKey = KeyFactory.getInstance(KEY_PAIR_ALGORITHM).generatePrivate(
+            new PKCS8EncodedKeySpec(keyStream.readAllBytes())
+        );
         assertThat(obtainedPrivateKey).isEqualTo(expectedPrivateKey);
 
         // check public information (certificate)
@@ -262,9 +261,9 @@ public class SamlIdentityProviderConfigurationTest {
         InputStream certificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(SIGN_CERTIFICATE.getBytes())
         );
-        X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(certificateStream);
+        X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(certificateStream);
         assertThat(obtainedCertificate).isEqualTo(expectedSigningCertificate);
 
         assertThat(rpRegistration.getAssertionConsumerServiceLocation()).isEqualTo(RPR_ASSERTION_CONSUMER_LOCATION);
@@ -280,8 +279,9 @@ public class SamlIdentityProviderConfigurationTest {
         assertThat(partyDetails.getSingleSignOnServiceLocation()).isEqualTo(ASSERTING_PARTY_SSO_BINDING_LOCATION);
         assertThat(partyDetails.getSingleSignOnServiceBinding()).isEqualTo(ASSERTING_PARTY_SSO_CONSUMER_BINDING);
         assertThat(partyDetails.getSingleLogoutServiceBinding()).isEqualTo(ASSERTING_PARTY_SSO_CONSUMER_BINDING);
-        assertThat(partyDetails.getSingleLogoutServiceResponseLocation())
-            .isEqualTo(ASSERTING_PARTY_SSO_BINDING_LOCATION);
+        assertThat(partyDetails.getSingleLogoutServiceResponseLocation()).isEqualTo(
+            ASSERTING_PARTY_SSO_BINDING_LOCATION
+        );
         Collection<Saml2X509Credential> partyDetailsVerificationCredentials =
             partyDetails.getVerificationX509Credentials();
         assertThat(partyDetailsVerificationCredentials).isNotNull();
@@ -358,9 +358,9 @@ public class SamlIdentityProviderConfigurationTest {
         InputStream certificateStream = new ByteArrayInputStream(
             Base64.getDecoder().decode(IDP_VERIFICATION_CERTIFICATE.getBytes())
         );
-        X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory
-            .getInstance("X.509")
-            .generateCertificate(certificateStream);
+        X509Certificate expectedSigningCertificate = (X509Certificate) CertificateFactory.getInstance(
+            "X.509"
+        ).generateCertificate(certificateStream);
         assertThat(obtainedCertificate).isEqualTo(expectedSigningCertificate);
     }
 }

@@ -63,19 +63,18 @@ public class HashMapBase64Converter implements AttributeConverter<Map<String, St
                 Map<String, String> encoded = objectMapper.readValue(json, Map.class);
 
                 // decode values
-                map =
-                    encoded
-                        .entrySet()
-                        .stream()
-                        .filter(e -> StringUtils.hasText(e.getValue()))
-                        .collect(
-                            Collectors.toMap(
-                                e -> e.getKey(),
-                                e -> {
-                                    return new String(Base64.getDecoder().decode(e.getValue()));
-                                }
-                            )
-                        );
+                map = encoded
+                    .entrySet()
+                    .stream()
+                    .filter(e -> StringUtils.hasText(e.getValue()))
+                    .collect(
+                        Collectors.toMap(
+                            e -> e.getKey(),
+                            e -> {
+                                return new String(Base64.getDecoder().decode(e.getValue()));
+                            }
+                        )
+                    );
             } catch (final IOException e) {}
         }
         return map;

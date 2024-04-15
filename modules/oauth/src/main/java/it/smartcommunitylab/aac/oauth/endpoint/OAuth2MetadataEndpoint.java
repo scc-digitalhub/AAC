@@ -77,10 +77,11 @@ public class OAuth2MetadataEndpoint {
             //TODO cleanup filter
             m
                 .entrySet()
-                .removeIf(e ->
-                    e.getValue() == null ||
-                    ((e.getValue() instanceof String) && !StringUtils.hasText((String) e.getValue())) ||
-                    ((e.getValue() instanceof Collection) && ((Collection<?>) e.getValue()).isEmpty())
+                .removeIf(
+                    e ->
+                        e.getValue() == null ||
+                        ((e.getValue() instanceof String) && !StringUtils.hasText((String) e.getValue())) ||
+                        ((e.getValue() instanceof Collection) && ((Collection<?>) e.getValue()).isEmpty())
                 );
 
             //cache

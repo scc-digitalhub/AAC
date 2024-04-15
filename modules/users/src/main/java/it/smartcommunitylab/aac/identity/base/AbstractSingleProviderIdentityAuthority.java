@@ -28,12 +28,24 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import org.springframework.util.Assert;
 
 public abstract class AbstractSingleProviderIdentityAuthority<
-    P extends AbstractIdentityProvider<U, ? extends AbstractUserAccount, ? extends AbstractUserAuthenticatedPrincipal, M, C>,
+    P extends AbstractIdentityProvider<
+        U,
+        ? extends AbstractUserAccount,
+        ? extends AbstractUserAuthenticatedPrincipal,
+        M,
+        C
+    >,
     U extends AbstractUserIdentity,
     C extends AbstractIdentityProviderConfig<M>,
     M extends AbstractConfigMap
 >
-    extends AbstractSingleConfigurableProviderAuthority<P, ConfigurableIdentityProvider, C, IdentityProviderSettingsMap, M>
+    extends AbstractSingleConfigurableProviderAuthority<
+        P,
+        ConfigurableIdentityProvider,
+        C,
+        IdentityProviderSettingsMap,
+        M
+    >
     implements IdentityProviderAuthority<P, C, M> {
 
     // configuration provider

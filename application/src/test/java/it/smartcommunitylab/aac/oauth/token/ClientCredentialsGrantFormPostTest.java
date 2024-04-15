@@ -95,8 +95,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -132,8 +131,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_CLIENT_ROLE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -169,8 +167,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -196,11 +193,10 @@ public class ClientCredentialsGrantFormPostTest {
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
 
         // scopes are either empty or string or set of strings
-        assertThat(response.get(OAuth2ParameterNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope -> assertThat(scope).isNotNull().isInstanceOfAny(String.class, List.class)
-            );
+        assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope -> assertThat(scope).isNotNull().isInstanceOfAny(String.class, List.class)
+        );
 
         // scope offline access is not included
         if (response.get(OAuth2ParameterNames.SCOPE) != null) {
@@ -209,8 +205,9 @@ public class ClientCredentialsGrantFormPostTest {
                 assertThat(scope).isNotEqualTo(Config.SCOPE_OFFLINE_ACCESS);
             }
             if (response.get(OAuth2ParameterNames.SCOPE) instanceof List) {
-                assertThat((List<?>) response.get(OAuth2ParameterNames.SCOPE))
-                    .allSatisfy(o -> assertThat(o).isInstanceOf(String.class));
+                assertThat((List<?>) response.get(OAuth2ParameterNames.SCOPE)).allSatisfy(
+                    o -> assertThat(o).isInstanceOf(String.class)
+                );
 
                 @SuppressWarnings("unchecked")
                 List<String> scope = (List<String>) response.get(OAuth2ParameterNames.SCOPE);
@@ -228,8 +225,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -253,8 +249,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -277,8 +272,7 @@ public class ClientCredentialsGrantFormPostTest {
         params.add(OAuth2ParameterNames.CLIENT_SECRET, "secret");
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -298,8 +292,7 @@ public class ClientCredentialsGrantFormPostTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 

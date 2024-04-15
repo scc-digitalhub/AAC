@@ -149,8 +149,7 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, idToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -182,8 +181,7 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OidcParameterNames.ID_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -215,8 +213,7 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -244,8 +241,7 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, "invalid-id-token");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -276,8 +272,7 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OidcParameterNames.ID_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -308,8 +303,7 @@ public class OIDCTokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -349,18 +343,18 @@ public class OIDCTokenIntrospectionTest {
         "introspection_endpoint_auth_signing_alg_values_supported";
 
     static {
-        REQUIRED_METADATA =
-            Collections.unmodifiableSortedSet(
-                new TreeSet<>(
-                    List.of(
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT,
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS,
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG
-                    )
+        REQUIRED_METADATA = Collections.unmodifiableSortedSet(
+            new TreeSet<>(
+                List.of(
+                    OAUTH2_METADATA_INTROSPECTION_ENDPOINT,
+                    OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS,
+                    OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG
                 )
-            );
+            )
+        );
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

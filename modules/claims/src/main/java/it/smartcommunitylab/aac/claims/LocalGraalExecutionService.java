@@ -54,8 +54,9 @@ public class LocalGraalExecutionService implements ScriptExecutionService {
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .setSerializationInclusion(Include.NON_NULL);
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     public LocalGraalExecutionService() {
         this.maxCpuTime = DEFAULT_MAX_CPU_TIME;

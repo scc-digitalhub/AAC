@@ -118,8 +118,7 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
                 try {
                     //we expect an array
                     List<TrustMarkEntry> trustMarks = new ArrayList<>();
-                    List<JSONObject> list = JSONArrayUtils
-                        .parse(map.getTrustMarks())
+                    List<JSONObject> list = JSONArrayUtils.parse(map.getTrustMarks())
                         .stream()
                         .filter(e -> e instanceof JSONObject)
                         .map(e -> (JSONObject) e)
@@ -202,8 +201,7 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
     }
 
     public static String extractBaseUrl(HttpServletRequest request) {
-        UriComponents uriComponents = UriComponentsBuilder
-            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
             .replacePath(request.getContextPath())
             .replaceQuery(null)
             .fragment(null)

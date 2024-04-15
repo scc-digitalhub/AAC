@@ -105,8 +105,11 @@ public class UsernamePasswordAuthenticationFilter extends AbstractAuthentication
         //        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
 
         // redirect failed attempts to internal login
-        this.authenticationEntryPoint =
-            new InternalPasswordLoginAuthenticationEntryPoint("/login", DEFAULT_LOGIN_URI, filterProcessingUrl);
+        this.authenticationEntryPoint = new InternalPasswordLoginAuthenticationEntryPoint(
+            "/login",
+            DEFAULT_LOGIN_URI,
+            filterProcessingUrl
+        );
         if (authenticationEntryPoint != null) {
             this.authenticationEntryPoint = authenticationEntryPoint;
         }

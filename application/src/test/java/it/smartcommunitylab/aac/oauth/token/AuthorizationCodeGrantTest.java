@@ -127,8 +127,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -174,12 +173,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -199,16 +196,15 @@ public class AuthorizationCodeGrantTest {
         assertThat(accessToken).isNotBlank();
 
         // scopes is null or empty
-        assertThat(response.get(OAuth2ParameterNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope ->
-                    assertThat(scope)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isBlank()
-            );
+        assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope ->
+                assertThat(scope)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isBlank()
+        );
     }
 
     @Test
@@ -221,8 +217,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -276,12 +271,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -315,8 +308,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -384,16 +376,15 @@ public class AuthorizationCodeGrantTest {
         assertThat(accessToken).isNotBlank();
 
         // scopes is null or empty
-        assertThat(response.get(OAuth2ParameterNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope ->
-                    assertThat(scope)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isBlank()
-            );
+        assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope ->
+                assertThat(scope)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isBlank()
+        );
     }
 
     @Test
@@ -405,8 +396,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -452,12 +442,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -492,8 +480,7 @@ public class AuthorizationCodeGrantTest {
         // set offline_access to request refresh token in response
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -539,12 +526,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -586,8 +571,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.STATE, state);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -637,12 +621,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -674,8 +656,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -696,8 +677,10 @@ public class AuthorizationCodeGrantTest {
         MultiValueMap<String, String> queryParams = builder.build(true).getQueryParams();
 
         // no code
-        assertThat(queryParams.get(OAuth2ParameterNames.CODE))
-            .satisfiesAnyOf(code -> assertThat(code).isNull(), code -> assertThat(code).isEmpty());
+        assertThat(queryParams.get(OAuth2ParameterNames.CODE)).satisfiesAnyOf(
+            code -> assertThat(code).isNull(),
+            code -> assertThat(code).isEmpty()
+        );
     }
 
     @Test
@@ -708,8 +691,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -730,8 +712,10 @@ public class AuthorizationCodeGrantTest {
         MultiValueMap<String, String> queryParams = builder.build(true).getQueryParams();
 
         // no code
-        assertThat(queryParams.get(OAuth2ParameterNames.CODE))
-            .satisfiesAnyOf(code -> assertThat(code).isNull(), code -> assertThat(code).isEmpty());
+        assertThat(queryParams.get(OAuth2ParameterNames.CODE)).satisfiesAnyOf(
+            code -> assertThat(code).isNull(),
+            code -> assertThat(code).isEmpty()
+        );
     }
 
     @Test
@@ -741,8 +725,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE.toString());
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -761,8 +744,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "invalid-scope");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -787,8 +769,10 @@ public class AuthorizationCodeGrantTest {
         assertThat(response.get(OAuth2ParameterNames.ERROR).get(0)).isEqualTo("invalid_scope");
 
         // no code
-        assertThat(response.get(OAuth2ParameterNames.CODE))
-            .satisfiesAnyOf(code -> assertThat(code).isNull(), code -> assertThat(code).isEmpty());
+        assertThat(response.get(OAuth2ParameterNames.CODE)).satisfiesAnyOf(
+            code -> assertThat(code).isNull(),
+            code -> assertThat(code).isEmpty()
+        );
     }
 
     @Test
@@ -800,8 +784,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.REDIRECT_URI, "http123");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -822,8 +805,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.STATE, "stateWithInvalidChars#\\");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -844,8 +826,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -891,12 +872,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, "secret"))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, "secret"))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
@@ -918,8 +897,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -964,12 +942,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, "code");
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 
@@ -993,8 +969,7 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1042,12 +1017,10 @@ public class AuthorizationCodeGrantTest {
         // change redirect
         params.add(OAuth2ParameterNames.REDIRECT_URI, "http://localhost");
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 
@@ -1072,8 +1045,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1121,12 +1093,10 @@ public class AuthorizationCodeGrantTest {
         // require additional scopes
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 
@@ -1151,8 +1121,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1200,12 +1169,10 @@ public class AuthorizationCodeGrantTest {
         // require additional scopes for refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 
@@ -1234,8 +1201,7 @@ public class AuthorizationCodeGrantTest {
         // set empty scopes
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1281,12 +1247,10 @@ public class AuthorizationCodeGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(client2Id, client2Secret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(client2Id, client2Secret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().is4xxClientError()).andReturn();
 

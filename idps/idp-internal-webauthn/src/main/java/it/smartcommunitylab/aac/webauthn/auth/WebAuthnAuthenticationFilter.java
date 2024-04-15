@@ -105,8 +105,11 @@ public class WebAuthnAuthenticationFilter extends AbstractAuthenticationProcessi
         //        this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
 
         // redirect failed attempts to internal login
-        this.authenticationEntryPoint =
-            new WebAuthnLoginAuthenticationEntryPoint("/login", DEFAULT_LOGIN_URI, filterProcessingUrl);
+        this.authenticationEntryPoint = new WebAuthnLoginAuthenticationEntryPoint(
+            "/login",
+            DEFAULT_LOGIN_URI,
+            filterProcessingUrl
+        );
         if (authenticationEntryPoint != null) {
             this.authenticationEntryPoint = authenticationEntryPoint;
         }

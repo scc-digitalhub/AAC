@@ -59,43 +59,31 @@ public class InternalTemplateProvider
         registration.setSurname(account.getSurname());
 
         factories = new HashMap<>();
-        factories.put(
-            InternalRegisterAccountConfirmTemplate.TEMPLATE,
-            () -> {
-                TemplateModel t = new InternalRegisterAccountConfirmTemplate(realm);
-                t.setModelAttribute("reg", registration);
-                t.setModelAttribute("account", account);
-                return t;
-            }
-        );
-        factories.put(
-            InternalRegisterAccountTemplate.TEMPLATE,
-            () -> {
-                TemplateModel t = new InternalRegisterAccountTemplate(realm);
-                t.setModelAttribute("reg", registration);
-                t.setModelAttribute("policy", new PasswordPolicy());
-                return t;
-            }
-        );
-        factories.put(
-            InternalRegisterAccountSuccessTemplate.TEMPLATE,
-            () -> {
-                TemplateModel t = new InternalRegisterAccountSuccessTemplate(realm);
-                t.setModelAttribute("reg", registration);
-                t.setModelAttribute("account", account);
-                return t;
-            }
-        );
-        factories.put(
-            InternalChangeAccountTemplate.TEMPLATE,
-            () -> {
-                TemplateModel t = new InternalChangeAccountTemplate(realm);
-                t.setModelAttribute("reg", registration);
-                t.setModelAttribute("policy", new PasswordPolicy());
-                t.setModelAttribute("account", account);
-                return t;
-            }
-        );
+        factories.put(InternalRegisterAccountConfirmTemplate.TEMPLATE, () -> {
+            TemplateModel t = new InternalRegisterAccountConfirmTemplate(realm);
+            t.setModelAttribute("reg", registration);
+            t.setModelAttribute("account", account);
+            return t;
+        });
+        factories.put(InternalRegisterAccountTemplate.TEMPLATE, () -> {
+            TemplateModel t = new InternalRegisterAccountTemplate(realm);
+            t.setModelAttribute("reg", registration);
+            t.setModelAttribute("policy", new PasswordPolicy());
+            return t;
+        });
+        factories.put(InternalRegisterAccountSuccessTemplate.TEMPLATE, () -> {
+            TemplateModel t = new InternalRegisterAccountSuccessTemplate(realm);
+            t.setModelAttribute("reg", registration);
+            t.setModelAttribute("account", account);
+            return t;
+        });
+        factories.put(InternalChangeAccountTemplate.TEMPLATE, () -> {
+            TemplateModel t = new InternalChangeAccountTemplate(realm);
+            t.setModelAttribute("reg", registration);
+            t.setModelAttribute("policy", new PasswordPolicy());
+            t.setModelAttribute("account", account);
+            return t;
+        });
         factories.put(
             InternalChangeAccountSuccessTemplate.TEMPLATE,
             () -> new InternalChangeAccountSuccessTemplate(realm)

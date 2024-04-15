@@ -560,8 +560,11 @@ public class RealmManager {
         }
         if (user == null && StringUtils.hasText(email)) {
             // lookup by email in system
-            user =
-                userService.findUsersByEmailAddress(SystemKeys.REALM_SYSTEM, email).stream().findFirst().orElse(null);
+            user = userService
+                .findUsersByEmailAddress(SystemKeys.REALM_SYSTEM, email)
+                .stream()
+                .findFirst()
+                .orElse(null);
         }
 
         if (user == null && StringUtils.hasText(email)) {
@@ -640,8 +643,7 @@ public class RealmManager {
         List<OIDCUserAccount> oidcUsers = oidcUserAccountService.findAccountsByRealm(realm);
         List<SamlUserAccount> samlUsers = samlUserAccountService.findAccountsByRealm(realm);
 
-        List<AbstractUserAccount> users = Stream
-            .of(internalUsers, oidcUsers, samlUsers)
+        List<AbstractUserAccount> users = Stream.of(internalUsers, oidcUsers, samlUsers)
             .flatMap(l -> l.stream())
             .collect(Collectors.toList());
 

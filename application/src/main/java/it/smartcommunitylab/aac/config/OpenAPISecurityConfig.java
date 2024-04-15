@@ -58,8 +58,7 @@ public class OpenAPISecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(OPENAPI_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(OPENAPI_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

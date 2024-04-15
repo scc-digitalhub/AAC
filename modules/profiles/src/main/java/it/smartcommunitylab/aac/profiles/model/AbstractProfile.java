@@ -32,8 +32,9 @@ public abstract class AbstractProfile implements Serializable {
     private static final long serialVersionUID = SystemKeys.AAC_COMMON_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     static {
         mapper.setSerializationInclusion(Include.NON_EMPTY);

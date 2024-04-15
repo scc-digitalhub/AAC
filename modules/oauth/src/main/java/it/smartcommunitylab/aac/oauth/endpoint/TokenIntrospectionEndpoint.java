@@ -83,8 +83,7 @@ public class TokenIntrospectionEndpoint {
     };
 
     static {
-        Set<String> scopes = Stream
-            .of(WHITELISTED_SCOPE_PROVIDERS)
+        Set<String> scopes = Stream.of(WHITELISTED_SCOPE_PROVIDERS)
             .flatMap(sp -> sp.getScopes().stream())
             .map(s -> s.getScope())
             .collect(Collectors.toSet());

@@ -181,13 +181,12 @@ public class OAuth2TokenIntrospectionTest {
             .isInstanceOf(List.class);
 
         // it contains expected but not NONE
-        List<String> authMethods = Stream
-            .of(
-                AuthenticationMethod.CLIENT_SECRET_BASIC,
-                AuthenticationMethod.CLIENT_SECRET_POST,
-                AuthenticationMethod.CLIENT_SECRET_JWT,
-                AuthenticationMethod.PRIVATE_KEY_JWT
-            )
+        List<String> authMethods = Stream.of(
+            AuthenticationMethod.CLIENT_SECRET_BASIC,
+            AuthenticationMethod.CLIENT_SECRET_POST,
+            AuthenticationMethod.CLIENT_SECRET_JWT,
+            AuthenticationMethod.PRIVATE_KEY_JWT
+        )
             .map(a -> a.getValue())
             .collect(Collectors.toList());
 
@@ -212,15 +211,14 @@ public class OAuth2TokenIntrospectionTest {
 
         // since we expect secret_jwt and private_key to be supported this should be set
         // to contain at minimum base algs
-        List<String> algs = Stream
-            .of(
-                JWSAlgorithm.HS256,
-                JWSAlgorithm.HS384,
-                JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256,
-                JWSAlgorithm.RS384,
-                JWSAlgorithm.RS512
-            )
+        List<String> algs = Stream.of(
+            JWSAlgorithm.HS256,
+            JWSAlgorithm.HS384,
+            JWSAlgorithm.HS512,
+            JWSAlgorithm.RS256,
+            JWSAlgorithm.RS384,
+            JWSAlgorithm.RS512
+        )
             .map(a -> a.getName())
             .collect(Collectors.toList());
 
@@ -245,8 +243,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -265,116 +262,114 @@ public class OAuth2TokenIntrospectionTest {
         assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ACTIVE)).isEqualTo(true);
 
         // scope is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope ->
-                    assertThat(scope)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isBlank()
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope ->
+                assertThat(scope)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isBlank()
+        );
 
         // clientId is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.CLIENT_ID))
-            .satisfiesAnyOf(
-                id -> assertThat(id).isNull(),
-                id ->
-                    assertThat(id)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.CLIENT_ID)).satisfiesAnyOf(
+            id -> assertThat(id).isNull(),
+            id ->
+                assertThat(id)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId)
+        );
 
         // username is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.USERNAME))
-            .satisfiesAnyOf(
-                u -> assertThat(u).isNull(),
-                u ->
-                    assertThat(u)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(username)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.USERNAME)).satisfiesAnyOf(
+            u -> assertThat(u).isNull(),
+            u ->
+                assertThat(u)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(username)
+        );
 
         // tokenType is optional, if provided it should match 'bearer'
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE))
-            .satisfiesAnyOf(
-                t -> assertThat(t).isNull(),
-                t ->
-                    assertThat(t)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo("bearer")
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE)).satisfiesAnyOf(
+            t -> assertThat(t).isNull(),
+            t ->
+                assertThat(t)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo("bearer")
+        );
 
         // exp is optional, if provided validate
         long now = Instant.now().getEpochSecond();
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.EXP))
-            .satisfiesAnyOf(
-                e -> assertThat(e).isNull(),
-                e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.INTEGER).isGreaterThan((int) now),
-                e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isGreaterThan(now)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.EXP)).satisfiesAnyOf(
+            e -> assertThat(e).isNull(),
+            e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.INTEGER).isGreaterThan((int) now),
+            e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isGreaterThan(now)
+        );
 
         // iat is optional, if provided validate
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.IAT))
-            .satisfiesAnyOf(
-                i -> assertThat(i).isNull(),
-                i ->
-                    assertThat(i)
-                        .isNotNull()
-                        .asInstanceOf(InstanceOfAssertFactories.INTEGER)
-                        .isLessThanOrEqualTo((int) now),
-                i -> assertThat(i).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isLessThanOrEqualTo(now)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.IAT)).satisfiesAnyOf(
+            i -> assertThat(i).isNull(),
+            i ->
+                assertThat(i)
+                    .isNotNull()
+                    .asInstanceOf(InstanceOfAssertFactories.INTEGER)
+                    .isLessThanOrEqualTo((int) now),
+            i -> assertThat(i).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isLessThanOrEqualTo(now)
+        );
 
         // nbf is optional, if provided validate
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.NBF))
-            .satisfiesAnyOf(n -> assertThat(n).isNull(), n -> assertThat(n).isNotNull().isInstanceOf(Number.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.NBF)).satisfiesAnyOf(
+            n -> assertThat(n).isNull(),
+            n -> assertThat(n).isNotNull().isInstanceOf(Number.class)
+        );
 
         // sub is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SUB))
-            .satisfiesAnyOf(
-                s -> assertThat(s).isNull(),
-                s ->
-                    assertThat(s)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(userId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SUB)).satisfiesAnyOf(
+            s -> assertThat(s).isNull(),
+            s ->
+                assertThat(s)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(userId)
+        );
 
         // aud is optional, if provided client should be in it
         // NOTE: this is not accurate, but we expect AAC to include clientId in audience
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.AUD))
-            .satisfiesAnyOf(
-                a -> assertThat(a).isNull(),
-                a ->
-                    assertThat(a)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId),
-                a ->
-                    assertThat(a)
-                        .isNotNull()
-                        .isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST)
-                        .contains(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.AUD)).satisfiesAnyOf(
+            a -> assertThat(a).isNull(),
+            a ->
+                assertThat(a)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId),
+            a ->
+                assertThat(a)
+                    .isNotNull()
+                    .isInstanceOf(List.class)
+                    .asInstanceOf(InstanceOfAssertFactories.LIST)
+                    .contains(clientId)
+        );
 
         // iss is optional
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ISS))
-            .satisfiesAnyOf(i -> assertThat(i).isNull(), i -> assertThat(i).isNotNull().isInstanceOf(String.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ISS)).satisfiesAnyOf(
+            i -> assertThat(i).isNull(),
+            i -> assertThat(i).isNotNull().isInstanceOf(String.class)
+        );
 
         // jti is optional
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.JTI))
-            .satisfiesAnyOf(j -> assertThat(j).isNull(), j -> assertThat(j).isNotNull().isInstanceOf(String.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.JTI)).satisfiesAnyOf(
+            j -> assertThat(j).isNull(),
+            j -> assertThat(j).isNotNull().isInstanceOf(String.class)
+        );
     }
 
     @Test
@@ -393,8 +388,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -429,8 +423,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -465,8 +458,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, "invalid-token-type");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -500,8 +492,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, refreshToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -520,116 +511,114 @@ public class OAuth2TokenIntrospectionTest {
         assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ACTIVE)).isEqualTo(true);
 
         // scope is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope ->
-                    assertThat(scope)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(Config.SCOPE_OFFLINE_ACCESS)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope ->
+                assertThat(scope)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(Config.SCOPE_OFFLINE_ACCESS)
+        );
 
         // clientId is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.CLIENT_ID))
-            .satisfiesAnyOf(
-                id -> assertThat(id).isNull(),
-                id ->
-                    assertThat(id)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.CLIENT_ID)).satisfiesAnyOf(
+            id -> assertThat(id).isNull(),
+            id ->
+                assertThat(id)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId)
+        );
 
         // username is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.USERNAME))
-            .satisfiesAnyOf(
-                u -> assertThat(u).isNull(),
-                u ->
-                    assertThat(u)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(username)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.USERNAME)).satisfiesAnyOf(
+            u -> assertThat(u).isNull(),
+            u ->
+                assertThat(u)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(username)
+        );
 
         // tokenType is optional, if provided it should match 'bearer'
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE))
-            .satisfiesAnyOf(
-                t -> assertThat(t).isNull(),
-                t ->
-                    assertThat(t)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo("bearer")
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE)).satisfiesAnyOf(
+            t -> assertThat(t).isNull(),
+            t ->
+                assertThat(t)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo("bearer")
+        );
 
         // exp is optional, if provided validate
         long now = Instant.now().getEpochSecond();
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.EXP))
-            .satisfiesAnyOf(
-                e -> assertThat(e).isNull(),
-                e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.INTEGER).isGreaterThan((int) now),
-                e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isGreaterThan(now)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.EXP)).satisfiesAnyOf(
+            e -> assertThat(e).isNull(),
+            e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.INTEGER).isGreaterThan((int) now),
+            e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isGreaterThan(now)
+        );
 
         // iat is optional, if provided validate
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.IAT))
-            .satisfiesAnyOf(
-                i -> assertThat(i).isNull(),
-                i ->
-                    assertThat(i)
-                        .isNotNull()
-                        .asInstanceOf(InstanceOfAssertFactories.INTEGER)
-                        .isLessThanOrEqualTo((int) now),
-                i -> assertThat(i).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isLessThanOrEqualTo(now)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.IAT)).satisfiesAnyOf(
+            i -> assertThat(i).isNull(),
+            i ->
+                assertThat(i)
+                    .isNotNull()
+                    .asInstanceOf(InstanceOfAssertFactories.INTEGER)
+                    .isLessThanOrEqualTo((int) now),
+            i -> assertThat(i).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isLessThanOrEqualTo(now)
+        );
 
         // nbf is optional, if provided validate
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.NBF))
-            .satisfiesAnyOf(n -> assertThat(n).isNull(), n -> assertThat(n).isNotNull().isInstanceOf(Number.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.NBF)).satisfiesAnyOf(
+            n -> assertThat(n).isNull(),
+            n -> assertThat(n).isNotNull().isInstanceOf(Number.class)
+        );
 
         // sub is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SUB))
-            .satisfiesAnyOf(
-                s -> assertThat(s).isNull(),
-                s ->
-                    assertThat(s)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(userId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SUB)).satisfiesAnyOf(
+            s -> assertThat(s).isNull(),
+            s ->
+                assertThat(s)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(userId)
+        );
 
         // aud is optional, if provided client should be in it
         // NOTE: this is not accurate, but we expect AAC to include clientId in audience
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.AUD))
-            .satisfiesAnyOf(
-                a -> assertThat(a).isNull(),
-                a ->
-                    assertThat(a)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId),
-                a ->
-                    assertThat(a)
-                        .isNotNull()
-                        .isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST)
-                        .contains(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.AUD)).satisfiesAnyOf(
+            a -> assertThat(a).isNull(),
+            a ->
+                assertThat(a)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId),
+            a ->
+                assertThat(a)
+                    .isNotNull()
+                    .isInstanceOf(List.class)
+                    .asInstanceOf(InstanceOfAssertFactories.LIST)
+                    .contains(clientId)
+        );
 
         // iss is optional
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ISS))
-            .satisfiesAnyOf(i -> assertThat(i).isNull(), i -> assertThat(i).isNotNull().isInstanceOf(String.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ISS)).satisfiesAnyOf(
+            i -> assertThat(i).isNull(),
+            i -> assertThat(i).isNotNull().isInstanceOf(String.class)
+        );
 
         // jti is optional
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.JTI))
-            .satisfiesAnyOf(j -> assertThat(j).isNull(), j -> assertThat(j).isNotNull().isInstanceOf(String.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.JTI)).satisfiesAnyOf(
+            j -> assertThat(j).isNull(),
+            j -> assertThat(j).isNotNull().isInstanceOf(String.class)
+        );
     }
 
     @Test
@@ -648,8 +637,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -684,8 +672,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -720,8 +707,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.CLIENT_SECRET, clientSecret);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -772,8 +758,7 @@ public class OAuth2TokenIntrospectionTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -827,8 +812,7 @@ public class OAuth2TokenIntrospectionTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -861,8 +845,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, accessToken);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -881,116 +864,114 @@ public class OAuth2TokenIntrospectionTest {
         assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ACTIVE)).isEqualTo(true);
 
         // scope is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope ->
-                    assertThat(scope)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isBlank()
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope ->
+                assertThat(scope)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isBlank()
+        );
 
         // clientId is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.CLIENT_ID))
-            .satisfiesAnyOf(
-                id -> assertThat(id).isNull(),
-                id ->
-                    assertThat(id)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.CLIENT_ID)).satisfiesAnyOf(
+            id -> assertThat(id).isNull(),
+            id ->
+                assertThat(id)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId)
+        );
 
         // username is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.USERNAME))
-            .satisfiesAnyOf(
-                u -> assertThat(u).isNull(),
-                u ->
-                    assertThat(u)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.USERNAME)).satisfiesAnyOf(
+            u -> assertThat(u).isNull(),
+            u ->
+                assertThat(u)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId)
+        );
 
         // tokenType is optional, if provided it should match 'bearer'
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE))
-            .satisfiesAnyOf(
-                t -> assertThat(t).isNull(),
-                t ->
-                    assertThat(t)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo("bearer")
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.TOKEN_TYPE)).satisfiesAnyOf(
+            t -> assertThat(t).isNull(),
+            t ->
+                assertThat(t)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo("bearer")
+        );
 
         // exp is optional, if provided validate
         long now = Instant.now().getEpochSecond();
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.EXP))
-            .satisfiesAnyOf(
-                e -> assertThat(e).isNull(),
-                e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.INTEGER).isGreaterThan((int) now),
-                e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isGreaterThan(now)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.EXP)).satisfiesAnyOf(
+            e -> assertThat(e).isNull(),
+            e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.INTEGER).isGreaterThan((int) now),
+            e -> assertThat(e).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isGreaterThan(now)
+        );
 
         // iat is optional, if provided validate
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.IAT))
-            .satisfiesAnyOf(
-                i -> assertThat(i).isNull(),
-                i ->
-                    assertThat(i)
-                        .isNotNull()
-                        .asInstanceOf(InstanceOfAssertFactories.INTEGER)
-                        .isLessThanOrEqualTo((int) now),
-                i -> assertThat(i).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isLessThanOrEqualTo(now)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.IAT)).satisfiesAnyOf(
+            i -> assertThat(i).isNull(),
+            i ->
+                assertThat(i)
+                    .isNotNull()
+                    .asInstanceOf(InstanceOfAssertFactories.INTEGER)
+                    .isLessThanOrEqualTo((int) now),
+            i -> assertThat(i).isNotNull().asInstanceOf(InstanceOfAssertFactories.LONG).isLessThanOrEqualTo(now)
+        );
 
         // nbf is optional, if provided validate
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.NBF))
-            .satisfiesAnyOf(n -> assertThat(n).isNull(), n -> assertThat(n).isNotNull().isInstanceOf(Number.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.NBF)).satisfiesAnyOf(
+            n -> assertThat(n).isNull(),
+            n -> assertThat(n).isNotNull().isInstanceOf(Number.class)
+        );
 
         // sub is optional, if provided it should match request
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SUB))
-            .satisfiesAnyOf(
-                s -> assertThat(s).isNull(),
-                s ->
-                    assertThat(s)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.SUB)).satisfiesAnyOf(
+            s -> assertThat(s).isNull(),
+            s ->
+                assertThat(s)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId)
+        );
 
         // aud is optional, if provided client should be in it
         // NOTE: this is not accurate, but we expect AAC to include clientId in audience
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.AUD))
-            .satisfiesAnyOf(
-                a -> assertThat(a).isNull(),
-                a ->
-                    assertThat(a)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(clientId),
-                a ->
-                    assertThat(a)
-                        .isNotNull()
-                        .isInstanceOf(List.class)
-                        .asInstanceOf(InstanceOfAssertFactories.LIST)
-                        .contains(clientId)
-            );
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.AUD)).satisfiesAnyOf(
+            a -> assertThat(a).isNull(),
+            a ->
+                assertThat(a)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(clientId),
+            a ->
+                assertThat(a)
+                    .isNotNull()
+                    .isInstanceOf(List.class)
+                    .asInstanceOf(InstanceOfAssertFactories.LIST)
+                    .contains(clientId)
+        );
 
         // iss is optional
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ISS))
-            .satisfiesAnyOf(i -> assertThat(i).isNull(), i -> assertThat(i).isNotNull().isInstanceOf(String.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.ISS)).satisfiesAnyOf(
+            i -> assertThat(i).isNull(),
+            i -> assertThat(i).isNotNull().isInstanceOf(String.class)
+        );
 
         // jti is optional
-        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.JTI))
-            .satisfiesAnyOf(j -> assertThat(j).isNull(), j -> assertThat(j).isNotNull().isInstanceOf(String.class));
+        assertThat(response.get(OAuth2TokenIntrospectionClaimNames.JTI)).satisfiesAnyOf(
+            j -> assertThat(j).isNull(),
+            j -> assertThat(j).isNotNull().isInstanceOf(String.class)
+        );
     }
 
     @Test
@@ -1001,8 +982,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, "invalid-access-token");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1033,8 +1013,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1065,8 +1044,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1096,8 +1074,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, "invalid-refresh-token");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1128,8 +1105,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.REFRESH_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1160,8 +1136,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1191,8 +1166,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN, "invalid-id-token");
 
         // use basic auth for client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1230,8 +1204,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // no client auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -1257,8 +1230,7 @@ public class OAuth2TokenIntrospectionTest {
         params.add(OAuth2ParameterNames.TOKEN_TYPE_HINT, OAuth2ParameterNames.ACCESS_TOKEN);
 
         // use client 2 auth
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(INTROSPECTION_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(INTROSPECTION_URL)
             .with(httpBasic(client2Id, client2Secret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -1298,18 +1270,18 @@ public class OAuth2TokenIntrospectionTest {
         "introspection_endpoint_auth_signing_alg_values_supported";
 
     static {
-        REQUIRED_METADATA =
-            Collections.unmodifiableSortedSet(
-                new TreeSet<>(
-                    List.of(
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT,
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS,
-                        OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG
-                    )
+        REQUIRED_METADATA = Collections.unmodifiableSortedSet(
+            new TreeSet<>(
+                List.of(
+                    OAUTH2_METADATA_INTROSPECTION_ENDPOINT,
+                    OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_METHODS,
+                    OAUTH2_METADATA_INTROSPECTION_ENDPOINT_AUTH_SIGNIN_ALG
                 )
-            );
+            )
+        );
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

@@ -41,7 +41,13 @@ import org.springframework.util.Assert;
 public class AppleAccountServiceAuthority
     extends AbstractProviderAuthority<AppleAccountService, AppleAccountServiceConfig>
     implements
-        AccountServiceAuthority<AppleAccountService, OIDCUserAccount, OIDCEditableUserAccount, AppleAccountServiceConfig, AppleIdentityProviderConfigMap> {
+        AccountServiceAuthority<
+            AppleAccountService,
+            OIDCUserAccount,
+            OIDCEditableUserAccount,
+            AppleAccountServiceConfig,
+            AppleIdentityProviderConfigMap
+        > {
 
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -91,7 +97,12 @@ public class AppleAccountServiceAuthority
     }
 
     @Override
-    public ConfigurationProvider<AppleAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, AppleIdentityProviderConfigMap> getConfigurationProvider() {
+    public ConfigurationProvider<
+        AppleAccountServiceConfig,
+        ConfigurableAccountService,
+        AccountServiceSettingsMap,
+        AppleIdentityProviderConfigMap
+    > getConfigurationProvider() {
         return null;
     }
 }

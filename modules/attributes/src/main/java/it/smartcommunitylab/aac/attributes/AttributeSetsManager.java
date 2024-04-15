@@ -71,9 +71,9 @@ public class AttributeSetsManager {
         // TODO add static (internal) attribute sets to list
         Stream<AttributeSet> sets = attributeService.listAttributeSets(realm).stream();
         if (includeSystem) {
-            return Stream
-                .concat(attributeService.listSystemAttributeSets().stream(), sets)
-                .collect(Collectors.toList());
+            return Stream.concat(attributeService.listSystemAttributeSets().stream(), sets).collect(
+                Collectors.toList()
+            );
         } else {
             return sets.collect(Collectors.toList());
         }

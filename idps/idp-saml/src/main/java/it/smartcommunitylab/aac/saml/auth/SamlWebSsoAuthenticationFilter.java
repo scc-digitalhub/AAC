@@ -60,8 +60,9 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
 
-    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
-        new HttpSessionSaml2AuthenticationRequestRepository();
+    private Saml2AuthenticationRequestRepository<
+        SerializableSaml2AuthenticationRequestContext
+    > authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
     private AuthenticationEntryPoint authenticationEntryPoint;
 
@@ -98,8 +99,9 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
             relyingPartyRegistrationRepository
         );
         // use the default token converter
-        authenticationConverter =
-            new Saml2AuthenticationTokenConverter((RelyingPartyRegistrationResolver) registrationResolver);
+        authenticationConverter = new Saml2AuthenticationTokenConverter(
+            (RelyingPartyRegistrationResolver) registrationResolver
+        );
 
         // redirect failed attempts to login
         this.authenticationEntryPoint = new RealmAwareAuthenticationEntryPoint("/login");
@@ -232,7 +234,9 @@ public class SamlWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     }
 
     public void setAuthenticationRequestRepository(
-        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
+        Saml2AuthenticationRequestRepository<
+            SerializableSaml2AuthenticationRequestContext
+        > authenticationRequestRepository
     ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }

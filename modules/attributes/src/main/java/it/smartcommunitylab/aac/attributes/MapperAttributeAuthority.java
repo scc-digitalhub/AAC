@@ -34,7 +34,11 @@ import org.springframework.util.Assert;
 
 @Service
 public class MapperAttributeAuthority
-    extends AbstractAttributeAuthority<MapperAttributeProvider, MapperAttributeProviderConfigMap, MapperAttributeProviderConfig> {
+    extends AbstractAttributeAuthority<
+        MapperAttributeProvider,
+        MapperAttributeProviderConfigMap,
+        MapperAttributeProviderConfig
+    > {
 
     // system attributes store
     protected final AutoJdbcAttributeStore jdbcAttributeStore;

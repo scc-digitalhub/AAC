@@ -136,20 +136,19 @@ public class DefaultAttributesSet implements AttributeSet {
         aset.name = set.getName();
         aset.description = set.getDescription();
         if (set.getAttributes() != null) {
-            aset.attributes =
-                set
-                    .getAttributes()
-                    .stream()
-                    .map(a -> {
-                        DefaultAttribute attr = new DefaultAttribute();
-                        attr.setKey(a.getKey());
-                        attr.setType(a.getType());
-                        attr.setName(a.getName());
-                        attr.setDescription(a.getDescription());
-                        attr.setIsMultiple(a.getIsMultiple());
-                        return attr;
-                    })
-                    .collect(Collectors.toSet());
+            aset.attributes = set
+                .getAttributes()
+                .stream()
+                .map(a -> {
+                    DefaultAttribute attr = new DefaultAttribute();
+                    attr.setKey(a.getKey());
+                    attr.setType(a.getType());
+                    attr.setName(a.getName());
+                    attr.setDescription(a.getDescription());
+                    attr.setIsMultiple(a.getIsMultiple());
+                    return attr;
+                })
+                .collect(Collectors.toSet());
         }
 
         return aset;

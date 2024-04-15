@@ -60,8 +60,9 @@ import java.util.Map;
 public abstract class AbstractConfigMap implements ConfigMap, Serializable {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
     protected static final JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
     protected static final SchemaGenerator generator;
 

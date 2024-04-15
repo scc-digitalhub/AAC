@@ -72,12 +72,12 @@ public class BaseAuditController implements InitializingBean {
     public Collection<AuditEvent> findEvents(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, name = "type") Optional<String> type,
-        @RequestParam(required = false, name = "after") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> after,
-        @RequestParam(required = false, name = "before") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> before
+        @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > after,
+        @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > before
     ) throws NoSuchRealmException {
         logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
 
@@ -87,18 +87,24 @@ public class BaseAuditController implements InitializingBean {
     @GetMapping("/audit/{realm}/search")
     @Operation(summary = "find audit events from a given realm")
     public Page<AuditEvent> searchEvents(
-            @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-            @RequestParam(required = false, name = "type") Optional<String> type,
-            @RequestParam(required = false, name = "after") @DateTimeFormat(
-                    iso = DateTimeFormat.ISO.DATE_TIME
-            ) Optional<Date> after,
-            @RequestParam(required = false, name = "before") @DateTimeFormat(
-                    iso = DateTimeFormat.ISO.DATE_TIME
-            ) Optional<Date> before,
-            Pageable pageRequest
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false, name = "type") Optional<String> type,
+        @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > after,
+        @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > before,
+        Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return auditManager.searchRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null), pageRequest);
+        return auditManager.searchRealmEvents(
+            realm,
+            type.orElse(null),
+            after.orElse(null),
+            before.orElse(null),
+            pageRequest
+        );
     }
 }

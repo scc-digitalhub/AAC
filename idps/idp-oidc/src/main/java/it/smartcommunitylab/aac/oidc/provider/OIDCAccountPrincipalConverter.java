@@ -131,10 +131,9 @@ public class OIDCAccountPrincipalConverter
             .collect(Collectors.toMap(a -> a.getKey(), a -> a.exportValue()));
 
         String email = clean(oidcAttributes.get(OpenIdAttributesSet.EMAIL));
-        username =
-            StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? clean(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                : principal.getUsername();
+        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+            ? clean(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+            : principal.getUsername();
 
         // update additional attributes
         String issuer = attributes.containsKey(IdTokenClaimNames.ISS)

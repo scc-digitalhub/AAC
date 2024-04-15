@@ -126,22 +126,24 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
         if (StringUtils.hasText(idpMetadataLocation)) {
             // read metadata to autoconfigure
-            builder =
-                RelyingPartyRegistrations.fromMetadataLocation(idpMetadataLocation).registrationId(registrationId);
+            builder = RelyingPartyRegistrations.fromMetadataLocation(idpMetadataLocation).registrationId(
+                registrationId
+            );
         } else {
             // set manually
-            builder.assertingPartyDetails(party ->
-                party
-                    .entityId(assertingPartyEntityId)
-                    .singleSignOnServiceLocation(ssoLoginServiceLocation)
-                    .wantAuthnRequestsSigned(signAuthNRequest)
-                    .singleSignOnServiceBinding(ssoServiceBinding)
+            builder.assertingPartyDetails(
+                party ->
+                    party
+                        .entityId(assertingPartyEntityId)
+                        .singleSignOnServiceLocation(ssoLoginServiceLocation)
+                        .wantAuthnRequestsSigned(signAuthNRequest)
+                        .singleSignOnServiceBinding(ssoServiceBinding)
             );
 
             if (StringUtils.hasText(verificationCertificate)) {
                 Saml2X509Credential verificationCredentials = getVerificationCertificate(verificationCertificate);
-                builder.assertingPartyDetails(party ->
-                    party.verificationX509Credentials(c -> c.add(verificationCredentials))
+                builder.assertingPartyDetails(
+                    party -> party.verificationX509Credentials(c -> c.add(verificationCredentials))
                 );
             }
         }

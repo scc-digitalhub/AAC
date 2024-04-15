@@ -135,11 +135,10 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
                     footer = templateAuthority.getProviderByRealm(realm).getTemplate(FooterTemplate.TEMPLATE, locale);
 
                     // fetch template from authority
-                    template =
-                        templateProviderAuthorityService
-                            .getAuthority(authority)
-                            .getProviderByRealm(realm)
-                            .getTemplate(name, locale);
+                    template = templateProviderAuthorityService
+                        .getAuthority(authority)
+                        .getProviderByRealm(realm)
+                        .getTemplate(name, locale);
 
                     // fetch custom style from config
                     customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();

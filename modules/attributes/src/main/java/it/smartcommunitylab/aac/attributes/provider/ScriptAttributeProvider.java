@@ -47,7 +47,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class ScriptAttributeProvider
-    extends AbstractAttributeProvider<DefaultUserAttributesImpl, ScriptAttributeProviderConfig, ScriptAttributeProviderConfigMap> {
+    extends AbstractAttributeProvider<
+        DefaultUserAttributesImpl,
+        ScriptAttributeProviderConfig,
+        ScriptAttributeProviderConfigMap
+    > {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 

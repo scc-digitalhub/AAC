@@ -64,10 +64,12 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     private static final Logger logger = LoggerFactory.getLogger(WebhookOAuthFlowExtensions.class);
 
     private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
-    private final TypeReference<HashMap<String, String>> stringMapTypeRef =
-        new TypeReference<HashMap<String, String>>() {};
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
+    private final TypeReference<HashMap<String, String>> stringMapTypeRef = new TypeReference<
+        HashMap<String, String>
+    >() {};
 
     @Value("${hook.timeout:10000}")
     private int timeout;
@@ -79,8 +81,7 @@ public class WebhookOAuthFlowExtensions implements OAuthFlowExtensions {
     }
 
     public void init() {
-        RequestConfig config = RequestConfig
-            .custom()
+        RequestConfig config = RequestConfig.custom()
             .setConnectTimeout(timeout)
             .setConnectionRequestTimeout(timeout)
             .setSocketTimeout(timeout)

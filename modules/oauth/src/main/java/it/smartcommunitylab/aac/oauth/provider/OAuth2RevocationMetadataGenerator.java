@@ -63,25 +63,23 @@ public class OAuth2RevocationMetadataGenerator implements OAuth2MetadataGenerato
         // static list of base algs supported
         // TODO check support
         // note: this does NOT depend on signService but on auth converters
-        List<String> authSigninAlgorithms = Stream
-            .of(
-                JWSAlgorithm.HS256,
-                JWSAlgorithm.HS384,
-                JWSAlgorithm.HS512,
-                JWSAlgorithm.RS256,
-                JWSAlgorithm.RS384,
-                JWSAlgorithm.RS512
-            )
+        List<String> authSigninAlgorithms = Stream.of(
+            JWSAlgorithm.HS256,
+            JWSAlgorithm.HS384,
+            JWSAlgorithm.HS512,
+            JWSAlgorithm.RS256,
+            JWSAlgorithm.RS384,
+            JWSAlgorithm.RS512
+        )
             .map(a -> a.getName())
             .collect(Collectors.toList());
 
-        List<String> authMethods = Stream
-            .of(
-                AuthenticationMethod.CLIENT_SECRET_BASIC,
-                AuthenticationMethod.CLIENT_SECRET_POST,
-                AuthenticationMethod.CLIENT_SECRET_JWT,
-                AuthenticationMethod.PRIVATE_KEY_JWT
-            )
+        List<String> authMethods = Stream.of(
+            AuthenticationMethod.CLIENT_SECRET_BASIC,
+            AuthenticationMethod.CLIENT_SECRET_POST,
+            AuthenticationMethod.CLIENT_SECRET_JWT,
+            AuthenticationMethod.PRIVATE_KEY_JWT
+        )
             .map(t -> t.getValue())
             .collect(Collectors.toList());
 

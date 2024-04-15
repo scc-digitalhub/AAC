@@ -30,8 +30,9 @@ public class HashMapSerializableConverter implements AttributeConverter<Map<Stri
 
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     @Override
     public String convertToDatabaseColumn(Map<String, Serializable> map) {

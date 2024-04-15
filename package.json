@@ -5,7 +5,7 @@
   "scripts": {
     "prettier:application": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"application/src/**/*.java\"",
     "prettier:modules": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"modules/src/**/*.java\" \"idps/src/**/*.java\"",
-    "prettier": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"modules/*/src/**/*.java\" \"idps/*/src/**/*.java\" \"frontend/*/src/**/*.java\" \"frontend/**/*.{js,ts,tsx,css}\"  \"application/src/**/*.java\""
+    "prettier": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"modules/*/src/**/*.java\" \"idps/*/src/**/*.java\" \"frontend/*/src/**/*.java\" \"application/src/**/*.java\""
   },
   "devDependencies": {
     "prettier": "3.2.5",

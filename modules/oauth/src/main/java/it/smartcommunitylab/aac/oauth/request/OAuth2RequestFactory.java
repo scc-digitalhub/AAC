@@ -73,8 +73,9 @@ public class OAuth2RequestFactory
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     private FlowExtensionsService flowExtensionsService;
     private ScopeRegistry scopeRegistry;
@@ -388,8 +389,9 @@ public class OAuth2RequestFactory
             String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
             String responseMode = readParameter(requestParameters, "response_mode", STRING_PATTERN);
             if (responseMode == null) {
-                responseMode =
-                    (responseTypes.contains("token") || responseTypes.contains("id_token")) ? "fragment" : "query";
+                responseMode = (responseTypes.contains("token") || responseTypes.contains("id_token"))
+                    ? "fragment"
+                    : "query";
             }
 
             // check if scopes are requested or fall back
@@ -574,18 +576,17 @@ public class OAuth2RequestFactory
 
             if (scopeRegistry != null) {
                 // keep only scopes matching request type
-                scopes =
-                    clientScopes
-                        .stream()
-                        .filter(s -> {
-                            Scope sc = scopeRegistry.findScope(s);
-                            if (sc == null) {
-                                return false;
-                            }
+                scopes = clientScopes
+                    .stream()
+                    .filter(s -> {
+                        Scope sc = scopeRegistry.findScope(s);
+                        if (sc == null) {
+                            return false;
+                        }
 
-                            return (sc.getType() == type || sc.getType() == ScopeType.GENERIC);
-                        })
-                        .collect(Collectors.toSet());
+                        return (sc.getType() == type || sc.getType() == ScopeType.GENERIC);
+                    })
+                    .collect(Collectors.toSet());
             }
         }
 

@@ -47,7 +47,13 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.StringUtils;
 
 public class OpenIdFedIdentityProvider
-    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OpenIdFedIdentityProviderConfigMap, OpenIdFedIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        OIDCUserIdentity,
+        OIDCUserAccount,
+        OIDCUserAuthenticatedPrincipal,
+        OpenIdFedIdentityProviderConfigMap,
+        OpenIdFedIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -83,21 +89,34 @@ public class OpenIdFedIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         OpenIdFedAccountServiceConfigConverter configConverter = new OpenIdFedAccountServiceConfigConverter();
-        this.accountService =
-            new OpenIdFedAccountService(providerId, userAccountService, configConverter.convert(config), realm);
+        this.accountService = new OpenIdFedAccountService(
+            providerId,
+            userAccountService,
+            configConverter.convert(config),
+            realm
+        );
 
         this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
         this.principalConverter.setAlwaysTrustEmailAddress(config.alwaysTrustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(authority, providerId, realm);
-        this.subjectResolver =
-            new OIDCSubjectResolver(authority, providerId, userAccountService, config.getRepositoryId(), realm);
+        this.subjectResolver = new OIDCSubjectResolver(
+            authority,
+            providerId,
+            userAccountService,
+            config.getRepositoryId(),
+            realm
+        );
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // build custom authenticator
-        this.authenticationProvider =
-            new OpenIdFedAuthenticationProvider(providerId, userAccountService, config, realm);
+        this.authenticationProvider = new OpenIdFedAuthenticationProvider(
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
 
         // function hooks from config
         if (config.getHookFunctions() != null) {
@@ -228,10 +247,8 @@ public class OpenIdFedIdentityProvider
 
                     if (
                         meta.getLogoURI() != null &&
-                        (
-                            meta.getLogoURI().getScheme().equalsIgnoreCase("http") ||
-                            meta.getLogoURI().getScheme().equalsIgnoreCase("https")
-                        )
+                        (meta.getLogoURI().getScheme().equalsIgnoreCase("http") ||
+                            meta.getLogoURI().getScheme().equalsIgnoreCase("https"))
                     ) {
                         try {
                             login.setLogoUrl(meta.getLogoURI().toURL().toString());

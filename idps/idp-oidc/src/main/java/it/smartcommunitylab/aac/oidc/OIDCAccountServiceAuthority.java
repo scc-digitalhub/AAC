@@ -41,7 +41,13 @@ import org.springframework.util.Assert;
 public class OIDCAccountServiceAuthority
     extends AbstractProviderAuthority<OIDCAccountService, OIDCAccountServiceConfig>
     implements
-        AccountServiceAuthority<OIDCAccountService, OIDCUserAccount, OIDCEditableUserAccount, OIDCAccountServiceConfig, OIDCIdentityProviderConfigMap> {
+        AccountServiceAuthority<
+            OIDCAccountService,
+            OIDCUserAccount,
+            OIDCEditableUserAccount,
+            OIDCAccountServiceConfig,
+            OIDCIdentityProviderConfigMap
+        > {
 
     // account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -99,7 +105,12 @@ public class OIDCAccountServiceAuthority
     }
 
     @Override
-    public ConfigurationProvider<OIDCAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, OIDCIdentityProviderConfigMap> getConfigurationProvider() {
+    public ConfigurationProvider<
+        OIDCAccountServiceConfig,
+        ConfigurableAccountService,
+        AccountServiceSettingsMap,
+        OIDCIdentityProviderConfigMap
+    > getConfigurationProvider() {
         return null;
     }
 }

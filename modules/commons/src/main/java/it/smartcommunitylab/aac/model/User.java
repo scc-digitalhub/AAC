@@ -140,13 +140,12 @@ public class User {
         this.source = details.getRealm();
         // set consuming realm to source
         this.realm = source;
-        this.authorities =
-            details
-                .getAuthorities()
-                .stream()
-                .filter(a -> (a instanceof RealmGrantedAuthority))
-                .map(a -> (RealmGrantedAuthority) a)
-                .collect(Collectors.toSet());
+        this.authorities = details
+            .getAuthorities()
+            .stream()
+            .filter(a -> (a instanceof RealmGrantedAuthority))
+            .map(a -> (RealmGrantedAuthority) a)
+            .collect(Collectors.toSet());
         this.identities = new LinkedHashSet<>(details.getIdentities());
         this.attributes = new ArrayList<>(details.getAttributeSets(false));
         this.realmRoles = new HashSet<>();

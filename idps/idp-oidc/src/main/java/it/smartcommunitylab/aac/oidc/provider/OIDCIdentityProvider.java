@@ -37,7 +37,13 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class OIDCIdentityProvider
-    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        OIDCUserIdentity,
+        OIDCUserAccount,
+        OIDCUserAuthenticatedPrincipal,
+        OIDCIdentityProviderConfigMap,
+        OIDCIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -75,19 +81,35 @@ public class OIDCIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         OIDCAccountServiceConfigConverter configConverter = new OIDCAccountServiceConfigConverter();
-        this.accountService =
-            new OIDCAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
+        this.accountService = new OIDCAccountService(
+            authority,
+            providerId,
+            userAccountService,
+            configConverter.convert(config),
+            realm
+        );
 
         this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
         this.principalConverter.setAlwaysTrustEmailAddress(config.alwaysTrustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(authority, providerId, realm);
-        this.authenticationProvider =
-            new OIDCAuthenticationProvider(authority, providerId, userAccountService, config, realm);
+        this.authenticationProvider = new OIDCAuthenticationProvider(
+            authority,
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
 
-        this.userResolver =
-            new OIDCUserResolver(authority, providerId, userEntityService, userAccountService, config, realm);
+        this.userResolver = new OIDCUserResolver(
+            authority,
+            providerId,
+            userEntityService,
+            userAccountService,
+            config,
+            realm
+        );
 
         // function hooks from config
         if (config.getHookFunctions() != null) {

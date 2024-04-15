@@ -65,8 +65,9 @@ import org.yaml.snakeyaml.Yaml;
 public class DevServicesController extends BaseServicesController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<Service>>> typeRef =
-        new TypeReference<Map<String, List<Service>>>() {};
+    private final TypeReference<Map<String, List<Service>>> typeRef = new TypeReference<
+        Map<String, List<Service>>
+    >() {};
     private final String LIST_KEY = "services";
 
     @Autowired

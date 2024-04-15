@@ -125,8 +125,7 @@ public class RefreshTokenGrantTest {
         // set offline scope to require refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -172,12 +171,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -210,12 +207,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -241,11 +236,10 @@ public class RefreshTokenGrantTest {
 
         // refresh token is optional
         // when present it could match the previous one
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN))
-            .satisfiesAnyOf(
-                token -> assertThat(token).isNull(),
-                token -> assertThat(token).isNotNull().isInstanceOf(String.class)
-            );
+        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).satisfiesAnyOf(
+            token -> assertThat(token).isNull(),
+            token -> assertThat(token).isNotNull().isInstanceOf(String.class)
+        );
     }
 
     @Test
@@ -260,8 +254,7 @@ public class RefreshTokenGrantTest {
         List<String> scopes = List.of(Config.SCOPE_OFFLINE_ACCESS, Config.SCOPE_PROFILE);
         params.add(OAuth2ParameterNames.SCOPE, String.join(" ", scopes));
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -307,12 +300,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -346,12 +337,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -378,11 +367,10 @@ public class RefreshTokenGrantTest {
 
         // refresh token is optional
         // when present it could match the previous one
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN))
-            .satisfiesAnyOf(
-                token -> assertThat(token).isNull(),
-                token -> assertThat(token).isNotNull().isInstanceOf(String.class)
-            );
+        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).satisfiesAnyOf(
+            token -> assertThat(token).isNull(),
+            token -> assertThat(token).isNotNull().isInstanceOf(String.class)
+        );
     }
 
     @Test
@@ -397,8 +385,7 @@ public class RefreshTokenGrantTest {
         List<String> scopes = List.of(Config.SCOPE_OFFLINE_ACCESS, Config.SCOPE_PROFILE);
         params.add(OAuth2ParameterNames.SCOPE, String.join(" ", scopes));
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -444,12 +431,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -485,12 +470,10 @@ public class RefreshTokenGrantTest {
         // narrow scope from original request
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andDo(print()).andExpect(status().isOk()).andReturn();
 
@@ -517,11 +500,10 @@ public class RefreshTokenGrantTest {
 
         // refresh token is optional
         // when present it CAN NOT match the previous one
-        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN))
-            .satisfiesAnyOf(
-                token -> assertThat(token).isNull(),
-                token -> assertThat(token).isNotNull().isInstanceOf(String.class).isNotEqualTo(refreshToken)
-            );
+        assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).satisfiesAnyOf(
+            token -> assertThat(token).isNull(),
+            token -> assertThat(token).isNotNull().isInstanceOf(String.class).isNotEqualTo(refreshToken)
+        );
     }
 
     // TODO refresh token rotation test
@@ -536,8 +518,7 @@ public class RefreshTokenGrantTest {
         // set offline scope to require refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -583,12 +564,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -639,8 +618,7 @@ public class RefreshTokenGrantTest {
         // set offline scope to require refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -686,12 +664,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
         params.add(OAuth2ParameterNames.CODE, code);
 
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(clientId, clientSecret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(clientId, clientSecret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -725,12 +701,10 @@ public class RefreshTokenGrantTest {
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
 
         // use a different client as before
-        req =
-            MockMvcRequestBuilders
-                .post(TOKEN_URL)
-                .with(httpBasic(client2Id, client2Secret))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .params(params);
+        req = MockMvcRequestBuilders.post(TOKEN_URL)
+            .with(httpBasic(client2Id, client2Secret))
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
 
         res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
 

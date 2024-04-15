@@ -27,7 +27,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProviderAuthorityService {
 
-    private final Map<String, ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ?, ?, ?, ?>>> services;
+    private final Map<
+        String,
+        ConfigurableAuthorityService<? extends ConfigurableProviderAuthority<?, ?, ?, ?, ?>>
+    > services;
 
     public ProviderAuthorityService(Collection<ConfigurableAuthorityService<?>> services) {
         this.services = services.stream().collect(Collectors.toMap(s -> s.getType(), s -> s));

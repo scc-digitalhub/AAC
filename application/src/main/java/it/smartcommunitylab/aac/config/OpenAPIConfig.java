@@ -180,8 +180,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi apiCore(ApiOperationCustomizer customizer) {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC Management API")
             .packagesToScan("it.smartcommunitylab.aac.api")
             .pathsToExclude("/api/realms", "/api/realms/**")
@@ -195,8 +194,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi adminCore(ApiOperationCustomizer customizer) {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC Admin API")
             .packagesToScan("it.smartcommunitylab.aac.api")
             .pathsToMatch("/api/realms", "/api/realms/**")
@@ -210,8 +208,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi oidc() {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC OpenID Connect API")
             .packagesToScan("it.smartcommunitylab.aac.openid.endpoint")
             .addOperationCustomizer((operation, handlerMethod) -> {
@@ -223,8 +220,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi oauth() {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC OAuth 2.0 API")
             .packagesToScan("it.smartcommunitylab.aac.oauth.endpoint")
             .addOperationCustomizer((operation, handlerMethod) -> {
@@ -236,8 +232,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi profile(ApiOperationCustomizer customizer) {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC User Profile API")
             .packagesToScan("it.smartcommunitylab.aac.profiles")
             .addOperationCustomizer(customizer)
@@ -246,8 +241,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi roles(ApiOperationCustomizer customizer) {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC Role API")
             .packagesToScan("it.smartcommunitylab.aac.roles")
             .addOperationCustomizer(customizer)
@@ -256,8 +250,7 @@ public class OpenAPIConfig {
 
     @Bean
     public GroupedOpenApi groups(ApiOperationCustomizer customizer) {
-        return GroupedOpenApi
-            .builder()
+        return GroupedOpenApi.builder()
             .group("AAC Groups API")
             .packagesToScan("it.smartcommunitylab.aac.groups")
             .addOperationCustomizer(customizer)

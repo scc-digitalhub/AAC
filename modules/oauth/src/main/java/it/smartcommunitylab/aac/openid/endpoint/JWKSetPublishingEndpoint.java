@@ -61,8 +61,7 @@ public class JWKSetPublishingEndpoint {
         JWKSet jwkSet = new JWKSet(new ArrayList<>(keys.values()));
 
         // return with 200 and set custom cache header
-        return ResponseEntity
-            .status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.OK)
             .header(HttpHeaders.CACHE_CONTROL, cacheControl)
             .body(jwkSet.toJSONObject(true));
     }

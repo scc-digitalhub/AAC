@@ -121,10 +121,9 @@ public class SamlAccountPrincipalConverter
             .collect(Collectors.toMap(a -> a.getKey(), a -> a.exportValue()));
 
         String email = clean(samlAttributes.get(SamlAttributesSet.EMAIL));
-        username =
-            StringUtils.hasText(samlAttributes.get(SamlAttributesSet.USERNAME))
-                ? clean(samlAttributes.get(SamlAttributesSet.USERNAME))
-                : principal.getUsername();
+        username = StringUtils.hasText(samlAttributes.get(SamlAttributesSet.USERNAME))
+            ? clean(samlAttributes.get(SamlAttributesSet.USERNAME))
+            : principal.getUsername();
 
         // update additional attributes
         String issuer = samlAttributes.get("issuer");

@@ -63,11 +63,12 @@ public class APISecurityConfig {
         // match only API endpoints
         http
             .requestMatcher(getRequestMatcher())
-            .authorizeRequests(authorizeRequests ->
-                authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_ADMIN, Config.R_CLIENT)
+            .authorizeRequests(
+                authorizeRequests ->
+                    authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_ADMIN, Config.R_CLIENT)
             )
-            .oauth2ResourceServer(oauth2 ->
-                oauth2.opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
+            .oauth2ResourceServer(
+                oauth2 -> oauth2.opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
             )
             // disable request cache, we override redirects but still better enforce it
             .requestCache(requestCache -> requestCache.disable())

@@ -303,12 +303,12 @@ public class DevUsersController extends BaseUserController {
     public ResponseEntity<Collection<AuditEvent>> getRealmUserAudit(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String userId,
-        @RequestParam(required = false, name = "after") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> after,
-        @RequestParam(required = false, name = "before") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> before
+        @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > after,
+        @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > before
     ) throws NoSuchRealmException, NoSuchUserException {
         Collection<AuditEvent> result = userManager.getAudit(realm, userId, after.orElse(null), before.orElse(null));
         return ResponseEntity.ok(result);

@@ -49,9 +49,20 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 public class InternalIdentityService
-    extends AbstractConfigurableResourceProvider<InternalUserIdentity, InternalIdentityServiceConfig, AccountServiceSettingsMap, InternalIdentityProviderConfigMap>
+    extends AbstractConfigurableResourceProvider<
+        InternalUserIdentity,
+        InternalIdentityServiceConfig,
+        AccountServiceSettingsMap,
+        InternalIdentityProviderConfigMap
+    >
     implements
-        IdentityService<InternalUserIdentity, InternalUserAccount, InternalEditableUserAccount, InternalIdentityProviderConfigMap, InternalIdentityServiceConfig>,
+        IdentityService<
+            InternalUserIdentity,
+            InternalUserAccount,
+            InternalEditableUserAccount,
+            InternalIdentityProviderConfigMap,
+            InternalIdentityServiceConfig
+        >,
         InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -88,8 +99,9 @@ public class InternalIdentityService
         Collection<CredentialsServiceAuthority<?, ?, ?, ?, ?>> credentialsServiceAuthorities
     ) {
         if (credentialsServiceAuthorities != null) {
-            this.credentialsServiceAuthorities =
-                credentialsServiceAuthorities.stream().collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
+            this.credentialsServiceAuthorities = credentialsServiceAuthorities
+                .stream()
+                .collect(Collectors.toMap(a -> a.getAuthorityId(), a -> a));
         }
     }
 
@@ -122,11 +134,12 @@ public class InternalIdentityService
         return credentialsServiceAuthorities
             .values()
             .stream()
-            .flatMap(a ->
-                a
-                    .getProvidersByRealm(getRealm())
-                    .stream()
-                    .filter(p -> p.getConfig().getRepositoryId().equals(config.getRepositoryId()))
+            .flatMap(
+                a ->
+                    a
+                        .getProvidersByRealm(getRealm())
+                        .stream()
+                        .filter(p -> p.getConfig().getRepositoryId().equals(config.getRepositoryId()))
             )
             .collect(Collectors.toList());
     }

@@ -141,8 +141,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -186,8 +185,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -228,8 +226,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE, JWT_ASSERTION_TYPE);
         params.add(OAuth2ParameterNames.CLIENT_ASSERTION, assertion.serialize());
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -259,8 +256,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -305,8 +301,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -352,8 +347,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -399,8 +393,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -446,8 +439,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -493,8 +485,7 @@ public class ClientCredentialsGrantJwtAssertionAuthTest {
         // add client id because AAC requires it for security reasons
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 

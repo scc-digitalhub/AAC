@@ -24,7 +24,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class InternalAttributeConfigurationProvider
-    extends AbstractAttributeConfigurationProvider<InternalAttributeProviderConfig, InternalAttributeProviderConfigMap> {
+    extends AbstractAttributeConfigurationProvider<
+        InternalAttributeProviderConfig,
+        InternalAttributeProviderConfigMap
+    > {
 
     public InternalAttributeConfigurationProvider(
         ProviderConfigRepository<InternalAttributeProviderConfig> registrationRepository

@@ -37,7 +37,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class OIDCIdentityAuthority
-    extends AbstractIdentityProviderAuthority<OIDCIdentityProvider, OIDCUserIdentity, OIDCIdentityProviderConfig, OIDCIdentityProviderConfigMap> {
+    extends AbstractIdentityProviderAuthority<
+        OIDCIdentityProvider,
+        OIDCUserIdentity,
+        OIDCIdentityProviderConfig,
+        OIDCIdentityProviderConfigMap
+    > {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_OIDC + "/";
 

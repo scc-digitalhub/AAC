@@ -82,10 +82,9 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
         Assert.notNull(className, "please provide a valid class for serializer");
         Assert.notNull(dataSource, "DataSource required");
 
-        this.type =
-            StringUtils.hasText(key)
-                ? className.getName() + ":" + key
-                : className.getName() + UUID.randomUUID().toString();
+        this.type = StringUtils.hasText(key)
+            ? className.getName() + ":" + key
+            : className.getName() + UUID.randomUUID().toString();
         logger.debug("create jdbc repository for provider config {}", type);
 
         // DISABLED

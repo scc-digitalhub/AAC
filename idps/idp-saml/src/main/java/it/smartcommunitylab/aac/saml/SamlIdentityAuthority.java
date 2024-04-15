@@ -39,7 +39,12 @@ import org.springframework.util.Assert;
 
 @Service
 public class SamlIdentityAuthority
-    extends AbstractIdentityProviderAuthority<SamlIdentityProvider, SamlUserIdentity, SamlIdentityProviderConfig, SamlIdentityProviderConfigMap>
+    extends AbstractIdentityProviderAuthority<
+        SamlIdentityProvider,
+        SamlUserIdentity,
+        SamlIdentityProviderConfig,
+        SamlIdentityProviderConfigMap
+    >
     implements ApplicationEventPublisherAware {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SAML + "/";
@@ -85,8 +90,11 @@ public class SamlIdentityAuthority
         this.relyingPartyRegistrationRepository = new SamlRelyingPartyRegistrationRepository(registrationRepository);
 
         // build filter provider
-        this.filterProvider =
-            new SamlFilterProvider(authorityId, relyingPartyRegistrationRepository, registrationRepository);
+        this.filterProvider = new SamlFilterProvider(
+            authorityId,
+            relyingPartyRegistrationRepository,
+            registrationRepository
+        );
     }
 
     @Autowired

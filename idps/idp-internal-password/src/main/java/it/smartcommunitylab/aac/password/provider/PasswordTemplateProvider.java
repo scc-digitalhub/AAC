@@ -43,39 +43,27 @@ public class PasswordTemplateProvider
     ) {
         super(SystemKeys.AUTHORITY_PASSWORD, providerId, templateService, providerConfig, realm);
         factories = new HashMap<>();
-        factories.put(
-            PasswordChangeTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new PasswordChangeTemplate(realm);
-                m.setModelAttribute("reg", new InternalEditableUserPassword(getRealm(), null));
-                m.setModelAttribute("policy", new PasswordPolicy());
-                return m;
-            }
-        );
+        factories.put(PasswordChangeTemplate.TEMPLATE, () -> {
+            TemplateModel m = new PasswordChangeTemplate(realm);
+            m.setModelAttribute("reg", new InternalEditableUserPassword(getRealm(), null));
+            m.setModelAttribute("policy", new PasswordPolicy());
+            return m;
+        });
         factories.put(PasswordChangeSuccessTemplate.TEMPLATE, () -> new PasswordChangeSuccessTemplate(realm));
-        factories.put(
-            PasswordPolicyTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new PasswordPolicyTemplate(realm);
-                m.setModelAttribute("policy", new PasswordPolicy());
-                return m;
-            }
-        );
-        factories.put(
-            PasswordResetTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new PasswordResetTemplate(realm);
-                m.setModelAttribute("reg", new UserEmail());
-                return m;
-            }
-        );
-        factories.put(
-            PasswordResetSuccessTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new PasswordResetSuccessTemplate(realm);
-                m.setModelAttribute("reg", new UserEmail());
-                return m;
-            }
-        );
+        factories.put(PasswordPolicyTemplate.TEMPLATE, () -> {
+            TemplateModel m = new PasswordPolicyTemplate(realm);
+            m.setModelAttribute("policy", new PasswordPolicy());
+            return m;
+        });
+        factories.put(PasswordResetTemplate.TEMPLATE, () -> {
+            TemplateModel m = new PasswordResetTemplate(realm);
+            m.setModelAttribute("reg", new UserEmail());
+            return m;
+        });
+        factories.put(PasswordResetSuccessTemplate.TEMPLATE, () -> {
+            TemplateModel m = new PasswordResetSuccessTemplate(realm);
+            m.setModelAttribute("reg", new UserEmail());
+            return m;
+        });
     }
 }

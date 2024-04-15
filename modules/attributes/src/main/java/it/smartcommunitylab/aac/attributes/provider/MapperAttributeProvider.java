@@ -44,7 +44,11 @@ import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 public class MapperAttributeProvider
-    extends AbstractAttributeProvider<DefaultUserAttributesImpl, MapperAttributeProviderConfig, MapperAttributeProviderConfigMap> {
+    extends AbstractAttributeProvider<
+        DefaultUserAttributesImpl,
+        MapperAttributeProviderConfig,
+        MapperAttributeProviderConfigMap
+    > {
 
     // services
     private final AttributeService attributeService;

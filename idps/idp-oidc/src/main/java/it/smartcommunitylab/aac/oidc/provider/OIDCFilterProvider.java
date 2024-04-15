@@ -118,8 +118,7 @@ public class OIDCFilterProvider implements FilterProvider {
 
     @Override
     public Collection<String> getCorsIgnoringAntMatchers() {
-        return Arrays
-            .asList(NO_CORS_ENDPOINTS)
+        return Arrays.asList(NO_CORS_ENDPOINTS)
             .stream()
             .map(a -> "/auth/" + authorityId + "/" + a)
             .collect(Collectors.toList());

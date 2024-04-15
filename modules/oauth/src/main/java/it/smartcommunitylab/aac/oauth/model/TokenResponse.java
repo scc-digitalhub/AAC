@@ -72,13 +72,12 @@ public class TokenResponse {
 
         if (accessToken.getAdditionalInformation() != null) {
             // keep only serializable properties
-            this.additionalInformation =
-                accessToken
-                    .getAdditionalInformation()
-                    .entrySet()
-                    .stream()
-                    .filter(e -> (e.getValue() instanceof Serializable))
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> (Serializable) e.getValue()));
+            this.additionalInformation = accessToken
+                .getAdditionalInformation()
+                .entrySet()
+                .stream()
+                .filter(e -> (e.getValue() instanceof Serializable))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> (Serializable) e.getValue()));
         }
     }
 

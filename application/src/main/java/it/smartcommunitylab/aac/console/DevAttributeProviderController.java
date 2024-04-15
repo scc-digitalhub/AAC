@@ -82,8 +82,9 @@ import org.yaml.snakeyaml.Yaml;
 public class DevAttributeProviderController extends BaseAttributeProviderController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef =
-        new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {};
+    private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef = new TypeReference<
+        Map<String, List<ConfigurableAttributeProvider>>
+    >() {};
     private final String LIST_KEY = "providers";
 
     // TODO replace with authorityManager to handle permissions

@@ -217,12 +217,11 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
                     providers = fetchIdentityProviders(authorityId, realm);
                 } else {
                     // load all
-                    providers =
-                        identityProviderAuthorityService
-                            .getAuthorities()
-                            .stream()
-                            .flatMap(a -> a.getProvidersByRealm(realm).stream())
-                            .collect(Collectors.toList());
+                    providers = identityProviderAuthorityService
+                        .getAuthorities()
+                        .stream()
+                        .flatMap(a -> a.getProvidersByRealm(realm).stream())
+                        .collect(Collectors.toList());
                 }
 
                 UserAuthentication result = null;
@@ -491,12 +490,11 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // always override username with last login
             if (StringUtils.hasText(identity.getAccount().getUsername())) {
-                user =
-                    userService.updateUser(
-                        subjectId,
-                        identity.getAccount().getUsername(),
-                        identity.getAccount().getEmailAddress()
-                    );
+                user = userService.updateUser(
+                    subjectId,
+                    identity.getAccount().getUsername(),
+                    identity.getAccount().getEmailAddress()
+                );
             }
 
             if (identity.getAccount().isEmailVerified() && !user.isEmailVerified()) {

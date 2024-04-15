@@ -152,8 +152,7 @@ public class UserInfoEndpoint {
         // TODO rework
         if (
             StringUtils.hasText(signedResponseAlg) ||
-            (StringUtils.hasText(encResponseAlg)) &&
-            StringUtils.hasText(encResponseEnc)
+            ((StringUtils.hasText(encResponseAlg)) && StringUtils.hasText(encResponseEnc))
         ) {
             // client has a preference, see if they ask for plain JSON specifically on this
             // request
@@ -205,8 +204,7 @@ public class UserInfoEndpoint {
             msg.append(",error_description=" + exception.getMessage());
         }
 
-        return ResponseEntity
-            .status(exception.getHttpErrorCode())
+        return ResponseEntity.status(exception.getHttpErrorCode())
             .header(HttpHeaders.WWW_AUTHENTICATE, msg.toString())
             .build();
     }

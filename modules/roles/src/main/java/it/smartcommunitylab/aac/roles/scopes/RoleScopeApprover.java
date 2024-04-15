@@ -73,8 +73,7 @@ public class RoleScopeApprover implements ScopeApprover {
             return null;
         }
 
-        Set<String> userRoles = UserRolesResourceContext
-            .from(user)
+        Set<String> userRoles = UserRolesResourceContext.from(user)
             .getRoles()
             .stream()
             .map(r -> r.getRole())
@@ -83,20 +82,18 @@ public class RoleScopeApprover implements ScopeApprover {
         boolean approved = false;
         if (requireAll) {
             // user needs to possess all the defined roles
-            approved =
-                roles
-                    .stream()
-                    .allMatch(a -> {
-                        return userRoles.stream().allMatch(c -> matches(c, a));
-                    });
+            approved = roles
+                .stream()
+                .allMatch(a -> {
+                    return userRoles.stream().allMatch(c -> matches(c, a));
+                });
         } else {
             // we look for at least one
-            approved =
-                roles
-                    .stream()
-                    .anyMatch(a -> {
-                        return userRoles.stream().anyMatch(c -> matches(c, a));
-                    });
+            approved = roles
+                .stream()
+                .anyMatch(a -> {
+                    return userRoles.stream().anyMatch(c -> matches(c, a));
+                });
         }
 
         ApprovalStatus approvalStatus = approved ? ApprovalStatus.APPROVED : ApprovalStatus.DENIED;

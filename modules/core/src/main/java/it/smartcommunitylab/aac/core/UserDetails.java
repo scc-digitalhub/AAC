@@ -319,10 +319,11 @@ public class UserDetails implements CredentialsContainer, Serializable {
             getAuthorities() != null &&
             getAuthorities()
                 .stream()
-                .anyMatch(a ->
-                    Config.R_ADMIN.equals(a.getAuthority()) ||
-                    isRealmRole(a.getAuthority(), Config.R_ADMIN) ||
-                    isRealmRole(a.getAuthority(), Config.R_DEVELOPER)
+                .anyMatch(
+                    a ->
+                        Config.R_ADMIN.equals(a.getAuthority()) ||
+                        isRealmRole(a.getAuthority(), Config.R_ADMIN) ||
+                        isRealmRole(a.getAuthority(), Config.R_DEVELOPER)
                 )
         );
     }

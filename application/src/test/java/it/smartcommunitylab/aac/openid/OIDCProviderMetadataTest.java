@@ -227,8 +227,9 @@ public class OIDCProviderMetadataTest {
 
     static {
         REQUIRED_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(REQUIRED_METADATA_VALUES)));
-        RECOMMENDED_METADATA =
-            Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(RECOMMENDED_METADATA_VALUES)));
+        RECOMMENDED_METADATA = Collections.unmodifiableSortedSet(
+            new TreeSet<>(Arrays.asList(RECOMMENDED_METADATA_VALUES))
+        );
         OPTIONAL_METADATA = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(OPTIONAL_METADATA_VALUES)));
         TreeSet<String> set = new TreeSet<>();
         set.addAll(REQUIRED_METADATA);
@@ -237,6 +238,7 @@ public class OIDCProviderMetadataTest {
         METADATA = Collections.unmodifiableSortedSet(set);
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

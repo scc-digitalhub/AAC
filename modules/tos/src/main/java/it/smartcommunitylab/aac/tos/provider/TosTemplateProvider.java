@@ -36,12 +36,9 @@ public class TosTemplateProvider
     ) {
         super(SystemKeys.AUTHORITY_TOS, providerId, templateService, providerConfig, realm);
         factories = new HashMap<>();
-        factories.put(
-            TosTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new TosTemplate(realm);
-                return m;
-            }
-        );
+        factories.put(TosTemplate.TEMPLATE, () -> {
+            TemplateModel m = new TosTemplate(realm);
+            return m;
+        });
     }
 }

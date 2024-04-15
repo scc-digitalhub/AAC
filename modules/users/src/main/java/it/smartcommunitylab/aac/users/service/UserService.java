@@ -317,24 +317,23 @@ public class UserService {
 
         //add all as resource
         Map<String, List<UserResource>> resources = new HashMap<>();
-        getUserProviders(realm)
-            .forEach(p -> {
-                try {
-                    logger.debug("fetch resources from {}:{}", p.getAuthority(), p.getProvider());
-                    Collection<? extends UserResource> res = p.listResourcesByUser(userId);
-                    if (!res.isEmpty()) {
-                        String t = res.iterator().next().getType();
-                        if (!resources.containsKey(t)) {
-                            resources.put(t, new ArrayList<>());
-                        }
-                        res.forEach(r -> resources.get(t).add(r));
-
-                        resources.get(t).addAll(res);
+        getUserProviders(realm).forEach(p -> {
+            try {
+                logger.debug("fetch resources from {}:{}", p.getAuthority(), p.getProvider());
+                Collection<? extends UserResource> res = p.listResourcesByUser(userId);
+                if (!res.isEmpty()) {
+                    String t = res.iterator().next().getType();
+                    if (!resources.containsKey(t)) {
+                        resources.put(t, new ArrayList<>());
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    res.forEach(r -> resources.get(t).add(r));
+
+                    resources.get(t).addAll(res);
                 }
-            });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
         u.setResources(resources);
 

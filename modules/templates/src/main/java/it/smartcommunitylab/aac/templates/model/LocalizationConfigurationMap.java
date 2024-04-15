@@ -33,8 +33,9 @@ import javax.validation.Valid;
 public class LocalizationConfigurationMap implements ConfigurableProperties {
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     private Set<Language> languages;
 

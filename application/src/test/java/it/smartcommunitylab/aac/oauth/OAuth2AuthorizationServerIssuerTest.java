@@ -137,8 +137,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -202,8 +201,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -273,8 +271,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         String nonce = "random-secure-nonce-value";
         params.add(OidcParameterNames.NONCE, nonce);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -365,6 +362,7 @@ public class OAuth2AuthorizationServerIssuerTest {
         METADATA = Collections.unmodifiableSortedSet(set);
     }
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

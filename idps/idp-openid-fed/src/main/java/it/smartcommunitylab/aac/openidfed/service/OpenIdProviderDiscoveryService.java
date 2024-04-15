@@ -16,9 +16,8 @@ package it.smartcommunitylab.aac.openidfed.service;
 
 import com.nimbusds.openid.connect.sdk.federation.entities.FederationEntityMetadata;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
-import org.springframework.lang.Nullable;
-
 import java.util.Collection;
+import org.springframework.lang.Nullable;
 
 public interface OpenIdProviderDiscoveryService {
     public Collection<String> discoverProviders();

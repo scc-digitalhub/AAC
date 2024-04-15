@@ -85,8 +85,10 @@ public class OpenIdFedRedirectAuthenticationFilter
 
         this.authority = authority;
         this.registrationRepository = registrationRepository;
-        this.authorizationRequestResolver =
-            new OpenIdFedOAuth2AuthorizationRequestResolver(registrationRepository, filterProcessingUrl);
+        this.authorizationRequestResolver = new OpenIdFedOAuth2AuthorizationRequestResolver(
+            registrationRepository,
+            filterProcessingUrl
+        );
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl + "/**");
     }
 

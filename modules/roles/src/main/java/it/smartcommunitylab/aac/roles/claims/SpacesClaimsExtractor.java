@@ -67,11 +67,10 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
         // filter context if specified by client
         if (StringUtils.hasText(client.getHookUniqueSpaces())) {
-            roles =
-                roles
-                    .stream()
-                    .filter(r -> r.getContext() != null && r.getContext().startsWith(client.getHookUniqueSpaces()))
-                    .collect(Collectors.toSet());
+            roles = roles
+                .stream()
+                .filter(r -> r.getContext() != null && r.getContext().startsWith(client.getHookUniqueSpaces()))
+                .collect(Collectors.toSet());
         }
 
         // export as space name

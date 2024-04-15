@@ -134,9 +134,9 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(USERINFO_URL)
-            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL).with(
+            bearer(accessToken).subject(user.getUserId()).scopes(scopes)
+        );
 
         MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -178,9 +178,9 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(USERINFO_URL)
-            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(USERINFO_URL).with(
+            bearer(accessToken).subject(user.getUserId()).scopes(scopes)
+        );
 
         MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -222,9 +222,9 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(USERINFO_URL)
-            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL).with(
+            bearer(accessToken).subject(user.getUserId()).scopes(scopes)
+        );
 
         MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -251,28 +251,26 @@ public class UserInfoTest {
             .isEqualTo(user.getUsername());
 
         // name is optional, if provided it should match request
-        assertThat(response.get(StandardClaimNames.NAME))
-            .satisfiesAnyOf(
-                s -> assertThat(s).isNull(),
-                s ->
-                    assertThat(s)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(user.getName())
-            );
+        assertThat(response.get(StandardClaimNames.NAME)).satisfiesAnyOf(
+            s -> assertThat(s).isNull(),
+            s ->
+                assertThat(s)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(user.getName())
+        );
 
         // family name is optional, if provided it should match request
-        assertThat(response.get(StandardClaimNames.FAMILY_NAME))
-            .satisfiesAnyOf(
-                s -> assertThat(s).isNull(),
-                s ->
-                    assertThat(s)
-                        .isNotNull()
-                        .isInstanceOf(String.class)
-                        .asInstanceOf(InstanceOfAssertFactories.STRING)
-                        .isEqualTo(user.getSurname())
-            );
+        assertThat(response.get(StandardClaimNames.FAMILY_NAME)).satisfiesAnyOf(
+            s -> assertThat(s).isNull(),
+            s ->
+                assertThat(s)
+                    .isNotNull()
+                    .isInstanceOf(String.class)
+                    .asInstanceOf(InstanceOfAssertFactories.STRING)
+                    .isEqualTo(user.getSurname())
+        );
 
         // email should NOT be exposed
         assertThat(response.get(StandardClaimNames.EMAIL)).isNull();
@@ -294,9 +292,9 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(USERINFO_URL)
-            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL).with(
+            bearer(accessToken).subject(user.getUserId()).scopes(scopes)
+        );
 
         MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
 
@@ -323,11 +321,10 @@ public class UserInfoTest {
             .isEqualTo(user.getEmail());
 
         // email verified is optional
-        assertThat(response.get(StandardClaimNames.EMAIL_VERIFIED))
-            .satisfiesAnyOf(
-                s -> assertThat(s).isNull(),
-                s -> assertThat(s).asInstanceOf(InstanceOfAssertFactories.BOOLEAN).isNotNull()
-            );
+        assertThat(response.get(StandardClaimNames.EMAIL_VERIFIED)).satisfiesAnyOf(
+            s -> assertThat(s).isNull(),
+            s -> assertThat(s).asInstanceOf(InstanceOfAssertFactories.BOOLEAN).isNotNull()
+        );
 
         // username should NOT be exposed
         assertThat(response.get(StandardClaimNames.PREFERRED_USERNAME)).isNull();
@@ -349,9 +346,9 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(USERINFO_URL)
-            .with(bearer(accessToken).subject(user.getUserId()).scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL).with(
+            bearer(accessToken).subject(user.getUserId()).scopes(scopes)
+        );
 
         MvcResult res = this.mockMvc.perform(req).andExpect(status().isForbidden()).andReturn();
 
@@ -369,9 +366,9 @@ public class UserInfoTest {
 
         // userinfo request
         // use bearer token context
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(USERINFO_URL)
-            .with(bearer("token").subject(user.getUserId()).scopes(scopes));
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(USERINFO_URL).with(
+            bearer("token").subject(user.getUserId()).scopes(scopes)
+        );
 
         MvcResult res = this.mockMvc.perform(req).andExpect(status().isUnauthorized()).andReturn();
 
@@ -392,6 +389,7 @@ public class UserInfoTest {
 
     private static final String USER_ID = "test-0000-12345-user";
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

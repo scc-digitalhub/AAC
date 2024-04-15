@@ -35,9 +35,20 @@ import org.springframework.util.Assert;
 
 @Service
 public class PasswordTemplateAuthority
-    extends AbstractSingleConfigurableProviderAuthority<PasswordTemplateProvider, ConfigurableTemplateProvider, RealmTemplateProviderConfig, TemplateProviderSettingsMap, TemplateProviderConfigMap>
+    extends AbstractSingleConfigurableProviderAuthority<
+        PasswordTemplateProvider,
+        ConfigurableTemplateProvider,
+        RealmTemplateProviderConfig,
+        TemplateProviderSettingsMap,
+        TemplateProviderConfigMap
+    >
     implements
-        TemplateProviderAuthority<PasswordTemplateProvider, TemplateModel, RealmTemplateProviderConfig, TemplateProviderConfigMap> {
+        TemplateProviderAuthority<
+            PasswordTemplateProvider,
+            TemplateModel,
+            RealmTemplateProviderConfig,
+            TemplateProviderConfigMap
+        > {
 
     // services
     private final TemplateService templateService;

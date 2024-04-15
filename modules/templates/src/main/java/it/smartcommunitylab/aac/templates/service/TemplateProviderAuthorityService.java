@@ -31,11 +31,34 @@ import org.springframework.util.Assert;
 
 @Service
 public class TemplateProviderAuthorityService
-    extends AbstractConfigurableAuthorityService<TemplateProviderAuthority<? extends TemplateProvider<? extends Template, ? extends ConfigMap, ? extends TemplateProviderConfig<? extends ConfigMap>>, ? extends Template, ? extends TemplateProviderConfig<? extends ConfigMap>, ? extends ConfigMap>, TemplateProviderSettingsMap>
+    extends AbstractConfigurableAuthorityService<
+        TemplateProviderAuthority<
+            ? extends TemplateProvider<
+                ? extends Template,
+                ? extends ConfigMap,
+                ? extends TemplateProviderConfig<? extends ConfigMap>
+            >,
+            ? extends Template,
+            ? extends TemplateProviderConfig<? extends ConfigMap>,
+            ? extends ConfigMap
+        >,
+        TemplateProviderSettingsMap
+    >
     implements InitializingBean {
 
     public TemplateProviderAuthorityService(
-        Collection<TemplateProviderAuthority<? extends TemplateProvider<? extends Template, ? extends ConfigMap, ? extends TemplateProviderConfig<? extends ConfigMap>>, ? extends Template, ? extends TemplateProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities
+        Collection<
+            TemplateProviderAuthority<
+                ? extends TemplateProvider<
+                    ? extends Template,
+                    ? extends ConfigMap,
+                    ? extends TemplateProviderConfig<? extends ConfigMap>
+                >,
+                ? extends Template,
+                ? extends TemplateProviderConfig<? extends ConfigMap>,
+                ? extends ConfigMap
+            >
+        > authorities
     ) {
         super(SystemKeys.RESOURCE_TEMPLATE);
         this.setAuthorities(authorities);

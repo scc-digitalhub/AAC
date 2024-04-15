@@ -78,8 +78,9 @@ public class SamlFilterProvider implements FilterProvider, ApplicationEventPubli
     @Override
     public List<Filter> getAuthFilters() {
         // build request repository bound to session
-        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
-            new HttpSessionSaml2AuthenticationRequestRepository();
+        Saml2AuthenticationRequestRepository<
+            SerializableSaml2AuthenticationRequestContext
+        > authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
         // build filters
         SamlWebSsoAuthenticationRequestFilter requestFilter = new SamlWebSsoAuthenticationRequestFilter(
@@ -127,8 +128,7 @@ public class SamlFilterProvider implements FilterProvider, ApplicationEventPubli
 
     @Override
     public Collection<String> getCorsIgnoringAntMatchers() {
-        return Arrays
-            .asList(NO_CORS_ENDPOINTS)
+        return Arrays.asList(NO_CORS_ENDPOINTS)
             .stream()
             .map(a -> "/auth/" + authorityId + "/" + a)
             .collect(Collectors.toList());

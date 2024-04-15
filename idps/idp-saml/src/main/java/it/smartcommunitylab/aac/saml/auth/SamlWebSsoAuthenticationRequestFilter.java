@@ -69,8 +69,9 @@ public class SamlWebSsoAuthenticationRequestFilter
     private final Saml2AuthenticationRequestFactory authenticationRequestFactory;
     private final ProviderConfigRepository<SamlIdentityProviderConfig> registrationRepository;
 
-    private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
-        new HttpSessionSaml2AuthenticationRequestRepository();
+    private Saml2AuthenticationRequestRepository<
+        SerializableSaml2AuthenticationRequestContext
+    > authenticationRequestRepository = new HttpSessionSaml2AuthenticationRequestRepository();
 
     private ApplicationEventPublisher eventPublisher;
 
@@ -95,10 +96,9 @@ public class SamlWebSsoAuthenticationRequestFilter
         this.authorityId = authority;
 
         // use custom implementation to add secure relayState param
-        this.authenticationRequestContextResolver =
-            new CustomSaml2AuthenticationRequestContextResolver(
-                new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
-            );
+        this.authenticationRequestContextResolver = new CustomSaml2AuthenticationRequestContextResolver(
+            new DefaultRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
+        );
         this.authenticationRequestFactory = getRequestFactory(registrationRepository);
 
         // set redirect to filterUrl
@@ -290,7 +290,9 @@ public class SamlWebSsoAuthenticationRequestFilter
     }
 
     public void setAuthenticationRequestRepository(
-        Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
+        Saml2AuthenticationRequestRepository<
+            SerializableSaml2AuthenticationRequestContext
+        > authenticationRequestRepository
     ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
     }
@@ -321,8 +323,7 @@ public class SamlWebSsoAuthenticationRequestFilter
             HttpServletRequest request,
             RelyingPartyRegistration relyingParty
         ) {
-            return Saml2AuthenticationRequestContext
-                .builder()
+            return Saml2AuthenticationRequestContext.builder()
                 .issuer(relyingParty.getEntityId())
                 .relyingPartyRegistration(relyingParty)
                 .assertionConsumerServiceUrl(relyingParty.getAssertionConsumerServiceLocation())

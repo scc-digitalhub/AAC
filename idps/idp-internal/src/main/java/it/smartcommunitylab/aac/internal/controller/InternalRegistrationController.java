@@ -106,8 +106,7 @@ public class InternalRegistrationController {
         }
 
         // fetch internal identities matching provider
-        Set<InternalUserIdentity> identities = UserIdentitiesResourceContext
-            .from(user)
+        Set<InternalUserIdentity> identities = UserIdentitiesResourceContext.from(user)
             .getIdentities()
             .stream()
             .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
@@ -176,12 +175,11 @@ public class InternalRegistrationController {
             }
 
             // fetch internal identities matching provider
-            Set<InternalUserIdentity> identities = UserIdentitiesResourceContext
-                .from(user)
+            Set<InternalUserIdentity> identities = UserIdentitiesResourceContext.from(user)
                 .getIdentities()
                 .stream()
-                .filter(i ->
-                    SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId)
+                .filter(
+                    i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId)
                 )
                 .map(i -> (InternalUserIdentity) i)
                 .collect(Collectors.toSet());

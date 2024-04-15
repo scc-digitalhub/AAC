@@ -66,8 +66,7 @@ public class MockUserAuthenticationFactory implements WithSecurityContextFactory
             String realm = annotation.realm();
 
             // map all authorities as-is
-            Set<GrantedAuthority> authorities = Stream
-                .of(annotation.authorities())
+            Set<GrantedAuthority> authorities = Stream.of(annotation.authorities())
                 .map(a -> new SimpleGrantedAuthority(a))
                 .collect(Collectors.toSet());
 

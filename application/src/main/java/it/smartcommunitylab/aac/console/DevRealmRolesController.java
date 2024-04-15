@@ -60,8 +60,9 @@ import org.yaml.snakeyaml.Yaml;
 public class DevRealmRolesController extends BaseRealmRolesController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<RealmRole>>> typeRef =
-        new TypeReference<Map<String, List<RealmRole>>>() {};
+    private final TypeReference<Map<String, List<RealmRole>>> typeRef = new TypeReference<
+        Map<String, List<RealmRole>>
+    >() {};
     private final String LIST_KEY = "roles";
 
     @Autowired

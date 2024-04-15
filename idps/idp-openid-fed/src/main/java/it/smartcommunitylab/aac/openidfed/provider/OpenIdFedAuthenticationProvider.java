@@ -179,14 +179,13 @@ public class OpenIdFedAuthenticationProvider
                     );
                 }
 
-                auth =
-                    new OIDCAuthenticationToken(
-                        subject,
-                        authenticationToken.getPrincipal(),
-                        authenticationToken.getAccessToken(),
-                        authenticationToken.getRefreshToken(),
-                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
-                    );
+                auth = new OIDCAuthenticationToken(
+                    subject,
+                    authenticationToken.getPrincipal(),
+                    authenticationToken.getAccessToken(),
+                    authenticationToken.getRefreshToken(),
+                    Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
+                );
             }
 
             return auth;
@@ -349,10 +348,9 @@ public class OpenIdFedAuthenticationProvider
         }
 
         // read username from attributes, mapper can replace it
-        username =
-            StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
-                : user.getUsername();
+        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+            ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
+            : user.getUsername();
 
         // update principal
         user.setUsername(username);

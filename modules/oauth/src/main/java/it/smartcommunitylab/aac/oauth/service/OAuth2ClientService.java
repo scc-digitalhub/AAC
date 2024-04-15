@@ -763,18 +763,17 @@ public class OAuth2ClientService implements ClientService {
             throw new NoSuchClientException();
         }
 
-        client =
-            clientService.updateClient(
-                clientId,
-                name,
-                description,
-                scopes,
-                resourceIds,
-                providers,
-                hookFunctions,
-                hookWebUrls,
-                hookUniqueSpaces
-            );
+        client = clientService.updateClient(
+            clientId,
+            name,
+            description,
+            scopes,
+            resourceIds,
+            providers,
+            hookFunctions,
+            hookWebUrls,
+            hookUniqueSpaces
+        );
 
         oauth.setAuthorizedGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizedGrantTypes));
         oauth.setRedirectUris(StringUtils.collectionToCommaDelimitedString(redirectUris));

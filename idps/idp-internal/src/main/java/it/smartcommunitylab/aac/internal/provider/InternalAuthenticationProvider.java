@@ -60,8 +60,13 @@ public class InternalAuthenticationProvider
         this.userAccountService = userAccountService;
 
         // build confirm key provider
-        confirmKeyProvider =
-            new ConfirmKeyAuthenticationProvider(providerId, userAccountService, confirmService, repositoryId, realm);
+        confirmKeyProvider = new ConfirmKeyAuthenticationProvider(
+            providerId,
+            userAccountService,
+            confirmService,
+            repositoryId,
+            realm
+        );
     }
 
     @Override

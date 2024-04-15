@@ -38,9 +38,17 @@ import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 public class InternalAttributeService
-    extends AbstractAttributeProvider<DefaultUserAttributesImpl, InternalAttributeProviderConfig, InternalAttributeProviderConfigMap>
+    extends AbstractAttributeProvider<
+        DefaultUserAttributesImpl,
+        InternalAttributeProviderConfig,
+        InternalAttributeProviderConfigMap
+    >
     implements
-        it.smartcommunitylab.aac.attributes.provider.AttributeService<DefaultUserAttributesImpl, InternalAttributeProviderConfigMap, InternalAttributeProviderConfig> {
+        it.smartcommunitylab.aac.attributes.provider.AttributeService<
+            DefaultUserAttributesImpl,
+            InternalAttributeProviderConfigMap,
+            InternalAttributeProviderConfig
+        > {
 
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
 

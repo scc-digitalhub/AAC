@@ -64,8 +64,7 @@ public class JwtClientAuthAssertionTokenValidator implements OAuth2TokenValidato
          */
 
         // validate REQUIRED claims
-        Set<String> invalidClaims = Arrays
-            .asList(JWT_REQUIRED_ATTRIBUTES)
+        Set<String> invalidClaims = Arrays.asList(JWT_REQUIRED_ATTRIBUTES)
             .stream()
             .filter(c -> !token.hasClaim(c))
             .collect(Collectors.toSet());

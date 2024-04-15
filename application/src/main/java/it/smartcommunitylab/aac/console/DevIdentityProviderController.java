@@ -82,8 +82,9 @@ import org.yaml.snakeyaml.Yaml;
 public class DevIdentityProviderController extends BaseIdentityProviderController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef =
-        new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {};
+    private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef = new TypeReference<
+        Map<String, List<ConfigurableIdentityProvider>>
+    >() {};
     private final String LIST_KEY = "providers";
 
     @Autowired

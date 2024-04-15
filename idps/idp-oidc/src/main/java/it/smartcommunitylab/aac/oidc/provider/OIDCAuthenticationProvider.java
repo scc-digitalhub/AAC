@@ -171,11 +171,15 @@ public class OIDCAuthenticationProvider
         // we don't use the account repository to fetch user details,
         // use oidc userinfo to provide user details
         // TODO add jwt handling from id_token or access token
-        this.oidcProvider =
-            new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient, new OidcUserService());
+        this.oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
+            accessTokenResponseClient,
+            new OidcUserService()
+        );
         // oauth userinfo comes from oidc userinfo..
-        this.oauthProvider =
-            new OAuth2LoginAuthenticationProvider(accessTokenResponseClient, new DefaultOAuth2UserService());
+        this.oauthProvider = new OAuth2LoginAuthenticationProvider(
+            accessTokenResponseClient,
+            new DefaultOAuth2UserService()
+        );
 
         // use a custom authorities mapper to cleanup authorities spring injects
         // default impl translates the whole oauth response as an authority..
@@ -248,14 +252,13 @@ public class OIDCAuthenticationProvider
                     );
                 }
 
-                auth =
-                    new OIDCAuthenticationToken(
-                        subject,
-                        authenticationToken.getPrincipal(),
-                        authenticationToken.getAccessToken(),
-                        authenticationToken.getRefreshToken(),
-                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
-                    );
+                auth = new OIDCAuthenticationToken(
+                    subject,
+                    authenticationToken.getPrincipal(),
+                    authenticationToken.getAccessToken(),
+                    authenticationToken.getRefreshToken(),
+                    Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
+                );
             }
 
             return auth;
@@ -404,10 +407,9 @@ public class OIDCAuthenticationProvider
         }
 
         // read username from attributes, mapper can replace it
-        username =
-            StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
-                : user.getUsername();
+        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+            ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
+            : user.getUsername();
 
         // update principal
         user.setUsername(username);

@@ -222,17 +222,15 @@ public class LoginController {
             // check realm and providers
             // TODO evaluate enforcing realm (or common) match
             if (clientDetails.getRealm().equals(realm)) {
-                providers =
-                    providers
-                        .stream()
-                        .filter(p -> clientProviders.contains(p.getProvider()))
-                        .collect(Collectors.toList());
+                providers = providers
+                    .stream()
+                    .filter(p -> clientProviders.contains(p.getProvider()))
+                    .collect(Collectors.toList());
 
-                services =
-                    services
-                        .stream()
-                        .filter(p -> clientProviders.contains(p.getProvider()))
-                        .collect(Collectors.toList());
+                services = services
+                    .stream()
+                    .filter(p -> clientProviders.contains(p.getProvider()))
+                    .collect(Collectors.toList());
             }
         }
 
@@ -344,8 +342,7 @@ public class LoginController {
             logoEtagValue = computeWeakEtag(resource.getInputStream());
         }
 
-        return ResponseEntity
-            .ok()
+        return ResponseEntity.ok()
             .contentLength(resource.contentLength())
             .contentType(MediaType.parseMediaType(contentType))
             .cacheControl(CacheControl.maxAge(3600, TimeUnit.SECONDS))

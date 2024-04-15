@@ -112,12 +112,13 @@ public class OAuth2UserSecurityConfig {
         http
             .requestMatcher(getRequestMatcher())
             //.authorizeRequests().anyRequest().authenticated().and()
-            .authorizeRequests(authorizeRequests ->
-                authorizeRequests
-                    .antMatchers(END_SESSION_ENDPOINT)
-                    .permitAll()
-                    .anyRequest()
-                    .hasAnyAuthority(Config.R_USER)
+            .authorizeRequests(
+                authorizeRequests ->
+                    authorizeRequests
+                        .antMatchers(END_SESSION_ENDPOINT)
+                        .permitAll()
+                        .anyRequest()
+                        .hasAnyAuthority(Config.R_USER)
             )
             .exceptionHandling()
             .authenticationEntryPoint(
@@ -234,8 +235,7 @@ public class OAuth2UserSecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(OAUTH2_USER_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(OAUTH2_USER_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

@@ -61,8 +61,7 @@ public class AssetsSecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(ASSETS_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(ASSETS_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

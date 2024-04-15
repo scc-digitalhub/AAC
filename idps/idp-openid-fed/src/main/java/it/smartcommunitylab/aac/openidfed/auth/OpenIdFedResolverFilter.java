@@ -202,9 +202,9 @@ public class OpenIdFedResolverFilter extends OncePerRequestFilter {
         String type
     ) {
         //extract relevant information
-        List<TrustMarkEntry> trustMarks = Optional
-            .ofNullable(statement.getClaimsSet().getTrustMarks())
-            .orElse(Collections.emptyList());
+        List<TrustMarkEntry> trustMarks = Optional.ofNullable(statement.getClaimsSet().getTrustMarks()).orElse(
+            Collections.emptyList()
+        );
         FederationEntityMetadata federationEntityMetadata = statement.getClaimsSet().getFederationEntityMetadata();
         OIDCProviderMetadata opMetadata = statement.getClaimsSet().getOPMetadata();
 
@@ -220,9 +220,11 @@ public class OpenIdFedResolverFilter extends OncePerRequestFilter {
 
         //expand client identifier as url
         String baseUrl = DefaultOpenIdRpMetadataResolver.extractBaseUrl(request);
-        String clientId = DefaultOpenIdRpMetadataResolver
-            .expandRedirectUri(baseUrl, config.getClientId(), "id")
-            .toString();
+        String clientId = DefaultOpenIdRpMetadataResolver.expandRedirectUri(
+            baseUrl,
+            config.getClientId(),
+            "id"
+        ).toString();
 
         JWK jwk = config.getFederationJWK();
 
@@ -258,7 +260,7 @@ public class OpenIdFedResolverFilter extends OncePerRequestFilter {
                     trustMarks.stream().map(t -> t.toJSONObject()).collect(Collectors.toList())
                 );
             }
-            
+
             //add trust chain
             if (trustChain != null) {
                 claims.claim("trust_chain", trustChain.toSerializedJWTs());

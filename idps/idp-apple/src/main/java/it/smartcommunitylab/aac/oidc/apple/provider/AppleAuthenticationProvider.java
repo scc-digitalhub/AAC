@@ -98,8 +98,10 @@ public class AppleAuthenticationProvider extends OIDCAuthenticationProvider {
         accessTokenResponseClient.setRequestEntityConverter(requestEntityConverter);
 
         // use id token user service, apple does not expose a userinfo endpoint
-        this.oidcProvider =
-            new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient, new IdTokenOidcUserService());
+        this.oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
+            accessTokenResponseClient,
+            new IdTokenOidcUserService()
+        );
     }
 
     @Override
@@ -172,12 +174,11 @@ public class AppleAuthenticationProvider extends OIDCAuthenticationProvider {
                         OidcUserInfo userInfo = new OidcUserInfo(claims);
 
                         // rebuild principal with new info
-                        principal =
-                            new DefaultOidcUser(
-                                principal.getAuthorities(),
-                                ((OidcUser) principal).getIdToken(),
-                                userInfo
-                            );
+                        principal = new DefaultOidcUser(
+                            principal.getAuthorities(),
+                            ((OidcUser) principal).getIdToken(),
+                            userInfo
+                        );
                     } catch (Exception e) {
                         // skip invalid data
                         logger.error("cannot parse userinfo from user data");
@@ -187,14 +188,13 @@ public class AppleAuthenticationProvider extends OIDCAuthenticationProvider {
                     }
                 }
 
-                auth =
-                    new OIDCAuthenticationToken(
-                        subject,
-                        principal,
-                        authenticationToken.getAccessToken(),
-                        authenticationToken.getRefreshToken(),
-                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
-                    );
+                auth = new OIDCAuthenticationToken(
+                    subject,
+                    principal,
+                    authenticationToken.getAccessToken(),
+                    authenticationToken.getRefreshToken(),
+                    Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
+                );
             }
 
             return auth;

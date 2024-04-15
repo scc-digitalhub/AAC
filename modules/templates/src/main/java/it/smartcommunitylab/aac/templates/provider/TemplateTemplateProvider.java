@@ -65,24 +65,18 @@ public class TemplateTemplateProvider
 
         factories = new HashMap<>();
         factories.put(LoginTemplate.TEMPLATE, () -> new LoginTemplate(realm));
-        factories.put(
-            EndSessionTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new EndSessionTemplate(realm);
-                m.setModelAttribute("account", account);
-                return m;
-            }
-        );
-        factories.put(
-            UserApprovalTemplate.TEMPLATE,
-            () -> {
-                TemplateModel m = new UserApprovalTemplate(realm);
-                m.setModelAttribute("account", account);
-                m.setModelAttribute("client", clientDetails);
-                m.setModelAttribute("resources", resource.getScopes());
-                return m;
-            }
-        );
+        factories.put(EndSessionTemplate.TEMPLATE, () -> {
+            TemplateModel m = new EndSessionTemplate(realm);
+            m.setModelAttribute("account", account);
+            return m;
+        });
+        factories.put(UserApprovalTemplate.TEMPLATE, () -> {
+            TemplateModel m = new UserApprovalTemplate(realm);
+            m.setModelAttribute("account", account);
+            m.setModelAttribute("client", clientDetails);
+            m.setModelAttribute("resources", resource.getScopes());
+            return m;
+        });
         factories.put(FooterTemplate.TEMPLATE, () -> new FooterTemplate(realm));
     }
 }

@@ -108,8 +108,7 @@ public class ImplicitGrantTest {
         // set empty scopes to avoid fall back to predefined
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -165,12 +164,11 @@ public class ImplicitGrantTest {
         assertThat(accessToken).isNotBlank();
 
         // scopes is null or empty
-        assertThat(response.get(OAuth2ParameterNames.SCOPE))
-            .satisfiesAnyOf(
-                scope -> assertThat(scope).isNull(),
-                scope -> assertThat(scope).isEmpty(),
-                scope -> assertThat(scope.get(0)).isEqualTo("")
-            );
+        assertThat(response.get(OAuth2ParameterNames.SCOPE)).satisfiesAnyOf(
+            scope -> assertThat(scope).isNull(),
+            scope -> assertThat(scope).isEmpty(),
+            scope -> assertThat(scope.get(0)).isEqualTo("")
+        );
 
         // there is no refresh token
         assertThat(response.get(OAuth2ParameterNames.REFRESH_TOKEN)).isNull();
@@ -185,8 +183,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -262,8 +259,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.STATE, state);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -333,8 +329,7 @@ public class ImplicitGrantTest {
         // require offline scope for refresh token
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_OFFLINE_ACCESS);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -395,8 +390,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -426,8 +420,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_PROFILE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -456,8 +449,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.TOKEN.toString());
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -476,8 +468,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.CLIENT_ID, "client");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -497,8 +488,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "invalid-scope");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -547,8 +537,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.REDIRECT_URI, "http123");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 
@@ -569,8 +558,7 @@ public class ImplicitGrantTest {
         params.add(OAuth2ParameterNames.SCOPE, "");
         params.add(OAuth2ParameterNames.STATE, "stateWithInvalidChars#\\");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.get(AUTHORIZE_URL)
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
 

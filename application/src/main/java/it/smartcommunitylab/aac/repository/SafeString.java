@@ -49,21 +49,18 @@ public @interface SafeString {
 
         public static final Safelist SIMPLE_TEXT = Safelist.simpleText();
 
-        public static final Safelist BASIC = Safelist
-            .basic()
+        public static final Safelist BASIC = Safelist.basic()
             .addTags("nav", "button", "hr")
             .addProtocols("a", "href", "#")
             .addAttributes(":all", "class")
             .addAttributes(":all", "style")
             .addAttributes(":all", "role");
 
-        public static final Safelist BASIC_WITH_IMAGES = BASIC
-            .addTags("img")
+        public static final Safelist BASIC_WITH_IMAGES = BASIC.addTags("img")
             .addAttributes("img", "align", "alt", "height", "src", "title", "width")
             .addProtocols("img", "src", "http", "https");
 
-        public static final Safelist RELAXED = Safelist
-            .relaxed()
+        public static final Safelist RELAXED = Safelist.relaxed()
             .removeTags("img")
             .addTags("nav", "button", "hr")
             .addProtocols("a", "href", "#")
@@ -71,8 +68,7 @@ public @interface SafeString {
             .addAttributes(":all", "style")
             .addAttributes(":all", "role");
 
-        public static final Safelist RELAXED_WITH_IMAGES = RELAXED
-            .addTags("img")
+        public static final Safelist RELAXED_WITH_IMAGES = RELAXED.addTags("img")
             .addAttributes("img", "align", "alt", "height", "src", "title", "width")
             .addProtocols("img", "src", "http", "https");
 

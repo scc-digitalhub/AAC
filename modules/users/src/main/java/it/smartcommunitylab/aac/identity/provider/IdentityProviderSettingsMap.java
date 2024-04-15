@@ -144,19 +144,18 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     @JsonProperty("hookFunctions")
     public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
         if (hookFunctions != null) {
-            this.hookFunctions =
-                hookFunctions
-                    .entrySet()
-                    .stream()
-                    .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(
-                        Collectors.toMap(
-                            e -> e.getKey(),
-                            e -> {
-                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                            }
-                        )
-                    );
+            this.hookFunctions = hookFunctions
+                .entrySet()
+                .stream()
+                .filter(e -> StringUtils.hasText(e.getValue()))
+                .collect(
+                    Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> {
+                            return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                        }
+                    )
+                );
         }
     }
 

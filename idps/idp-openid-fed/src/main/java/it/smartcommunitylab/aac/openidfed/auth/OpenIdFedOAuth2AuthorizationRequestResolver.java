@@ -153,9 +153,11 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
 
         //resolve and overwrite clientId
         String baseUrl = DefaultOpenIdRpMetadataResolver.extractBaseUrl(servletRequest);
-        String clientId = DefaultOpenIdRpMetadataResolver
-            .expandRedirectUri(baseUrl, config.getClientId(), "id")
-            .toString();
+        String clientId = DefaultOpenIdRpMetadataResolver.expandRedirectUri(
+            baseUrl,
+            config.getClientId(),
+            "id"
+        ).toString();
 
         // fetch paramers from resolved request
         Map<String, Object> attributes = new HashMap<>(authRequest.getAttributes());
@@ -171,8 +173,7 @@ public class OpenIdFedOAuth2AuthorizationRequestResolver implements OAuth2Author
         addRequestObject(authRequest, config, clientId, registration, attributes, additionalParameters);
 
         // get a builder and reset paramers
-        return OAuth2AuthorizationRequest
-            .from(authRequest)
+        return OAuth2AuthorizationRequest.from(authRequest)
             .clientId(clientId)
             .attributes(attributes)
             .additionalParameters(additionalParameters)

@@ -86,8 +86,9 @@ import org.yaml.snakeyaml.Yaml;
 public class DevClientAppController extends BaseClientAppController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final TypeReference<Map<String, List<ClientApp>>> typeRef =
-        new TypeReference<Map<String, List<ClientApp>>>() {};
+    private final TypeReference<Map<String, List<ClientApp>>> typeRef = new TypeReference<
+        Map<String, List<ClientApp>>
+    >() {};
     private final String LIST_KEY = "clients";
 
     @Autowired
@@ -408,12 +409,12 @@ public class DevClientAppController extends BaseClientAppController {
     public ResponseEntity<Collection<AuditEvent>> getClientAppAudit(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-        @RequestParam(required = false, name = "after") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> after,
-        @RequestParam(required = false, name = "before") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> before
+        @RequestParam(required = false, name = "after") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > after,
+        @RequestParam(required = false, name = "before") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Optional<
+            Date
+        > before
     ) throws NoSuchRealmException, NoSuchClientException {
         Collection<AuditEvent> result = clientManager.getAudit(
             realm,

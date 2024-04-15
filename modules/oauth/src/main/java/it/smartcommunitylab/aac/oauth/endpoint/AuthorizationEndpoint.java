@@ -226,8 +226,7 @@ public class AuthorizationEndpoint implements InitializingBean {
 
             try {
                 // extract unencoded parameters
-                UriComponents uc = UriComponentsBuilder
-                    .fromUri(URI.create(request.getRequestURI()))
+                UriComponents uc = UriComponentsBuilder.fromUri(URI.create(request.getRequestURI()))
                     .query(request.getQueryString())
                     .build(true);
                 String state = uc.getQueryParams().getFirst("state");

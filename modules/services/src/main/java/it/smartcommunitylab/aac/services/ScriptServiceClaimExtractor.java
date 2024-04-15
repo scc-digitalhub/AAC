@@ -55,10 +55,12 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .setSerializationInclusion(Include.NON_NULL);
-    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
-    private final TypeReference<ArrayList<Serializable>> serListTypeRef =
-        new TypeReference<ArrayList<Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> serMapTypeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
+    private final TypeReference<ArrayList<Serializable>> serListTypeRef = new TypeReference<
+        ArrayList<Serializable>
+    >() {};
     private final Service service;
     private ScriptExecutionService executionService;
 

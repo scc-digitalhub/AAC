@@ -330,14 +330,13 @@ public class UserManager {
 
         if (!StringUtils.hasText(provider)) {
             // fetch default internal provider if unspecified
-            provider =
-                accountServiceAuthorityService
-                    .getAuthority(SystemKeys.AUTHORITY_INTERNAL)
-                    .getProvidersByRealm(realm)
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(NoSuchProviderException::new)
-                    .getProvider();
+            provider = accountServiceAuthorityService
+                .getAuthority(SystemKeys.AUTHORITY_INTERNAL)
+                .getProvidersByRealm(realm)
+                .stream()
+                .findFirst()
+                .orElseThrow(NoSuchProviderException::new)
+                .getProvider();
         }
 
         // build only base account for registration

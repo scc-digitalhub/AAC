@@ -403,24 +403,28 @@ public class AACBootstrap {
                     if (realm == null) {
                         logger.debug("add realm {}", r.getSlug());
 
-                        realm =
-                            realmService.addRealm(r.getSlug(), r.getName(), r.getEmail(), r.isEditable(), r.isPublic());
+                        realm = realmService.addRealm(
+                            r.getSlug(),
+                            r.getName(),
+                            r.getEmail(),
+                            r.isEditable(),
+                            r.isPublic()
+                        );
                     } else {
                         logger.debug("update realm {}", r.getSlug());
 
                         // skip config maps
                         // TODO put in dedicated providers + config
-                        realm =
-                            realmService.updateRealm(
-                                r.getSlug(),
-                                r.getName(),
-                                r.getEmail(),
-                                r.isEditable(),
-                                r.isPublic(),
-                                null,
-                                null,
-                                null
-                            );
+                        realm = realmService.updateRealm(
+                            r.getSlug(),
+                            r.getName(),
+                            r.getEmail(),
+                            r.isEditable(),
+                            r.isPublic(),
+                            null,
+                            null,
+                            null
+                        );
                     }
 
                     /*
@@ -700,14 +704,13 @@ public class AACBootstrap {
                                     if (service == null) {
                                         logger.debug("add service {} for realm {}", id, String.valueOf(s.getRealm()));
 
-                                        service =
-                                            serviceService.addService(
-                                                s.getRealm(),
-                                                id,
-                                                s.getNamespace(),
-                                                s.getName(),
-                                                s.getDescription()
-                                            );
+                                        service = serviceService.addService(
+                                            s.getRealm(),
+                                            id,
+                                            s.getNamespace(),
+                                            s.getName(),
+                                            s.getDescription()
+                                        );
                                     } else {
                                         // check again realm match over existing
                                         if (!slug.equals(service.getRealm())) {
@@ -721,8 +724,12 @@ public class AACBootstrap {
                                             String.valueOf(s.getRealm())
                                         );
 
-                                        service =
-                                            serviceService.updateService(id, s.getName(), s.getDescription(), null);
+                                        service = serviceService.updateService(
+                                            id,
+                                            s.getName(),
+                                            s.getDescription(),
+                                            null
+                                        );
                                     }
                                 } catch (RegistrationException | NoSuchServiceException e) {
                                     logger.error(
@@ -869,13 +876,12 @@ public class AACBootstrap {
 
                                     if (user == null) {
                                         // register as new user
-                                        user =
-                                            userEntityService.addUser(
-                                                userId,
-                                                slug,
-                                                u.getUsername(),
-                                                u.getEmailAddress()
-                                            );
+                                        user = userEntityService.addUser(
+                                            userId,
+                                            slug,
+                                            u.getUsername(),
+                                            u.getEmailAddress()
+                                        );
                                     }
 
                                     u.setUserId(userId);
@@ -907,8 +913,13 @@ public class AACBootstrap {
                                         logger.debug("add {} account {} for realm {}", authority, id, slug);
 
                                         // create as new
-                                        account =
-                                            userAccountService.createUserAccount(authority, providerId, userId, id, u);
+                                        account = userAccountService.createUserAccount(
+                                            authority,
+                                            providerId,
+                                            userId,
+                                            id,
+                                            u
+                                        );
                                     } else {
                                         // check again realm match over existing
                                         if (!slug.equals(account.getRealm())) {
@@ -1060,14 +1071,13 @@ public class AACBootstrap {
                                         );
 
                                         // create as new
-                                        credentials =
-                                            userCredentialsService.createUserCredentials(
-                                                authority,
-                                                providerId,
-                                                userId,
-                                                id,
-                                                c
-                                            );
+                                        credentials = userCredentialsService.createUserCredentials(
+                                            authority,
+                                            providerId,
+                                            userId,
+                                            id,
+                                            c
+                                        );
                                     } else {
                                         // check again realm match over existing
                                         if (!slug.equals(credentials.getRealm())) {

@@ -260,7 +260,6 @@ public class SamlIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.subAttributeName = subAttributeName;
     }
 
-
     @JsonIgnore
     public void setConfiguration(SamlIdentityProviderConfigMap map) {
         this.signingKey = map.getSigningKey();

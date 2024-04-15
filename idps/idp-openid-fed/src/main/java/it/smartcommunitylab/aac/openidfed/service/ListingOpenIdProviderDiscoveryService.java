@@ -51,8 +51,7 @@ public class ListingOpenIdProviderDiscoveryService implements OpenIdProviderDisc
 
     //TODO add tree walk over intermediaries to discover providers not listed at top level
     //keep a short loading cache for list responses for a given entity
-    private final LoadingCache<String, List<String>> entities = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<String, List<String>> entities = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .build(
             new CacheLoader<String, List<String>>() {

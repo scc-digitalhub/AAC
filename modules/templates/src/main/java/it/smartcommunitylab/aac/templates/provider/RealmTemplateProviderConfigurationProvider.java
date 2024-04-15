@@ -24,7 +24,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RealmTemplateProviderConfigurationProvider
-    extends AbstractConfigurationProvider<RealmTemplateProviderConfig, ConfigurableTemplateProvider, TemplateProviderSettingsMap, TemplateProviderConfigMap>
+    extends AbstractConfigurationProvider<
+        RealmTemplateProviderConfig,
+        ConfigurableTemplateProvider,
+        TemplateProviderSettingsMap,
+        TemplateProviderConfigMap
+    >
     implements TemplateProviderConfigurationProvider<RealmTemplateProviderConfig, TemplateProviderConfigMap> {
 
     public RealmTemplateProviderConfigurationProvider(

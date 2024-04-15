@@ -213,8 +213,8 @@ public class DevController {
         boolean isAdmin = authentication
             .getAuthorities()
             .stream()
-            .anyMatch(a ->
-                a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN)
+            .anyMatch(
+                a -> a.getAuthority().equals(Config.R_ADMIN) || a.getAuthority().equals(realm + ":" + Config.R_ADMIN)
             );
 
         RealmStats bean = new RealmStats();

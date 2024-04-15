@@ -44,7 +44,13 @@ import org.springframework.util.Assert;
  */
 @Service
 public class PasswordCredentialsAuthority
-    extends AbstractCredentialsAuthority<PasswordCredentialsService, InternalUserPassword, InternalEditableUserPassword, PasswordCredentialsServiceConfig, PasswordIdentityProviderConfigMap> {
+    extends AbstractCredentialsAuthority<
+        PasswordCredentialsService,
+        InternalUserPassword,
+        InternalEditableUserPassword,
+        PasswordCredentialsServiceConfig,
+        PasswordIdentityProviderConfigMap
+    > {
 
     public static final String AUTHORITY_URL = "/auth/password/";
 

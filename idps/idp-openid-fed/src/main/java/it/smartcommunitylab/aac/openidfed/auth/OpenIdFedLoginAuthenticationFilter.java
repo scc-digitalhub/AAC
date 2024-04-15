@@ -211,8 +211,7 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
         String clientId = authorizationRequest.getClientId();
         clientRegistration = ClientRegistration.withClientRegistration(clientRegistration).clientId(clientId).build();
 
-        String redirectUri = UriComponentsBuilder
-            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+        String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
             .replaceQuery(null)
             .fragment(null)
             .build()
@@ -292,8 +291,7 @@ public class OpenIdFedLoginAuthenticationFilter extends AbstractAuthenticationPr
         } else {
             String errorDescription = params.get(OAuth2ParameterNames.ERROR_DESCRIPTION);
             String errorUri = params.get(OAuth2ParameterNames.ERROR_URI);
-            return OAuth2AuthorizationResponse
-                .error(errorCode)
+            return OAuth2AuthorizationResponse.error(errorCode)
                 .redirectUri(redirectUri)
                 .errorDescription(errorDescription)
                 .errorUri(errorUri)

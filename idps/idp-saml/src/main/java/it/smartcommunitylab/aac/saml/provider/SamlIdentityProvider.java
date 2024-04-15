@@ -35,7 +35,13 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.StringUtils;
 
 public class SamlIdentityProvider
-    extends AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        SamlUserIdentity,
+        SamlUserAccount,
+        SamlUserAuthenticatedPrincipal,
+        SamlIdentityProviderConfigMap,
+        SamlIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -69,15 +75,36 @@ public class SamlIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         SamlAccountServiceConfigConverter configConverter = new SamlAccountServiceConfigConverter();
-        this.accountService =
-            new SamlAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
-        this.principalConverter =
-            new SamlAccountPrincipalConverter(authority, providerId, userAccountService, config, realm);
+        this.accountService = new SamlAccountService(
+            authority,
+            providerId,
+            userAccountService,
+            configConverter.convert(config),
+            realm
+        );
+        this.principalConverter = new SamlAccountPrincipalConverter(
+            authority,
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
         this.attributeProvider = new SamlAttributeProvider(authority, providerId, config, realm);
-        this.authenticationProvider =
-            new SamlAuthenticationProvider(authority, providerId, userAccountService, config, realm);
-        this.userResolver =
-            new SamlUserResolver(authority, providerId, userEntityService, userAccountService, config, realm);
+        this.authenticationProvider = new SamlAuthenticationProvider(
+            authority,
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
+        this.userResolver = new SamlUserResolver(
+            authority,
+            providerId,
+            userEntityService,
+            userAccountService,
+            config,
+            realm
+        );
 
         // function hooks from config
         if (config.getHookFunctions() != null) {

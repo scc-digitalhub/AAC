@@ -54,15 +54,13 @@ public class ClientKeyCacheService {
     private final JWKSetCacheService jwksUriCache = new JWKSetCacheService();
 
     // cache of validators for by-value JWKs
-    private final LoadingCache<JWKSet, JWTSigningAndValidationService> jwksValidators = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<JWKSet, JWTSigningAndValidationService> jwksValidators = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(new JWKSetVerifierBuilder());
 
     // cache of encryptors for by-value JWKs
-    private final LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> jwksEncrypters = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<JWKSet, JWTEncryptionAndDecryptionService> jwksEncrypters = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(new JWKSetEncryptorBuilder());

@@ -187,20 +187,19 @@ public class TemplateService {
 
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content =
-                reg
-                    .getContent()
-                    .entrySet()
-                    .stream()
-                    .map(e -> {
-                        String v = e.getValue();
-                        if (v == null) {
-                            return e;
-                        }
+            content = reg
+                .getContent()
+                .entrySet()
+                .stream()
+                .map(e -> {
+                    String v = e.getValue();
+                    if (v == null) {
+                        return e;
+                    }
 
-                        return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
-                    })
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                    return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
+                })
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
 
         logger.debug(
@@ -244,20 +243,19 @@ public class TemplateService {
     public Map<String, String> sanitizeTemplate(String id, TemplateModel reg) {
         Map<String, String> content = null;
         if (reg.getContent() != null) {
-            content =
-                reg
-                    .getContent()
-                    .entrySet()
-                    .stream()
-                    .map(e -> {
-                        String v = e.getValue();
-                        if (v == null) {
-                            return e;
-                        }
+            content = reg
+                .getContent()
+                .entrySet()
+                .stream()
+                .map(e -> {
+                    String v = e.getValue();
+                    if (v == null) {
+                        return e;
+                    }
 
-                        return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
-                    })
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                    return Map.entry(e.getKey(), Jsoup.clean(v, DEFAULT_WHITELIST));
+                })
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         }
 
         return content;

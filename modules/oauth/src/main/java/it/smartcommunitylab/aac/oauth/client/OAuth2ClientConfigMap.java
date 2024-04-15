@@ -46,8 +46,9 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     private Set<AuthorizationGrantType> authorizedGrantTypes;
     private Set<String> redirectUris;

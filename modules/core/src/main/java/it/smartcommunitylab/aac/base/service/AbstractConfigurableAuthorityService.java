@@ -25,7 +25,18 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 
 public abstract class AbstractConfigurableAuthorityService<
-    A extends ConfigurableProviderAuthority<? extends ConfigurableResourceProvider<? extends Resource, ? extends ProviderConfig<S, ? extends ConfigMap>, S, ? extends ConfigMap>, ? extends ConfigurableProvider<S>, ? extends ProviderConfig<S, ? extends ConfigMap>, S, ? extends ConfigMap>,
+    A extends ConfigurableProviderAuthority<
+        ? extends ConfigurableResourceProvider<
+            ? extends Resource,
+            ? extends ProviderConfig<S, ? extends ConfigMap>,
+            S,
+            ? extends ConfigMap
+        >,
+        ? extends ConfigurableProvider<S>,
+        ? extends ProviderConfig<S, ? extends ConfigMap>,
+        S,
+        ? extends ConfigMap
+    >,
     S extends ConfigMap
 >
     extends AbstractAuthorityService<A>

@@ -242,10 +242,8 @@ public class OAuth2TokenServices
                 // check if expired
                 ExpiringOAuth2RefreshToken expiringToken = (ExpiringOAuth2RefreshToken) refreshToken;
                 boolean isExpired =
-                    (
-                        expiringToken.getExpiration() == null ||
-                        System.currentTimeMillis() > expiringToken.getExpiration().getTime()
-                    );
+                    (expiringToken.getExpiration() == null ||
+                        System.currentTimeMillis() > expiringToken.getExpiration().getTime());
 
                 if (isExpired) {
                     tokenStore.removeRefreshToken(refreshToken);
@@ -253,11 +251,8 @@ public class OAuth2TokenServices
                 }
 
                 // renew if within window
-                renewToken =
-                    (
-                        !isExpired &&
-                        System.currentTimeMillis() > (expiringToken.getExpiration().getTime() - refreshRenewalSeconds)
-                    );
+                renewToken = (!isExpired &&
+                    System.currentTimeMillis() > (expiringToken.getExpiration().getTime() - refreshRenewalSeconds));
             }
 
             // check if client has rotate to always configured

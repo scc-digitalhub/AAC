@@ -38,7 +38,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 public class InternalIdentityProvider
-    extends AbstractIdentityProvider<InternalUserIdentity, InternalUserAccount, InternalUserAuthenticatedPrincipal, InternalIdentityProviderConfigMap, InternalIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        InternalUserIdentity,
+        InternalUserAccount,
+        InternalUserAuthenticatedPrincipal,
+        InternalIdentityProviderConfigMap,
+        InternalIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -69,14 +75,28 @@ public class InternalIdentityProvider
         // build resource providers, we use our providerId to ensure consistency
         this.accountProvider = new InternalAccountProvider(providerId, userAccountService, repositoryId, realm);
         this.attributeProvider = new InternalAttributeProvider<>(SystemKeys.AUTHORITY_INTERNAL, providerId, realm);
-        this.principalConverter =
-            new InternalAccountPrincipalConverter(providerId, userAccountService, repositoryId, realm);
+        this.principalConverter = new InternalAccountPrincipalConverter(
+            providerId,
+            userAccountService,
+            repositoryId,
+            realm
+        );
 
         // build providers
-        this.confirmService =
-            new InternalIdentityConfirmService(providerId, userAccountService, confirmKeyService, config, realm);
-        this.authenticationProvider =
-            new InternalAuthenticationProvider(providerId, userAccountService, confirmService, config, realm);
+        this.confirmService = new InternalIdentityConfirmService(
+            providerId,
+            userAccountService,
+            confirmKeyService,
+            config,
+            realm
+        );
+        this.authenticationProvider = new InternalAuthenticationProvider(
+            providerId,
+            userAccountService,
+            confirmService,
+            config,
+            realm
+        );
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage

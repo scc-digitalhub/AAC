@@ -63,8 +63,10 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         this.registrationRepository = registrationRepository;
         this.requestMatcher = new AntPathRequestMatcher(authorizationRequestBaseUri + "/{registrationId}");
 
-        defaultResolver =
-            new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, authorizationRequestBaseUri);
+        defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(
+            clientRegistrationRepository,
+            authorizationRequestBaseUri
+        );
     }
 
     @Override
@@ -123,8 +125,7 @@ public class PKCEAwareOAuth2AuthorizationRequestResolver implements OAuth2Author
         addPkceParameters(attributes, additionalParameters);
 
         // get a builder and reset paramers
-        return OAuth2AuthorizationRequest
-            .from(authRequest)
+        return OAuth2AuthorizationRequest.from(authRequest)
             .attributes(attributes)
             .additionalParameters(additionalParameters)
             .build();

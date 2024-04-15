@@ -46,7 +46,13 @@ import org.springframework.util.Assert;
 public class InternalAccountServiceAuthority
     extends AbstractProviderAuthority<InternalAccountService, InternalAccountServiceConfig>
     implements
-        AccountServiceAuthority<InternalAccountService, InternalUserAccount, InternalEditableUserAccount, InternalAccountServiceConfig, InternalIdentityProviderConfigMap> {
+        AccountServiceAuthority<
+            InternalAccountService,
+            InternalUserAccount,
+            InternalEditableUserAccount,
+            InternalAccountServiceConfig,
+            InternalIdentityProviderConfigMap
+        > {
 
     public static final String AUTHORITY_URL = "/auth/internal/";
 
@@ -131,7 +137,12 @@ public class InternalAccountServiceAuthority
     }
 
     @Override
-    public ConfigurationProvider<InternalAccountServiceConfig, ConfigurableAccountService, AccountServiceSettingsMap, InternalIdentityProviderConfigMap> getConfigurationProvider() {
+    public ConfigurationProvider<
+        InternalAccountServiceConfig,
+        ConfigurableAccountService,
+        AccountServiceSettingsMap,
+        InternalIdentityProviderConfigMap
+    > getConfigurationProvider() {
         return null;
     }
 }

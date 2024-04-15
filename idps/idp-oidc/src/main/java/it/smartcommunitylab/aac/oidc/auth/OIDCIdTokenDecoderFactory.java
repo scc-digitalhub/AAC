@@ -61,25 +61,24 @@ public class OIDCIdTokenDecoderFactory implements JwtDecoderFactory<ClientRegist
     private Function<ClientRegistration, JwsAlgorithm> jwsAlgorithmResolver = clientRegistration ->
         SignatureAlgorithm.RS256;
 
-    private Function<ClientRegistration, Converter<Map<String, Object>, Map<String, Object>>> claimTypeConverterFactory =
-        clientRegistration -> DEFAULT_CLAIM_TYPE_CONVERTER;
+    private Function<
+        ClientRegistration,
+        Converter<Map<String, Object>, Map<String, Object>>
+    > claimTypeConverterFactory = clientRegistration -> DEFAULT_CLAIM_TYPE_CONVERTER;
 
     @Override
     public JwtDecoder createDecoder(ClientRegistration clientRegistration) {
         Assert.notNull(clientRegistration, "clientRegistration cannot be null");
-        return this.jwtDecoders.computeIfAbsent(
-                clientRegistration.getRegistrationId(),
-                key -> {
-                    NimbusJwtDecoder jwtDecoder = buildDecoder(clientRegistration);
-                    jwtDecoder.setJwtValidator(this.jwtValidatorFactory.apply(clientRegistration));
-                    Converter<Map<String, Object>, Map<String, Object>> claimTypeConverter =
-                        this.claimTypeConverterFactory.apply(clientRegistration);
-                    if (claimTypeConverter != null) {
-                        jwtDecoder.setClaimSetConverter(claimTypeConverter);
-                    }
-                    return jwtDecoder;
+        return this.jwtDecoders.computeIfAbsent(clientRegistration.getRegistrationId(), key -> {
+                NimbusJwtDecoder jwtDecoder = buildDecoder(clientRegistration);
+                jwtDecoder.setJwtValidator(this.jwtValidatorFactory.apply(clientRegistration));
+                Converter<Map<String, Object>, Map<String, Object>> claimTypeConverter =
+                    this.claimTypeConverterFactory.apply(clientRegistration);
+                if (claimTypeConverter != null) {
+                    jwtDecoder.setClaimSetConverter(claimTypeConverter);
                 }
-            );
+                return jwtDecoder;
+            });
     }
 
     private NimbusJwtDecoder buildDecoder(ClientRegistration clientRegistration) {

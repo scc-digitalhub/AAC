@@ -136,12 +136,18 @@ public class UserAccountService {
         String realm = ue.getRealm();
 
         // collect from all providers for the same realm
-        List<? extends AccountService<? extends UserAccount, ? extends EditableUserAccount, ? extends ConfigMap, ? extends AccountServiceConfig<? extends ConfigMap>>> services =
-            accountServiceAuthorityService
-                .getAuthorities()
-                .stream()
-                .flatMap(e -> e.getProvidersByRealm(realm).stream())
-                .collect(Collectors.toList());
+        List<
+            ? extends AccountService<
+                ? extends UserAccount,
+                ? extends EditableUserAccount,
+                ? extends ConfigMap,
+                ? extends AccountServiceConfig<? extends ConfigMap>
+            >
+        > services = accountServiceAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(e -> e.getProvidersByRealm(realm).stream())
+            .collect(Collectors.toList());
 
         List<EditableUserAccount> accounts = services
             .stream()
@@ -156,8 +162,7 @@ public class UserAccountService {
                             return null;
                         }
                     })
-                    .filter(a -> a != null)
-            )
+                    .filter(a -> a != null))
             .collect(Collectors.toList());
 
         return accounts;

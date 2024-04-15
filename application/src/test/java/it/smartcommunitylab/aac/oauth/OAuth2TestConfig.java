@@ -50,27 +50,26 @@ public final class OAuth2TestConfig {
             throw new IllegalArgumentException("missing config");
         }
 
-        this.clients =
-            rc
-                .getClientApps()
-                .stream()
-                .map(a -> {
-                    // convert from config map and then align
-                    OAuth2ClientConfigMap e = mapper.convertValue(a.getConfiguration(), OAuth2ClientConfigMap.class);
+        this.clients = rc
+            .getClientApps()
+            .stream()
+            .map(a -> {
+                // convert from config map and then align
+                OAuth2ClientConfigMap e = mapper.convertValue(a.getConfiguration(), OAuth2ClientConfigMap.class);
 
-                    ClientRegistration c = clientConverter.convert(e);
-                    c.setClientId(a.getClientId());
+                ClientRegistration c = clientConverter.convert(e);
+                c.setClientId(a.getClientId());
 
-                    // manually map secrets
-                    String clientSecret = (String) a.getConfiguration().get("clientSecret");
-                    c.setClientSecret(clientSecret);
+                // manually map secrets
+                String clientSecret = (String) a.getConfiguration().get("clientSecret");
+                c.setClientSecret(clientSecret);
 
-                    String clientJwks = (String) a.getConfiguration().get("jwks");
-                    c.setJwks(clientJwks);
+                String clientJwks = (String) a.getConfiguration().get("jwks");
+                c.setJwks(clientJwks);
 
-                    return c;
-                })
-                .collect(Collectors.toList());
+                return c;
+            })
+            .collect(Collectors.toList());
     }
 
     private void buildUsers() {
@@ -90,23 +89,22 @@ public final class OAuth2TestConfig {
                 )
             );
 
-        this.users =
-            rc
-                .getUsers()
-                .stream()
-                .map(a -> {
-                    UserRegistration r = new UserRegistration(a.getUserId());
-                    r.setUsername(a.getUsername());
-                    r.setPassword(passwords.get(a.getUserId()));
-                    r.setEmail(a.getEmailAddress());
-                    if (a instanceof InternalUserAccount) {
-                        InternalUserAccount ia = (InternalUserAccount) a;
-                        r.setName(ia.getName());
-                        r.setSurname(ia.getSurname());
-                    }
-                    return r;
-                })
-                .collect(Collectors.toList());
+        this.users = rc
+            .getUsers()
+            .stream()
+            .map(a -> {
+                UserRegistration r = new UserRegistration(a.getUserId());
+                r.setUsername(a.getUsername());
+                r.setPassword(passwords.get(a.getUserId()));
+                r.setEmail(a.getEmailAddress());
+                if (a instanceof InternalUserAccount) {
+                    InternalUserAccount ia = (InternalUserAccount) a;
+                    r.setName(ia.getName());
+                    r.setSurname(ia.getSurname());
+                }
+                return r;
+            })
+            .collect(Collectors.toList());
     }
 
     public String realm() {

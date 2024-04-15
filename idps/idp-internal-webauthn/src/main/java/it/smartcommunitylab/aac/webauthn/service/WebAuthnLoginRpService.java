@@ -65,8 +65,7 @@ public class WebAuthnLoginRpService {
 
     // leverage a local cache for fetching rps
     // TODO cache invalidation or check on load or drop cache
-    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .maximumSize(100)
         .build(
@@ -83,8 +82,7 @@ public class WebAuthnLoginRpService {
                     URL publicAppUrl = new URL(applicationUrl);
                     Set<String> origins = Collections.singleton(applicationUrl);
 
-                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity
-                        .builder()
+                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
                         .id(publicAppUrl.getHost())
                         .name(config.getRealm())
                         .build();
@@ -95,8 +93,7 @@ public class WebAuthnLoginRpService {
                         credentialsRepository
                     );
 
-                    RelyingParty rp = RelyingParty
-                        .builder()
+                    RelyingParty rp = RelyingParty.builder()
                         .identity(rpIdentity)
                         .credentialRepository(webauthnRepository)
                         .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
@@ -160,8 +157,7 @@ public class WebAuthnLoginRpService {
         int timeout = config.getLoginTimeout() * 1000;
 
         // build assertion
-        StartAssertionOptions startAssertionOptions = StartAssertionOptions
-            .builder()
+        StartAssertionOptions startAssertionOptions = StartAssertionOptions.builder()
             .userHandle(userHandle)
             .timeout(timeout)
             .userVerification(config.getRequireUserVerification())

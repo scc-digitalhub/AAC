@@ -222,8 +222,7 @@ public class ClientRegistrationEndpoint {
             }
 
             // build registration url for updates
-            String registrationUrl = ServletUriComponentsBuilder
-                .fromServletMapping(request)
+            String registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
                 .path(REGISTRATION_URL + "/{id}")
                 .build()
                 .expand(registration.getClientId())
@@ -330,8 +329,7 @@ public class ClientRegistrationEndpoint {
             // TODO registration token renewal
 
             // build registration url for updates
-            String registrationUrl = ServletUriComponentsBuilder
-                .fromServletMapping(request)
+            String registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
                 .path(REGISTRATION_URL + "/{id}")
                 .build()
                 .expand(registration.getClientId())
@@ -456,8 +454,7 @@ public class ClientRegistrationEndpoint {
             // TODO registration token renewal
 
             // build registration url for updates
-            String registrationUrl = ServletUriComponentsBuilder
-                .fromServletMapping(request)
+            String registrationUrl = ServletUriComponentsBuilder.fromServletMapping(request)
                 .path(REGISTRATION_URL + "/{id}")
                 .build()
                 .expand(registration.getClientId())

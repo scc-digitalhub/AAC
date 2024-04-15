@@ -107,10 +107,9 @@ public class SamlAuthenticationProvider
         // repositoryId is always providerId, saml isolates data per provider
         this.repositoryId = providerId;
 
-        this.usernameAttributeName =
-            StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
-                ? config.getConfigMap().getUserNameAttributeName()
-                : SUBJECT_ATTRIBUTE;
+        this.usernameAttributeName = StringUtils.hasText(config.getConfigMap().getUserNameAttributeName())
+            ? config.getConfigMap().getUserNameAttributeName()
+            : SUBJECT_ATTRIBUTE;
 
         this.subAttributeName = config.getSubAttributeName();
 
@@ -122,7 +121,10 @@ public class SamlAuthenticationProvider
         //                    params.put(SAML2AssertionValidationParameters.CLOCK_SKEW, Duration.ofMinutes(5).toMillis());
         //                    return new ValidationContext(params);
         //                }));
-        Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultResponseAuthenticationConverterConverter =
+        Converter<
+            OpenSaml4AuthenticationProvider.ResponseToken,
+            Saml2Authentication
+        > defaultResponseAuthenticationConverterConverter =
             OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
         openSamlProvider.setResponseAuthenticationConverter(responseToken -> {
             // use default converter to pre-evaluate authentication, containing attributes and indexes
@@ -143,12 +145,11 @@ public class SamlAuthenticationProvider
                 attributes
             );
             if (auth.getPrincipal() instanceof DefaultSaml2AuthenticatedPrincipal) {
-                principal =
-                    new DefaultSaml2AuthenticatedPrincipal(
-                        auth.getName(),
-                        attributes,
-                        ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
-                    );
+                principal = new DefaultSaml2AuthenticatedPrincipal(
+                    auth.getName(),
+                    attributes,
+                    ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
+                );
             }
 
             return new Saml2Authentication(
@@ -239,13 +240,12 @@ public class SamlAuthenticationProvider
                     );
                 }
 
-                auth =
-                    new SamlAuthenticationToken(
-                        subject,
-                        (Saml2AuthenticatedPrincipal) authToken.getPrincipal(),
-                        saml2Response,
-                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-                    );
+                auth = new SamlAuthenticationToken(
+                    subject,
+                    (Saml2AuthenticatedPrincipal) authToken.getPrincipal(),
+                    saml2Response,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                );
             }
 
             // TODO wrap response token and erase credentials etc
@@ -414,10 +414,9 @@ public class SamlAuthenticationProvider
         }
 
         // read username from attributes, mapper can replace it
-        username =
-            StringUtils.hasText(samlAttributes.get(usernameAttributeName))
-                ? samlAttributes.get(usernameAttributeName)
-                : user.getUsername();
+        username = StringUtils.hasText(samlAttributes.get(usernameAttributeName))
+            ? samlAttributes.get(usernameAttributeName)
+            : user.getUsername();
 
         // update principal
         user.setUsername(username);

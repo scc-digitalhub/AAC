@@ -59,15 +59,14 @@ public final class Saml2AuthenticationTokenConverter implements AuthenticationCo
         this.relyingPartyRegistrationResolver = relyingPartyRegistrationResolver;
         HttpSessionSaml2AuthenticationRequestRepository httpSessionRepository =
             new HttpSessionSaml2AuthenticationRequestRepository();
-        this.loader =
-            request -> {
-                SerializableSaml2AuthenticationRequestContext requestContext =
-                    httpSessionRepository.loadAuthenticationRequest(request);
-                if (requestContext == null) {
-                    return null;
-                }
-                return requestContext.getSamlAuthenticationRequest();
-            };
+        this.loader = request -> {
+            SerializableSaml2AuthenticationRequestContext requestContext =
+                httpSessionRepository.loadAuthenticationRequest(request);
+            if (requestContext == null) {
+                return null;
+            }
+            return requestContext.getSamlAuthenticationRequest();
+        };
     }
 
     public Saml2AuthenticationTokenConverter(RelyingPartyRegistrationResolver relyingPartyRegistrationResolver) {

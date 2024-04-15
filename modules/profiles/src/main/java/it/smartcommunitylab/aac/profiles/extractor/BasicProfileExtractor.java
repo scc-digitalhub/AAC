@@ -87,20 +87,18 @@ public class BasicProfileExtractor extends AbstractUserProfileExtractor {
         );
         if (!StringUtils.hasText(name)) {
             // fall back to openid profile
-            name =
-                getStringAttribute(
-                    getAttribute(attributes, OpenIdAttributesSet.GIVEN_NAME, OpenIdAttributesSet.IDENTIFIER, "profile")
-                );
+            name = getStringAttribute(
+                getAttribute(attributes, OpenIdAttributesSet.GIVEN_NAME, OpenIdAttributesSet.IDENTIFIER, "profile")
+            );
         }
         String surname = getStringAttribute(
             getAttribute(attributes, BasicAttributesSet.SURNAME, BasicAttributesSet.IDENTIFIER, "profile")
         );
         if (!StringUtils.hasText(surname)) {
             // fall back to openid profile
-            surname =
-                getStringAttribute(
-                    getAttribute(attributes, OpenIdAttributesSet.FAMILY_NAME, OpenIdAttributesSet.IDENTIFIER, "profile")
-                );
+            surname = getStringAttribute(
+                getAttribute(attributes, OpenIdAttributesSet.FAMILY_NAME, OpenIdAttributesSet.IDENTIFIER, "profile")
+            );
         }
         String email = getStringAttribute(
             getAttribute(

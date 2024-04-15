@@ -63,14 +63,15 @@ public class OpenIdSecurityConfig {
         // match only endpoints
         http
             .requestMatcher(getRequestMatcher())
-            .authorizeRequests(authorizeRequests ->
-                authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT)
+            .authorizeRequests(
+                authorizeRequests -> authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT)
             )
             // support passing token in request body via custom resolver
-            .oauth2ResourceServer(oauth2 ->
-                oauth2
-                    .bearerTokenResolver(bearerTokenResolver())
-                    .opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
+            .oauth2ResourceServer(
+                oauth2 ->
+                    oauth2
+                        .bearerTokenResolver(bearerTokenResolver())
+                        .opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
             )
             // disable request cache, we override redirects but still better enforce it
             .requestCache(requestCache -> requestCache.disable())
@@ -99,8 +100,7 @@ public class OpenIdSecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(OPENID_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(OPENID_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

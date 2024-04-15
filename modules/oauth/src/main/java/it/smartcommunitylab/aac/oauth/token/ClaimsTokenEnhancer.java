@@ -85,15 +85,14 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
                 if (userAuth != null && userAuth instanceof UserAuthentication) {
                     UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
                     // ask claims for the user model appropriate for the client's realm
-                    claims =
-                        claimsService.getUserClaims(
-                            userDetails,
-                            clientDetails.getRealm(),
-                            clientDetails,
-                            scopes,
-                            resourceIds,
-                            extensions
-                        );
+                    claims = claimsService.getUserClaims(
+                        userDetails,
+                        clientDetails.getRealm(),
+                        clientDetails,
+                        scopes,
+                        resourceIds,
+                        extensions
+                    );
                 }
             }
 

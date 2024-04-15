@@ -105,8 +105,9 @@ public class AuditConfig {
             JWK jwk = jwtKeyStore
                 .getKeys()
                 .stream()
-                .filter(j ->
-                    j.getKeyID().equals(sigKid) && (j.getKeyUse() == null || j.getKeyUse().equals(KeyUse.SIGNATURE))
+                .filter(
+                    j ->
+                        j.getKeyID().equals(sigKid) && (j.getKeyUse() == null || j.getKeyUse().equals(KeyUse.SIGNATURE))
                 )
                 .findFirst()
                 .orElse(null);

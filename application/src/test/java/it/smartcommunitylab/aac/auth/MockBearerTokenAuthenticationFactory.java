@@ -64,12 +64,10 @@ public class MockBearerTokenAuthenticationFactory
     public static Authentication createAuthentication(MockBearerTokenAuthentication token) {
         // map all authorities as-is
         // + map scopes as authorities with prefix
-        Set<GrantedAuthority> authorities = Stream
-            .concat(
-                Stream.of(token.getAuthorities()).map(a -> new SimpleGrantedAuthority(a)),
-                Stream.of(token.getScopes()).map(s -> new SimpleGrantedAuthority("SCOPE_" + s))
-            )
-            .collect(Collectors.toSet());
+        Set<GrantedAuthority> authorities = Stream.concat(
+            Stream.of(token.getAuthorities()).map(a -> new SimpleGrantedAuthority(a)),
+            Stream.of(token.getScopes()).map(s -> new SimpleGrantedAuthority("SCOPE_" + s))
+        ).collect(Collectors.toSet());
 
         // build principal with authorities
         Map<String, Object> attrs = new HashMap<>();

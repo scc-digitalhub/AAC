@@ -112,16 +112,14 @@ public class JWKSetTest {
         assertThat(set.getKeys()).isNotEmpty();
 
         // every key is asymmetric (path is public)
-        assertThat(set.getKeys())
-            .allSatisfy(key -> {
-                assertThat(key).isNotNull();
-                // key is either RSA or EC
-                assertThat(key.getKeyType())
-                    .satisfiesAnyOf(
-                        typ -> assertThat(typ).isEqualTo(KeyType.RSA),
-                        typ -> assertThat(typ).isEqualTo(KeyType.EC)
-                    );
-            });
+        assertThat(set.getKeys()).allSatisfy(key -> {
+            assertThat(key).isNotNull();
+            // key is either RSA or EC
+            assertThat(key.getKeyType()).satisfiesAnyOf(
+                typ -> assertThat(typ).isEqualTo(KeyType.RSA),
+                typ -> assertThat(typ).isEqualTo(KeyType.EC)
+            );
+        });
     }
 
     @Test
@@ -145,11 +143,10 @@ public class JWKSetTest {
         assertThat(set).isNotNull();
 
         // every key is public
-        assertThat(set.getKeys())
-            .allSatisfy(key -> {
-                // private key is not exposed
-                assertThat(key.isPrivate()).isFalse();
-            });
+        assertThat(set.getKeys()).allSatisfy(key -> {
+            // private key is not exposed
+            assertThat(key.isPrivate()).isFalse();
+        });
     }
 
     @Test
@@ -227,6 +224,7 @@ public class JWKSetTest {
      */
     public static final String JWKS_URL = JWKSetPublishingEndpoint.JWKS_URL;
 
-    private final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 }

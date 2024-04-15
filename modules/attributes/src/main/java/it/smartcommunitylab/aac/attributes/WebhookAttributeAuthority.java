@@ -34,7 +34,11 @@ import org.springframework.util.Assert;
 
 @Service
 public class WebhookAttributeAuthority
-    extends AbstractAttributeAuthority<WebhookAttributeProvider, WebhookAttributeProviderConfigMap, WebhookAttributeProviderConfig> {
+    extends AbstractAttributeAuthority<
+        WebhookAttributeProvider,
+        WebhookAttributeProviderConfigMap,
+        WebhookAttributeProviderConfig
+    > {
 
     // system attributes store
     protected final AutoJdbcAttributeStore jdbcAttributeStore;

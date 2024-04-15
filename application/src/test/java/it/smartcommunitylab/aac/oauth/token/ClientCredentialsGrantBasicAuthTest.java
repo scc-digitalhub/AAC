@@ -92,8 +92,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -128,8 +127,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
         params.add(OAuth2ParameterNames.SCOPE, Config.SCOPE_CLIENT_ROLE);
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -166,8 +164,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -199,8 +196,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         params.add(OAuth2ParameterNames.CLIENT_ID, "clientId");
         params.add(OAuth2ParameterNames.SCOPE, "");
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, clientSecret))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -221,8 +217,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, ""))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);
@@ -243,8 +238,7 @@ public class ClientCredentialsGrantBasicAuthTest {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.CLIENT_CREDENTIALS.getValue());
 
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders.post(TOKEN_URL)
             .with(httpBasic(clientId, "secret"))
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .params(params);

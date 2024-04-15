@@ -25,7 +25,6 @@ import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.scopes.ClientGroupsScope;
 import it.smartcommunitylab.aac.groups.scopes.UserGroupsScope;
 import it.smartcommunitylab.aac.groups.service.GroupService;
-
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

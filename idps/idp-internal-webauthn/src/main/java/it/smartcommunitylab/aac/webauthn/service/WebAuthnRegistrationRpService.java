@@ -86,8 +86,7 @@ public class WebAuthnRegistrationRpService {
 
     // leverage a local cache for fetching rps
     // TODO cache invalidation or check on load or drop cache
-    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<String, RelyingParty> registrations = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .maximumSize(100)
         .build(
@@ -116,8 +115,7 @@ public class WebAuthnRegistrationRpService {
                         id = rpId;
                     }
 
-                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity
-                        .builder()
+                    RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
                         .id(id)
                         .name(config.getRealm())
                         .build();
@@ -128,8 +126,7 @@ public class WebAuthnRegistrationRpService {
                         credentialsRepository
                     );
 
-                    RelyingParty rp = RelyingParty
-                        .builder()
+                    RelyingParty rp = RelyingParty.builder()
                         .identity(rpIdentity)
                         .credentialRepository(webauthnRepository)
                         .allowUntrustedAttestation(config.isAllowedUnstrustedAttestation())
@@ -216,8 +213,7 @@ public class WebAuthnRegistrationRpService {
 
         // build a new identity for this key
         String userDisplayName = StringUtils.hasText(displayName) ? displayName : username;
-        UserIdentity identity = UserIdentity
-            .builder()
+        UserIdentity identity = UserIdentity.builder()
             //name should match username
             .name(username)
             .displayName(userDisplayName)
@@ -225,15 +221,13 @@ public class WebAuthnRegistrationRpService {
             .build();
 
         // build config
-        AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria
-            .builder()
+        AuthenticatorSelectionCriteria authenticatorSelection = AuthenticatorSelectionCriteria.builder()
             .residentKey(config.getRequireResidentKey())
             .userVerification(config.getRequireUserVerification())
             .build();
 
         int timeout = config.getRegistrationTimeout() * 1000;
-        StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions
-            .builder()
+        StartRegistrationOptions startRegistrationOptions = StartRegistrationOptions.builder()
             .user(identity)
             .authenticatorSelection(authenticatorSelection)
             .timeout(timeout)

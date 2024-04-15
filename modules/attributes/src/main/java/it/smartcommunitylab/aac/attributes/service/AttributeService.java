@@ -198,8 +198,17 @@ public class AttributeService {
             for (Attribute attr : set.getAttributes()) {
                 AttributeEntity ae = attributeService.findAttribute(identifier, attr.getKey());
                 if (ae == null) {
-                    ae =
-                        attributeService.addAttribute(
+                    ae = attributeService.addAttribute(
+                        identifier,
+                        attr.getKey(),
+                        attr.getType(),
+                        attr.getIsMultiple(),
+                        attr.getName(),
+                        attr.getDescription()
+                    );
+                } else {
+                    try {
+                        ae = attributeService.updateAttribute(
                             identifier,
                             attr.getKey(),
                             attr.getType(),
@@ -207,17 +216,6 @@ public class AttributeService {
                             attr.getName(),
                             attr.getDescription()
                         );
-                } else {
-                    try {
-                        ae =
-                            attributeService.updateAttribute(
-                                identifier,
-                                attr.getKey(),
-                                attr.getType(),
-                                attr.getIsMultiple(),
-                                attr.getName(),
-                                attr.getDescription()
-                            );
                     } catch (NoSuchAttributeException e) {}
                 }
 

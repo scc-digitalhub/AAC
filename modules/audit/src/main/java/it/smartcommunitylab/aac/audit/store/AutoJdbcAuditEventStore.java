@@ -112,33 +112,30 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
 
         //use CBOR by default as mapper
-        this.mapper =
-            new CBORMapper()
-                .registerModule(new JavaTimeModule())
-                //include only non-null fields
-                .setSerializationInclusion(Include.NON_NULL)
-                //add mixin for including typeInfo in events
-                .addMixIn(ApplicationEvent.class, AuditApplicationEventMixIns.class);
+        this.mapper = new CBORMapper()
+            .registerModule(new JavaTimeModule())
+            //include only non-null fields
+            .setSerializationInclusion(Include.NON_NULL)
+            //add mixin for including typeInfo in events
+            .addMixIn(ApplicationEvent.class, AuditApplicationEventMixIns.class);
 
-        this.writer =
-            map -> {
-                try {
-                    return (mapper.writeValueAsBytes(map));
-                } catch (JsonProcessingException e) {
-                    logger.error("error writing data: {}", e.getMessage());
-                    throw new IllegalArgumentException("error writing data", e);
-                }
-            };
+        this.writer = map -> {
+            try {
+                return (mapper.writeValueAsBytes(map));
+            } catch (JsonProcessingException e) {
+                logger.error("error writing data: {}", e.getMessage());
+                throw new IllegalArgumentException("error writing data", e);
+            }
+        };
 
-        this.reader =
-            bytes -> {
-                try {
-                    return mapper.readValue(bytes, typeRef);
-                } catch (IOException e) {
-                    logger.error("error reading data: {}", e.getMessage());
-                    throw new IllegalArgumentException("error reading data", e);
-                }
-            };
+        this.reader = bytes -> {
+            try {
+                return mapper.readValue(bytes, typeRef);
+            } catch (IOException e) {
+                logger.error("error reading data: {}", e.getMessage());
+                throw new IllegalArgumentException("error reading data", e);
+            }
+        };
 
         this.rowMapper = new AuditEventMappedRowMapper(reader);
     }

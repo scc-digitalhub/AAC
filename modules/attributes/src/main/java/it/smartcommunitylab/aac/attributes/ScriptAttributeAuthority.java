@@ -35,7 +35,11 @@ import org.springframework.util.Assert;
 
 @Service
 public class ScriptAttributeAuthority
-    extends AbstractAttributeAuthority<ScriptAttributeProvider, ScriptAttributeProviderConfigMap, ScriptAttributeProviderConfig> {
+    extends AbstractAttributeAuthority<
+        ScriptAttributeProvider,
+        ScriptAttributeProviderConfigMap,
+        ScriptAttributeProviderConfig
+    > {
 
     // execution service for custom attributes mapping
     private final ScriptExecutionService executionService;

@@ -44,7 +44,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class AppleIdentityProvider
-    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, AppleIdentityProviderConfigMap, AppleIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        OIDCUserIdentity,
+        OIDCUserAccount,
+        OIDCUserAuthenticatedPrincipal,
+        AppleIdentityProviderConfigMap,
+        AppleIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -67,24 +73,31 @@ public class AppleIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         AppleAccountServiceConfigConverter configConverter = new AppleAccountServiceConfigConverter();
-        this.accountService =
-            new AppleAccountService(providerId, userAccountService, configConverter.convert(config), realm);
+        this.accountService = new AppleAccountService(
+            providerId,
+            userAccountService,
+            configConverter.convert(config),
+            realm
+        );
 
-        this.principalConverter =
-            new OIDCAccountPrincipalConverter(SystemKeys.AUTHORITY_APPLE, providerId, userAccountService, realm);
+        this.principalConverter = new OIDCAccountPrincipalConverter(
+            SystemKeys.AUTHORITY_APPLE,
+            providerId,
+            userAccountService,
+            realm
+        );
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, realm);
-        this.userResolver =
-            new OIDCUserResolver(
-                SystemKeys.AUTHORITY_APPLE,
-                providerId,
-                userEntityService,
-                userAccountService,
-                config.getRepositoryId(),
-                config.isLinkable(),
-                realm
-            );
+        this.userResolver = new OIDCUserResolver(
+            SystemKeys.AUTHORITY_APPLE,
+            providerId,
+            userEntityService,
+            userAccountService,
+            config.getRepositoryId(),
+            config.isLinkable(),
+            realm
+        );
 
         // build custom authenticator
         this.authenticationProvider = new AppleAuthenticationProvider(providerId, userAccountService, config, realm);

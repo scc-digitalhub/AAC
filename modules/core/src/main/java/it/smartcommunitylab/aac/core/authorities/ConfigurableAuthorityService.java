@@ -23,6 +23,17 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
 
 public interface ConfigurableAuthorityService<
-    A extends ConfigurableProviderAuthority<? extends ConfigurableResourceProvider<? extends Resource, ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigMap>, ?, ? extends ConfigMap>, ? extends ConfigurableProvider<?>, ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigMap>, ? extends ConfigMap, ? extends ConfigMap>
+    A extends ConfigurableProviderAuthority<
+        ? extends ConfigurableResourceProvider<
+            ? extends Resource,
+            ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigMap>,
+            ?,
+            ? extends ConfigMap
+        >,
+        ? extends ConfigurableProvider<?>,
+        ? extends ProviderConfig<? extends ConfigMap, ? extends ConfigMap>,
+        ? extends ConfigMap,
+        ? extends ConfigMap
+    >
 >
     extends AuthorityService<A> {}

@@ -195,20 +195,18 @@ public class OIDCCoreMetadataGenerator implements OIDCMetadataGenerator {
         scopes.addAll(ProfileScopeProvider.scopes.stream().map(s -> s.getScope()).collect(Collectors.toList()));
         m.put("scopes_supported", scopes);
 
-        List<String> responseTypes = Stream
-            .of(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)
+        List<String> responseTypes = Stream.of(ResponseType.CODE, ResponseType.TOKEN, ResponseType.ID_TOKEN)
             .map(t -> t.getValue())
             .collect(Collectors.toList());
         m.put("response_types_supported", responseTypes);
 
-        List<String> grantTypes = Stream
-            .of(
-                AuthorizationGrantType.AUTHORIZATION_CODE,
-                AuthorizationGrantType.IMPLICIT,
-                AuthorizationGrantType.PASSWORD,
-                AuthorizationGrantType.CLIENT_CREDENTIALS,
-                AuthorizationGrantType.REFRESH_TOKEN
-            )
+        List<String> grantTypes = Stream.of(
+            AuthorizationGrantType.AUTHORIZATION_CODE,
+            AuthorizationGrantType.IMPLICIT,
+            AuthorizationGrantType.PASSWORD,
+            AuthorizationGrantType.CLIENT_CREDENTIALS,
+            AuthorizationGrantType.REFRESH_TOKEN
+        )
             .map(t -> t.getValue())
             .collect(Collectors.toList());
         m.put("grant_types_supported", grantTypes);
@@ -250,12 +248,11 @@ public class OIDCCoreMetadataGenerator implements OIDCMetadataGenerator {
         m.put("request_object_encryption_alg_values_supported", Collections.singleton(JWEAlgorithm.NONE.getName()));
         m.put("request_object_encryption_enc_values_supported", Collections.singleton(EncryptionMethod.NONE.getName()));
 
-        List<String> authMethods = Stream
-            .of(
-                AuthenticationMethod.CLIENT_SECRET_BASIC,
-                AuthenticationMethod.CLIENT_SECRET_POST,
-                AuthenticationMethod.NONE
-            )
+        List<String> authMethods = Stream.of(
+            AuthenticationMethod.CLIENT_SECRET_BASIC,
+            AuthenticationMethod.CLIENT_SECRET_POST,
+            AuthenticationMethod.NONE
+        )
             .map(t -> t.getValue())
             .collect(Collectors.toList());
         m.put("token_endpoint_auth_methods_supported", authMethods);
@@ -267,21 +264,19 @@ public class OIDCCoreMetadataGenerator implements OIDCMetadataGenerator {
         m.put("claim_types_supported", Collections.singleton("normal"));
 
         // TODO export claim names from providers
-        List<String> claimsSupported = Stream
-            .of(
-                "sub",
-                "iss",
-                "auth_time",
-                "name",
-                "given_name",
-                "family_name",
-                "preferred_username",
-                "email",
-                "email_verified",
-                "locale",
-                "zoneinfo"
-            )
-            .collect(Collectors.toList());
+        List<String> claimsSupported = Stream.of(
+            "sub",
+            "iss",
+            "auth_time",
+            "name",
+            "given_name",
+            "family_name",
+            "preferred_username",
+            "email",
+            "email_verified",
+            "locale",
+            "zoneinfo"
+        ).collect(Collectors.toList());
         m.put("claims_supported", claimsSupported);
         //	          m.put("service_documentation",""); //not supported
         //	          m.put("claims_locales_supported",""); //not supported

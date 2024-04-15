@@ -165,12 +165,13 @@ public class SecurityConfig {
             )
             .accessDeniedPage("/accesserror")
             .and()
-            .logout(logout ->
-                logout
-                    .logoutUrl(LOGOUTPATH)
-                    .logoutRequestMatcher(new AntPathRequestMatcher(LOGOUTPATH))
-                    .logoutSuccessHandler(logoutSuccessHandler(realmUriBuilder))
-                    .permitAll()
+            .logout(
+                logout ->
+                    logout
+                        .logoutUrl(LOGOUTPATH)
+                        .logoutRequestMatcher(new AntPathRequestMatcher(LOGOUTPATH))
+                        .logoutSuccessHandler(logoutSuccessHandler(realmUriBuilder))
+                        .permitAll()
             )
             //                .and()
             //                .rememberMe()

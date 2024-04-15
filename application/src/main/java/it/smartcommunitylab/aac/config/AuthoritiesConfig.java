@@ -86,7 +86,19 @@ public class AuthoritiesConfig {
 
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
-        Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities,
+        Collection<
+            IdentityProviderAuthority<
+                ? extends IdentityProvider<
+                    ? extends UserIdentity,
+                    ? extends UserAccount,
+                    ? extends UserAuthenticatedPrincipal,
+                    ? extends ConfigMap,
+                    ? extends IdentityProviderConfig<? extends ConfigMap>
+                >,
+                ? extends IdentityProviderConfig<? extends ConfigMap>,
+                ? extends ConfigMap
+            >
+        > authorities,
         IdentityAuthoritiesProperties authsProps
     ) {
         // build a service with default from autowiring

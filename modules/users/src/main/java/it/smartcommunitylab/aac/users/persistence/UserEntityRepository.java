@@ -44,7 +44,9 @@ public interface UserEntityRepository
     //    @Query("select distinct u from UserEntity u  left outer join UserRoleEntity r on u.uuid = r.subject where (r.realm = ?1 or u.realm = ?1) and LOWER(u.username) like lower(concat('%', ?2,'%'))")
     Page<UserEntity> findByRealmAndUsernameContainingIgnoreCase(String realm, String q, Pageable pageRequest);
 
-    Page<UserEntity> findByRealmAndUsernameContainingIgnoreCaseOrRealmAndUuidContainingIgnoreCaseOrRealmAndEmailAddressContainingIgnoreCase(
+    Page<
+        UserEntity
+    > findByRealmAndUsernameContainingIgnoreCaseOrRealmAndUuidContainingIgnoreCaseOrRealmAndEmailAddressContainingIgnoreCase(
         String realmn,
         String name,
         String realmu,

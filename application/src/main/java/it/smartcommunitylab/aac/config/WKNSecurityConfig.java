@@ -69,8 +69,7 @@ public class WKNSecurityConfig {
     }
 
     public RequestMatcher getRequestMatcher() {
-        List<RequestMatcher> antMatchers = Arrays
-            .stream(WKN_URLS)
+        List<RequestMatcher> antMatchers = Arrays.stream(WKN_URLS)
             .map(u -> new AntPathRequestMatcher(u))
             .collect(Collectors.toList());
 

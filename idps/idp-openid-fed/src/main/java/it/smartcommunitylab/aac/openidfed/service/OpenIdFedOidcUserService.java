@@ -63,8 +63,9 @@ public class OpenIdFedOidcUserService extends OidcUserService implements Applica
 
         //instrument a custom claim converter to audit response
         //hack
-        claimTypeConverter =
-            new AuditAwareClaimTypeConverter(new ClaimTypeConverter(createDefaultClaimTypeConverters()));
+        claimTypeConverter = new AuditAwareClaimTypeConverter(
+            new ClaimTypeConverter(createDefaultClaimTypeConverters())
+        );
 
         super.setClaimTypeConverterFactory(clientRegistration -> claimTypeConverter);
 
@@ -110,13 +111,12 @@ public class OpenIdFedOidcUserService extends OidcUserService implements Applica
             if (
                 config.getConfigMap().getUserInfoJWEAlg() != null && config.getConfigMap().getUserInfoJWEEnc() != null
             ) {
-                restOperations =
-                    new JoseRestOperations(
-                        jwksUri,
-                        config.getClientEncryptionJWK(),
-                        config.getConfigMap().getUserInfoJWEAlg().getValue(),
-                        config.getConfigMap().getUserInfoJWEEnc().getValue()
-                    );
+                restOperations = new JoseRestOperations(
+                    jwksUri,
+                    config.getClientEncryptionJWK(),
+                    config.getConfigMap().getUserInfoJWEAlg().getValue(),
+                    config.getConfigMap().getUserInfoJWEEnc().getValue()
+                );
             }
         }
 
@@ -126,13 +126,12 @@ public class OpenIdFedOidcUserService extends OidcUserService implements Applica
             if (
                 config.getConfigMap().getUserInfoJWEAlg() != null && config.getConfigMap().getUserInfoJWEEnc() != null
             ) {
-                restOperations =
-                    new JoseRestOperations(
-                        jwks,
-                        config.getClientEncryptionJWK(),
-                        config.getConfigMap().getUserInfoJWEAlg().getValue(),
-                        config.getConfigMap().getUserInfoJWEEnc().getValue()
-                    );
+                restOperations = new JoseRestOperations(
+                    jwks,
+                    config.getClientEncryptionJWK(),
+                    config.getConfigMap().getUserInfoJWEAlg().getValue(),
+                    config.getConfigMap().getUserInfoJWEEnc().getValue()
+                );
             }
         }
 

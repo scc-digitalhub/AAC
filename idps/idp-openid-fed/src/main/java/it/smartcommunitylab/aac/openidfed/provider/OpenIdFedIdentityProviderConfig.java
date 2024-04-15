@@ -106,15 +106,16 @@ public class OpenIdFedIdentityProviderConfig
                     .stream()
                     .map(p -> p.getValue())
                     .collect(Collectors.toSet());
-                providerService =
-                    new StaticOpenIdProviderDiscoveryService(
-                        configMap.getTrustAnchor(),
-                        providers,
-                        getEntityStatementResolver()
-                    );
+                providerService = new StaticOpenIdProviderDiscoveryService(
+                    configMap.getTrustAnchor(),
+                    providers,
+                    getEntityStatementResolver()
+                );
             } else {
-                providerService =
-                    new ListingOpenIdProviderDiscoveryService(configMap.getTrustAnchor(), getEntityStatementResolver());
+                providerService = new ListingOpenIdProviderDiscoveryService(
+                    configMap.getTrustAnchor(),
+                    getEntityStatementResolver()
+                );
             }
         }
         return providerService;
@@ -122,8 +123,11 @@ public class OpenIdFedIdentityProviderConfig
 
     public OpenIdFedClientRegistrationRepository getClientRegistrationRepository() {
         if (clientRegistrationRepository == null) {
-            clientRegistrationRepository =
-                new OpenIdFedClientRegistrationRepository(getConfigMap(), getProviderService(), getRedirectUrl());
+            clientRegistrationRepository = new OpenIdFedClientRegistrationRepository(
+                getConfigMap(),
+                getProviderService(),
+                getRedirectUrl()
+            );
         }
 
         return clientRegistrationRepository;

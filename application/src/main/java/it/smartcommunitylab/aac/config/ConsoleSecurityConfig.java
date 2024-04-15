@@ -98,8 +98,7 @@ public class ConsoleSecurityConfig {
 
     public RequestMatcher getRequestMatcher() {
         // skip index.html to let auth entry point enforce login
-        List<RequestMatcher> matchers = Arrays
-            .stream(CONSOLES)
+        List<RequestMatcher> matchers = Arrays.stream(CONSOLES)
             .map(c -> new NegatedRequestMatcher(new AntPathRequestMatcher(CONSOLE_PREFIX + "/" + c)))
             .collect(Collectors.toList());
 

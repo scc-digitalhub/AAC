@@ -127,8 +127,9 @@ public class OpenIdFedTest {
         assertThat(statement.getClaimsSet().getExpirationTime()).isAfter(now);
 
         //federation public key is available
-        assertThat(statement.getClaimsSet().getJWKSet().getKeyByKeyId("cce6d4e8-e8a4-4ceb-a9ca-9b6336220763"))
-            .isNotNull();
+        assertThat(
+            statement.getClaimsSet().getJWKSet().getKeyByKeyId("cce6d4e8-e8a4-4ceb-a9ca-9b6336220763")
+        ).isNotNull();
 
         //authority hints
         assertEquals(
@@ -157,8 +158,9 @@ public class OpenIdFedTest {
         assertEquals(map.getSubjectType(), statement.getClaimsSet().getRPMetadata().getSubjectType());
 
         //redirect uri contains login
-        assertThat(statement.getClaimsSet().getRPMetadata().getRedirectionURIs())
-            .contains(URI.create(baseUrl + "/auth/openidfed/login/" + providerConfig.getProvider()));
+        assertThat(statement.getClaimsSet().getRPMetadata().getRedirectionURIs()).contains(
+            URI.create(baseUrl + "/auth/openidfed/login/" + providerConfig.getProvider())
+        );
 
         //auth_code flow is declared
         assertThat(statement.getClaimsSet().getRPMetadata().getGrantTypes()).contains(GrantType.AUTHORIZATION_CODE);
@@ -168,8 +170,9 @@ public class OpenIdFedTest {
         assertEquals(ApplicationType.WEB, statement.getClaimsSet().getRPMetadata().getApplicationType());
 
         //registration is automatic
-        assertThat(statement.getClaimsSet().getRPMetadata().getClientRegistrationTypes())
-            .contains(ClientRegistrationType.AUTOMATIC);
+        assertThat(statement.getClaimsSet().getRPMetadata().getClientRegistrationTypes()).contains(
+            ClientRegistrationType.AUTOMATIC
+        );
 
         //scopes are requested
         assertThat(statement.getClaimsSet().getRPMetadata().getScope().toStringList()).contains("openid", "profile");
@@ -177,8 +180,7 @@ public class OpenIdFedTest {
         //keys
         assertThat(
             statement.getClaimsSet().getRPMetadata().getJWKSet().getKeyByKeyId("cce6d4e8-e8a4-4ceb-a9ca-9b6336220763")
-        )
-            .isNotNull();
+        ).isNotNull();
 
         //algorithms
         assertEquals(

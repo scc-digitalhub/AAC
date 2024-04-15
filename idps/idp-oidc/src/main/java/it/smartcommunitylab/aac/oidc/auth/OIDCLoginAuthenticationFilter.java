@@ -211,8 +211,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
             throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
         }
 
-        String redirectUri = UriComponentsBuilder
-            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+        String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
             .replaceQuery(null)
             .fragment(null)
             .build()
@@ -268,8 +267,7 @@ public class OIDCLoginAuthenticationFilter extends AbstractAuthenticationProcess
         } else {
             String errorDescription = params.get(OAuth2ParameterNames.ERROR_DESCRIPTION);
             String errorUri = params.get(OAuth2ParameterNames.ERROR_URI);
-            return OAuth2AuthorizationResponse
-                .error(errorCode)
+            return OAuth2AuthorizationResponse.error(errorCode)
                 .redirectUri(redirectUri)
                 .errorDescription(errorDescription)
                 .errorUri(errorUri)

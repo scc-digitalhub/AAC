@@ -72,8 +72,7 @@ public class ExtendedAuthorizationRequestResolver implements OAuth2Authorization
         }
 
         // get a builder and reset parameters
-        return OAuth2AuthorizationRequest
-            .from(authRequest)
+        return OAuth2AuthorizationRequest.from(authRequest)
             .attributes(attributes)
             .additionalParameters(additionalParameters)
             .build();

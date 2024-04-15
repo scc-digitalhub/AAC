@@ -57,8 +57,9 @@ public abstract class AbstractConfigurationProvider<
     private final JavaType configType;
     private final JavaType settingsType;
 
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

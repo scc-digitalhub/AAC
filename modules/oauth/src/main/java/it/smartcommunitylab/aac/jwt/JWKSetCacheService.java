@@ -49,8 +49,7 @@ public class JWKSetCacheService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     // loading cache for external url
-    private final LoadingCache<String, JWKSet> jwksets = CacheBuilder
-        .newBuilder()
+    private final LoadingCache<String, JWKSet> jwksets = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(new JWKSetFetcher(HttpClientBuilder.create().useSystemProperties().build()));
