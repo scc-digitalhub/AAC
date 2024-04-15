@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
@@ -23,9 +24,13 @@ import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-// TODO
+/*
+ * TODO
+ */
+@Transactional
 public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> implements SubjectResolver<SpidUserAccount> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -46,36 +51,74 @@ public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> imple
 
         this.accountService = userAccountService;
         this.config = config;
-        this.repositoryId = providerId;
+        this.repositoryId = providerId; // TODO: non chiaro se sia necessario isolare i dati per provider, come per saml. Probabilmente sì.
+    }
+
+    @Transactional(readOnly = true)
+    public Subject resolveBySubjectId(String subjectId) {
+        logger.debug("resolve by subjectId {}", String.valueOf(subjectId));
+        SpidUserAccount account = accountService.findAccountById(repositoryId, subjectId);
+        if (account == null) {
+            return null;
+        }
+
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
     @Override
     public Subject resolveByAccountId(String accountId) {
-        // TODO
-        return null;
+        // accountId is subjectId
+        return resolveBySubjectId(accountId);
     }
 
     @Override
     public Subject resolveByPrincipalId(String principalId) {
-        // TODO
-        return null;
+        // accountId is subjectId
+        return resolveBySubjectId(principalId);
     }
 
     @Override
     public Subject resolveByIdentityId(String identityId) {
-        // TODO
-        return null;
+        // accountId is subjectId
+        return resolveBySubjectId(identityId);
     }
 
     @Override
-    public Subject resolveByUsername(String accountId) {
-        // TODO
-        return null;
+    @Transactional(readOnly = true)
+    public Subject resolveByUsername(String username) {
+        logger.debug("resolve by username {}", String.valueOf(username));
+        SpidUserAccount account = accountService
+            .findAccountsByUsername(repositoryId, username)
+            .stream()
+            .findFirst()
+            .orElse(null);
+        if (account == null) {
+            return null;
+        }
+
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 
     @Override
-    public Subject resolveByEmailAddress(String accountId) {
-        // TODO
-        return null;
+    @Transactional(readOnly = true)
+    public Subject resolveByEmailAddress(String email) {
+        if (!config.isLinkable()) {
+            return null;
+        }
+
+        logger.debug("resolve by email {}", String.valueOf(email));
+        SpidUserAccount account = accountService
+            .findAccountsByEmail(repositoryId, email)
+            .stream()
+            .findFirst()
+            .orElse(null);
+        if (account == null) {
+            return null;
+        }
+
+        // build subject with username
+        return new Subject(account.getUserId(), getRealm(), account.getUsername(), SystemKeys.RESOURCE_USER);
     }
 }

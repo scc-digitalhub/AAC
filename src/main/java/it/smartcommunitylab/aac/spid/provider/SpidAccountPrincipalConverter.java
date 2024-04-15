@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.spid.provider;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import org.slf4j.Logger;
@@ -60,13 +61,29 @@ public class SpidAccountPrincipalConverter
 
         account.setRepositoryId(repositoryId);
         account.setSubjectId(principal.getSubjectId());
-        account.setUserId(principal.getUserId());
+        account.setUserId(userId);
 
-        // TODO: handle missing attributes
         account.setUsername(principal.getUsername());
         account.setName(principal.getName());
         account.setEmail(principal.getEmailAddress());
         account.setSpidCode(principal.getSpidCode());
+        account.setIdp(principal.getIdp());
+
+        // TODO: check that values are non-trivial
+        if (principal.getAttributes().get(SpidAttribute.FAMILY_NAME.getValue()) != null) {
+            account.setSurname((String) principal.getAttributes().get(SpidAttribute.FAMILY_NAME.getValue()));
+        }
+        if (principal.getAttributes().get(SpidAttribute.MOBILE_PHONE.getValue()) != null) {
+            account.setPhone((String) principal.getAttributes().get(SpidAttribute.MOBILE_PHONE.getValue()));
+        }
+        if (principal.getAttributes().get(SpidAttribute.FISCAL_NUMBER.getValue()) != null) {
+            account.setFiscalNumber((String) principal.getAttributes().get(SpidAttribute.FISCAL_NUMBER.getValue()));
+        }
+        if (principal.getAttributes().get(SpidAttribute.IVA_CODE.getValue()) != null) {
+            account.setIvaCode((String) principal.getAttributes().get(SpidAttribute.IVA_CODE.getValue()));
+        }
+        account.setAttributes(principal.getAttributes());
+
         return account;
     }
 }

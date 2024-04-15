@@ -77,12 +77,12 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     // NOTE: only one among {idps, idpMetadataUrl} can be non null
     // NOTE: idps is intended to be a subset of the local SPID registry. Both idps and idpMetadataUrl are intended
     //  to be used for testing purposes. If both are null, the full local SPID registry will be used instead.
-    private Set<String> idps;
-    private String idpMetadataUrl;
-    private Set<SpidAttribute> spidAttributes;
-    private SpidAuthnContext authnContext;
-    private SpidUserAttribute subAttributeName;
-    private SpidUserAttribute usernameAttributeName;
+    private Set<String> idps; // optional (see note above)
+    private String idpMetadataUrl; // optional (see note above)
+    private Set<SpidAttribute> spidAttributes; // optional
+    private SpidAuthnContext authnContext; // mandatory
+    private SpidUserAttribute subAttributeName; // optional
+    private SpidUserAttribute usernameAttributeName; // optional
 
     public String getEntityId() {
         return entityId;

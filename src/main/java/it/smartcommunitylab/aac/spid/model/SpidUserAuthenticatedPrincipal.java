@@ -115,7 +115,7 @@ public class SpidUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
                     }
                 });
         }
-        // lod local attributes - they override saml attributes when set
+        // load local attributes - they override saml attributes when set
         if (attributes != null) {
             attributes
                 .entrySet()

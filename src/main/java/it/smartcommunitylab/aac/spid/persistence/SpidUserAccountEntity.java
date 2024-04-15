@@ -68,31 +68,32 @@ public class SpidUserAccountEntity {
     @Column(length = 128)
     private String realm;
 
-    // login
-    @Column(length = 32)
-    private String status;
-
     // attributes
     @Column(name = "username", length = 128)
     private String username;
 
-    @Column(name = "issuer")
-    private String issuer;
-
-    private String email;
-
-    // TODO: check for other mandatory attributes
-    @Column(name = "fiscal_number")
-    private String fiscalNumber;
+    private String idp;
 
     @Column(name = "spid_code")
     private String spidCode;
 
+    private String email;
+
     private String name;
     private String surname;
 
+    @Column(name = "mobile_phone")
+    private String phone;
+
+    @Column(name = "fiscal_number")
+    private String fiscalNumber;
+
+    @Column(name = "iva_code")
+    private String ivaCode;
+
+    // login
     @Column(length = 32)
-    private String lang;
+    private String status;
 
     // audit
     @CreatedDate
@@ -165,14 +166,6 @@ public class SpidUserAccountEntity {
         this.username = username;
     }
 
-    public String getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
-    }
-
     public String getEmail() {
         return email;
     }
@@ -213,12 +206,28 @@ public class SpidUserAccountEntity {
         this.surname = surname;
     }
 
-    public String getLang() {
-        return lang;
+    public String getIdp() {
+        return idp;
     }
 
-    public void setLang(String lang) {
-        this.lang = lang;
+    public void setIdp(String idp) {
+        this.idp = idp;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getIvaCode() {
+        return ivaCode;
+    }
+
+    public void setIvaCode(String ivaCode) {
+        this.ivaCode = ivaCode;
     }
 
     public Date getCreateDate() {
@@ -245,41 +254,62 @@ public class SpidUserAccountEntity {
         this.attributes = attributes;
     }
 
+    @Override
     public String toString() {
         return (
-            "SpidUserAccount [repositoryId=" +
+            "SpidUserAccountEntity{" +
+            "repositoryId='" +
             repositoryId +
-            ", subjectId=" +
+            '\'' +
+            ", subjectId='" +
             subjectId +
-            ", uuid=" +
+            '\'' +
+            ", uuid='" +
             uuid +
-            ", userId=" +
+            '\'' +
+            ", userId='" +
             userId +
-            ", realm=" +
+            '\'' +
+            ", realm='" +
             realm +
-            ", status=" +
+            '\'' +
+            ", status='" +
             status +
-            ", username=" +
+            '\'' +
+            ", username='" +
             username +
-            ", issuer=" +
-            issuer +
-            ", email=" +
-            email +
-            ", fiscalNumber=" +
-            fiscalNumber +
-            ", spidCode" +
+            '\'' +
+            ", idp='" +
+            idp +
+            '\'' +
+            ", spidCode='" +
             spidCode +
-            ", name=" +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", name='" +
             name +
-            ", surname=" +
+            '\'' +
+            ", surname='" +
             surname +
-            ", lang=" +
-            lang +
+            '\'' +
+            ", phone='" +
+            phone +
+            '\'' +
+            ", fiscalNumber='" +
+            fiscalNumber +
+            '\'' +
+            ", ivaCode='" +
+            ivaCode +
+            '\'' +
             ", createDate=" +
             createDate +
             ", modifiedDate=" +
             modifiedDate +
-            "]"
+            ", attributes=" +
+            attributes +
+            '}'
         );
     }
 }

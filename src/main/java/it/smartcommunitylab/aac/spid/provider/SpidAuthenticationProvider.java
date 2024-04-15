@@ -189,11 +189,43 @@ public class SpidAuthenticationProvider
         user.setUsername(username);
         user.setPrincipal(samlDetails);
 
+        // update with eventual information from spid provider
+        if (samlDetails.getAttributes().containsKey(SpidAttribute.SPID_CODE.getValue())) {
+            String spidCode = (String) samlDetails
+                .getAttributes()
+                .get(SpidAttribute.SPID_CODE.getValue())
+                .stream()
+                .findFirst()
+                .orElse(null);
+            if (StringUtils.hasText(spidCode)) {
+                user.setSpidCode(spidCode);
+            }
+        }
+        if (samlDetails.getAttributes().containsKey(SpidAttribute.EMAIL.getValue())) {
+            String email = (String) samlDetails
+                .getAttributes()
+                .get(SpidAttribute.EMAIL.getValue())
+                .stream()
+                .findFirst()
+                .orElse(null);
+            if (StringUtils.hasText(email)) {
+                user.setEmailAddress(email);
+            }
+        }
+        // TODO: inserire l'upstream idp tra gli attributi: deve essere prima inserito negli attributi dal saml respose converter
+
+        HashMap<String, Serializable> principalAttributes = new HashMap<>();
+        for (SpidAttribute attr : SpidAttribute.values()) {
+            Object value = samlDetails.getAttributes().get(attr.getValue()).stream().findFirst().orElse(null);
+            if (value != null) {
+                principalAttributes.put(attr.getValue(), (Serializable) value);
+            }
+        }
+
         // custom attributes and authorization scripts
         if (executionService != null) {
             // get all attributes from principal
             // TODO handle all attributes not only strings.
-            HashMap<String, Serializable> principalAttributes = new HashMap<>();
             user
                 .getAttributes()
                 .entrySet()
@@ -251,12 +283,16 @@ public class SpidAuthenticationProvider
                             // each spid attribute is authoritative and cannot be overwritten or re-evaluated
                             .filter(e -> SpidAttribute.contains(e.getKey()))
                             .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
-                        user.setAttributes(principalAttributes);
+                        //                        user.setAttributes(principalAttributes); // TODO: da chiarire con Matteo
                     }
                 } catch (SystemException | InvalidDefinitionException ex) {
                     logger.debug("error mapping principal attributes via script: " + ex.getMessage());
                 }
             }
+        }
+
+        if (!principalAttributes.isEmpty()) {
+            user.setAttributes(principalAttributes);
         }
 
         return user;
