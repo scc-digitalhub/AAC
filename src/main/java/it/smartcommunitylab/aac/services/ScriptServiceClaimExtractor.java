@@ -35,7 +35,7 @@ import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.dto.UserProfile;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -278,11 +278,9 @@ public class ScriptServiceClaimExtractor implements ResourceClaimsExtractor {
                     c = new BooleanClaim(model.getKey(), bvalue);
                     break;
                 case NUMBER:
-                    {
-                        Number nvalue = mapper.convertValue(value, Number.class);
-                        c = new NumberClaim(model.getKey(), nvalue);
-                        break;
-                    }
+                    Number nvalue = mapper.convertValue(value, Number.class);
+                    c = new NumberClaim(model.getKey(), nvalue);
+                    break;
                 case STRING:
                     String svalue = mapper.convertValue(value, String.class);
                     c = new StringClaim(model.getKey(), svalue);

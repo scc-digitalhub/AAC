@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.roles.service;
 
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.SpaceRoles;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.model.SpaceRoles;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SpaceRoleEntityRepository;
 import java.util.ArrayList;

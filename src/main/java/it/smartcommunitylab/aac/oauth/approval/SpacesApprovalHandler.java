@@ -19,11 +19,11 @@ package it.smartcommunitylab.aac.oauth.approval;
 import it.smartcommunitylab.aac.clients.service.ClientDetailsService;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.roles.claims.SpacesClaimsExtractor;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.Serializable;
 import java.util.Collections;
@@ -69,7 +69,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
 
         // fetch details
         String clientId = authorizationRequest.getClientId();
@@ -119,7 +119,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
                 throw new InvalidRequestException("approval requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
 
             // fetch details
             String clientId = authorizationRequest.getClientId();
@@ -163,7 +163,7 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
             throw new InvalidRequestException("approval requires a valid user authentication");
         }
 
-        UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+        UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
 
         // fetch details
         String clientId = authorizationRequest.getClientId();
@@ -192,7 +192,8 @@ public class SpacesApprovalHandler implements UserApprovalHandler {
 
     private Set<String> getUniqueSpaces(UserDetails userDetails, String uniqueSpaces) {
         User user = userService.getUser(userDetails);
-        Set<SpaceRole> roles = user.getSpaceRoles();
+        // Set<SpaceRole> roles = user.getSpaceRoles();
+        Set<SpaceRole> roles = Collections.emptySet();
 
         // filter and flatmap everything under context
         Set<String> spaces = roles

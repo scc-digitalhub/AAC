@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.profiles.claims;
 
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.extractor.UserProfileExtractor;
 import it.smartcommunitylab.aac.profiles.model.AbstractProfile;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.util.Assert;

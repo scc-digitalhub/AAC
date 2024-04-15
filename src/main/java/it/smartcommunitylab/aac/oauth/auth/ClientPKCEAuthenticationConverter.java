@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.oauth.auth;
 
-import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
@@ -96,11 +95,6 @@ public class ClientPKCEAuthenticationConverter extends OAuth2ClientAuthenticatio
         }
 
         // return our authRequest
-        return new OAuth2ClientPKCEAuthenticationToken(
-            clientId,
-            code,
-            codeVerifier,
-            AuthenticationMethod.NONE.getValue()
-        );
+        return new OAuth2ClientPKCEAuthenticationToken(clientId, code, codeVerifier);
     }
 }

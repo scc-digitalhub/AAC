@@ -23,7 +23,6 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
@@ -35,6 +34,7 @@ import it.smartcommunitylab.aac.password.model.InternalEditableUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProvider;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,7 +82,7 @@ public class PasswordCredentialsController {
     ) throws NoSuchProviderException, NoSuchUserException, NoSuchRealmException {
         // first check userid vs user
         UserDetails user = authHelper.getUserDetails();
-        if (user == null || !user.getSubjectId().equals(userId)) {
+        if (user == null || !user.getUserId().equals(userId)) {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
@@ -157,7 +157,7 @@ public class PasswordCredentialsController {
         try {
             // first check userid vs user
             UserDetails user = authHelper.getUserDetails();
-            if (user == null || !user.getSubjectId().equals(userId)) {
+            if (user == null || !user.getUserId().equals(userId)) {
                 throw new InsufficientAuthenticationException("error.unauthenticated_user");
             }
 

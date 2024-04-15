@@ -21,11 +21,11 @@ import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 
 public interface IdentityProviderAuthority<
     P extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, M, C>,

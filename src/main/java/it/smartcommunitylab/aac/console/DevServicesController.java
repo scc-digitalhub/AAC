@@ -196,24 +196,23 @@ public class DevServicesController extends BaseServicesController {
     ) throws NoSuchRealmException {
         return serviceManager.checkServiceNamespace(realm, ns);
     }
+    // /*
+    //  * Claims
+    //  */
+    // @PostMapping("/services/{realm}/{serviceId}/claims/validate")
+    // public FunctionValidationBean validateRealmServiceClaim(
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
+    //     @RequestBody @Valid @NotNull FunctionValidationBean function
+    // ) throws NoSuchServiceException, NoSuchRealmException, SystemException, InvalidDefinitionException {
+    //     try {
+    //         // TODO expose context personalization in UI
+    //         function = devManager.testServiceClaimMapping(realm, serviceId, function);
+    //     } catch (InvalidDefinitionException | RuntimeException e) {
+    //         // translate error
+    //         function.addError(e.getMessage());
+    //     }
 
-    /*
-     * Claims
-     */
-    @PostMapping("/services/{realm}/{serviceId}/claims/validate")
-    public FunctionValidationBean validateRealmServiceClaim(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String serviceId,
-        @RequestBody @Valid @NotNull FunctionValidationBean function
-    ) throws NoSuchServiceException, NoSuchRealmException, SystemException, InvalidDefinitionException {
-        try {
-            // TODO expose context personalization in UI
-            function = devManager.testServiceClaimMapping(realm, serviceId, function);
-        } catch (InvalidDefinitionException | RuntimeException e) {
-            // translate error
-            function.addError(e.getMessage());
-        }
-
-        return function;
-    }
+    //     return function;
+    // }
 }

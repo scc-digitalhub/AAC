@@ -30,6 +30,7 @@ import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -39,6 +40,9 @@ public class AppleIdentityAuthority
     extends AbstractSingleProviderIdentityAuthority<AppleIdentityProvider, OIDCUserIdentity, AppleIdentityProviderConfig, AppleIdentityProviderConfigMap> {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_APPLE + "/";
+
+    //user entity service
+    private final UserEntityService userEntityService;
 
     // oidc account service
     private final UserAccountService<OIDCUserAccount> accountService;
@@ -54,12 +58,15 @@ public class AppleIdentityAuthority
     private ResourceEntityService resourceService;
 
     public AppleIdentityAuthority(
+        UserEntityService userEntityService,
         UserAccountService<OIDCUserAccount> userAccountService,
         ProviderConfigRepository<AppleIdentityProviderConfig> registrationRepository
     ) {
         super(SystemKeys.AUTHORITY_APPLE, registrationRepository);
+        Assert.notNull(userEntityService, "user service is mandatory");
         Assert.notNull(userAccountService, "account service is mandatory");
 
+        this.userEntityService = userEntityService;
         this.accountService = userAccountService;
         this.clientRegistrationRepository = new AppleClientRegistrationRepository(registrationRepository);
 
@@ -96,7 +103,13 @@ public class AppleIdentityAuthority
     public AppleIdentityProvider buildProvider(AppleIdentityProviderConfig config) {
         String id = config.getProvider();
 
-        AppleIdentityProvider idp = new AppleIdentityProvider(id, accountService, config, config.getRealm());
+        AppleIdentityProvider idp = new AppleIdentityProvider(
+            id,
+            userEntityService,
+            accountService,
+            config,
+            config.getRealm()
+        );
 
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);

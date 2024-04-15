@@ -18,11 +18,15 @@ package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.provider.AccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.model.UserAttributesResourceContext;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
@@ -32,28 +36,39 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.credentials.service.CredentialsServiceAuthorityService;
+import it.smartcommunitylab.aac.groups.model.Group;
+import it.smartcommunitylab.aac.groups.model.UserGroupsResourceContext;
 import it.smartcommunitylab.aac.groups.service.GroupService;
+import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
+import it.smartcommunitylab.aac.roles.model.UserRolesResourceContext;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.model.UserDetails;
+import it.smartcommunitylab.aac.users.model.UserResource;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.provider.UserResourceProvider;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -117,20 +132,15 @@ public class UserService {
     @Autowired
     private SpaceRoleService spaceRoleService;
 
-    @Autowired
-    private UserTranslatorService translator;
-
-    @Autowired
-    private List<it.smartcommunitylab.aac.accounts.persistence.UserAccountService<? extends UserAccount>> userAccountServices;
-
     /*
      * User translation
      */
+    @Deprecated
     public User getUser(UserDetails userDetails) {
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
         String realm = userDetails.getRealm();
 
-        User u = new User(userDetails);
+        User u = User.from(userDetails);
 
         try {
             UserEntity ue = userService.getUser(subjectId);
@@ -166,95 +176,9 @@ public class UserService {
         return u;
     }
 
+    @Deprecated
     public User getUser(UserDetails userDetails, String realm) {
-        String subjectId = userDetails.getSubjectId();
-
-        if (realm == null || userDetails.getRealm().equals(realm)) {
-            // no translation needed, just refresh
-            return getUser(userDetails);
-        }
-
-        // translate details via translator
-        // this will support per-realm translators and fine-grained policies
-        User u = translator.translate(userDetails, realm);
-
-        try {
-            UserEntity ue = userService.getUser(subjectId);
-            // refresh attributes
-            u.setExpirationDate(ue.getExpirationDate());
-            u.setCreateDate(ue.getCreateDate());
-            u.setModifiedDate(ue.getModifiedDate());
-            u.setLoginDate(ue.getLoginDate());
-            u.setLoginIp(ue.getLoginIp());
-            u.setLoginProvider(ue.getLoginProvider());
-            boolean tosAccepted = ue.getTosAccepted() != null ? ue.getTosAccepted().booleanValue() : false;
-            u.setTosAccepted(tosAccepted);
-
-            // refresh authorities
-            u.setAuthorities(fetchUserAuthorities(subjectId, realm));
-
-            // refresh user attributes
-            u.setAttributes(fetchUserAttributes(subjectId, realm));
-
-            // refresh groups
-            u.setGroups(fetchUserGroups(subjectId, realm));
-            Set<String> groupIds = u.getGroups().stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
-
-            // refresh realm roles
-            u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
-
-            // refresh space roles
-            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
-        } catch (NoSuchUserException e) {
-            // something wrong with refresh, ignore
-        }
-
-        return u;
-    }
-
-    public User getUser(User user, String realm) {
-        String subjectId = user.getSubjectId();
-
-        if (realm == null || user.getRealm().equals(realm)) {
-            // no translation needed
-            // TODO evaluate refresh
-            return user;
-        }
-
-        // translate details via translator
-        // this will support per-realm translators and fine-grained policies
-        User u = translator.translate(user, realm);
-
-        try {
-            UserEntity ue = userService.getUser(subjectId);
-            // refresh attributes
-            u.setExpirationDate(ue.getExpirationDate());
-            u.setCreateDate(ue.getCreateDate());
-            u.setModifiedDate(ue.getModifiedDate());
-            u.setLoginDate(ue.getLoginDate());
-            u.setLoginIp(ue.getLoginIp());
-            u.setLoginProvider(ue.getLoginProvider());
-
-            // refresh authorities
-            u.setAuthorities(fetchUserAuthorities(subjectId, realm));
-
-            // refresh user attributes
-            u.setAttributes(fetchUserAttributes(subjectId, realm));
-
-            // refresh groups
-            u.setGroups(fetchUserGroups(subjectId, realm));
-            Set<String> groupIds = u.getGroups().stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
-
-            // refresh realm roles
-            u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
-
-            // refresh space roles
-            u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
-        } catch (NoSuchUserException e) {
-            // something wrong with refresh, ignore
-        }
-
-        return u;
+        return getUser(userDetails);
     }
 
     /*
@@ -288,12 +212,11 @@ public class UserService {
         return user;
     }
 
-    public User getUser(String subjectId) throws NoSuchUserException {
-        // resolve subject
-        UserEntity ue = userService.getUser(subjectId);
+    public User getUser(String userId) throws NoSuchUserException {
+        UserEntity ue = userService.getUser(userId);
         String realm = ue.getRealm();
 
-        User u = new User(subjectId, ue.getRealm());
+        User u = new User(userId, ue.getRealm());
         u.setUsername(ue.getUsername());
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
@@ -317,24 +240,24 @@ public class UserService {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
-        // same realm, fetch all idps
-        u.setIdentities(fetchUserIdentities(subjectId, realm));
+        // fetch all identities
+        UserIdentitiesResourceContext.with(u).setIdentities(fetchUserIdentities(userId, realm));
 
-        // add authorities
-        u.setAuthorities(fetchUserAuthorities(subjectId, realm));
+        // fetch authorities
+        u.setAuthorities(fetchUserAuthorities(userId, realm));
 
-        // add user attributes
-        u.addAttributes(fetchUserAttributes(subjectId, realm));
+        // fetch user attributes
+        UserAttributesResourceContext.with(u).setAttributes(fetchUserAttributes(userId, realm));
 
-        // add groups
-        u.setGroups(fetchUserGroups(subjectId, realm));
-        Set<String> groupIds = u.getGroups().stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
+        // // add groups
+        // UserGroupsResourceContext.with(u).setGroups(fetchUserGroups(userId, realm));
+        // Set<String> groupIds = u.getGroups().stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
 
-        // add realm roles
-        u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
+        // // add realm roles
+        // UserRolesResourceContext.with(u).setRoles(fetchUserRealmRoles(userId, realm, groupIds));
 
         // add space roles
-        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+        // u.setSpaceRoles(fetchUserSpaceRoles(userId, realm));
 
         return u;
     }
@@ -345,12 +268,11 @@ public class UserService {
      * For same-realm scenarios the model will be complete, while on cross-realm
      * some fields should be removed or empty.
      */
-    public User getUser(String subjectId, String realm) throws NoSuchUserException {
+    public User getUser(String userId, String realm) throws NoSuchUserException {
         // resolve subject
-        UserEntity ue = userService.getUser(subjectId);
-        String source = ue.getRealm();
+        UserEntity ue = userService.getUser(userId);
 
-        User u = new User(subjectId, ue.getRealm());
+        User u = new User(userId, ue.getRealm());
         u.setUsername(ue.getUsername());
         u.setEmail(ue.getEmailAddress());
         boolean emailVerified = ue.getEmailVerified() != null ? ue.getEmailVerified().booleanValue() : false;
@@ -374,32 +296,75 @@ public class UserService {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
-        u.setIdentities(fetchUserIdentities(subjectId, realm));
+        // fetch all identities
+        UserIdentitiesResourceContext.with(u).setIdentities(fetchUserIdentities(userId, realm));
 
-        // TODO evaluate loading source realm attributes to feed translator?
+        // fetch authorities
+        u.setAuthorities(fetchUserAuthorities(userId, realm));
 
-        if (!source.equals(realm)) {
-            // let translator filter content according to policy
-            u = translator.translate(u, realm);
-        }
+        // fetch user attributes
+        UserAttributesResourceContext.with(u).setAttributes(fetchUserAttributes(userId, realm));
 
-        // add authorities
-        u.setAuthorities(fetchUserAuthorities(subjectId, realm));
+        // // add groups
+        // u.setGroups(fetchUserGroups(userId, realm));
+        // Set<String> groupIds = u.getGroups().stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
 
-        // add user attributes
-        u.setAttributes(fetchUserAttributes(subjectId, realm));
+        // // add realm roles
+        // u.setRealmRoles(fetchUserRealmRoles(userId, realm, groupIds));
 
-        // add groups
-        u.setGroups(fetchUserGroups(subjectId, realm));
-        Set<String> groupIds = u.getGroups().stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
+        // // add space roles
+        // u.setSpaceRoles(fetchUserSpaceRoles(userId, realm));
 
-        // add realm roles
-        u.setRealmRoles(fetchUserRealmRoles(subjectId, realm, groupIds));
+        //add all as resource
+        Map<String, List<UserResource>> resources = new HashMap<>();
+        getUserProviders(realm)
+            .forEach(p -> {
+                try {
+                    logger.debug("fetch resources from {}:{}", p.getAuthority(), p.getProvider());
+                    Collection<? extends UserResource> res = p.listResourcesByUser(userId);
+                    if (!res.isEmpty()) {
+                        String t = res.iterator().next().getType();
+                        if (!resources.containsKey(t)) {
+                            resources.put(t, new ArrayList<>());
+                        }
+                        res.forEach(r -> resources.get(t).add(r));
 
-        // add space roles
-        u.setSpaceRoles(fetchUserSpaceRoles(subjectId, realm));
+                        resources.get(t).addAll(res);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+        u.setResources(resources);
 
         return u;
+    }
+
+    private List<UserResourceProvider<? extends UserResource>> getUserProviders(String realm) {
+        List<UserResourceProvider<? extends UserResource>> providers = new ArrayList<>();
+        List<? extends AccountService<?, ?, ?, ?>> accountProviders = accountServiceAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .collect(Collectors.toList());
+        List<? extends IdentityProvider<?, ?, ?, ?, ?>> identityProviders = identityProviderAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .collect(Collectors.toList());
+
+        List<? extends CredentialsService<?, ?, ?, ?>> credentialsProviders = credentialsServiceAuthorityService
+            .getAuthorities()
+            .stream()
+            .flatMap(a -> a.getProvidersByRealm(realm).stream())
+            .collect(Collectors.toList());
+
+        providers.addAll(accountProviders);
+        providers.addAll(identityProviders);
+        providers.addAll(credentialsProviders);
+
+        return providers;
     }
 
     /*
@@ -734,7 +699,7 @@ public class UserService {
      * Related data
      */
 
-    public Collection<UserIdentity> fetchUserIdentities(String subjectId, String realm) throws NoSuchUserException {
+    public List<UserIdentity> fetchUserIdentities(String subjectId, String realm) throws NoSuchUserException {
         List<UserIdentity> identities = new ArrayList<>();
         // fetch all identities from source realm
         // TODO we need an order criteria
@@ -764,7 +729,7 @@ public class UserService {
         return identities;
     }
 
-    public Collection<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
+    public List<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
         List<UserAttributes> attributes = new ArrayList<>();
         // fetch from providers
         Collection<AttributeProvider<?, ?, ?>> aps = attributeProviderAuthorityService
@@ -779,8 +744,7 @@ public class UserService {
         return attributes;
     }
 
-    public Collection<GrantedAuthority> fetchUserAuthorities(String subjectId, String realm)
-        throws NoSuchUserException {
+    public List<GrantedAuthority> fetchUserAuthorities(String subjectId, String realm) throws NoSuchUserException {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(Config.R_USER));
 
@@ -788,10 +752,10 @@ public class UserService {
         Collection<GrantedAuthority> userAuthorities = subjectService.getAuthorities(subjectId);
         authorities.addAll(userAuthorities);
 
-        return authorities;
+        return authorities.stream().toList();
     }
 
-    private Collection<RealmRole> fetchUserRealmRoles(String subjectId, String realm, Set<String> groupIds)
+    private List<RealmRole> fetchUserRealmRoles(String subjectId, String realm, Set<String> groupIds)
         throws NoSuchUserException {
         // merge directly assigned roles with those assigned to groups
         Set<RealmRole> roles = new HashSet<>();
@@ -802,23 +766,23 @@ public class UserService {
             });
         }
 
-        return roles;
+        return roles.stream().toList();
     }
 
-    public Collection<RealmRole> fetchUserRealmRoles(String subjectId, String realm) throws NoSuchUserException {
+    public List<RealmRole> fetchUserRealmRoles(String subjectId, String realm) throws NoSuchUserException {
         // fetch groups to retrive roles associated
         Collection<Group> groups = fetchUserGroups(subjectId, realm);
         Set<String> groupIds = groups.stream().map(g -> g.getGroupId()).collect(Collectors.toSet());
         return fetchUserRealmRoles(subjectId, realm, groupIds);
     }
 
-    public Collection<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
+    public List<SpaceRole> fetchUserSpaceRoles(String subjectId, String realm) throws NoSuchUserException {
         // we don't filter space roles per realm, so read all
-        return spaceRoleService.getRoles(subjectId);
+        return spaceRoleService.getRoles(subjectId).stream().toList();
     }
 
-    public Collection<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
-        return groupService.getSubjectGroups(subjectId, realm);
+    public List<Group> fetchUserGroups(String subjectId, String realm) throws NoSuchUserException {
+        return groupService.getSubjectGroups(subjectId, realm).stream().toList();
     }
 
     public void acceptTos(String subjectId) throws NoSuchUserException {

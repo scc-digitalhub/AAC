@@ -18,9 +18,6 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationResponse;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
@@ -35,6 +32,9 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.openid.common.IdToken;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.io.Serializable;
 import java.net.URI;
@@ -195,7 +195,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         }
 
         UserAuthentication userAuth = (UserAuthentication) authentication;
-        UserDetails userDetails = userAuth.getUser();
+        UserDetails userDetails = userAuth.getUserDetails();
 
         String realm = SystemKeys.REALM_COMMON;
         if (realmKey.isPresent()) {

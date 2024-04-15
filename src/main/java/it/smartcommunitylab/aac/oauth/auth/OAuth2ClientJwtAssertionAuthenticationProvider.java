@@ -22,10 +22,10 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
@@ -83,7 +83,7 @@ public class OAuth2ClientJwtAssertionAuthenticationProvider
     }
 
     @Override
-    public ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(
             OAuth2ClientJwtAssertionAuthenticationToken.class,
             authentication,
@@ -94,7 +94,6 @@ public class OAuth2ClientJwtAssertionAuthenticationProvider
             (OAuth2ClientJwtAssertionAuthenticationToken) authentication;
         String clientId = authRequest.getPrincipal();
         String clientAssertion = authRequest.getClientAssertion();
-        String authenticationMethod = authRequest.getAuthenticationMethod();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(clientAssertion)) {
             throw new BadCredentialsException("missing required parameters in request");
@@ -102,20 +101,17 @@ public class OAuth2ClientJwtAssertionAuthenticationProvider
 
         try {
             // check if auth method is undefined and resolve from jwt
-            AuthenticationMethod authMethod = AuthenticationMethod.parse(authenticationMethod);
-
-            if (authMethod == null) {
-                JWT jwt = JWTParser.parse(clientAssertion);
-                // rsa requires private key
-                if (JWSAlgorithm.Family.RSA.contains(jwt.getHeader().getAlgorithm())) {
-                    authMethod = AuthenticationMethod.PRIVATE_KEY_JWT;
-                } else {
-                    // fallback to shared secret
-                    authMethod = AuthenticationMethod.CLIENT_SECRET_JWT;
-                }
-
-                authenticationMethod = authMethod.getValue();
+            AuthenticationMethod authMethod = null;
+            String authenticationMethod = null;
+            JWT jwt = JWTParser.parse(clientAssertion);
+            // rsa requires private key
+            if (JWSAlgorithm.Family.RSA.contains(jwt.getHeader().getAlgorithm())) {
+                authMethod = AuthenticationMethod.PRIVATE_KEY_JWT;
+            } else {
+                // fallback to shared secret
+                authMethod = AuthenticationMethod.CLIENT_SECRET_JWT;
             }
+            authenticationMethod = authMethod.getValue();
 
             // load details, we need to check request
             OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
@@ -190,7 +186,6 @@ public class OAuth2ClientJwtAssertionAuthenticationProvider
             OAuth2ClientJwtAssertionAuthenticationToken result = new OAuth2ClientJwtAssertionAuthenticationToken(
                 clientId,
                 clientAssertion,
-                authenticationMethod,
                 authorities
             );
 

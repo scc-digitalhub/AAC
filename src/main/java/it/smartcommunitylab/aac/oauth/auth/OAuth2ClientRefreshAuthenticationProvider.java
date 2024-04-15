@@ -19,14 +19,15 @@ package it.smartcommunitylab.aac.oauth.auth;
 import com.nimbusds.oauth2.sdk.GrantType;
 import com.nimbusds.oauth2.sdk.ParseException;
 import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthentication;
+import it.smartcommunitylab.aac.clients.auth.ClientAuthenticationProvider;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.ClientAuthentication;
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationProvider;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import java.util.Collection;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -73,7 +74,7 @@ public class OAuth2ClientRefreshAuthenticationProvider
     }
 
     @Override
-    public ClientAuthentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Assert.isInstanceOf(
             OAuth2ClientRefreshAuthenticationToken.class,
             authentication,
@@ -83,7 +84,6 @@ public class OAuth2ClientRefreshAuthenticationProvider
         OAuth2ClientRefreshAuthenticationToken authRequest = (OAuth2ClientRefreshAuthenticationToken) authentication;
         String clientId = authRequest.getPrincipal();
         String refreshTokenValue = authRequest.getRefreshToken();
-        String authenticationMethod = authRequest.getAuthenticationMethod();
 
         if (!StringUtils.hasText(clientId) || !StringUtils.hasText(refreshTokenValue)) {
             throw new BadCredentialsException("missing required parameters in request");
@@ -94,8 +94,8 @@ public class OAuth2ClientRefreshAuthenticationProvider
             OAuth2ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
 
             // check if client can authenticate with this scheme
-            if (!client.getAuthenticationMethods().contains(authenticationMethod)) {
-                this.logger.debug("Failed to authenticate since client can not use scheme " + authenticationMethod);
+            if (!client.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN.getValue())) {
+                this.logger.debug("Failed to authenticate since client can not use scheme");
                 throw new BadCredentialsException("invalid authentication");
             }
 
@@ -178,7 +178,6 @@ public class OAuth2ClientRefreshAuthenticationProvider
             OAuth2ClientRefreshAuthenticationToken result = new OAuth2ClientRefreshAuthenticationToken(
                 clientId,
                 refreshTokenValue,
-                authenticationMethod,
                 authorities
             );
 

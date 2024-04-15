@@ -22,13 +22,13 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeApprover;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.util.HashSet;
 import java.util.Map;
@@ -78,10 +78,12 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
             Set<String> scopes = authorizationRequest.getScope();
             ClientDetails clientDetails = clientService.loadClient(authorizationRequest.getClientId());
             UserDetails userDetails = null;
+            User user = null;
 
             // check if userAuth is present
             if (userAuth != null && userAuth instanceof UserAuthentication) {
-                userDetails = ((UserAuthentication) userAuth).getUser();
+                userDetails = ((UserAuthentication) userAuth).getUserDetails();
+                user = ((UserAuthentication) userAuth).getUser();
             }
 
             logger.debug("process scopes for client " + clientDetails.getClientId() + ": " + scopes);
@@ -101,19 +103,12 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
                     if (ScopeType.CLIENT == scope.getType()) {
                         approval = sa.approveClientScope(s, clientDetails, scopes);
                     }
-                    if (ScopeType.USER == scope.getType() && userDetails != null) {
-                        approval =
-                            sa.approveUserScope(s, translateUser(userDetails, sa.getRealm()), clientDetails, scopes);
+                    if (ScopeType.USER == scope.getType() && userDetails != null && user != null) {
+                        approval = sa.approveUserScope(s, user, clientDetails, scopes);
                     }
                     if (ScopeType.GENERIC == scope.getType()) {
                         if (userDetails != null) {
-                            approval =
-                                sa.approveUserScope(
-                                    s,
-                                    translateUser(userDetails, sa.getRealm()),
-                                    clientDetails,
-                                    scopes
-                                );
+                            approval = sa.approveUserScope(s, user, clientDetails, scopes);
                         } else {
                             approval = sa.approveClientScope(s, clientDetails, scopes);
                         }
@@ -158,14 +153,13 @@ public class ScopeApprovalHandler implements UserApprovalHandler {
     ) {
         return null;
     }
+    // private User translateUser(UserDetails userDetails, String realm) {
+    //     if (userService != null) {
+    //         return userService.getUser(userDetails, realm);
+    //     }
 
-    private User translateUser(UserDetails userDetails, String realm) {
-        if (userService != null) {
-            return userService.getUser(userDetails, realm);
-        }
-
-        return new User(userDetails);
-    }
+    //     return new User(userDetails);
+    // }
     //    protected Set<String> validateScopes(OAuth2Authentication authentication, ClientDetails client,
     //            Set<String> scopes) {
     //

@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.scope;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import org.springframework.security.oauth2.provider.approval.Approval;
 
@@ -39,9 +39,11 @@ import org.springframework.security.oauth2.provider.approval.Approval;
 public interface ScopeApprover {
     public String getRealm();
 
+    //TODO add userDetails model
     public Approval approveUserScope(String scope, User user, ClientDetails client, Collection<String> scopes)
         throws InvalidDefinitionException, SystemException;
 
+    //TODO add client model
     public Approval approveClientScope(String scope, ClientDetails client, Collection<String> scopes)
         throws InvalidDefinitionException, SystemException;
 }

@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.oauth.request;
 
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.users.model.User;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
 import org.springframework.security.oauth2.common.exceptions.InvalidScopeException;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;

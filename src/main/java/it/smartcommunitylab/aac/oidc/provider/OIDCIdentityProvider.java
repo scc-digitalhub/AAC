@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,20 +46,22 @@ public class OIDCIdentityProvider
     private final OIDCAccountPrincipalConverter principalConverter;
     private final OIDCAttributeProvider attributeProvider;
     private final OIDCAuthenticationProvider authenticationProvider;
-    private final OIDCSubjectResolver subjectResolver;
+    private final OIDCUserResolver userResolver;
 
     public OIDCIdentityProvider(
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<OIDCUserAccount> userAccountService,
         OIDCIdentityProviderConfig config,
         String realm
     ) {
-        this(SystemKeys.AUTHORITY_OIDC, providerId, userAccountService, config, realm);
+        this(SystemKeys.AUTHORITY_OIDC, providerId, userEntityService, userAccountService, config, realm);
     }
 
     public OIDCIdentityProvider(
         String authority,
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<OIDCUserAccount> userAccountService,
         OIDCIdentityProviderConfig config,
         String realm
@@ -83,9 +86,8 @@ public class OIDCIdentityProvider
         this.authenticationProvider =
             new OIDCAuthenticationProvider(authority, providerId, userAccountService, config, realm);
 
-        this.subjectResolver =
-            new OIDCSubjectResolver(authority, providerId, userAccountService, config.getRepositoryId(), realm);
-        this.subjectResolver.setLinkable(config.isLinkable());
+        this.userResolver =
+            new OIDCUserResolver(authority, providerId, userEntityService, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null) {
@@ -136,8 +138,8 @@ public class OIDCIdentityProvider
     }
 
     @Override
-    public OIDCSubjectResolver getSubjectResolver() {
-        return subjectResolver;
+    public OIDCUserResolver getUserResolver() {
+        return userResolver;
     }
 
     @Override

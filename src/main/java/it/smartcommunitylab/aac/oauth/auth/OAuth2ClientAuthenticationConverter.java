@@ -16,11 +16,11 @@
 
 package it.smartcommunitylab.aac.oauth.auth;
 
-import it.smartcommunitylab.aac.core.auth.ClientAuthenticationConverter;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 
-public abstract class OAuth2ClientAuthenticationConverter implements ClientAuthenticationConverter {
+public abstract class OAuth2ClientAuthenticationConverter implements AuthenticationConverter {
 
     @Override
     public OAuth2ClientAuthenticationToken convert(HttpServletRequest request) {

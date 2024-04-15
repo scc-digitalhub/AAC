@@ -25,12 +25,12 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.realms.RealmManager;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import it.smartcommunitylab.aac.webauthn.WebAuthnCredentialsAuthority;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsService;
@@ -80,36 +80,17 @@ public class WebAuthnCredentialsController {
             throw new InsufficientAuthenticationException("error.unauthenticated_user");
         }
 
-        // fetch internal identities
-        Set<UserIdentity> identities = user
-            .getIdentities()
-            .stream()
-            .filter(i -> (i instanceof InternalUserIdentity))
-            .collect(Collectors.toSet());
-
-        // pick matching by uuid
-        UserIdentity identity = identities
-            .stream()
-            .filter(i -> i.getAccount().getUuid().equals(uuid))
-            .findFirst()
-            .orElse(null);
-        if (identity == null) {
-            throw new IllegalArgumentException("error.invalid_user");
-        }
-
         logger.debug(
             "manage credentials for {} with provider {}",
             StringUtils.trimAllWhitespace(uuid),
             StringUtils.trimAllWhitespace(providerId)
         );
 
-        UserAccount account = identity.getAccount();
-
         // fetch provider
         WebAuthnCredentialsService service = webAuthnAuthority.getProvider(providerId);
 
         // for internal username is accountId
-        String username = account.getAccountId();
+        String username = user.getUsername();
 
         // build model for this account
         model.addAttribute("providerId", providerId);
@@ -124,7 +105,7 @@ public class WebAuthnCredentialsController {
         // fetch credentials
         // NOTE: credentials are listed by user not account
         // TODO implement picker for account when more than one available
-        String userId = user.getSubjectId();
+        String userId = user.getUserId();
         Collection<WebAuthnUserCredential> credentials = service.listCredentials(userId);
         model.addAttribute("credentials", credentials);
 
@@ -162,7 +143,7 @@ public class WebAuthnCredentialsController {
             }
 
             // check user matches
-            boolean matches = user.getSubjectId().equals(cred.getUserId());
+            boolean matches = user.getUserId().equals(cred.getUserId());
             // boolean matches = user
             //     .getIdentities()
             //     .stream()

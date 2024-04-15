@@ -18,13 +18,13 @@ package it.smartcommunitylab.aac.oauth.request;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.model.ScopeType;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import it.smartcommunitylab.aac.oauth.model.ClientRegistration;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseType;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;

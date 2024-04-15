@@ -26,12 +26,13 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.ExtendedLogoutSuccessHandler;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.jwt.assertion.SelfAssertionValidator;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
@@ -178,17 +179,17 @@ public class EndSessionEndpoint {
         } else {
             // we are logged in, need to prompt the user before we log out
             // display the log out confirmation page
-            UserDetails userDetails = userAuth.getUser();
+            User userDetails = userAuth.getUser();
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername())
                 ? userDetails.getUsername()
-                : userDetails.getSubjectId();
+                : userDetails.getUserId();
             //            String fullName = userDetails.getFullName();
             model.addAttribute("fullname", userName);
 
             // add account info
-            UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
-            model.addAttribute("account", account);
+            // UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
+            // model.addAttribute("account", account);
 
             // load realm props
             String realm = userAuth.getRealm();

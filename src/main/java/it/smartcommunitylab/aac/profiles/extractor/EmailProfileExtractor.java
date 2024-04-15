@@ -22,9 +22,10 @@ import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
 import it.smartcommunitylab.aac.attributes.OpenIdAttributesSet;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.EmailProfile;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class EmailProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public EmailProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
+        Collection<UserIdentity> identities = UserIdentitiesResourceContext.from(user).getIdentities();
 
         if (identities.isEmpty()) {
             return null;
@@ -64,7 +65,7 @@ public class EmailProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public Collection<EmailProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
         // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
+        Collection<UserIdentity> identities = UserIdentitiesResourceContext.from(user).getIdentities();
 
         if (identities.isEmpty()) {
             return Collections.emptyList();

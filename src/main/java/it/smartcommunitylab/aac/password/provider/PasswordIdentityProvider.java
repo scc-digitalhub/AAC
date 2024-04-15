@@ -31,11 +31,12 @@ import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountPrincipalConverter;
 import it.smartcommunitylab.aac.internal.provider.InternalAccountProvider;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeProvider;
-import it.smartcommunitylab.aac.internal.provider.InternalSubjectResolver;
+import it.smartcommunitylab.aac.internal.provider.InternalUserResolver;
 import it.smartcommunitylab.aac.password.PasswordIdentityAuthority;
 import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
 import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import it.smartcommunitylab.aac.utils.MailService;
 import java.util.Collection;
 import org.slf4j.Logger;
@@ -57,10 +58,11 @@ public class PasswordIdentityProvider
     private final InternalAccountPrincipalConverter principalConverter;
     private final InternalAccountProvider accountProvider;
     private final InternalAttributeProvider<InternalPasswordUserAuthenticatedPrincipal> attributeProvider;
-    private final InternalSubjectResolver subjectResolver;
+    private final InternalUserResolver userResolver;
 
     public PasswordIdentityProvider(
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<InternalUserAccount> userAccountService,
         InternalPasswordJpaUserCredentialsService userPasswordService,
         PasswordIdentityProviderConfig config,
@@ -99,7 +101,16 @@ public class PasswordIdentityProvider
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
+        this.userResolver =
+            new InternalUserResolver(
+                SystemKeys.AUTHORITY_PASSWORD,
+                providerId,
+                userEntityService,
+                userAccountService,
+                config.getRepositoryId(),
+                config.isLinkable(),
+                realm
+            );
     }
 
     public void setRealmService(RealmService realmService) {
@@ -151,8 +162,8 @@ public class PasswordIdentityProvider
     }
 
     @Override
-    public InternalSubjectResolver getSubjectResolver() {
-        return subjectResolver;
+    public InternalUserResolver getUserResolver() {
+        return userResolver;
     }
 
     public PasswordIdentityCredentialsService getCredentialsService() {
@@ -190,10 +201,10 @@ public class PasswordIdentityProvider
         return identity;
     }
 
-    @Override
-    public void deleteIdentity(String userId, String username) throws NoSuchUserException {
-        // do not remove account because we are NOT authoritative
-    }
+    // @Override
+    // public void deleteIdentity(String userId, String username) throws NoSuchUserException {
+    //     // do not remove account because we are NOT authoritative
+    // }
 
     @Override
     public String getAuthenticationUrl() {

@@ -16,17 +16,18 @@
 
 package it.smartcommunitylab.aac.identity.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
+import it.smartcommunitylab.aac.users.provider.UserResolver;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
@@ -47,8 +48,10 @@ public interface IdentityProvider<
     M extends ConfigMap,
     C extends IdentityProviderConfig<M>
 >
-    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M> {
+    extends ConfigurableResourceProvider<I, C, IdentityProviderSettingsMap, M>, UserPersistedResourceProvider<I> {
+    @Deprecated
     public static final String ATTRIBUTE_MAPPING_FUNCTION = "attributeMapping";
+
     public static final String AUTHORIZATION_FUNCTION = "authorize";
 
     /*
@@ -57,23 +60,29 @@ public interface IdentityProvider<
      * only authoritative providers should edit accounts, expose resolvers etc,
      * while non-authoritative should handle only authentication + credentials +
      * attributes when available
+     *
+     * DEPRECATED: accounts are managed via accountProvider, we don't need to discriminate between idps
      */
+    @Deprecated
     public boolean isAuthoritative();
 
     /*
      * Authentication provider handles the processing of AuthenticationTokens and
      * the resolution of UserPrincipal. Optionally they can expose a UserAccount
      * matching the principal, if available in the provider.
+     *
+     * DEPRECATED: to be replaced with EAP interface
      */
+    @Deprecated
     public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
-     * Subject resolvers can discover a matching user by receiving identifying
+     * User resolvers can discover a matching user by receiving identifying
      * properties (such as email) and looking at locally (in the provider)
      * registered accounts to find an existing identity for the same user.
+     *
      */
-
-    public SubjectResolver<U> getSubjectResolver();
+    public UserResolver getUserResolver();
 
     /*
      * Convert identities from authenticatedPrincipal. Used for login only.
@@ -90,16 +99,17 @@ public interface IdentityProvider<
      *
      * Do note that implementations are not required to support this.
      */
+    public Collection<I> listIdentities();
 
     //    // uuid is global
     //    public I findIdentityByUuid(String uuid);
 
     // identityId is provider-specific
-    public I findIdentity(String userId, String identityId);
+    public I findIdentity(String identityId);
 
-    public I getIdentity(String userId, String identityId) throws NoSuchUserException;
+    public I getIdentity(String identityId) throws NoSuchUserException;
 
-    public I getIdentity(String userId, String identityId, boolean fetchAttributes) throws NoSuchUserException;
+    public I getIdentity(String identityId, boolean fetchAttributes) throws NoSuchUserException;
 
     /*
      * fetch for user
@@ -119,17 +129,24 @@ public interface IdentityProvider<
      * Link account
      *
      * Providers must expose the ability to link/relink identities to a given user
+     *
+     * DEPRECATED: to be moved to accountProvider
      */
-    public I linkIdentity(String userId, String identityId) throws NoSuchUserException, RegistrationException;
+    @Deprecated
+    public I linkIdentity(String identityId, String userId) throws NoSuchUserException, RegistrationException;
 
     /*
      * Delete accounts.
      *
      * Implementations are required to implement this, even as a no-op. At minimum
      * we expect providers to clean up any local registration or cache.
+     *
+     * DEPRECATED: only accounts are persisted and managed via accountProvider
      */
-    public void deleteIdentity(String userId, String identityId) throws NoSuchUserException;
+    @Deprecated
+    public void deleteIdentity(String identityId) throws NoSuchUserException;
 
+    @Deprecated
     public void deleteIdentities(String userId);
 
     /*
@@ -137,10 +154,14 @@ public interface IdentityProvider<
      *
      * Url is required to be presented in login forms, while authEntrypoint can
      * handle different kind of requests.
+     *
+     * DEPRECATED: to be replaced with proper LoginProvider (RealmResourceProvider)
      */
 
+    @Deprecated
     public String getAuthenticationUrl();
 
+    @Deprecated
     public LoginProvider getLoginProvider(
         @Nullable ClientDetails clientDetails,
         @Nullable AuthorizationRequest authRequest
@@ -153,7 +174,41 @@ public interface IdentityProvider<
     //     */
     //    public Map<String, String> getActionUrls();
 
-    public default String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
+    // default String getType() {
+    //     return SystemKeys.RESOURCE_IDENTITY;
+    // }
+
+    /*
+     * As Resources
+     */
+
+    @Override
+    default Collection<I> listResources() {
+        return listIdentities();
+    }
+
+    @Override
+    default Collection<I> listResourcesByUser(String userId) {
+        return listIdentities(userId);
+    }
+
+    @Override
+    default I findResource(String id) {
+        return findIdentity(id);
+    }
+
+    @Override
+    default I getResource(String id) throws NoSuchResourceException {
+        return getIdentity(id);
+    }
+
+    @Override
+    default void deleteResource(String id) {
+        //nothing to do, identities are not persisted independently
+    }
+
+    @Override
+    default void deleteResourcesByUser(String userId) {
+        //nothing to do, identities are not persisted independently
     }
 }

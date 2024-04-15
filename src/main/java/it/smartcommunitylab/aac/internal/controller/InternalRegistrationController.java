@@ -26,9 +26,9 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.AuthenticationHelper;
-import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
+import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.internal.InternalIdentityServiceAuthority;
 import it.smartcommunitylab.aac.internal.dto.UserRegistrationBean;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.password.model.PasswordPolicy;
 import it.smartcommunitylab.aac.password.provider.PasswordCredentialsService;
 import it.smartcommunitylab.aac.realms.service.RealmService;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -105,7 +106,8 @@ public class InternalRegistrationController {
         }
 
         // fetch internal identities matching provider
-        Set<InternalUserIdentity> identities = user
+        Set<InternalUserIdentity> identities = UserIdentitiesResourceContext
+            .from(user)
             .getIdentities()
             .stream()
             .filter(i -> SystemKeys.AUTHORITY_INTERNAL.equals(i.getAuthority()) && i.getProvider().equals(providerId))
@@ -174,7 +176,8 @@ public class InternalRegistrationController {
             }
 
             // fetch internal identities matching provider
-            Set<InternalUserIdentity> identities = user
+            Set<InternalUserIdentity> identities = UserIdentitiesResourceContext
+                .from(user)
                 .getIdentities()
                 .stream()
                 .filter(i ->

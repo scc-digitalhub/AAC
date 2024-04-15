@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.events;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.util.Assert;
 

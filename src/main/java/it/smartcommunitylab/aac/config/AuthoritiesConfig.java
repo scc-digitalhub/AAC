@@ -29,7 +29,6 @@ import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ProviderConfigEntityService;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
@@ -40,6 +39,9 @@ import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,9 @@ public class AuthoritiesConfig {
 
     @Autowired
     private ProviderConfigEntityService providerConfigEntityService;
+
+    @Autowired
+    private UserEntityService userEntityService;
 
     @Autowired
     private UserAccountService<OIDCUserAccount> oidcUserAccountService;
@@ -116,6 +121,7 @@ public class AuthoritiesConfig {
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(
                             id,
+                            userEntityService,
                             oidcUserAccountService,
                             registrationRepository
                         );

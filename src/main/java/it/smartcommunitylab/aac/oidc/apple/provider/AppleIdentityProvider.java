@@ -33,7 +33,8 @@ import it.smartcommunitylab.aac.oidc.provider.OIDCAccountProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCAttributeProvider;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.provider.OIDCLoginProvider;
-import it.smartcommunitylab.aac.oidc.provider.OIDCSubjectResolver;
+import it.smartcommunitylab.aac.oidc.provider.OIDCUserResolver;
+import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +53,11 @@ public class AppleIdentityProvider
     private final OIDCAccountPrincipalConverter principalConverter;
     private final OIDCAttributeProvider attributeProvider;
     private final AppleAuthenticationProvider authenticationProvider;
-    private final OIDCSubjectResolver subjectResolver;
+    private final OIDCUserResolver userResolver;
 
     public AppleIdentityProvider(
         String providerId,
+        UserEntityService userEntityService,
         UserAccountService<OIDCUserAccount> userAccountService,
         AppleIdentityProviderConfig config,
         String realm
@@ -73,15 +75,16 @@ public class AppleIdentityProvider
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(SystemKeys.AUTHORITY_APPLE, providerId, realm);
-        this.subjectResolver =
-            new OIDCSubjectResolver(
+        this.userResolver =
+            new OIDCUserResolver(
                 SystemKeys.AUTHORITY_APPLE,
                 providerId,
+                userEntityService,
                 userAccountService,
                 config.getRepositoryId(),
+                config.isLinkable(),
                 realm
             );
-        this.subjectResolver.setLinkable(config.isLinkable());
 
         // build custom authenticator
         this.authenticationProvider = new AppleAuthenticationProvider(providerId, userAccountService, config, realm);
@@ -135,8 +138,8 @@ public class AppleIdentityProvider
     }
 
     @Override
-    public OIDCSubjectResolver getSubjectResolver() {
-        return subjectResolver;
+    public OIDCUserResolver getUserResolver() {
+        return userResolver;
     }
 
     @Override

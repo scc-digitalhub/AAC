@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.clients.ClientManager;
+import it.smartcommunitylab.aac.clients.model.Client;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
@@ -38,19 +39,17 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
-import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.dto.RealmConfig;
+import it.smartcommunitylab.aac.groups.model.Group;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Developer;
-import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.realms.service.RealmService;
@@ -62,6 +61,7 @@ import it.smartcommunitylab.aac.templates.model.TemplateModel;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
 import it.smartcommunitylab.aac.templates.service.TemplateService;
 import it.smartcommunitylab.aac.users.UserManager;
+import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.service.UserService;
 import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserCredential;
 import java.io.Serializable;
@@ -313,11 +313,11 @@ public class RealmManager {
             List<User> users = userManager.listUsers(slug);
             for (User user : users) {
                 try {
-                    String subjectId = user.getSubjectId();
+                    String userId = user.getUserId();
 
                     // remove, will kill active sessions and cleanup
                     // will also delete if this realm is owner
-                    userManager.removeUser(slug, subjectId);
+                    userManager.removeUser(slug, userId);
                 } catch (NoSuchUserException e) {
                     // skip
                 }
@@ -526,7 +526,7 @@ public class RealmManager {
     }
 
     private Developer toDeveloper(String realm, User user) {
-        Developer dev = new Developer(user.getSubjectId(), realm);
+        Developer dev = new Developer(user.getUserId(), realm);
 
         dev.setUsername(user.getUsername());
         dev.setEmail(user.getEmail());
@@ -579,7 +579,7 @@ public class RealmManager {
         }
 
         // assign developer role
-        return updateDeveloper(realm, user.getSubjectId(), Collections.singleton(Config.R_DEVELOPER));
+        return updateDeveloper(realm, user.getUserId(), Collections.singleton(Config.R_DEVELOPER));
     }
 
     public ApplicationProperties getRealmProps(String realm) throws NoSuchRealmException {

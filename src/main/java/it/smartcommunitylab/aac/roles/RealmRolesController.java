@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.roles.scopes.UserRolesScope;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class RealmRolesController {
         "(hasAuthority('" +
         Config.R_USER +
         "') and hasAuthority('SCOPE_" +
-        Config.SCOPE_USER_ROLE +
+        UserRolesScope.SCOPE +
         "')) or (hasAuthority('" +
         Config.R_CLIENT +
         "') and hasAuthority('SCOPE_" +

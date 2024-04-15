@@ -18,8 +18,6 @@ package it.smartcommunitylab.aac.oauth.endpoint;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.model.ResponseMode;
@@ -27,6 +25,8 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.scope.Scope;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -112,7 +112,7 @@ public class UserApprovalEndpoint implements InitializingBean {
             model.put("key", key);
 
             UserAuthentication userAuth = (UserAuthentication) authentication;
-            UserDetails userDetails = userAuth.getUser();
+            UserDetails userDetails = userAuth.getUserDetails();
 
             String clientId = authorizationRequest.getClientId();
             OAuth2ClientDetails clientDetails = oauth2ClientDetailsService.loadClientByClientId(clientId);
@@ -135,13 +135,13 @@ public class UserApprovalEndpoint implements InitializingBean {
             // add user info
             String userName = StringUtils.hasText(userDetails.getUsername())
                 ? userDetails.getUsername()
-                : userDetails.getSubjectId();
+                : userDetails.getUserId();
             //            String fullName = userDetails.getFullName();
             model.put("fullname", userName);
 
             // add account info
-            UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
-            model.put("account", account);
+            // UserAccount account = userDetails.getIdentities().stream().findFirst().orElseThrow().getAccount();
+            // model.put("account", account);
 
             // we have a list of scopes in model
             Set<String> scopes = delimitedStringToSet((String) model.get("scope"));

@@ -24,17 +24,17 @@ import it.smartcommunitylab.aac.claims.model.SerializableClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
+import it.smartcommunitylab.aac.groups.model.UserGroup;
+import it.smartcommunitylab.aac.groups.model.UserGroupsResourceContext;
 import it.smartcommunitylab.aac.groups.scopes.GroupsResource;
 import it.smartcommunitylab.aac.groups.scopes.UserGroupsScope;
-import it.smartcommunitylab.aac.model.Group;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.User;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class UserGroupsClaimsExtractor implements ScopeClaimsExtractor {
@@ -58,12 +58,12 @@ public class UserGroupsClaimsExtractor implements ScopeClaimsExtractor {
         Map<String, Serializable> extensions
     ) throws InvalidDefinitionException, SystemException {
         // we get roles from user, it should be up-to-date
-        Set<Group> groups = user.getGroups();
+        Collection<UserGroup> groups = UserGroupsResourceContext.from(user).getGroups();
 
         // convert to a claims list by flattening
         List<Claim> claims = new ArrayList<>();
 
-        SerializableClaim groupsClaim = new SerializableClaim("groups");
+        SerializableClaim groupsClaim = new SerializableClaim(GroupsResource.CLAIM);
         List<String> groupClaims = groups.stream().map(r -> r.getGroup()).collect(Collectors.toList());
         groupsClaim.setValue(new ArrayList<>(groupClaims));
         claims.add(groupsClaim);

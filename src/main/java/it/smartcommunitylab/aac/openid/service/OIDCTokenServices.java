@@ -27,11 +27,8 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.jwt.JWTService;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.common.SecureStringKeyGenerator;
 import it.smartcommunitylab.aac.oauth.common.ServerErrorException;
@@ -44,6 +41,9 @@ import it.smartcommunitylab.aac.profiles.scope.OpenIdAddressScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdDefaultScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdEmailScope;
 import it.smartcommunitylab.aac.profiles.scope.OpenIdPhoneScope;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.time.Instant;
@@ -167,8 +167,10 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -182,6 +184,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 null,
                 null
@@ -242,8 +245,10 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -257,6 +262,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 accessToken,
                 null
@@ -316,8 +322,10 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -331,6 +339,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 null,
                 code
@@ -395,8 +404,10 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 throw new InvalidRequestException("id_token requires a valid user authentication");
             }
 
-            UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
-            String subject = userDetails.getSubjectId();
+            UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
+            User user = ((UserAuthentication) userAuth).getUser();
+
+            String subject = userDetails.getUserId();
 
             // set single audience as string - correct for OIDC
             // audience could be a list but we don't want to add audience from accesstoken
@@ -410,6 +421,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
                 authentication,
                 request,
                 userDetails,
+                user,
                 oauth2ClientDetails,
                 accessToken,
                 code
@@ -446,6 +458,7 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         OAuth2Authentication authentication,
         OAuth2Request request,
         UserDetails userDetails,
+        User user,
         OAuth2ClientDetails oauth2ClientDetails,
         OAuth2AccessToken accessToken,
         String code
@@ -457,13 +470,12 @@ public class OIDCTokenServices implements IdTokenServices, InitializingBean {
         }
 
         String clientId = oauth2ClientDetails.getClientId();
-        String subjectId = userDetails.getSubjectId();
+        String subjectId = userDetails.getUserId();
         Set<String> scopes = request.getScope();
 
         ClientDetails clientDetails = clientService.loadClient(clientId);
 
         // build user claims
-        User user = new User(userDetails);
         Map<String, Object> userClaims = new HashMap<>();
         // check if client wants all claims from accessToken in idTokens
         if (

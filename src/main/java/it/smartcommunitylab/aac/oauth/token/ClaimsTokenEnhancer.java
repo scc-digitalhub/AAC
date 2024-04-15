@@ -23,9 +23,9 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.UserDetails;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
+import it.smartcommunitylab.aac.users.auth.UserAuthentication;
+import it.smartcommunitylab.aac.users.model.UserDetails;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +83,7 @@ public class ClaimsTokenEnhancer implements TokenEnhancer {
             } else {
                 Authentication userAuth = authentication.getUserAuthentication();
                 if (userAuth != null && userAuth instanceof UserAuthentication) {
-                    UserDetails userDetails = ((UserAuthentication) userAuth).getUser();
+                    UserDetails userDetails = ((UserAuthentication) userAuth).getUserDetails();
                     // ask claims for the user model appropriate for the client's realm
                     claims =
                         claimsService.getUserClaims(

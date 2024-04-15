@@ -20,10 +20,11 @@ import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.model.AttributeType;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.AccountProfile;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public AccountProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
+        Collection<UserIdentity> identities = UserIdentitiesResourceContext.from(user).getIdentities();
 
         if (identities.isEmpty()) {
             return null;
@@ -67,7 +68,7 @@ public class AccountProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public Collection<AccountProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
         // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
+        Collection<UserIdentity> identities = UserIdentitiesResourceContext.from(user).getIdentities();
 
         if (identities.isEmpty()) {
             return Collections.emptyList();

@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.identity.provider;
 
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 
 public interface AccountPrincipalConverter<U extends UserAccount> extends ResourceProvider<U> {
     /*

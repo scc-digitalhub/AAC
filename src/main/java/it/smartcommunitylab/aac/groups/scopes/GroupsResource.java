@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.scope.Resource;
 public class GroupsResource extends Resource {
 
     public static final String RESOURCE_ID = "aac.groups";
+    public static final String CLAIM = "groups";
 
     @Override
     public String getResourceId() {

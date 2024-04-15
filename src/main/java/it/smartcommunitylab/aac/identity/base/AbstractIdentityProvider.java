@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.identity.base;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
@@ -25,13 +24,12 @@ import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
-import it.smartcommunitylab.aac.core.provider.SubjectResolver;
-import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.identity.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,13 +79,13 @@ public abstract class AbstractIdentityProvider<
         Assert.notNull(getAccountProvider(), "account provider is mandatory");
         Assert.notNull(getAccountService(), "account service is mandatory");
         Assert.notNull(getAttributeProvider(), "attribute provider is mandatory");
-        Assert.notNull(getSubjectResolver(), "subject provider is mandatory");
+        Assert.notNull(getUserResolver(), "user resolver is mandatory");
     }
 
-    @Override
-    public final String getType() {
-        return SystemKeys.RESOURCE_IDENTITY;
-    }
+    // @Override
+    // public final String getType() {
+    //     return SystemKeys.RESOURCE_IDENTITY;
+    // }
 
     @Override
     public boolean isAuthoritative() {
@@ -124,9 +122,6 @@ public abstract class AbstractIdentityProvider<
      */
 
     protected abstract IdentityAttributeProvider<P, U> getAttributeProvider();
-
-    @Override
-    public abstract SubjectResolver<U> getSubjectResolver();
 
     protected abstract I buildIdentity(U account, P principal, Collection<UserAttributes> attributes);
 
@@ -165,7 +160,6 @@ public abstract class AbstractIdentityProvider<
             throw new NoSuchUserException();
         }
 
-        // TODO evaluate creation of userEntity when empty
         if (userId == null) {
             // this better exists
             throw new NoSuchUserException();
@@ -232,13 +226,6 @@ public abstract class AbstractIdentityProvider<
             logger.trace("persisted account: {}", String.valueOf(account));
         }
 
-        // uuid is available for persisted accounts
-        String uuid = account.getUuid();
-        // // set uuid on principal when possible - DISABLED, not needed
-        // if (principal instanceof AbstractUserAuthenticatedPrincipal) {
-        //     ((AbstractUserAuthenticatedPrincipal) principal).setUuid(uuid);
-        // }
-
         // convert attribute sets via provider, will update store
         logger.debug("convert principal and account to attributes via provider for {}", String.valueOf(id));
         Collection<UserAttributes> attributes = getAttributeProvider().convertPrincipalAttributes(principal, account);
@@ -283,19 +270,19 @@ public abstract class AbstractIdentityProvider<
 
     @Override
     @Transactional(readOnly = true)
-    public I findIdentity(String userId, String accountId) {
-        logger.debug("find identity for id {}", String.valueOf(accountId));
+    public I findIdentity(String identityId) {
+        logger.debug("find identity for id {}", String.valueOf(identityId));
 
         // lookup a matching account
-        U account = getAccountProvider().findAccount(accountId);
+        U account = getAccountProvider().findAccount(identityId);
         if (account == null) {
             return null;
         }
 
-        // check userId matches
-        if (!account.getUserId().equals(userId)) {
-            return null;
-        }
+        // // check userId matches
+        // if (!account.getUserId().equals(userId)) {
+        //     return null;
+        // }
 
         // build identity without attributes or principal
         I identity = buildIdentity(account, null);
@@ -308,27 +295,26 @@ public abstract class AbstractIdentityProvider<
 
     @Override
     @Transactional(readOnly = true)
-    public I getIdentity(String userId, String accountId) throws NoSuchUserException {
-        return getIdentity(userId, accountId, true);
+    public I getIdentity(String identityId) throws NoSuchUserException {
+        return getIdentity(identityId, true);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public I getIdentity(String userId, String accountId, boolean fetchAttributes) throws NoSuchUserException {
+    public I getIdentity(String identityId, boolean fetchAttributes) throws NoSuchUserException {
         logger.debug(
-            "get identity for id {} user {} with attributes {}",
-            String.valueOf(accountId),
-            String.valueOf(userId),
+            "get identity for id {} with attributes {}",
+            String.valueOf(identityId),
             String.valueOf(fetchAttributes)
         );
 
         // lookup a matching account
-        U account = getAccountProvider().getAccount(accountId);
+        U account = getAccountProvider().getAccount(identityId);
 
-        // check userId matches
-        if (!account.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("user mismatch");
-        }
+        // // check userId matches
+        // if (!account.getUserId().equals(userId)) {
+        //     throw new IllegalArgumentException("user mismatch");
+        // }
 
         Collection<UserAttributes> attributes = null;
         if (fetchAttributes) {
@@ -343,6 +329,30 @@ public abstract class AbstractIdentityProvider<
         }
 
         return identity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<I> listIdentities() {
+        logger.debug("list identities");
+
+        // lookup for matching accounts
+        Collection<U> accounts = getAccountProvider().listAccounts();
+        if (accounts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<I> identities = new ArrayList<>();
+        for (U account : accounts) {
+            I identity = buildIdentity(account, null);
+            if (logger.isTraceEnabled()) {
+                logger.trace("identity: {}", String.valueOf(identity));
+            }
+
+            identities.add(identity);
+        }
+
+        return identities;
     }
 
     @Override
@@ -387,15 +397,15 @@ public abstract class AbstractIdentityProvider<
 
     @Override
     @Transactional(readOnly = false)
-    public I linkIdentity(String userId, String accountId) throws NoSuchUserException, RegistrationException {
-        logger.debug("link identity with id {} to user {}", String.valueOf(accountId), String.valueOf(userId));
+    public I linkIdentity(String identityId, String userId) throws NoSuchUserException, RegistrationException {
+        logger.debug("link identity with id {} to user {}", String.valueOf(identityId), String.valueOf(userId));
 
         // get the internal account entity
-        U account = getAccountProvider().getAccount(accountId);
+        U account = getAccountProvider().getAccount(identityId);
 
         if (isAuthoritative()) {
             // re-link to new userId
-            account = getAccountProvider().linkAccount(accountId, userId);
+            account = getAccountProvider().linkAccount(identityId, userId);
         }
 
         // use builder, skip attributes
@@ -409,33 +419,37 @@ public abstract class AbstractIdentityProvider<
 
     @Override
     @Transactional(readOnly = false)
-    public void deleteIdentity(String userId, String accountId) throws NoSuchUserException {
-        logger.debug("delete identity with id {} for user {}", String.valueOf(accountId), String.valueOf(userId));
+    public void deleteIdentity(String identityId) throws NoSuchUserException {
+        //DISABLED, accounts are managed via accountProvider, identities are not persisted
 
-        // delete account
-        // authoritative deletes the registration with shared accounts
-        U account = getAccountProvider().findAccount(accountId);
-        if (account != null && isAuthoritative()) {
-            // check userId matches
-            if (!account.getUserId().equals(userId)) {
-                throw new IllegalArgumentException("user mismatch");
-            }
+        // logger.debug("delete identity with id {}", String.valueOf(identityId));
 
-            // remove account
-            getAccountProvider().deleteAccount(accountId);
-        }
+        // // delete account
+        // // authoritative deletes the registration with shared accounts
+        // U account = getAccountProvider().findAccount(identityId);
+        // if (account != null && isAuthoritative()) {
+        //     // // check userId matches
+        //     // if (!account.getUserId().equals(userId)) {
+        //     //     throw new IllegalArgumentException("user mismatch");
+        //     // }
+
+        //     // remove account
+        //     getAccountProvider().deleteAccount(identityId);
+        // }
     }
 
     @Override
     @Transactional(readOnly = false)
     public void deleteIdentities(String userId) {
-        logger.debug("delete identities for user {}", String.valueOf(userId));
+        //DISABLED, accounts are managed via accountProvider, identities are not persisted
 
-        Collection<U> accounts = getAccountProvider().listAccounts(userId);
-        for (U account : accounts) {
-            try {
-                deleteIdentity(userId, account.getAccountId());
-            } catch (NoSuchUserException e) {}
-        }
+        // logger.debug("delete identities for user {}", String.valueOf(userId));
+
+        // Collection<U> accounts = getAccountProvider().listAccounts(userId);
+        // for (U account : accounts) {
+        //     try {
+        //         deleteIdentity(account.getAccountId());
+        //     } catch (NoSuchUserException e) {}
+        // }
     }
 }

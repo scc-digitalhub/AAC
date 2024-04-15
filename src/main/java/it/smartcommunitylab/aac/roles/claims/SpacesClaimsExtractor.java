@@ -26,8 +26,8 @@ import it.smartcommunitylab.aac.claims.model.StringClaim;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.model.SpaceRole;
-import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
+import it.smartcommunitylab.aac.users.model.User;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
 
+@Deprecated
 public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
 
     public static final String SPACES_EXTENSIONS_KEY = "aac.roles.spaces_selection";
@@ -61,7 +62,8 @@ public class SpacesClaimsExtractor implements ScopeClaimsExtractor {
         Map<String, Serializable> extensions
     ) throws InvalidDefinitionException, SystemException {
         // we get roles from user, it should be up-to-date
-        Set<SpaceRole> roles = user.getSpaceRoles();
+        // Collection<SpaceRole> roles = SpaceRolesResourceContext.from(user).getSpaceRoles();
+        Collection<SpaceRole> roles = Collections.emptyList();
 
         // filter context if specified by client
         if (StringUtils.hasText(client.getHookUniqueSpaces())) {

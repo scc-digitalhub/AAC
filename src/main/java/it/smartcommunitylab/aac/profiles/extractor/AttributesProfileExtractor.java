@@ -18,10 +18,12 @@ package it.smartcommunitylab.aac.profiles.extractor;
 
 import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
+import it.smartcommunitylab.aac.attributes.model.UserAttributesResourceContext;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
+import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.profiles.model.CustomProfile;
+import it.smartcommunitylab.aac.users.model.User;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,14 +65,15 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public CustomProfile extractUserProfile(User user) throws InvalidDefinitionException {
         // fetch custom attributes
-        List<UserAttributes> userAttributes = user
+        List<UserAttributes> userAttributes = UserAttributesResourceContext
+            .from(user)
             .getAttributes()
             .stream()
             .filter(ua -> !ua.getIdentifier().startsWith("aac."))
             .collect(Collectors.toList());
 
         // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
+        Collection<UserIdentity> identities = UserIdentitiesResourceContext.from(user).getIdentities();
 
         if (identities.isEmpty()) {
             return extract(userAttributes);
@@ -87,14 +90,15 @@ public class AttributesProfileExtractor extends AbstractUserProfileExtractor {
     @Override
     public Collection<? extends CustomProfile> extractUserProfiles(User user) throws InvalidDefinitionException {
         // fetch custom attributes
-        List<UserAttributes> userAttributes = user
+        List<UserAttributes> userAttributes = UserAttributesResourceContext
+            .from(user)
             .getAttributes()
             .stream()
             .filter(ua -> !ua.getIdentifier().startsWith("aac."))
             .collect(Collectors.toList());
 
         // fetch identities
-        Collection<UserIdentity> identities = user.getIdentities();
+        Collection<UserIdentity> identities = UserIdentitiesResourceContext.from(user).getIdentities();
 
         if (identities.isEmpty()) {
             return Collections.singleton(extract(userAttributes));

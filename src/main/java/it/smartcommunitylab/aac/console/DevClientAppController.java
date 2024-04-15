@@ -34,9 +34,9 @@ import it.smartcommunitylab.aac.dto.FunctionValidationBean;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.RealmRole;
-import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.roles.SpaceRoleManager;
+import it.smartcommunitylab.aac.roles.model.SpaceRole;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -228,28 +228,28 @@ public class DevClientAppController extends BaseClientAppController {
         out.close();
     }
 
-    /*
-     * Test app
-     */
+    // /*
+    //  * Test app
+    //  */
 
-    @GetMapping("/apps/{realm}/{clientId}/oauth2/{grantType}")
-    public ResponseEntity<OAuth2AccessToken> testClientAppOAuth2(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
-        @PathVariable String grantType
-    ) throws NoSuchRealmException, NoSuchClientException, SystemException {
-        // get client app
-        ClientApp clientApp = clientManager.getClientApp(realm, clientId);
+    // @GetMapping("/apps/{realm}/{clientId}/oauth2/{grantType}")
+    // public ResponseEntity<OAuth2AccessToken> testClientAppOAuth2(
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String clientId,
+    //     @PathVariable String grantType
+    // ) throws NoSuchRealmException, NoSuchClientException, SystemException {
+    //     // get client app
+    //     ClientApp clientApp = clientManager.getClientApp(realm, clientId);
 
-        // check if oauth2
-        if (!clientApp.getType().equals(SystemKeys.CLIENT_TYPE_OAUTH2)) {
-            throw new IllegalArgumentException("client does not support oauth2");
-        }
+    //     // check if oauth2
+    //     if (!clientApp.getType().equals(SystemKeys.CLIENT_TYPE_OAUTH2)) {
+    //         throw new IllegalArgumentException("client does not support oauth2");
+    //     }
 
-        OAuth2AccessToken accessToken = devManager.testOAuth2Flow(realm, clientId, grantType);
+    //     OAuth2AccessToken accessToken = devManager.testOAuth2Flow(realm, clientId, grantType);
 
-        return ResponseEntity.ok(accessToken);
-    }
+    //     return ResponseEntity.ok(accessToken);
+    // }
 
     @PostMapping("/apps/{realm}/{clientId}/claims")
     public ResponseEntity<FunctionValidationBean> testClientAppClaims(
