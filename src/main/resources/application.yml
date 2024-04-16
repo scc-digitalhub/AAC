@@ -235,67 +235,67 @@ spid:
         entityId: https://loginspid.aruba.it
         entityLabel: arubaid
         metadataUrl: https://loginspid.aruba.it/metadata
-        iconUrl: spid/img/spid-idp-arubaid.svg
+        iconUrl: /spid/img/spid-idp-arubaid.svg
       - entityName: EtnaHitech S.C.p.A.
         entityId: https://id.eht.eu
         entityLabel: ethnahitech
         metadataUrl: https://id.eht.eu/metadata.xml
-        iconUrl: spid/img/spid-idp-etnaid.svg
+        iconUrl: /spid/img/spid-idp-etnaid.svg
       - entityName: InfoCamere S.C.p.A.
         entityId: https://loginspid.infocamere.it
         entityLabel: infocamere
         metadataUrl: https://loginspid.infocamere.it/metadata
-        iconUrl: spid/img/spid-idp-infocamereid.svg
+        iconUrl: /spid/img/spid-idp-infocamereid.svg
       - entityName: Infocert ID
         entityId: https://identity.infocert.it
         entityLabel: infocertid
         metadataUrl: https://identity.infocert.it/metadata/metadata.xml
-        iconUrl: spid/img/spid-idp-infocertid.svg
+        iconUrl: /spid/img/spid-idp-infocertid.svg
       - entityName: Intesi Group S.p.A.
         entityId: https://idp.intesigroup.com
         entityLabel: intesigroup
         metadataUrl: https://spid.intesigroup.com/metadata/metadata.xml
-        iconUrl: spid/img/spid-idp-intesigroupspid.svg
+        iconUrl: /spid/img/spid-idp-intesigroupspid.svg
       - entityName: Lepida ID
         entityId: https://id.lepida.it/idp/shibboleth
         entityLabel: lepidaid
         metadataUrl: https://id.lepida.it/idp/shibboleth
-        iconUrl: spid/img/spid-idp-lepidaid.svg
+        iconUrl: /spid/img/spid-idp-lepidaid.svg
       - entityName: Namirial ID
         entityId: https://idp.namirialtsp.com/idp
         entityLabel: namirialid
         metadataUrl: https://idp.namirialtsp.com/idp/metadata
-        iconUrl: spid/img/spid-idp-namirialid.svg
+        iconUrl: /spid/img/spid-idp-namirialid.svg
       - entityName: Poste ID
         entityId: https://posteid.poste.it
         entityLabel: posteid
         metadataUrl: https://posteid.poste.it/jod-fs/metadata/metadata.xml
-        iconUrl: spid/img/spid-idp-posteid.svg
+        iconUrl: /spid/img/spid-idp-posteid.svg
       - entityName: Sielte ID
         entityId: https://identity.sieltecloud.it
         entityLabel: sielteid
         metadataUrl: https://identity.sieltecloud.it/simplesaml/metadata.xml
-        iconUrl: spid/img/spid-idp-sielteid.svg
+        iconUrl: /spid/img/spid-idp-sielteid.svg
       - entityName: SPIDItalia Register.it
         entityId: https://spid.register.it
         entityLabel: spiditalia
         metadataUrl: https://spid.register.it/login/metadata
-        iconUrl: spid/img/spid-idp-spiditalia.svg
+        iconUrl: /spid/img/spid-idp-spiditalia.svg
       - entityName: TeamSystem ID
         entityId: https://spid.teamsystem.com/idp
         entityLabel: teamsystem
         metadataUrl: https://spid.teamsystem.com/idp
-        iconUrl: spid/img/spid-idp-teamsystemid.svg
+        iconUrl: /spid/img/spid-idp-teamsystemid.svg
       - entityName: Tim ID
         entityId: https://login.id.tim.it/affwebservices/public/saml2sso
         entityLabel: timid
         metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp
-        iconUrl: spid/img/spid-idp-timid.svg
+        iconUrl: /spid/img/spid-idp-timid.svg
       - entityName: Spid Validator
         entityId: https://localhost:8443
         entityLabel: spidvalidator
         metadataUrl: https://localhost:8443/metadata.xml
-        iconUrl: spid/img/spid-ico-circle-bb.svg
+        iconUrl: /spid/img/spid-ico-circle-bb.svg
 
 attributesets:
   sets:

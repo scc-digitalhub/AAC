@@ -34,7 +34,8 @@ import it.smartcommunitylab.aac.spid.provider.SpidIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.spid.service.LocalSpidRegistry;
+import it.smartcommunitylab.aac.spid.registry.LocalSpidRegistry;
+import it.smartcommunitylab.aac.spid.registry.RemoteSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,10 +122,18 @@ public class SpidIdentityAuthority
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
         if (spidProperties != null) {
-            // TODO: fetch from online registry
             //  for more, see https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n42-spid_bottone.pdf
-            spidRegistry = new LocalSpidRegistry(spidProperties);
+            //            spidRegistry = new RemoteSpidRegistry();
+            if (
+                spidRegistry == null ||
+                spidRegistry.getIdentityProviders() == null ||
+                spidRegistry.getIdentityProviders().isEmpty()
+            ) {
+                // fallback to local registry
+                spidRegistry = new LocalSpidRegistry(spidProperties);
+            }
         }
+
         // TODO: rivedere: questa cosa è una porcheria
         SpidIdentityConfigurationProvider cfgProvider;
         try {

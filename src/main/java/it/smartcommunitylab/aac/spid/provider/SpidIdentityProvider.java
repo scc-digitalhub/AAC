@@ -153,11 +153,14 @@ public class SpidIdentityProvider
                 .get(reg.getAssertingPartyDetails().getEntityId());
 
             if (spidReg == null) {
-                throw new RuntimeException(
+                // log and skip faulty providers (for example, they might be offline)
+                // TODO: verifica se questo comportamento è ok
+                logger.error(
                     "unable to associate the registration " +
                     reg.getRegistrationId() +
                     " with a SPID provider in the local registry"
                 );
+                continue;
             }
 
             spidIdpsLogin.add(

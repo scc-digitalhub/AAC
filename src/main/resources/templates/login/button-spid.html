@@ -32,7 +32,7 @@
                 th:data-idp="${idp.getEntityLabel()}">
                <a th:href="${idp.getLoginUrl()}">
                   <span class="spid-sr-only" th:text="${idp.getEntityName()}"></span>
-                  <img th:src="@{/}+${idp.getIconUrl()}" th:alt="${idp.getEntityName()}">
+                  <img th:src="${idp.getIconUrl()}" th:alt="${idp.getEntityName()}">
                </a>
             </li>
             <li><a class="dropdown-item" href="https://www.spid.gov.it">Maggiori informazioni</a></li>

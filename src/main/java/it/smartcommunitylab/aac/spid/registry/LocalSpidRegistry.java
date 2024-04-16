@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.spid.service;
+package it.smartcommunitylab.aac.spid.registry;
 
 import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
+import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
