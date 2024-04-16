@@ -227,6 +227,9 @@ public class SpidAuthenticationProvider
 
         HashMap<String, Serializable> principalAttributes = new HashMap<>();
         for (SpidAttribute attr : SpidAttribute.values()) {
+            if (samlDetails.getAttributes().get(attr.getValue()) == null) {
+                continue;
+            }
             Object value = samlDetails.getAttributes().get(attr.getValue()).stream().findFirst().orElse(null);
             if (value != null) {
                 principalAttributes.put(attr.getValue(), (Serializable) value);
