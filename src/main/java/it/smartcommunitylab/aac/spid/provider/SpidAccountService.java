@@ -60,6 +60,7 @@ public class SpidAccountService
     }
 
     public SpidEditableUserAccount toEditableAccount(SpidUserAccount account) {
+        // TODO: ha senso che gli SPID account siano editabili?
         SpidEditableUserAccount ea = new SpidEditableUserAccount(
             getAuthority(),
             getProvider(),
@@ -67,7 +68,6 @@ public class SpidAccountService
             account.getUserId(),
             account.getUuid()
         );
-        // TODO: review setters: I have no idea where this is used and what should or should not contains
         ea.setSubjectId(account.getSubjectId());
         ea.setUsername(account.getUsername());
 
@@ -78,6 +78,6 @@ public class SpidAccountService
         ea.setName(account.getName());
         ea.setSurname(account.getSurname());
 
-        return null;
+        return ea;
     }
 }
