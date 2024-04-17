@@ -29,6 +29,7 @@ public class SpidAccountServiceConfigConverter
             source.getProvider(),
             source.getRealm()
         );
+        // TODO: rivedere
         config.setName(source.getName());
         config.setTitleMap(source.getTitleMap());
         config.setDescriptionMap(source.getDescriptionMap());
