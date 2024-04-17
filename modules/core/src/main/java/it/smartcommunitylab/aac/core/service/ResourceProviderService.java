@@ -1,5 +1,5 @@
-/*
- * Copyright 2023 the original author or authors
+/**
+ * Copyright 2023 Fondazione Bruno Kessler
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.authorities;
+package it.smartcommunitylab.aac.core.service;
 
-import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.model.Resource;
 import java.util.Collection;
 
-@Deprecated(forRemoval = true)
-public interface AuthorityService<A extends ProviderAuthority<? extends ResourceProvider<? extends Resource>>> {
-    /*
-     * Details
-     */
-    public String getType();
+/*
+ * Resource provider service handles resource providers for consumers.
+ * It abstract away the existence of authorities, modules etc
+ */
+public interface ResourceProviderService<S extends ResourceProvider<? extends Resource>> {
+    public boolean hasResourceProvider(String providerId);
 
-    /*
-     * Authorities read-only
-     */
-    public Collection<A> getAuthorities();
+    public S findResourceProvider(String providerId);
 
-    public Collection<String> getAuthoritiesIds();
+    public S getResourceProvider(String providerId) throws NoSuchProviderException;
 
-    public A findAuthority(String authorityId);
+    public Collection<S> listResourceProviders();
 
-    public A getAuthority(String authorityId) throws NoSuchAuthorityException;
+    public Collection<S> listResourceProvidersByRealm(String realm);
 }

@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.Resource;
 
+@Deprecated(forRemoval = true)
 public interface ConfigurableAuthorityService<
     A extends ConfigurableProviderAuthority<
         ? extends ConfigurableResourceProvider<

@@ -25,28 +25,25 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
-import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
-import it.smartcommunitylab.aac.templates.provider.TemplateProviderSettingsMap;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+//TODO remove for configMap, no real need to differentiate
+@Deprecated(forRemoval = true)
 //TODO evaluate adding generic type and resolving javatype for conversion here
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = AccountServiceSettingsMap.class, name = AccountServiceSettingsMap.RESOURCE_TYPE),
-        @Type(value = AttributeProviderSettingsMap.class, name = AttributeProviderSettingsMap.RESOURCE_TYPE),
-        @Type(value = CredentialsServiceSettingsMap.class, name = CredentialsServiceSettingsMap.RESOURCE_TYPE),
-        @Type(value = IdentityProviderSettingsMap.class, name = IdentityProviderSettingsMap.RESOURCE_TYPE),
-        @Type(value = TemplateProviderSettingsMap.class, name = TemplateProviderSettingsMap.RESOURCE_TYPE),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = AccountServiceSettingsMap.class, name = AccountServiceSettingsMap.RESOURCE_TYPE),
+//         @Type(value = AttributeProviderSettingsMap.class, name = AttributeProviderSettingsMap.RESOURCE_TYPE),
+//         @Type(value = CredentialsServiceSettingsMap.class, name = CredentialsServiceSettingsMap.RESOURCE_TYPE),
+//         @Type(value = IdentityProviderSettingsMap.class, name = IdentityProviderSettingsMap.RESOURCE_TYPE),
+//         @Type(value = TemplateProviderSettingsMap.class, name = TemplateProviderSettingsMap.RESOURCE_TYPE),
+//     }
+// )
 public abstract class AbstractSettingsMap implements ConfigMap, Serializable {
 
     protected static final ObjectMapper mapper = new ObjectMapper();

@@ -95,11 +95,6 @@ public abstract class AbstractProviderAuthority<
         return authorityId;
     }
 
-    @Override
-    public String getId() {
-        return authorityId;
-    }
-
     protected abstract P buildProvider(C config);
 
     @Override

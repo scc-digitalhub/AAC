@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.provider.config;
+package it.smartcommunitylab.aac.core.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,14 +26,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
-import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
-import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
 import it.smartcommunitylab.aac.model.ConfigMap;
-import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,16 +42,16 @@ import org.springframework.util.StringUtils;
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
-        @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
-        @Type(value = ConfigurableCredentialsProvider.class, name = SystemKeys.RESOURCE_CREDENTIALS),
-        @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
-        @Type(value = ConfigurableIdentityService.class, name = SystemKeys.RESOURCE_USER),
-        @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
+//         @Type(value = ConfigurableAttributeProvider.class, name = SystemKeys.RESOURCE_ATTRIBUTES),
+//         @Type(value = ConfigurableCredentialsProvider.class, name = SystemKeys.RESOURCE_CREDENTIALS),
+//         @Type(value = ConfigurableIdentityProvider.class, name = SystemKeys.RESOURCE_IDENTITY),
+//         @Type(value = ConfigurableIdentityService.class, name = SystemKeys.RESOURCE_USER),
+//         @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
+//     }
+// )
 public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S>, Serializable {
 
     //TODO evaluate ENUM for known types
@@ -104,7 +97,7 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     @JsonProperty(access = Access.READ_ONLY)
     protected JsonSchema schema;
 
-    public ConfigurableProviderImpl(String type, String authority, String provider, String realm) {
+    protected ConfigurableProviderImpl(String type, String authority, String provider, String realm) {
         Assert.hasText(type, "type is required");
         this.type = type;
 
@@ -231,14 +224,6 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     public void setSettings(Map<String, Serializable> settings) {
         this.settings = settings;
     }
-
-    // public Serializable getConfigurationProperty(String key) {
-    //     return configuration.get(key);
-    // }
-
-    // public void setConfigurationProperty(String key, Serializable value) {
-    //     configuration.put(key, value);
-    // }
 
     // @Override
     public JsonSchema getSchema() {

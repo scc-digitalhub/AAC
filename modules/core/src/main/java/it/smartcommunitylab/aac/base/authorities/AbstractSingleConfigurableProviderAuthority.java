@@ -22,8 +22,8 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.model.Resource;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import java.util.List;
 
 public abstract class AbstractSingleConfigurableProviderAuthority<
     RP extends AbstractConfigurableResourceProvider<? extends Resource, P, S, M>,
-    C extends ConfigurableProviderImpl<S>,
+    C extends ConfigurableProvider<S>,
     P extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap

@@ -21,8 +21,8 @@ import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 public abstract class AbstractConfigurableProviderAuthority<
     RP extends AbstractConfigurableResourceProvider<? extends Resource, P, S, M>,
-    C extends ConfigurableProviderImpl<S>,
+    C extends ConfigurableProvider<S>,
     P extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap

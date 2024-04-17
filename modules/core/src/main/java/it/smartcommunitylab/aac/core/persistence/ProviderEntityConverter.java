@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.provider.config;
+package it.smartcommunitylab.aac.core.persistence;
 
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Collections;
 import java.util.function.Supplier;

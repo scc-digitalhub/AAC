@@ -43,7 +43,7 @@ public class ConfigurableProviderEntityService {
 
     @Transactional(readOnly = true)
     public Page<ProviderEntity> searchProviders(String type, String realm, String q, Pageable pageRequest) {
-        Page<ProviderEntity> page = StringUtils.hasText(q)
+        return StringUtils.hasText(q)
             ? providerRepository.findByTypeAndRealmAndNameContainingIgnoreCaseOrTypeAndRealmAndProviderContainingIgnoreCase(
                 type,
                 realm,
@@ -54,7 +54,6 @@ public class ConfigurableProviderEntityService {
                 pageRequest
             )
             : providerRepository.findByTypeAndRealm(type, realm, pageRequest);
-        return page;
     }
 
     @Transactional(readOnly = true)
@@ -94,8 +93,8 @@ public class ConfigurableProviderEntityService {
 
     @Transactional(readOnly = true)
     public ProviderEntity getProvider(String type, String providerId) throws NoSuchProviderException {
-        ProviderEntity p = findProvider(type, providerId);
-        if (p == null) {
+        ProviderEntity p = providerRepository.findByProvider(providerId);
+        if (p == null || !type.equals(p.getType())) {
             throw new NoSuchProviderException();
         }
 

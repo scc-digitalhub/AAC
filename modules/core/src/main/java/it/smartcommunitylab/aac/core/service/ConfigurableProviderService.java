@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
-import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -26,29 +25,31 @@ import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Collection;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+/*
+ * Persistence for providers, in the form of persisted configurable models
+ */
 public interface ConfigurableProviderService<C extends ConfigurableProvider<? extends ConfigMap>> {
     /*
      * Configuration
      */
-    Collection<C> listProviders(String realm);
-    C findProvider(String providerId);
+    Collection<C> listConfigurableProviders();
+    Collection<C> listConfigurableProvidersByRealm(String realm);
 
-    C getProvider(String providerId) throws NoSuchProviderException;
+    C findConfigurableProvider(String providerId);
+    C getConfigurableProvider(String providerId) throws NoSuchProviderException;
 
-    C addProvider(String realm, C cp)
+    C addConfigurableProvider(String realm, C cp)
         throws RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException;
-
-    C updateProvider(String providerId, C cp)
+    C updateConfigurableProvider(String providerId, C cp)
         throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException;
-    void deleteProvider(String providerId) throws SystemException, NoSuchProviderException;
-
-    /*
-     * Registration
-     * TODO move to dedicated service
-     */
-    void registerProvider(String providerId)
-        throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException;
-    void unregisterProvider(String providerId)
-        throws NoSuchProviderException, SystemException, NoSuchAuthorityException;
-    boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException;
+    void deleteConfigurableProvider(String providerId) throws SystemException, NoSuchProviderException;
+    // /*
+    //  * Registration
+    //  * TODO move to dedicated service
+    //  */
+    // void registerProvider(String providerId)
+    //     throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException;
+    // void unregisterProvider(String providerId)
+    //     throws NoSuchProviderException, SystemException, NoSuchAuthorityException;
+    // boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException;
 }

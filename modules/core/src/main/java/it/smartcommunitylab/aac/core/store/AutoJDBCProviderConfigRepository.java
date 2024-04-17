@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.service;
+package it.smartcommunitylab.aac.core.store;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -74,7 +74,6 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
 
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<U> rowMapper;
-    //    private final SerializationStrategy serializer;
     private final ObjectMapper mapper;
     private final String type;
 
@@ -87,24 +86,7 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
             : className.getName() + UUID.randomUUID().toString();
         logger.debug("create jdbc repository for provider config {}", type);
 
-        // DISABLED
-        // whitelisting requires *all* classes embedded whitelisted
-        // also serializer requires the correct classloader (breaks with devtools)
-        // TODO add resolver or switch to jackson converter
-        //        // also whitelist superclass and base classes
-        //        List<String> classes = new ArrayList<>();
-        //        classes.add(type);
-        //        classes.add(className.getSuperclass().getName());
-        //        classes.add(AbstractProviderConfig.class.getName());
-        //        logger.trace("jdbc repository for provider config {} allowed classes {}", type, classes);
-        //
-        //        serializer = new WhitelistedSerializationStrategy(classes);
-
-        // DISABLED, breaks with devTools + multithreading due to classLoader issues
-        //        // use default with classloader
-        //        serializer = SerializationUtils.getSerializationStrategy();
-        //        rowMapper = new ConfigRowMapper(serializer);
-
+        // use a custom mapper to serialize to compact representation
         CBORMapper cborMapper = new CBORMapper();
         //serialize only fields and ignore all getter/setters to avoid any processing
         cborMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
@@ -112,10 +94,6 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
 
         this.rowMapper = new CBORConfigRowMapper(cborMapper, className);
         this.mapper = cborMapper;
-
-        //        ObjectMapper jsonMapper = new ObjectMapper();
-        //        this.rowMapper = new JsonConfigRowMapper(jsonMapper, className);
-        //        this.mapper = jsonMapper;
 
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         // TODO make sure table does not contain old/stale registrations on startup
@@ -159,30 +137,14 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
                 try {
                     // either insert or update
                     U c = findByProviderId(providerId);
-                    //                    String json = mapper.writeValueAsString(registration);
-                    //
-                    //                    if (c == null) {
-                    //                        logger.trace("insert registration for provider {} with id {}", type, providerId);
-                    //
-                    //                        String realm = registration.getRealm();
-                    //                        jdbcTemplate.update(insertSql,
-                    //                                new Object[] { type, providerId, realm, json },
-                    //                                new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
-                    //                    } else {
-                    //                        logger.trace("update registration for provider {} with id {}", type, providerId);
-                    //
-                    //                        jdbcTemplate.update(updateSql,
-                    //                                new Object[] { json, providerId, type },
-                    //                                new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR });
-                    //                    }
 
-                    byte[] bytes = mapper.writeValueAsBytes(registration);
-
-                    SqlLobValue lob = new SqlLobValue(bytes);
                     if (c == null) {
                         logger.trace("insert registration for provider {} with id {}", type, providerId);
 
                         String realm = registration.getRealm();
+                        byte[] bytes = mapper.writeValueAsBytes(registration);
+                        SqlLobValue lob = new SqlLobValue(bytes);
+
                         jdbcTemplate.update(
                             insertSql,
                             new Object[] { type, providerId, realm, lob },
@@ -190,6 +152,9 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
                         );
                     } else {
                         logger.trace("update registration for provider {} with id {}", type, providerId);
+
+                        byte[] bytes = mapper.writeValueAsBytes(registration);
+                        SqlLobValue lob = new SqlLobValue(bytes);
 
                         jdbcTemplate.update(
                             updateSql,
@@ -220,33 +185,6 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
         }
     }
 
-    //    private class JsonConfigRowMapper implements RowMapper<U> {
-    //        private final ObjectMapper mapper;
-    //        private final Class<U> type;
-    //
-    //        public JsonConfigRowMapper(ObjectMapper mapper, Class<U> type) {
-    //            Assert.notNull(mapper, "mapper required");
-    //            this.mapper = mapper;
-    //            this.type = type;
-    //        }
-    //
-    //        @Override
-    //        public U mapRow(ResultSet rs, int rowNum) throws SQLException {
-    //            String value = rs.getString("config");
-    //            if (value == null || value.length() == 0) {
-    //                return null;
-    //            }
-    //
-    //            try {
-    //                U u = mapper.readValue(value, type);
-    //                return u;
-    //            } catch (IOException e) {
-    //                throw new SQLException();
-    //            }
-    //        }
-    //
-    //    }
-
     private class CBORConfigRowMapper implements RowMapper<U> {
 
         private final CBORMapper mapper;
@@ -274,26 +212,4 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
             }
         }
     }
-    //    private class ConfigRowMapper implements RowMapper<U> {
-    //        private final SerializationStrategy serializer;
-    //
-    //        public ConfigRowMapper(SerializationStrategy serializer) {
-    //            Assert.notNull(serializer, "serializer required");
-    //            this.serializer = serializer;
-    //        }
-    //
-    //        @Override
-    //        public U mapRow(ResultSet rs, int rowNum) throws SQLException {
-    //            byte[] bytes = rs.getBytes("config");
-    //            if (bytes == null || bytes.length == 0) {
-    //                return null;
-    //            }
-    //
-    //            Object o = serializer.deserialize(bytes);
-    //            U u = (U) o;
-    //
-    //            return u;
-    //        }
-    //
-    //    }
 }
