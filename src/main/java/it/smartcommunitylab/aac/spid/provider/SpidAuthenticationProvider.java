@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.AuthnContext;
+import org.opensaml.saml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml.saml2.core.AuthnStatement;
 import org.opensaml.saml.saml2.core.NameIDType;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.SubjectConfirmation;
@@ -348,8 +350,18 @@ public class SpidAuthenticationProvider
                 return result.concat(new Saml2Error("SPID_ERROR_048", "missing NameQualifier attribute in NameId"));
             }
 
-            if (!isSubjectConfirmationValid(assertion)) {
+            if (!isAssertionSubjectConfirmationValid(assertion)) {
                 return result.concat(new Saml2Error("SPID_ERROR_51", "missing SubjectConfirmation"));
+            }
+
+            if (!isAssertionIssuerValid(assertion)) {
+                return result.concat(new Saml2Error("SPID_ERROR_70", "missing or invalid Assertion Issuer"));
+            }
+            if (!isAssertionConditionsValid(assertion)) {
+                return result.concat(new Saml2Error("SPID_ERROR_73", "missing or invalid Conditions attribute"));
+            }
+            if (!isAssertionAuthStatementValid(assertion)) {
+                return result.concat(new Saml2Error("SPID_ERROR_88", "missing or invalid AuthStatement attribute"));
             }
             return result;
         };
@@ -420,7 +432,7 @@ public class SpidAuthenticationProvider
         return (response.getVersion().getMajorVersion() == 2 && response.getVersion().getMinorVersion() == 0);
     }
 
-    private boolean isSubjectConfirmationValid(Assertion assertion) {
+    private boolean isAssertionSubjectConfirmationValid(Assertion assertion) {
         if (assertion.getSubject().getSubjectConfirmations() == null) {
             return false;
         }
@@ -436,7 +448,70 @@ public class SpidAuthenticationProvider
         if (confirmation == null) {
             return false;
         }
-        return confirmation.getSubjectConfirmationData() != null;
+        if (confirmation.getSubjectConfirmationData() == null) {
+            return false;
+        }
+        // TODO: move subject confirmation data checks somewhere else
+        if (confirmation.getSubjectConfirmationData().getRecipient() == null) {
+            return false;
+        }
+        if (confirmation.getSubjectConfirmationData().getInResponseTo() == null) {
+            return false;
+        }
+        if (confirmation.getSubjectConfirmationData().getNotOnOrAfter() == null) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isAssertionIssuerValid(Assertion assertion) {
+        if (assertion == null || assertion.getIssuer() == null) {
+            return false;
+        }
+        if (assertion.getIssuer().getFormat() == null) {
+            return false;
+        }
+        if (!assertion.getIssuer().getFormat().equals(NameIDType.ENTITY)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isAssertionConditionsValid(Assertion assertion) {
+        if (assertion == null || assertion.getConditions() == null) {
+            return false;
+        }
+        if (assertion.getConditions().getNotBefore() == null || assertion.getConditions().getNotOnOrAfter() == null) {
+            return false;
+        }
+        if (
+            assertion.getConditions().getAudienceRestrictions() == null ||
+            assertion.getConditions().getAudienceRestrictions().isEmpty()
+        ) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isAssertionAuthStatementValid(Assertion assertion) {
+        if (assertion == null || assertion.getAuthnStatements().isEmpty()) {
+            return false;
+        }
+        AuthnStatement authStatement = assertion.getAuthnStatements().stream().findFirst().orElse(null);
+        if (authStatement == null) {
+            return false;
+        }
+        if (authStatement.getAuthnContext() == null) {
+            return false;
+        }
+        AuthnContextClassRef acr = authStatement.getAuthnContext().getAuthnContextClassRef();
+        if (acr == null) {
+            return false;
+        }
+        if (SpidAuthnContext.parse(acr.getURI()) == null) {
+            return false;
+        }
+        return true;
     }
 
     private Converter<OpenSaml4AuthenticationProvider.ResponseToken, ? extends AbstractAuthenticationToken> buildProviderResponseConverter() {
