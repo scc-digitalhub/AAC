@@ -23,6 +23,13 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+/*
+ * SpidRelyingPartyRegistrationRepository is a repository of relying party registration.
+ * The current implementation is "fake" repository. Instead, we store all spid provider
+ * configurations and find a registration by asking it to the provider that generated that
+ * registration. This is only possible because the registrationId encodes the providerId,
+ * hence we can find the matching provider using the registrationId.
+ */
 public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegistrationRepository {
 
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
@@ -47,17 +54,18 @@ public class SpidRelyingPartyRegistrationRepository implements RelyingPartyRegis
     public RelyingPartyRegistration findByRegistrationId(String registrationId) {
         Assert.hasText(registrationId, "registration id can not be empty");
 
-        String[] s = StringUtils.split(registrationId, "|");
+        String decodedReg = SpidIdentityProviderConfig.decodeRegistrationId(registrationId); // either (1) or (2) as per function docs
+        String[] s = StringUtils.split(decodedReg, "|");
         if (s == null) {
-            // registrationId is providerId
-            SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(registrationId);
+            // registrationId is base64 url encode(providerId)
+            SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(decodedReg);
             if (providerConfig == null) {
                 return null;
             }
 
             return providerConfig.getRelyingPartyRegistration();
         }
-        // registrationId is {providerId}|{entityLabel}
+        // registrationId is base64 url encode({providerId}|{entityLabel})
         // s[0], s[1] = providerId, entityLabel
         SpidIdentityProviderConfig providerConfig = providerConfigRepository.findByProviderId(s[0]);
         if (providerConfig == null) {

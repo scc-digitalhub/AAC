@@ -150,7 +150,7 @@ public class SpidWebSsoAuthenticationRequestFilter
         //resolve provider - registrationId is {providerId}|{idpKey}
         String registrationId = context.getRelyingPartyRegistration().getRegistrationId();
         SpidIdentityProviderConfig config = providerConfigRepository.findByProviderId(
-            SpidIdentityProviderConfig.getProviderId(registrationId)
+            SpidIdentityProviderConfig.getProviderId(SpidIdentityProviderConfig.decodeRegistrationId(registrationId))
         );
         if (config == null) {
             logger.error("error retrieving provider for registration {}", registrationId);
@@ -162,9 +162,10 @@ public class SpidWebSsoAuthenticationRequestFilter
         // TODO drop and adopt resolver+request as per spring 5.6+
         AbstractSaml2AuthenticationRequest authenticationRequest = resolve(context);
 
-        String authRequestId = SpidIdentityProviderConfig.getProviderId(
-            context.getRelyingPartyRegistration().getRegistrationId()
-        ); // must be matched by the response calling the sso url
+        String providerId = SpidIdentityProviderConfig.getProviderId(
+            SpidIdentityProviderConfig.decodeRegistrationId(context.getRelyingPartyRegistration().getRegistrationId())
+        );
+        String authRequestId = SpidIdentityProviderConfig.encodeRegistrationId(providerId); // must be matched by the response calling the sso url
 
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
             authRequestId,

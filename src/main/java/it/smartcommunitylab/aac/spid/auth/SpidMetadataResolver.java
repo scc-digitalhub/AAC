@@ -17,16 +17,13 @@
 package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import net.shibboleth.utilities.java.support.resolver.CriteriaSet;
@@ -176,7 +173,8 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
     @Override
     public String resolve(RelyingPartyRegistration relyingPartyRegistration) {
         String registrationId = relyingPartyRegistration.getRegistrationId();
-        SpidIdentityProviderConfig providerConfig = configRepository.findByProviderId(registrationId);
+        String providerId = SpidIdentityProviderConfig.decodeRegistrationId(registrationId);
+        SpidIdentityProviderConfig providerConfig = configRepository.findByProviderId(providerId);
         if (providerConfig == null) {
             Saml2Error err = new Saml2Error(
                 Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,
@@ -197,20 +195,21 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         }
 
         // marshall to xml string
+        Element element;
         try {
-            Element element = this.edMarshaller.marshall(ed);
-            // NOTE: pretty-print will invalidate signature (as the document is not the same byte-by-byte)
-            return SerializeSupport.nodeToString(element);
+            element = this.edMarshaller.marshall(ed);
         } catch (MarshallingException e) {
             throw new Saml2Exception(e);
         }
+        // add signature to element
+        return SerializeSupport.nodeToString(element);
     }
 
     // build an the Metadata root element, which is a single Entity Descriptor, except for signature
     private EntityDescriptor build(RelyingPartyRegistration registration, SpidIdentityProviderConfig config) {
         // define <EntityDescriptor> base attributes
         EntityDescriptor ed = entityDescriptorBuilder.buildObject();
-        ed.setEntityID(registration.getEntityId()); // REQUIRED // TODO: secondo me si può sostituire con config.getEntityId() ...
+        ed.setEntityID(registration.getEntityId()); // REQUIRED
         ed.setID(generateId()); // NOTE: flagged as optional in [2], but always present in [1]
         ed.getNamespaceManager().registerNamespaceDeclaration(new Namespace(SPID_NAMESPACE_URI, SPID_NAMESPACE_PREFIX));
 

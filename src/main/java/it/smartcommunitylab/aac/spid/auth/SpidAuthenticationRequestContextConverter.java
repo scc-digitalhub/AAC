@@ -94,7 +94,9 @@ public class SpidAuthenticationRequestContextConverter
         String registrationId = relyingPartyRegistration.getRegistrationId();
 
         // registrationId is providerId+idpkey
-        String providerId = SpidIdentityProviderConfig.getProviderId(registrationId);
+        String providerId = SpidIdentityProviderConfig.getProviderId(
+            SpidIdentityProviderConfig.decodeRegistrationId(registrationId)
+        );
         SpidIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
         if (providerConfig == null) {
             Saml2Error saml2Error = new Saml2Error(

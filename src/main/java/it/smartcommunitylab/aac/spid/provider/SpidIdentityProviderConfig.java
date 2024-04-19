@@ -97,13 +97,13 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
      * or {providerId}|{idpKey} where idpKey is the key of the upstream
      * SPID identity provider.
      */
-    public static String getProviderId(String registrationId) {
-        Assert.hasText(registrationId, "registrationId can not be blank");
+    public static String getProviderId(String decodedRegistrationId) {
+        Assert.hasText(decodedRegistrationId, "registrationId can not be blank");
 
         // registrationId is {providerId}|{idpKey}
-        String[] kp = StringUtils.split(registrationId, "|");
+        String[] kp = StringUtils.split(decodedRegistrationId, "|");
         if (kp == null) {
-            return registrationId;
+            return decodedRegistrationId;
         }
         //kp[0], kp[1] = providerId, idpKey
         return kp[0];
@@ -139,7 +139,10 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     @JsonIgnore
     public Set<RelyingPartyRegistration> getUpstreamRelyingPartyRegistrations() {
         Set<RelyingPartyRegistration> regs = getRelyingPartyRegistrations();
-        return regs.stream().filter(reg -> !reg.getRegistrationId().equals(getProvider())).collect(Collectors.toSet());
+        return regs
+            .stream()
+            .filter(reg -> !reg.getRegistrationId().equals(getMetadataRegistrationId()))
+            .collect(Collectors.toSet());
     }
 
     // generate a registration (an RP/AP pair as defined by OpenSaml) for _each_
@@ -163,11 +166,11 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         }
 
         // add a global registration for metadata
-        RelyingPartyRegistration meta = RelyingPartyRegistration
+        RelyingPartyRegistration metadataRegistration = RelyingPartyRegistration
             .withRelyingPartyRegistration(registrations.iterator().next())
-            .registrationId(getProvider())
+            .registrationId(getMetadataRegistrationId())
             .build();
-        registrations.add(meta);
+        registrations.add(metadataRegistration);
 
         return registrations;
     }
@@ -213,6 +216,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
             this.identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl)).findFirst();
         if (reg.isPresent()) {
             return reg.get().getEntityLabel();
+            //            return reg.get().getEntityId();
         }
         return new URI(idpMetadataUrl).getHost();
     }
@@ -225,15 +229,15 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public String getConsumerUrl() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/" + getProvider();
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/" + getMetadataRegistrationId();
     }
 
     public String getLogoutUrl() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/" + getProvider();
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/" + getMetadataRegistrationId();
     }
 
     public String getMetadataUrl() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/" + getProvider();
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/" + getMetadataRegistrationId();
     }
 
     // create a relying party registration for an upstream idp; only ap autoconfiguration
@@ -242,7 +246,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         throws IOException, CertificateException, URISyntaxException {
         // start from ap autoconfiguration ...
         String key = evalIdpKeyIdentifier(idpMetadataUrl);
-        String registrationId = evalRelyingPartyRegistrationId(key);
+        String registrationId = encodeRegistrationId(evalRelyingPartyRegistrationId(key));
         RelyingPartyRegistration.Builder builder = RelyingPartyRegistrations
             .fromMetadataLocation(idpMetadataUrl)
             .registrationId(registrationId);
@@ -305,9 +309,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public Set<SpidAttribute> getSpidAttributes() {
-        return configMap.getSpidAttributes() == null
-            ? Collections.emptySet()
-            : configMap.getSpidAttributes();
+        return configMap.getSpidAttributes() == null ? Collections.emptySet() : configMap.getSpidAttributes();
     }
 
     public Set<String> getRelyingPartyRegistrationAuthnContextClassRefs() {
@@ -352,8 +354,12 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
                 }
             })
             .collect(Collectors.toSet());
-        ids.add(getProvider());
+        ids.add(getMetadataRegistrationId());
         return ids;
+    }
+
+    private String getMetadataRegistrationId() {
+        return encodeRegistrationId(getProvider());
     }
 
     /*
@@ -365,15 +371,22 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return getRelyingPartyRegistrations()
             .stream()
             .findAny()
-            .map(r -> RelyingPartyRegistration.withRelyingPartyRegistration(r).registrationId(getProvider()).build())
+            .map(r ->
+                RelyingPartyRegistration
+                    .withRelyingPartyRegistration(r)
+                    .registrationId(getMetadataRegistrationId())
+                    .build()
+            )
             .orElse(null);
     }
 
     public static String encodeRegistrationId(String regId) {
-        return URLEncoder.encode(regId, StandardCharsets.UTF_8);
+        //        return URLEncoder.encode(regId, StandardCharsets.UTF_8);
+        return Base64.getUrlEncoder().encodeToString(regId.getBytes());
     }
 
     public static String decodeRegistrationId(String encodedRegId) {
-        return URLDecoder.decode(encodedRegId, StandardCharsets.UTF_8);
+        //        return URLDecoder.decode(encodedRegId, StandardCharsets.UTF_8);
+        return new String(Base64.getUrlDecoder().decode(encodedRegId), StandardCharsets.UTF_8);
     }
 }

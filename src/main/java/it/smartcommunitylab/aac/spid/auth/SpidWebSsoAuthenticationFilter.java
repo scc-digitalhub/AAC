@@ -68,7 +68,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     public static final String DEFAULT_FILTER_URI = SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
 
     private final RequestMatcher requestMatcher;
-    private final ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository;
+    private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRegistrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
@@ -84,17 +84,17 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     }
 
     public SpidWebSsoAuthenticationFilter(
-        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRegistrationRepository,
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
         String filterProcessingUrl,
         AuthenticationEntryPoint authenticationEntryPoint
     ) {
         super(filterProcessingUrl);
-        Assert.notNull(registrationRepository, "provider registration repository cannot be null");
+        Assert.notNull(providerConfigRegistrationRepository, "provider registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relyingPartyRegistrationRepository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
 
-        this.registrationRepository = registrationRepository;
+        this.providerConfigRegistrationRepository = providerConfigRegistrationRepository;
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
 
         // build a default resolver, will lookup by registrationId, to create default token converter
@@ -159,8 +159,9 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         throws AuthenticationException, IOException, ServletException {
         // A. extract provider
         String registrationId = requestMatcher.matcher(request).getVariables().get("registrationId");
-        String providerId = SpidIdentityProviderConfig.getProviderId(registrationId); // registrationId is {providerId}|{IdPkey}
-        SpidIdentityProviderConfig providerConfig = registrationRepository.findByProviderId(providerId);
+        // registrationId is base64UrlEncode({registrationId})
+        String providerId = SpidIdentityProviderConfig.decodeRegistrationId(registrationId);
+        SpidIdentityProviderConfig providerConfig = providerConfigRegistrationRepository.findByProviderId(providerId);
         if (providerConfig == null) {
             Saml2Error saml2Error = new Saml2Error(
                 Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND,

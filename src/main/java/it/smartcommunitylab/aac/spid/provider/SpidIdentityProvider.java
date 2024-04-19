@@ -145,8 +145,7 @@ public class SpidIdentityProvider
         List<SpidLoginProvider.SpidIdpButton> spidIdpsLogin = new LinkedList<>();
         for (RelyingPartyRegistration reg : config.getUpstreamRelyingPartyRegistrations()) {
             // TODO: should be exposes by a dedicated method
-            String loginUrl =
-                getAuthenticationUrl() + SpidIdentityProviderConfig.encodeRegistrationId(reg.getRegistrationId());
+            String loginUrl = getAuthenticationUrl() + reg.getRegistrationId();
 
             SpidRegistration spidReg = getConfig()
                 .getIdentityProviders()
