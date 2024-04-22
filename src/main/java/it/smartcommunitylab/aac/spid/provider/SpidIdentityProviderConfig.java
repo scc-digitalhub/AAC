@@ -215,9 +215,10 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         Optional<SpidRegistration> reg =
             this.identityProviders.values().stream().filter(r -> r.getMetadataUrl().equals(idpMetadataUrl)).findFirst();
         if (reg.isPresent()) {
-            return reg.get().getEntityLabel();
-            //            return reg.get().getEntityId();
+            //            return reg.get().getEntityLabel();
+            return reg.get().getEntityId();
         }
+        // TODO: rimozione fallback strategy?
         return new URI(idpMetadataUrl).getHost();
     }
 
@@ -326,29 +327,13 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return configMap.getUsernameAttributeName();
     }
 
-    public String getIdpKey(String idpMetadataUrl) throws URISyntaxException {
-        // check if registration
-        Optional<SpidRegistration> reg = identityProviders
-            .values()
-            .stream()
-            .filter(r -> r.getMetadataUrl().equals(idpMetadataUrl))
-            .findFirst();
-        if (reg.isPresent()) {
-            return reg.get().getEntityLabel();
-        }
-
-        // extract name from url
-        URI uri = new URI(idpMetadataUrl);
-        return uri.getHost();
-    }
-
     public Set<String> getRelyingPartyRegistrationIds() {
         Set<String> idpMetadataUrls = getAssertingPartyMetadataUrls();
         Set<String> ids = idpMetadataUrls
             .stream()
             .map(u -> {
                 try {
-                    return evalRelyingPartyRegistrationId(getIdpKey(u));
+                    return evalRelyingPartyRegistrationId(evalIdpKeyIdentifier(u));
                 } catch (URISyntaxException e) {
                     throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
                 }

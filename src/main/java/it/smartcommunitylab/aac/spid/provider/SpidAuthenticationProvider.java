@@ -33,17 +33,24 @@ import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.opensaml.core.xml.schema.XSURI;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
+import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.AuthnStatement;
 import org.opensaml.saml.saml2.core.NameIDType;
 import org.opensaml.saml.saml2.core.Response;
@@ -330,7 +337,14 @@ public class SpidAuthenticationProvider
         return assertionToken -> {
             // call default
             Saml2ResponseValidatorResult result = defaultValidator.convert(assertionToken);
-
+            AuthnRequest initiatingRequest = SpidRequestParser.parse(
+                assertionToken.getToken().getAuthenticationRequest()
+            );
+            if (initiatingRequest == null) {
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
+                );
+            }
             // TODO: valuta i codici di errore: attualmente sono una reference al test
             // assertions must be signed; note that signature validity is performed by default validator; here we check signature existence
             Assertion assertion = assertionToken.getAssertion();
@@ -341,6 +355,20 @@ public class SpidAuthenticationProvider
             // IssueInstant attribute must exists and be non trivial
             if (assertion.getIssueInstant() == null) {
                 return result.concat(new Saml2Error("SPID_ERROR_037", "missing IssueInstant attribute"));
+            }
+            if (!isAssertionIssueInstantFormatValid(assertion)) {}
+            if (!isAssertionIssueInstantAfterRequest(initiatingRequest, assertion)) {
+                return result.concat(
+                    new Saml2Error("SPID_ERROR_39", "assertion IssueInstant before request IssueInstant")
+                );
+            }
+            if (!isAssertionIssueInstantBeforeRequestReception(assertion)) {
+                return result.concat(
+                    new Saml2Error(
+                        "SPID_ERROR_40",
+                        "assertion IssueInstant is after the instant of the received response"
+                    )
+                );
             }
 
             if (
@@ -373,6 +401,14 @@ public class SpidAuthenticationProvider
             OpenSaml4AuthenticationProvider.createDefaultResponseValidator();
         return responseToken -> {
             Saml2ResponseValidatorResult result = defaultValidator.convert(responseToken);
+            AuthnRequest initiatingRequest = SpidRequestParser.parse(
+                responseToken.getToken().getAuthenticationRequest()
+            );
+            if (initiatingRequest == null) {
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
+                );
+            }
             // TODO: verifica come scrivere CODICI ERRORE SPID
             // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
             Response response = responseToken.getResponse();
@@ -387,6 +423,9 @@ public class SpidAuthenticationProvider
             }
             if (!isIssueInstantFormatValid(response)) {
                 return result.concat(new Saml2Error("SPID_ERROR_012", "invalid issue instant format"));
+            }
+            if (!isIssueInstantAfterRequest(initiatingRequest, response)) {
+                return result.concat(new Saml2Error("SPID_ERROR_14", "issue instant is before request issue instant"));
             }
 
             // InResponseTo attribute must exists an d be nontrivial
@@ -403,21 +442,52 @@ public class SpidAuthenticationProvider
                 return result.concat(new Saml2Error("SPID_ERROR_030", "wrong or missing Issuer Format Attribute"));
             }
 
+            if (!isResponseAcrValid(initiatingRequest, response)) {
+                return result.concat(new Saml2Error("SPID_ERROR_094", "obtained ACR does not match requested ACR"));
+            }
+
             return result;
         };
+    }
+
+    private boolean isIssueInstantAfterRequest(AuthnRequest initiatingRequest, Response response) {
+        // TODO: considera un clock skew
+        Instant requestInstant = initiatingRequest.getIssueInstant();
+        Instant responseInstant = response.getIssueInstant();
+        if (requestInstant == null || responseInstant == null) {
+            return false;
+        }
+        if (responseInstant.isBefore(requestInstant)) {
+            return false;
+        }
+        return true;
     }
 
     private boolean isIssueInstantFormatValid(Response response) {
         if (response.getDOM() == null || response.getDOM().getAttribute("IssueInstant").isEmpty()) {
             return false;
         }
-        //        String issueInstant = response.getDOM().getAttribute("IssueInstant");
-        //        try {
-        //            LocalDate.parse(issueInstant, DateTimeFormatter.ISO_DATE);
-        //        } catch (DateTimeParseException ex) {
-        //            return false;
-        //        }
-        // TODO: rivedere: non chiaro quale sia il pattern da verificare causa documentazione inconsistente con validatore
+        String issueInstant = response.getDOM().getAttribute("IssueInstant");
+
+        // SPID requirements are not well defined, official specifications uses as format "yyyy-MM-dd'T'HH:mm:ss.SSSz", while spid validator uses "yyyy-MM-dd'T'HH:mm:ssz"
+        return isInstantFormatValid(issueInstant);
+    }
+
+    private boolean isInstantIsoFormat(String instant) {
+        try {
+            LocalDateTime.parse(instant, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz"));
+        } catch (DateTimeParseException ex) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isInstantIsoFormatWithMilliseconds(String instant) {
+        try {
+            LocalDateTime.parse(instant, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSz"));
+        } catch (DateTimeParseException ex) {
+            return false;
+        }
         return true;
     }
 
@@ -430,6 +500,26 @@ public class SpidAuthenticationProvider
 
     private boolean isVersion20(Response response) {
         return (response.getVersion().getMajorVersion() == 2 && response.getVersion().getMinorVersion() == 0);
+    }
+
+    private boolean isResponseAcrValid(AuthnRequest initiatingRequest, Response response) {
+        // assumption: we require for MINIMUM acr
+        SpidAuthnContext expAcr = extractRequestedAcrValue(initiatingRequest);
+        SpidAuthnContext obtAcr = extractAcrValue(response);
+        if (expAcr == null || obtAcr == null) {
+            return false;
+        }
+        // ACR are in a bijection with an ordered set assumed to be {1,2,3}
+        Map<SpidAuthnContext, Integer> acrToOrderedSet = new HashMap<>() {
+            {
+                put(SpidAuthnContext.SPID_L1, 1);
+                put(SpidAuthnContext.SPID_L2, 2);
+                put(SpidAuthnContext.SPID_L3, 3);
+            }
+        };
+        Integer expAcrValue = acrToOrderedSet.get(expAcr);
+        Integer obtAcrValue = acrToOrderedSet.get(obtAcr);
+        return obtAcrValue >= expAcrValue;
     }
 
     private boolean isAssertionSubjectConfirmationValid(Assertion assertion) {
@@ -477,6 +567,37 @@ public class SpidAuthenticationProvider
         return true;
     }
 
+    private boolean isAssertionIssueInstantFormatValid(Assertion assertion) {
+        if (assertion.getDOM() == null || assertion.getDOM().getAttribute("IssueInstant").isEmpty()) {
+            return false;
+        }
+        String issueInstant = assertion.getDOM().getAttribute("IssueInstant");
+        return isInstantFormatValid(issueInstant);
+    }
+
+    private boolean isAssertionIssueInstantAfterRequest(AuthnRequest initiatingRequest, Assertion assertion) {
+        // TODO: considera un clock skew
+        Instant requestInstant = initiatingRequest.getIssueInstant();
+        Instant assertionInstant = assertion.getIssueInstant();
+        if (requestInstant == null || assertionInstant == null) {
+            return false;
+        }
+        if (assertionInstant.isBefore(requestInstant)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isAssertionIssueInstantBeforeRequestReception(Assertion assertion) {
+        // TODO: considera un clock skew
+        Instant assertionInstant = assertion.getIssueInstant();
+        if (assertionInstant == null) {
+            return false;
+        }
+        // NOTE: technically, Instant.now() is not the instant when the request is received. Should this be fixed?
+        return assertion.getIssueInstant().isBefore(Instant.now());
+    }
+
     private boolean isAssertionConditionsValid(Assertion assertion) {
         if (assertion == null || assertion.getConditions() == null) {
             return false;
@@ -512,6 +633,11 @@ public class SpidAuthenticationProvider
             return false;
         }
         return true;
+    }
+
+    private boolean isInstantFormatValid(String instant) {
+        // SPID requirements are not well defined, official specifications uses as format "yyyy-MM-dd'T'HH:mm:ss.SSSz", while spid validator uses "yyyy-MM-dd'T'HH:mm:ssz"
+        return (isInstantIsoFormatWithMilliseconds(instant) || isInstantIsoFormat(instant));
     }
 
     private Converter<OpenSaml4AuthenticationProvider.ResponseToken, ? extends AbstractAuthenticationToken> buildProviderResponseConverter() {
@@ -559,6 +685,19 @@ public class SpidAuthenticationProvider
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
             );
         };
+    }
+
+    private static @Nullable SpidAuthnContext extractRequestedAcrValue(AuthnRequest request) {
+        AuthnContextClassRef acr = request
+            .getRequestedAuthnContext()
+            .getAuthnContextClassRefs()
+            .stream()
+            .findFirst()
+            .orElse(null);
+        if (acr == null || !StringUtils.hasText(acr.getURI())) {
+            return null;
+        }
+        return SpidAuthnContext.parse(acr.getURI());
     }
 
     /*
