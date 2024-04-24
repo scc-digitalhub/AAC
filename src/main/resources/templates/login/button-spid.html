@@ -15,7 +15,7 @@
 <div th:fragment="login">
    <p th:if="${authority.getDescription(#locale.language) != null}" th:text="${authority.getDescription(#locale.language)}"></p>
    <div class="dropdown-region">
-      <button class="italia-it-button italia-it-button-size-l button-spid"
+      <button class="italia-it-button italia-it-button-size button-spid"
               aria-haspopup="true" aria-expanded="false"
               th:attr="onclick=|expandDropdown('${authority.getProvider()}')|"
               th:classAppend="${authority.cssClass}">
@@ -25,7 +25,7 @@
          <span class="italia-it-button-text">Entra con SPID</span>
       </button>
       <div th:id="'spid-dropdown-'+${authority.getProvider()}"
-           class="spid-idp-button-large-get spid-idp-button spid-idp-button-tip">
+           class="spid-idp-button-get spid-idp-button spid-idp-button-tip">
          <ul id="spid-idp-list-large-root-get" class="spid-idp-button-menu" aria-labelledby="spid-idp">
             <li class="spid-idp-button-link"
                 th:each="idp: ${authority.getIdpButtons()}"
