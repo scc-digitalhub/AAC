@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import static javax.swing.UIManager.put;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
@@ -26,66 +28,46 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
-import it.smartcommunitylab.aac.spid.auth.SpidResponseValidator;
+import it.smartcommunitylab.aac.spid.auth.SpidProviderAssertionValidatorBuilder;
+import it.smartcommunitylab.aac.spid.auth.SpidProviderResponseConverterBuilder;
+import it.smartcommunitylab.aac.spid.auth.SpidProviderResponseValidatorBuilder;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
-import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
-import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.opensaml.core.xml.schema.XSURI;
-import org.opensaml.saml.saml2.core.Assertion;
-import org.opensaml.saml.saml2.core.AuthnContext;
-import org.opensaml.saml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml.saml2.core.AuthnRequest;
-import org.opensaml.saml.saml2.core.AuthnStatement;
-import org.opensaml.saml.saml2.core.NameIDType;
-import org.opensaml.saml.saml2.core.Response;
-import org.opensaml.saml.saml2.core.SubjectConfirmation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
-import org.springframework.security.saml2.core.Saml2ResponseValidatorResult;
-import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 public class SpidAuthenticationProvider
     extends ExtendedAuthenticationProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
 
+    public static final String ACR_ATTRIBUTE = "authnContextClassRef";
+    public static final String ISSUER_ATTRIBUTE = "spidIssuer";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final SpidUserAttribute SUBJECT_ATTRIBUTE = SpidUserAttribute.SUBJECT;
-    private static final String ACR_ATTRIBUTE = "authnContextClassRef";
-    private static final String ISSUER_ATTRIBUTE = "spidIssuer";
     private final UserAccountService<SpidUserAccount> accountService;
     private final Set<String> registrationIds;
     private final SpidUserAttribute subjectAttribute;
     private final SpidUserAttribute usernameAttribute;
-    private final SpidResponseValidator spidValidator;
+    //    private final SpidResponseValidator spidValidator;
     private final String accountRepositoryId;
 
     private final OpenSaml4AuthenticationProvider openSamlProvider;
@@ -115,11 +97,15 @@ public class SpidAuthenticationProvider
         this.subjectAttribute = config.getSubAttributeName();
         this.usernameAttribute = config.getUsernameAttributeName();
 
-        this.spidValidator = new SpidResponseValidator();
+        //        this.spidValidator = new SpidResponseValidator();
         this.openSamlProvider = new OpenSaml4AuthenticationProvider();
-        this.openSamlProvider.setAssertionValidator(buildProviderAssertionValidator());
-        this.openSamlProvider.setResponseValidator(buildResponseValidator());
-        this.openSamlProvider.setResponseAuthenticationConverter(buildProviderResponseConverter());
+        SpidProviderAssertionValidatorBuilder assertionValidatorBuilder = new SpidProviderAssertionValidatorBuilder();
+        //        SpidProviderAssertionValidatorBuilder assertionValidatorBuilder = new SpidProviderAssertionValidatorBuilder(new HashMap<>(){{put(0, config.getSpidAttributes());}});
+        this.openSamlProvider.setAssertionValidator(assertionValidatorBuilder.build());
+        SpidProviderResponseValidatorBuilder responseValidatorBuilder = new SpidProviderResponseValidatorBuilder();
+        this.openSamlProvider.setResponseValidator(responseValidatorBuilder.build());
+        SpidProviderResponseConverterBuilder responseConverterBuilder = new SpidProviderResponseConverterBuilder();
+        this.openSamlProvider.setResponseAuthenticationConverter(responseConverterBuilder.build());
 
         this.accountRepositoryId = providerId;
     }
@@ -327,417 +313,6 @@ public class SpidAuthenticationProvider
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication != null && Saml2AuthenticationToken.class.isAssignableFrom(authentication);
-    }
-
-    private Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> buildProviderAssertionValidator() {
-        // leverage opensaml default validator, then expand with custom logic and behaviour
-        Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> defaultValidator =
-            OpenSaml4AuthenticationProvider.createDefaultAssertionValidator();
-
-        return assertionToken -> {
-            // call default
-            Saml2ResponseValidatorResult result = defaultValidator.convert(assertionToken);
-            AuthnRequest initiatingRequest = SpidRequestParser.parse(
-                assertionToken.getToken().getAuthenticationRequest()
-            );
-            if (initiatingRequest == null) {
-                return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
-                );
-            }
-            // TODO: valuta i codici di errore: attualmente sono una reference al test
-            // assertions must be signed; note that signature validity is performed by default validator; here we check signature existence
-            Assertion assertion = assertionToken.getAssertion();
-            if (assertion.getSignature() == null) {
-                return result.concat(new Saml2Error("SPID_ERROR_004", "missing assertion signature"));
-            }
-
-            // IssueInstant attribute must exists and be non trivial
-            if (assertion.getIssueInstant() == null) {
-                return result.concat(new Saml2Error("SPID_ERROR_037", "missing IssueInstant attribute"));
-            }
-            if (!isAssertionIssueInstantFormatValid(assertion)) {}
-            if (!isAssertionIssueInstantAfterRequest(initiatingRequest, assertion)) {
-                return result.concat(
-                    new Saml2Error("SPID_ERROR_39", "assertion IssueInstant before request IssueInstant")
-                );
-            }
-            if (!isAssertionIssueInstantBeforeRequestReception(assertion)) {
-                return result.concat(
-                    new Saml2Error(
-                        "SPID_ERROR_40",
-                        "assertion IssueInstant is after the instant of the received response"
-                    )
-                );
-            }
-
-            if (
-                assertion.getSubject().getNameID() == null ||
-                assertion.getSubject().getNameID().getNameQualifier() == null
-            ) {
-                return result.concat(new Saml2Error("SPID_ERROR_048", "missing NameQualifier attribute in NameId"));
-            }
-
-            if (!isAssertionSubjectConfirmationValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_51", "missing SubjectConfirmation"));
-            }
-
-            if (!isAssertionIssuerValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_70", "missing or invalid Assertion Issuer"));
-            }
-            if (!isAssertionConditionsValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_73", "missing or invalid Conditions attribute"));
-            }
-            if (!isAssertionAuthStatementValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_88", "missing or invalid AuthStatement attribute"));
-            }
-            return result;
-        };
-    }
-
-    private Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2ResponseValidatorResult> buildResponseValidator() {
-        // leaverage default validator
-        Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2ResponseValidatorResult> defaultValidator =
-            OpenSaml4AuthenticationProvider.createDefaultResponseValidator();
-        return responseToken -> {
-            Saml2ResponseValidatorResult result = defaultValidator.convert(responseToken);
-            AuthnRequest initiatingRequest = SpidRequestParser.parse(
-                responseToken.getToken().getAuthenticationRequest()
-            );
-            if (initiatingRequest == null) {
-                return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
-                );
-            }
-            // TODO: verifica come scrivere CODICI ERRORE SPID
-            // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
-            Response response = responseToken.getResponse();
-            if (response.getVersion() == null || !isVersion20(response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_010", "missing or wrong response version"));
-            }
-
-            // Issue Instant must be present, be non null, have correct format
-            Instant issueInstant = response.getIssueInstant();
-            if (issueInstant == null) {
-                return result.concat(new Saml2Error("SPID_ERROR_011", "missing or undefined issue instant attribute"));
-            }
-            if (!isIssueInstantFormatValid(response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_012", "invalid issue instant format"));
-            }
-            if (!isIssueInstantAfterRequest(initiatingRequest, response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_14", "issue instant is before request issue instant"));
-            }
-
-            // InResponseTo attribute must exists an d be nontrivial
-            if (!StringUtils.hasText(response.getInResponseTo())) {
-                return result.concat(new Saml2Error("SPID_ERROR_017", "missing or empty InResponseTo attribute"));
-            }
-            // Destination attribute must exists and be nontrivial
-            if (!StringUtils.hasText(response.getDestination())) {
-                return result.concat(new Saml2Error("SPID_ERROR_019", "missing or empty Destination attribute"));
-            }
-
-            // Issuer Format attribute must be entity
-            if (!isIssuerFormatEntity(response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_030", "wrong or missing Issuer Format Attribute"));
-            }
-
-            if (!isResponseAcrValid(initiatingRequest, response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_094", "obtained ACR does not match requested ACR"));
-            }
-
-            return result;
-        };
-    }
-
-    private boolean isIssueInstantAfterRequest(AuthnRequest initiatingRequest, Response response) {
-        // TODO: considera un clock skew
-        Instant requestInstant = initiatingRequest.getIssueInstant();
-        Instant responseInstant = response.getIssueInstant();
-        if (requestInstant == null || responseInstant == null) {
-            return false;
-        }
-        if (responseInstant.isBefore(requestInstant)) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isIssueInstantFormatValid(Response response) {
-        if (response.getDOM() == null || response.getDOM().getAttribute("IssueInstant").isEmpty()) {
-            return false;
-        }
-        String issueInstant = response.getDOM().getAttribute("IssueInstant");
-
-        // SPID requirements are not well defined, official specifications uses as format "yyyy-MM-dd'T'HH:mm:ss.SSSz", while spid validator uses "yyyy-MM-dd'T'HH:mm:ssz"
-        return isInstantFormatValid(issueInstant);
-    }
-
-    private boolean isInstantIsoFormat(String instant) {
-        try {
-            LocalDateTime.parse(instant, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssz"));
-        } catch (DateTimeParseException ex) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isInstantIsoFormatWithMilliseconds(String instant) {
-        try {
-            LocalDateTime.parse(instant, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSz"));
-        } catch (DateTimeParseException ex) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isIssuerFormatEntity(Response response) {
-        if (response.getIssuer() == null || !StringUtils.hasText(response.getIssuer().getFormat())) {
-            return false;
-        }
-        return response.getIssuer().getFormat().equals(NameIDType.ENTITY);
-    }
-
-    private boolean isVersion20(Response response) {
-        return (response.getVersion().getMajorVersion() == 2 && response.getVersion().getMinorVersion() == 0);
-    }
-
-    private boolean isResponseAcrValid(AuthnRequest initiatingRequest, Response response) {
-        // assumption: we require for MINIMUM acr
-        SpidAuthnContext expAcr = extractRequestedAcrValue(initiatingRequest);
-        SpidAuthnContext obtAcr = extractAcrValue(response);
-        if (expAcr == null || obtAcr == null) {
-            return false;
-        }
-        // ACR are in a bijection with an ordered set assumed to be {1,2,3}
-        Map<SpidAuthnContext, Integer> acrToOrderedSet = new HashMap<>() {
-            {
-                put(SpidAuthnContext.SPID_L1, 1);
-                put(SpidAuthnContext.SPID_L2, 2);
-                put(SpidAuthnContext.SPID_L3, 3);
-            }
-        };
-        Integer expAcrValue = acrToOrderedSet.get(expAcr);
-        Integer obtAcrValue = acrToOrderedSet.get(obtAcr);
-        return obtAcrValue >= expAcrValue;
-    }
-
-    private boolean isAssertionSubjectConfirmationValid(Assertion assertion) {
-        if (assertion.getSubject().getSubjectConfirmations() == null) {
-            return false;
-        }
-        if (assertion.getSubject().getSubjectConfirmations().isEmpty()) {
-            return false;
-        }
-        SubjectConfirmation confirmation = assertion
-            .getSubject()
-            .getSubjectConfirmations()
-            .stream()
-            .findFirst()
-            .orElse(null);
-        if (confirmation == null) {
-            return false;
-        }
-        if (confirmation.getSubjectConfirmationData() == null) {
-            return false;
-        }
-        // TODO: move subject confirmation data checks somewhere else
-        if (confirmation.getSubjectConfirmationData().getRecipient() == null) {
-            return false;
-        }
-        if (confirmation.getSubjectConfirmationData().getInResponseTo() == null) {
-            return false;
-        }
-        if (confirmation.getSubjectConfirmationData().getNotOnOrAfter() == null) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isAssertionIssuerValid(Assertion assertion) {
-        if (assertion == null || assertion.getIssuer() == null) {
-            return false;
-        }
-        if (assertion.getIssuer().getFormat() == null) {
-            return false;
-        }
-        if (!assertion.getIssuer().getFormat().equals(NameIDType.ENTITY)) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isAssertionIssueInstantFormatValid(Assertion assertion) {
-        if (assertion.getDOM() == null || assertion.getDOM().getAttribute("IssueInstant").isEmpty()) {
-            return false;
-        }
-        String issueInstant = assertion.getDOM().getAttribute("IssueInstant");
-        return isInstantFormatValid(issueInstant);
-    }
-
-    private boolean isAssertionIssueInstantAfterRequest(AuthnRequest initiatingRequest, Assertion assertion) {
-        // TODO: considera un clock skew
-        Instant requestInstant = initiatingRequest.getIssueInstant();
-        Instant assertionInstant = assertion.getIssueInstant();
-        if (requestInstant == null || assertionInstant == null) {
-            return false;
-        }
-        if (assertionInstant.isBefore(requestInstant)) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isAssertionIssueInstantBeforeRequestReception(Assertion assertion) {
-        // TODO: considera un clock skew
-        Instant assertionInstant = assertion.getIssueInstant();
-        if (assertionInstant == null) {
-            return false;
-        }
-        // NOTE: technically, Instant.now() is not the instant when the request is received. Should this be fixed?
-        return assertion.getIssueInstant().isBefore(Instant.now());
-    }
-
-    private boolean isAssertionConditionsValid(Assertion assertion) {
-        if (assertion == null || assertion.getConditions() == null) {
-            return false;
-        }
-        if (assertion.getConditions().getNotBefore() == null || assertion.getConditions().getNotOnOrAfter() == null) {
-            return false;
-        }
-        if (
-            assertion.getConditions().getAudienceRestrictions() == null ||
-            assertion.getConditions().getAudienceRestrictions().isEmpty()
-        ) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isAssertionAuthStatementValid(Assertion assertion) {
-        if (assertion == null || assertion.getAuthnStatements().isEmpty()) {
-            return false;
-        }
-        AuthnStatement authStatement = assertion.getAuthnStatements().stream().findFirst().orElse(null);
-        if (authStatement == null) {
-            return false;
-        }
-        if (authStatement.getAuthnContext() == null) {
-            return false;
-        }
-        AuthnContextClassRef acr = authStatement.getAuthnContext().getAuthnContextClassRef();
-        if (acr == null) {
-            return false;
-        }
-        if (SpidAuthnContext.parse(acr.getURI()) == null) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isInstantFormatValid(String instant) {
-        // SPID requirements are not well defined, official specifications uses as format "yyyy-MM-dd'T'HH:mm:ss.SSSz", while spid validator uses "yyyy-MM-dd'T'HH:mm:ssz"
-        return (isInstantIsoFormatWithMilliseconds(instant) || isInstantIsoFormat(instant));
-    }
-
-    private Converter<OpenSaml4AuthenticationProvider.ResponseToken, ? extends AbstractAuthenticationToken> buildProviderResponseConverter() {
-        // leverage opensaml default response authentication converter, then expand with custom logic and behaviour
-        Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultResponseConverter =
-            OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
-        return responseToken -> {
-            Response response = responseToken.getResponse();
-            Saml2Authentication auth = defaultResponseConverter.convert(responseToken);
-
-            // TODO: rivedere la posizione del validator: alcuni controllo sono stati spostati su openSamlProvider.setResponseValidator(…) ma potrebbe non essere un approccio idoneo
-            // validate as required by SPID
-            spidValidator.validateResponse(responseToken);
-
-            // extract extra information and add as attribute, then rebuild auth with new enriched attributes and default authority
-            Map<String, List<Object>> attributes = new HashMap<>(
-                ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
-            );
-            SpidAuthnContext authCtx = extractAcrValue(response);
-            if (authCtx != null) {
-                attributes.put(ACR_ATTRIBUTE, Collections.singletonList((Object) (authCtx.getValue())));
-            }
-
-            String issuer = extractIssuer(response);
-            if (issuer != null) {
-                attributes.put(ISSUER_ATTRIBUTE, Collections.singletonList(issuer));
-            }
-            // rebuild auth
-            DefaultSaml2AuthenticatedPrincipal principal = new DefaultSaml2AuthenticatedPrincipal(
-                auth.getName(),
-                attributes
-            );
-            if (auth.getPrincipal() instanceof DefaultSaml2AuthenticatedPrincipal) {
-                principal =
-                    new DefaultSaml2AuthenticatedPrincipal(
-                        auth.getName(),
-                        attributes,
-                        ((DefaultSaml2AuthenticatedPrincipal) auth.getPrincipal()).getSessionIndexes()
-                    );
-            }
-
-            return new Saml2Authentication(
-                principal,
-                auth.getSaml2Response(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-            );
-        };
-    }
-
-    private static @Nullable SpidAuthnContext extractRequestedAcrValue(AuthnRequest request) {
-        AuthnContextClassRef acr = request
-            .getRequestedAuthnContext()
-            .getAuthnContextClassRefs()
-            .stream()
-            .findFirst()
-            .orElse(null);
-        if (acr == null || !StringUtils.hasText(acr.getURI())) {
-            return null;
-        }
-        return SpidAuthnContext.parse(acr.getURI());
-    }
-
-    /*
-     * extractAcrValue parse and returns the ACR from a SPID SAML response.
-     * If no ACR is successfully parser, null value is returned.
-     */
-    private static @Nullable SpidAuthnContext extractAcrValue(Response response) {
-        Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
-        if (assertion == null) {
-            return null;
-        }
-
-        AuthnContext authnContext = assertion
-            .getAuthnStatements()
-            .stream()
-            .filter(a -> a.getAuthnContext() != null)
-            .findFirst()
-            .map(a -> a.getAuthnContext())
-            .orElse(null);
-
-        if (authnContext == null) {
-            return null;
-        }
-
-        String acrValue = authnContext.getAuthnContextClassRef().getURI();
-        return SpidAuthnContext.parse(acrValue);
-    }
-
-    /*
-     * extractIssuer parse and returns the identity provider from a SPID SAML
-     * response. If not identity provider is successfully parser, null value
-     * is returned.
-     */
-    private static @Nullable String extractIssuer(Response response) {
-        Assertion assertion = CollectionUtils.firstElement(response.getAssertions());
-        if (assertion == null || assertion.getIssuer() == null) {
-            return null;
-        }
-
-        return assertion.getIssuer().getValue();
     }
 
     private String evaluateSubjectIdFromPrincipal(Saml2AuthenticatedPrincipal principal) {
