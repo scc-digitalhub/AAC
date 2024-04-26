@@ -15,20 +15,19 @@
 <div th:fragment="login">
    <p th:if="${authority.getDescription(#locale.language) != null}" th:text="${authority.getDescription(#locale.language)}"></p>
    <div class="dropdown-region">
-      <button class="italia-it-button italia-it-button-size button-spid"
+      <button class="button-spid"
               aria-haspopup="true" aria-expanded="false"
               th:attr="onclick=|expandDropdown('${authority.getProvider()}')|"
               th:classAppend="${authority.cssClass}">
-            <span class="italia-it-button-icon">
+            <span class="button-spid-icon">
                <img th:src="@{/spid/img/spid-ico-circle-bb.svg}" onerror="this.onerror=null;" alt="" />
             </span>
-         <span class="italia-it-button-text">Entra con SPID</span>
+         <span class="button-spid-text">Entra con SPID</span>
       </button>
       <div th:id="'spid-dropdown-'+${authority.getProvider()}"
-           class="spid-idp-button-get spid-idp-button spid-idp-button-tip">
-         <ul id="spid-idp-list-large-root-get" class="spid-idp-button-menu" aria-labelledby="spid-idp">
-            <li class="spid-idp-button-link"
-                th:each="idp: ${authority.getIdpButtons()}"
+           class="spid-idp-button spid-idp-button-tip">
+         <ul class="spid-idp-button-menu" aria-labelledby="spid-idp">
+            <li th:each="idp: ${authority.getIdpButtons()}"
                 th:data-idp="${idp.getEntityLabel()}">
                <a th:href="${idp.getLoginUrl()}">
                   <span class="spid-sr-only" th:text="${idp.getEntityName()}"></span>

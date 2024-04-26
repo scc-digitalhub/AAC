@@ -2,57 +2,23 @@ body {
     padding-left: calc(100vw - 100%);
 }
 
-.italia-it-button {
+.button-spid {
     display: inline-block;
     position: relative;
     padding: 0;
+    background-color: #06C;
     color: #FFF;
     font-family: "Titillium Web", HelveticaNeue, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif;
+    font-size: 16px;
     font-weight: 600;
     line-height: 1.5em;
-    text-decoration: none;
-    border: 0;
     text-align: center;
     cursor: pointer;
     overflow: hidden;
-    border-radius: 4px
-}
-
-.italia-it-button-icon,
-.italia-it-button-text {
-    display: block;
-    float: left
-}
-
-.italia-it-button-icon {
-    margin: 0.25em 0 0 0.5em;
-    padding: 0.5em 0.5em 0.5em 0.5em;
-    border-right: rgba(255, 255, 255, 0.1) 0.1em solid
-}
-
-.italia-it-button-text {
-    padding: 13px 16px
-}
-
-.italia-it-button-size {
-    font-size: 16px;
+    border: 0;
+    border-radius: 4px;
     width: 280px;
     height: 50px
-}
-
-.italia-it-button-size>span img {
-    width: 24px;
-    height: 24px;
-    border: 0
-}
-
-.button-spid {
-    background-color: #06C;
-    color: #FFF;
-}
-
-.button-spid svg {
-    fill: #FFF
 }
 
 .button-spid:hover {
@@ -69,7 +35,30 @@ body {
     outline: none !important;
 }
 
+.button-spid>span img {
+    width: 24px;
+    height: 24px;
+    border: 0
+}
+
+.button-spid-icon,
+.button-spid-text {
+    display: block;
+    float: left
+}
+
+.button-spid-icon {
+    margin: 0.25em 0 0 0.5em;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    border-right: rgba(255, 255, 255, 0.1) 0.1em solid
+}
+
+.button-spid-text {
+    padding: 13px 16px
+}
+
 .spid-idp-button {
+    width: 270px;
     position: absolute;
     z-index: 1039;
     display: none
@@ -77,20 +66,6 @@ body {
 
 .spid-idp-button-open {
     display: block;
-}
-
-.spid-idp-button .spid-idp-button-menu {
-    list-style: none;
-    background: white;
-    border: solid 1px #ddd;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    overflow: visible;
-    padding: 0;
-    margin: 0
-}
-
-.spid-idp-button-get {
-    width: 270px
 }
 
 .spid-idp-button.spid-idp-button-tip {
@@ -119,6 +94,16 @@ body {
     display: inline-block
 }
 
+.spid-idp-button .spid-idp-button-menu {
+    list-style: none;
+    background: white;
+    border: solid 1px #ddd;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    overflow: visible;
+    padding: 0;
+    margin: 0
+}
+
 .spid-idp-button .spid-idp-button-menu li {
     list-style: none;
     padding: 0 0;
@@ -127,8 +112,7 @@ body {
     text-align: left !important;
 }
 
-.spid-idp-button .spid-idp-button-menu li>a,
-.spid-idp-button .spid-idp-button-menu label {
+.spid-idp-button .spid-idp-button-menu li>a {
     display: block;
     font-family: "Titillium Web", HelveticaNeue, Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif;
     font-weight: 600;
@@ -141,8 +125,7 @@ body {
     border-bottom: 1px solid #ddd;
 }
 
-.spid-idp-button .spid-idp-button-menu li>a:hover,
-.spid-idp-button .spid-idp-button-menu label:hover {
+.spid-idp-button .spid-idp-button-menu li>a:hover {
     color: #036;
     cursor: pointer;
     background-color: #F0F0F0
