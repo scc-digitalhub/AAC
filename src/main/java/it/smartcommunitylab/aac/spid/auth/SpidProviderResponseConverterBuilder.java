@@ -4,6 +4,7 @@ import static it.smartcommunitylab.aac.spid.provider.SpidAuthenticationProvider.
 import static it.smartcommunitylab.aac.spid.provider.SpidAuthenticationProvider.ISSUER_ATTRIBUTE;
 
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
+import it.smartcommunitylab.aac.spid.model.SpidError;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -25,7 +26,6 @@ import org.springframework.security.saml2.provider.service.authentication.OpenSa
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 public class SpidProviderResponseConverterBuilder {
 

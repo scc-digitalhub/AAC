@@ -43,8 +43,10 @@ public class SpidProviderAssertionValidatorBuilder {
             OpenSaml4AuthenticationProvider.createDefaultAssertionValidator();
 
         return assertionToken -> {
-            // call default
             Saml2ResponseValidatorResult result = defaultValidator.convert(assertionToken);
+            if (result != null && !result.getErrors().isEmpty()) {
+                return result; // already invalid, no need to go on
+            }
             AuthnRequest initiatingRequest = SpidRequestParser.parse(
                 assertionToken.getToken().getAuthenticationRequest()
             );

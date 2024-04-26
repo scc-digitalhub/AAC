@@ -20,6 +20,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
 import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
+import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.Assert;
 
@@ -60,6 +61,10 @@ public class LoginException extends AuthenticationException {
         return new LoginException(e.getErrorMessage(), e);
     }
 
+    public static LoginException translate(SpidAuthenticationException e) {
+        return new LoginException(e.getErrorMessage(), e);
+    }
+
     public static LoginException translate(AuthenticationException e) {
         if (e instanceof SamlAuthenticationException) {
             return translate((SamlAuthenticationException) e);
@@ -71,6 +76,10 @@ public class LoginException extends AuthenticationException {
 
         if (e instanceof InternalAuthenticationException) {
             return translate((InternalAuthenticationException) e);
+        }
+
+        if (e instanceof SpidAuthenticationException) {
+            return translate((SpidAuthenticationException) e);
         }
 
         String error = "error." + e.getClass().getSimpleName().replaceAll(R_REGEX, R_REPL).toLowerCase();
