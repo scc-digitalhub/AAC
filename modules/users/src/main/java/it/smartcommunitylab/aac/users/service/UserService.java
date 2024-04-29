@@ -52,7 +52,7 @@ import it.smartcommunitylab.aac.internal.InternalAttributeAuthority;
 import it.smartcommunitylab.aac.internal.provider.InternalAttributeService;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.roles.model.SpaceRole;
 import it.smartcommunitylab.aac.roles.model.UserRolesResourceContext;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
@@ -229,7 +229,7 @@ public class UserService {
         }
 
         // status
-        SubjectStatus status = SubjectStatus.parse(ue.getStatus());
+        UserStatus status = UserStatus.parse(ue.getStatus());
         u.setStatus(status);
 
         // fetch attributes
@@ -285,7 +285,7 @@ public class UserService {
         }
 
         // status
-        SubjectStatus status = SubjectStatus.parse(ue.getStatus());
+        UserStatus status = UserStatus.parse(ue.getStatus());
         u.setStatus(status);
 
         // fetch attributes

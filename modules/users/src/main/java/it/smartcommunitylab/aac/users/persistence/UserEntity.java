@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.users.persistence;
 
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.UserStatus;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,8 +32,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
-
-    public static final String ID_PREFIX = "u_";
 
     @Id
     @NotNull
@@ -214,11 +212,11 @@ public class UserEntity {
     }
 
     public boolean isBlocked() {
-        return SubjectStatus.BLOCKED.getValue().equals(status);
+        return UserStatus.BLOCKED.getValue().equals(status);
     }
 
     public boolean isInactive() {
-        return SubjectStatus.INACTIVE.getValue().equals(status);
+        return UserStatus.INACTIVE.getValue().equals(status);
     }
 
     public boolean isExpired() {

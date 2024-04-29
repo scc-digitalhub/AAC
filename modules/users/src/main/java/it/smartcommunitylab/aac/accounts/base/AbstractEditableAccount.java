@@ -23,13 +23,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.base.model.AbstractBaseResource;
-import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
-import it.smartcommunitylab.aac.internal.model.InternalEditableUserAccount;
-import it.smartcommunitylab.aac.oidc.model.OIDCEditableUserAccount;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
 import it.smartcommunitylab.aac.repository.SchemaAnnotationIntrospector;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
-import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
+import it.smartcommunitylab.aac.users.base.AbstractBaseUserResource;
 
 /*
  * Abstract class for editable user accounts
@@ -37,13 +34,13 @@ import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
  * all implementations should derive from this
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = InternalEditableUserAccount.class, name = InternalEditableUserAccount.RESOURCE_TYPE),
-        @Type(value = OIDCEditableUserAccount.class, name = OIDCEditableUserAccount.RESOURCE_TYPE),
-        @Type(value = SamlEditableUserAccount.class, name = SamlEditableUserAccount.RESOURCE_TYPE),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = InternalEditableUserAccount.class, name = InternalEditableUserAccount.RESOURCE_TYPE),
+//         @Type(value = OIDCEditableUserAccount.class, name = OIDCEditableUserAccount.RESOURCE_TYPE),
+//         @Type(value = SamlEditableUserAccount.class, name = SamlEditableUserAccount.RESOURCE_TYPE),
+//     }
+// )
 public abstract class AbstractEditableAccount extends AbstractBaseUserResource implements EditableUserAccount {
 
     protected static final SchemaGenerator generator;

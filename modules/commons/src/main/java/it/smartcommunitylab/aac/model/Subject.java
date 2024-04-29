@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.users.model;
-
-import it.smartcommunitylab.aac.model.Resource;
+package it.smartcommunitylab.aac.model;
 
 /*
- * A realm scoped user resource, provided by an authority via a specific provider
+ * A subject is a distinct entity with resources associated
  */
+public interface Subject {
+    //context
+    String getRealm();
 
-public interface UserResource extends Resource {
-    //owner
-    public String getUserId();
+    String getType();
+
+    //props
+    String getId();
+
+    default String getName() {
+        return getId();
+    }
+
+    //status
+    boolean isActive();
+    boolean isBlocked();
 }

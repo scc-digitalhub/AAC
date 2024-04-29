@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
-import it.smartcommunitylab.aac.model.PersistenceMode;
 import java.io.Serializable;
 import java.util.Map;
 import javax.validation.Valid;
@@ -38,7 +37,6 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
         SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_ACCOUNT_SERVICE;
 
     private String repositoryId;
-    private PersistenceMode persistence;
 
     public String getRepositoryId() {
         return repositoryId;
@@ -48,14 +46,6 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
         this.repositoryId = repositoryId;
     }
 
-    public PersistenceMode getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(PersistenceMode persistence) {
-        this.persistence = persistence;
-    }
-
     @JsonIgnore
     public void setConfiguration(AccountServiceSettingsMap map) {
         if (map == null) {
@@ -63,7 +53,6 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
         }
 
         this.repositoryId = map.getRepositoryId();
-        this.persistence = map.getPersistence();
     }
 
     @Override

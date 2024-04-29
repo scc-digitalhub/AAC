@@ -36,4 +36,15 @@ public interface Resource extends Serializable {
 
     // TODO replace with proper typing <T> on resource
     public String getType();
+
+    //addressable key
+    default String getKey() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getType()).append("://");
+        sb.append(getAuthority()).append("/");
+        sb.append(getRealm()).append("/");
+        sb.append(getId());
+
+        return sb.toString();
+    }
 }

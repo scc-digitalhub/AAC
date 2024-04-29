@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.accounts.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ResourceContext;
+import it.smartcommunitylab.aac.model.ResourceContext;
 import it.smartcommunitylab.aac.users.model.UserResource;
 import it.smartcommunitylab.aac.users.model.UserResourceContext;
 import java.util.Collection;

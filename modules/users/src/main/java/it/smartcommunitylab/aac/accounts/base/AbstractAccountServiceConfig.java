@@ -28,22 +28,17 @@ import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
-import it.smartcommunitylab.aac.internal.provider.InternalAccountServiceConfig;
-import it.smartcommunitylab.aac.model.PersistenceMode;
-import it.smartcommunitylab.aac.oidc.apple.provider.AppleAccountServiceConfig;
-import it.smartcommunitylab.aac.oidc.provider.OIDCAccountServiceConfig;
-import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
 import org.springframework.util.StringUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = InternalAccountServiceConfig.class, name = InternalAccountServiceConfig.RESOURCE_TYPE),
-        @Type(value = AppleAccountServiceConfig.class, name = AppleAccountServiceConfig.RESOURCE_TYPE),
-        @Type(value = OIDCAccountServiceConfig.class, name = OIDCAccountServiceConfig.RESOURCE_TYPE),
-        @Type(value = SamlAccountServiceConfig.class, name = SamlAccountServiceConfig.RESOURCE_TYPE),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = InternalAccountServiceConfig.class, name = InternalAccountServiceConfig.RESOURCE_TYPE),
+//         @Type(value = AppleAccountServiceConfig.class, name = AppleAccountServiceConfig.RESOURCE_TYPE),
+//         @Type(value = OIDCAccountServiceConfig.class, name = OIDCAccountServiceConfig.RESOURCE_TYPE),
+//         @Type(value = SamlAccountServiceConfig.class, name = SamlAccountServiceConfig.RESOURCE_TYPE),
+//     }
+// )
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
@@ -84,10 +79,5 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
     public String getRepositoryId() {
         // if undefined always use realm as default repository id
         return StringUtils.hasText(settingsMap.getRepositoryId()) ? settingsMap.getRepositoryId() : getRealm();
-    }
-
-    public PersistenceMode getPersistence() {
-        // by default persist to repository
-        return settingsMap.getPersistence() != null ? settingsMap.getPersistence() : PersistenceMode.REPOSITORY;
     }
 }

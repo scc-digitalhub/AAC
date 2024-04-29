@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
 import javax.validation.Valid;
 
 @Valid

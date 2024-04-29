@@ -23,8 +23,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.UserStatus;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,6 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
     // services
     protected final UserAccountService<U> accountService;
     protected final String repositoryId;
-    private ResourceEntityService resourceService;
 
     protected AbstractAccountProvider(
         String authority,
@@ -64,10 +62,6 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
 
         this.accountService = accountService;
         this.repositoryId = repositoryId;
-    }
-
-    public void setResourceService(ResourceEntityService resourceService) {
-        this.resourceService = resourceService;
     }
 
     // @Override
@@ -147,12 +141,12 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
 
     @Override
     public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException {
-        return updateStatus(accountId, SubjectStatus.LOCKED);
+        return updateStatus(accountId, UserStatus.LOCKED);
     }
 
     @Override
     public U unlockAccount(String accountId) throws NoSuchUserException, RegistrationException {
-        return updateStatus(accountId, SubjectStatus.ACTIVE);
+        return updateStatus(accountId, UserStatus.ACTIVE);
     }
 
     @Override
@@ -168,8 +162,8 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
-        if (SubjectStatus.INACTIVE == curStatus) {
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
@@ -191,16 +185,6 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
         if (account != null) {
             // remove account
             accountService.deleteAccount(repositoryId, accountId);
-
-            if (resourceService != null) {
-                // remove resource
-                resourceService.deleteResourceEntity(
-                    SystemKeys.RESOURCE_ACCOUNT,
-                    getAuthority(),
-                    getProvider(),
-                    accountId
-                );
-            }
         }
     }
 
@@ -210,29 +194,18 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
         for (U a : accounts) {
             // remove account
             accountService.deleteAccount(repositoryId, a.getId());
-
-            if (resourceService != null) {
-                // remove resource
-                resourceService.deleteResourceEntity(
-                    SystemKeys.RESOURCE_ACCOUNT,
-                    getAuthority(),
-                    getProvider(),
-                    a.getId()
-                );
-            }
         }
     }
 
-    protected U updateStatus(String accountId, SubjectStatus newStatus)
-        throws NoSuchUserException, RegistrationException {
+    protected U updateStatus(String accountId, UserStatus newStatus) throws NoSuchUserException, RegistrationException {
         U account = findAccount(accountId);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
-        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 

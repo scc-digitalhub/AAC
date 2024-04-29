@@ -35,7 +35,7 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
-import it.smartcommunitylab.aac.core.service.ConfigurableResourceProviderService;
+import it.smartcommunitylab.aac.core.service.ConfigurableResourceProviderRegistry;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.ConfigurableProperties;
 import java.lang.reflect.InvocationTargetException;
@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -73,7 +74,7 @@ public abstract class AbstractConfigurableProviderService<
     S extends ConfigMap,
     T extends ConfigurableResourceProvider<?, ProviderConfig<S, ?>, S, ?>
 >
-    implements ConfigurableProviderService<C>, ConfigurableResourceProviderService<T, C, S>, InitializingBean {
+    implements ConfigurableProviderService<C>, ConfigurableResourceProviderRegistry<T, C, S>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -263,7 +264,7 @@ public abstract class AbstractConfigurableProviderService<
         return config;
     }
 
-    public C addConfigurableProvider(String realm, C cp)
+    public C addConfigurableProvider(String realm, String providerId, C cp)
         throws RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
@@ -276,7 +277,6 @@ public abstract class AbstractConfigurableProviderService<
         }
 
         // check if id provided
-        String providerId = cp.getProvider();
         if (StringUtils.hasText(providerId)) {
             ProviderEntity pe = providerService.findProvider(type, providerId);
             if (pe != null) {
@@ -287,7 +287,14 @@ public abstract class AbstractConfigurableProviderService<
             if (providerId.length() < 3 || !Pattern.matches(SystemKeys.SLUG_PATTERN, providerId)) {
                 throw new RegistrationException("invalid id");
             }
+        } else {
+            //generate
+            //note: we do not check for duplicates because UUIDs are safe enough
+            providerId = UUID.randomUUID().toString();
         }
+
+        //enforce matching providerId
+        cp.setProvider(providerId);
 
         //check for duplicate names
         if (
@@ -462,9 +469,12 @@ public abstract class AbstractConfigurableProviderService<
      * Config via authorities
      */
 
-    public void registerProvider(C cp)
+    public void registerProvider(String providerId, C cp)
         throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
+        Assert.hasText(providerId, "provider id can not be null or empty");
         Assert.notNull(cp, "configurable provider can not be null");
+        Assert.isTrue(providerId.equals(cp.getProvider()), "providerId must match configuration");
+
         logger.debug("register provider {}", StringUtils.trimAllWhitespace(cp.getProvider()));
 
         // fetch, only persisted configurations can be registered

@@ -27,6 +27,8 @@
     <modules>
         <module>modules/commons</module>
         <module>modules/core</module>
+        <module>modules/auth</module>
+        <module>modules/users</module>
         <!-- <module>application</module> -->
     </modules>
 

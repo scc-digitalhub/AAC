@@ -25,7 +25,7 @@ import java.util.Collection;
  * Resource provider service handles resource providers for consumers.
  * It abstract away the existence of authorities, modules etc
  */
-public interface ResourceProviderService<S extends ResourceProvider<? extends Resource>> {
+public interface ResourceProviderRegistry<S extends ResourceProvider<? extends Resource>> {
     public boolean hasResourceProvider(String providerId);
 
     public S findResourceProvider(String providerId);

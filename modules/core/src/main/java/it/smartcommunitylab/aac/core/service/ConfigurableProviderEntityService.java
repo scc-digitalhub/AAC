@@ -20,10 +20,8 @@ import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -101,8 +99,7 @@ public class ConfigurableProviderEntityService {
         return p;
     }
 
-    //TODO drop nullable id, we shoulds always receive it
-    public ProviderEntity saveProvider(String type, @Nullable String providerId, ProviderEntity reg) {
+    public ProviderEntity saveProvider(String type, String providerId, ProviderEntity reg) {
         if (reg == null) {
             throw new IllegalArgumentException();
         }
@@ -112,7 +109,7 @@ public class ConfigurableProviderEntityService {
         }
 
         if (providerId == null) {
-            providerId = generateId();
+            throw new IllegalArgumentException();
         }
 
         ProviderEntity p = providerRepository.findByProvider(providerId);
@@ -154,13 +151,5 @@ public class ConfigurableProviderEntityService {
         if (p != null && type.equals(p.getType())) {
             providerRepository.delete(p);
         }
-    }
-
-    /*
-     * Helpers
-     * TODO drop from here
-     */
-    private String generateId() {
-        return UUID.randomUUID().toString();
     }
 }

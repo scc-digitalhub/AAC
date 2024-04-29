@@ -16,17 +16,14 @@
 
 package it.smartcommunitylab.aac.users.service;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
-import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.core.service.SubjectService;
-import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntityRepository;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,22 +41,15 @@ public class UserEntityService {
 
     private final UserEntityRepository userRepository;
 
-    // TODO move to userService when possible
-    private final SubjectService subjectService;
-
-    public UserEntityService(UserEntityRepository userRepository, SubjectService subjectService) {
+    public UserEntityService(UserEntityRepository userRepository) {
         Assert.notNull(userRepository, "user repository is mandatory");
-        Assert.notNull(subjectService, "subject service is mandatory");
 
         this.userRepository = userRepository;
-        this.subjectService = subjectService;
     }
 
     public UserEntity createUser(String realm) {
-        String id = subjectService.generateUuid(SystemKeys.RESOURCE_USER);
-        UserEntity u = new UserEntity(id, realm);
-
-        return u;
+        String id = generateUuid();
+        return new UserEntity(id, realm);
     }
 
     public UserEntity addUser(String uuid, String realm, String username, String emailAddress)
@@ -69,15 +59,12 @@ public class UserEntityService {
             throw new AlreadyRegisteredException();
         }
 
-        // create subject
-        Subject s = subjectService.addSubject(uuid, realm, SystemKeys.RESOURCE_USER, username);
-
         // create user
-        u = new UserEntity(s.getSubjectId(), realm);
+        u = new UserEntity(uuid, realm);
         u.setUsername(username);
         u.setEmailAddress(emailAddress);
         // ensure user is active
-        u.setStatus(SubjectStatus.ACTIVE.getValue());
+        u.setStatus(UserStatus.ACTIVE.getValue());
 
         u = userRepository.save(u);
         return u;
@@ -150,16 +137,6 @@ public class UserEntityService {
         u.setEmailAddress(emailAddress);
         u = userRepository.save(u);
 
-        // check if subject exists and update name
-        Subject s = subjectService.findSubject(uuid);
-        if (s == null) {
-            s = subjectService.addSubject(uuid, u.getRealm(), SystemKeys.RESOURCE_USER, username);
-        } else {
-            try {
-                s = subjectService.updateSubject(uuid, username);
-            } catch (NoSuchSubjectException e) {}
-        }
-
         return u;
     }
 
@@ -178,23 +155,23 @@ public class UserEntityService {
     }
 
     public UserEntity activateUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, SubjectStatus.ACTIVE);
+        return updateStatus(uuid, UserStatus.ACTIVE);
     }
 
     public UserEntity inactivateUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, SubjectStatus.INACTIVE);
+        return updateStatus(uuid, UserStatus.INACTIVE);
     }
 
     public UserEntity blockUser(String uuid) throws NoSuchUserException {
-        return updateStatus(uuid, SubjectStatus.BLOCKED);
+        return updateStatus(uuid, UserStatus.BLOCKED);
     }
 
-    public UserEntity updateStatus(String uuid, SubjectStatus newStatus) throws NoSuchUserException {
+    public UserEntity updateStatus(String uuid, UserStatus newStatus) throws NoSuchUserException {
         UserEntity u = getUser(uuid);
 
         // check if active, inactive users can not be changed except for activation
-        SubjectStatus curStatus = SubjectStatus.parse(u.getStatus());
-        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
+        UserStatus curStatus = UserStatus.parse(u.getStatus());
+        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("user is inactive, activate first to update status");
         }
 
@@ -255,9 +232,10 @@ public class UserEntityService {
         if (u != null) {
             // remove entity
             userRepository.delete(u);
-
-            // remove subject if exists
-            subjectService.deleteSubject(uuid);
         }
+    }
+
+    private String generateUuid() {
+        return UUID.randomUUID().toString();
     }
 }

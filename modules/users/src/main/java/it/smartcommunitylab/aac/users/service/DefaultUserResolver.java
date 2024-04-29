@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.users.model.User;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
+import it.smartcommunitylab.aac.users.persistence.UserEntityConverter;
 import it.smartcommunitylab.aac.users.provider.UserResolver;
 import java.util.UUID;
 import org.slf4j.Logger;

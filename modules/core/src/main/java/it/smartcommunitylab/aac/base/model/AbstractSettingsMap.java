@@ -16,52 +16,7 @@
 
 package it.smartcommunitylab.aac.base.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.github.victools.jsonschema.generator.SchemaGenerator;
-import it.smartcommunitylab.aac.model.ConfigMap;
-import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
-//TODO remove for configMap, no real need to differentiate
-@Deprecated(forRemoval = true)
-//TODO evaluate adding generic type and resolving javatype for conversion here
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-// @JsonSubTypes(
-//     {
-//         @Type(value = AccountServiceSettingsMap.class, name = AccountServiceSettingsMap.RESOURCE_TYPE),
-//         @Type(value = AttributeProviderSettingsMap.class, name = AttributeProviderSettingsMap.RESOURCE_TYPE),
-//         @Type(value = CredentialsServiceSettingsMap.class, name = CredentialsServiceSettingsMap.RESOURCE_TYPE),
-//         @Type(value = IdentityProviderSettingsMap.class, name = IdentityProviderSettingsMap.RESOURCE_TYPE),
-//         @Type(value = TemplateProviderSettingsMap.class, name = TemplateProviderSettingsMap.RESOURCE_TYPE),
-//     }
-// )
-public abstract class AbstractSettingsMap implements ConfigMap, Serializable {
-
-    protected static final ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
-        HashMap<String, Serializable>
-    >() {};
-    protected static final JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
-    protected static final SchemaGenerator generator;
-
-    static {
-        generator = SchemaGeneratorFactory.build(mapper);
-    }
-
-    @JsonIgnore
-    @Override
-    public Map<String, Serializable> getConfiguration() {
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(this, typeRef);
-    }
-}
+public abstract class AbstractSettingsMap extends AbstractConfigMap {}

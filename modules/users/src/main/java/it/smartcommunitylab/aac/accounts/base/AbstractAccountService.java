@@ -27,9 +27,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.service.ResourceEntityService;
-import it.smartcommunitylab.aac.model.PersistenceMode;
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.UserStatus;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+@Deprecated(forRemoval = true)
 @Transactional
 public abstract class AbstractAccountService<
     U extends AbstractUserAccount,
@@ -54,7 +53,6 @@ public abstract class AbstractAccountService<
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final UserAccountService<U> userAccountService;
-    protected ResourceEntityService resourceService;
 
     // provider configuration
     protected final String repositoryId;
@@ -80,15 +78,6 @@ public abstract class AbstractAccountService<
         );
 
         this.userAccountService = userAccountService;
-    }
-
-    public void setResourceService(ResourceEntityService resourceService) {
-        this.resourceService = resourceService;
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        Assert.notNull(resourceService, "resource service is mandatory");
     }
 
     @Override
@@ -150,11 +139,6 @@ public abstract class AbstractAccountService<
             // remove account
             userAccountService.deleteAccount(repositoryId, accountId);
         }
-
-        if (resourceService != null) {
-            // remove resource
-            resourceService.deleteResourceEntity(SystemKeys.RESOURCE_ACCOUNT, getAuthority(), getProvider(), accountId);
-        }
     }
 
     @Override
@@ -163,16 +147,6 @@ public abstract class AbstractAccountService<
         for (U a : accounts) {
             // remove account
             userAccountService.deleteAccount(repositoryId, a.getAccountId());
-
-            if (resourceService != null) {
-                // remove resource
-                resourceService.deleteResourceEntity(
-                    SystemKeys.RESOURCE_ACCOUNT,
-                    getAuthority(),
-                    getProvider(),
-                    a.getAccountId()
-                );
-            }
         }
     }
 
@@ -215,8 +189,8 @@ public abstract class AbstractAccountService<
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
-        if (SubjectStatus.INACTIVE == curStatus) {
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 
@@ -233,12 +207,12 @@ public abstract class AbstractAccountService<
 
     @Override
     public U lockAccount(String accountId) throws NoSuchUserException, RegistrationException {
-        return updateStatus(accountId, SubjectStatus.LOCKED);
+        return updateStatus(accountId, UserStatus.LOCKED);
     }
 
     @Override
     public U unlockAccount(String accountId) throws NoSuchUserException, RegistrationException {
-        return updateStatus(accountId, SubjectStatus.ACTIVE);
+        return updateStatus(accountId, UserStatus.ACTIVE);
     }
 
     @Override
@@ -266,13 +240,6 @@ public abstract class AbstractAccountService<
             throw new IllegalArgumentException("unsupported account");
         }
 
-        // check if attributes are persisted
-        Map<String, Serializable> attributes = reg.getAttributes();
-        if (PersistenceMode.REPOSITORY != config.getPersistence()) {
-            // clear, not managed in any repository
-            reg.setAttributes(null);
-        }
-
         // TODO add validation?
 
         // create via service
@@ -282,23 +249,6 @@ public abstract class AbstractAccountService<
         logger.debug("user {} account {} created", String.valueOf(userId), String.valueOf(accountId));
         if (logger.isTraceEnabled()) {
             logger.trace("persisted account: {}", String.valueOf(account));
-        }
-
-        if (resourceService != null) {
-            // register as user resource
-            resourceService.addResourceEntity(
-                account.getUuid(),
-                SystemKeys.RESOURCE_ACCOUNT,
-                getAuthority(),
-                getProvider(),
-                account.getAccountId()
-            );
-        }
-
-        // check if attributes are persisted
-        if (PersistenceMode.NONE != config.getPersistence()) {
-            // set on result, only with NONE we leave these out
-            account.setAttributes(attributes);
         }
 
         return account;
@@ -340,13 +290,6 @@ public abstract class AbstractAccountService<
             throw new IllegalArgumentException("unsupported account");
         }
 
-        // check if attributes are persisted
-        Map<String, Serializable> attributes = reg.getAttributes();
-        if (PersistenceMode.REPOSITORY != config.getPersistence()) {
-            // clear, not managed in repository
-            reg.setAttributes(null);
-        }
-
         // TODO add validation?
 
         // update via service
@@ -355,12 +298,6 @@ public abstract class AbstractAccountService<
         logger.debug("user {} account {} updated", String.valueOf(userId), String.valueOf(accountId));
         if (logger.isTraceEnabled()) {
             logger.trace("persisted account: {}", String.valueOf(account));
-        }
-
-        // check if attributes are persisted
-        if (PersistenceMode.NONE != config.getPersistence()) {
-            // set on result, only with NONE we leave these out
-            account.setAttributes(attributes);
         }
 
         return account;
@@ -410,16 +347,15 @@ public abstract class AbstractAccountService<
         return null;
     }
 
-    protected U updateStatus(String accountId, SubjectStatus newStatus)
-        throws NoSuchUserException, RegistrationException {
+    protected U updateStatus(String accountId, UserStatus newStatus) throws NoSuchUserException, RegistrationException {
         U account = findAccount(accountId);
         if (account == null) {
             throw new NoSuchUserException();
         }
 
         // check if active, inactive accounts can not be changed except for activation
-        SubjectStatus curStatus = SubjectStatus.parse(account.getStatus());
-        if (SubjectStatus.INACTIVE == curStatus && SubjectStatus.ACTIVE != newStatus) {
+        UserStatus curStatus = UserStatus.parse(account.getStatus());
+        if (UserStatus.INACTIVE == curStatus && UserStatus.ACTIVE != newStatus) {
             throw new IllegalArgumentException("account is inactive, activate first to update status");
         }
 

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.users.service;
+package it.smartcommunitylab.aac.users.persistence;
 
-import it.smartcommunitylab.aac.model.SubjectStatus;
+import it.smartcommunitylab.aac.model.UserStatus;
 import it.smartcommunitylab.aac.users.model.User;
-import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -37,9 +36,7 @@ public class UserEntityConverter implements Converter<UserEntity, User> {
 
         u.setLang(ue.getLang());
 
-        SubjectStatus status = StringUtils.hasText(ue.getStatus())
-            ? SubjectStatus.parse(ue.getStatus())
-            : SubjectStatus.ACTIVE;
+        UserStatus status = StringUtils.hasText(ue.getStatus()) ? UserStatus.parse(ue.getStatus()) : UserStatus.ACTIVE;
         u.setStatus(status);
 
         u.setExpirationDate(ue.getExpirationDate());

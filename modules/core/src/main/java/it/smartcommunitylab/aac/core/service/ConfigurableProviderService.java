@@ -23,6 +23,8 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Collection;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 /*
@@ -33,16 +35,16 @@ public interface ConfigurableProviderService<C extends ConfigurableProvider<? ex
      * Configuration
      */
     Collection<C> listConfigurableProviders();
-    Collection<C> listConfigurableProvidersByRealm(String realm);
+    Collection<C> listConfigurableProvidersByRealm(@NotNull String realm);
 
-    C findConfigurableProvider(String providerId);
-    C getConfigurableProvider(String providerId) throws NoSuchProviderException;
+    C findConfigurableProvider(@NotNull String providerId);
+    C getConfigurableProvider(@NotNull String providerId) throws NoSuchProviderException;
 
-    C addConfigurableProvider(String realm, C cp)
+    C addConfigurableProvider(@NotNull String realm, @Nullable String providerId, @NotNull C cp)
         throws RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException;
-    C updateConfigurableProvider(String providerId, C cp)
+    C updateConfigurableProvider(@NotNull String providerId, @NotNull C cp)
         throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException;
-    void deleteConfigurableProvider(String providerId) throws SystemException, NoSuchProviderException;
+    void deleteConfigurableProvider(@NotNull String providerId) throws SystemException, NoSuchProviderException;
     // /*
     //  * Registration
     //  * TODO move to dedicated service

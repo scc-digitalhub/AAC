@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.Resource;
+import javax.validation.constraints.NotNull;
 import org.springframework.lang.Nullable;
 
 /*
@@ -35,12 +36,12 @@ import org.springframework.lang.Nullable;
  * It also handles the configuration providers responsible for translating configurable into provider configs.
  *
  */
-public interface ConfigurableResourceProviderService<
+public interface ConfigurableResourceProviderRegistry<
     S extends ConfigurableResourceProvider<? extends Resource, ? extends ProviderConfig<M, ?>, M, ? extends ConfigMap>,
     C extends ConfigurableProvider<M>,
     M extends ConfigMap
 >
-    extends ResourceProviderService<S> {
+    extends ResourceProviderRegistry<S> {
     /*
      * Config
      */
@@ -49,14 +50,14 @@ public interface ConfigurableResourceProviderService<
         C,
         M,
         ? extends ConfigMap
-    > getConfigurationProvider(String authority) throws NoSuchAuthorityException;
+    > getConfigurationProvider(@NotNull String authority) throws NoSuchAuthorityException;
 
     /*
      * Registration
      */
-    void registerProvider(C config)
+    void registerProvider(@NotNull String providerId, @NotNull C config)
         throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException;
-    void unregisterProvider(String providerId)
+    void unregisterProvider(@NotNull String providerId)
         throws NoSuchProviderException, SystemException, NoSuchAuthorityException;
     boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException;
 }

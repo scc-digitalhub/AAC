@@ -24,14 +24,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.SubjectStatus;
-import it.smartcommunitylab.aac.templates.model.Language;
+import it.smartcommunitylab.aac.model.UserStatus;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.constraints.NotBlank;
@@ -57,10 +57,10 @@ public class User implements UserResource, UserResourceContext {
     private String email;
     private boolean emailVerified;
 
-    private String lang = Language.EN.getValue();
+    private String lang = Locale.ENGLISH.getLanguage();
 
     // user status
-    private SubjectStatus status;
+    private UserStatus status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date expirationDate;
@@ -170,11 +170,11 @@ public class User implements UserResource, UserResourceContext {
         this.lang = lang;
     }
 
-    public SubjectStatus getStatus() {
+    public UserStatus getStatus() {
         return status;
     }
 
-    public void setStatus(SubjectStatus status) {
+    public void setStatus(UserStatus status) {
         this.status = status;
     }
 

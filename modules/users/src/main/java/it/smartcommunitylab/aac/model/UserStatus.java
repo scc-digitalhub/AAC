@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;
 
-public enum SubjectStatus {
+public enum UserStatus {
     ACTIVE("active"),
     LOCKED("locked"),
     BLOCKED("blocked"),
@@ -27,7 +27,7 @@ public enum SubjectStatus {
 
     private final String value;
 
-    SubjectStatus(String value) {
+    UserStatus(String value) {
         Assert.hasText(value, "value cannot be empty");
         this.value = value;
     }
@@ -41,8 +41,8 @@ public enum SubjectStatus {
         return value;
     }
 
-    public static SubjectStatus parse(String value) {
-        for (SubjectStatus st : SubjectStatus.values()) {
+    public static UserStatus parse(String value) {
+        for (UserStatus st : UserStatus.values()) {
             if (st.value.equalsIgnoreCase(value)) {
                 return st;
             }

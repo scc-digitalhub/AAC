@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.provider;
+package it.smartcommunitylab.aac.users.provider;
 
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.model.Subject;
 
 public interface SubjectResolver<A extends UserAccount> extends ResourceProvider<A> {

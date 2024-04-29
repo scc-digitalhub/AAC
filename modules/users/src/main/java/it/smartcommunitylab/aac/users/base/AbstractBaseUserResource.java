@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.base.model;
+package it.smartcommunitylab.aac.users.base;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import it.smartcommunitylab.aac.base.model.AbstractBaseResource;
 import it.smartcommunitylab.aac.users.model.UserResource;
 
 public abstract class AbstractBaseUserResource extends AbstractBaseResource implements UserResource {

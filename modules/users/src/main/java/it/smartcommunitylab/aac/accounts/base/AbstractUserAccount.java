@@ -21,10 +21,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
-import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
-import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
-import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
-import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
+import it.smartcommunitylab.aac.users.base.AbstractBaseUserResource;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -34,13 +31,13 @@ import java.util.Map;
  * all implementations should derive from this
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = InternalUserAccount.class, name = InternalUserAccount.RESOURCE_TYPE),
-        @Type(value = OIDCUserAccount.class, name = OIDCUserAccount.RESOURCE_TYPE),
-        @Type(value = SamlUserAccount.class, name = SamlUserAccount.RESOURCE_TYPE),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = InternalUserAccount.class, name = InternalUserAccount.RESOURCE_TYPE),
+//         @Type(value = OIDCUserAccount.class, name = OIDCUserAccount.RESOURCE_TYPE),
+//         @Type(value = SamlUserAccount.class, name = SamlUserAccount.RESOURCE_TYPE),
+//     }
+// )
 public abstract class AbstractUserAccount extends AbstractBaseUserResource implements UserAccount {
 
     protected AbstractUserAccount(String authority, String provider, String realm, String id) {

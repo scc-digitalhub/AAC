@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.users.model;
 
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -185,12 +184,8 @@ public class UserDetails implements Serializable {
     public Collection<String> getRealms() {
         return getAuthorities()
             .stream()
-            .filter(a -> {
-                return (a instanceof RealmGrantedAuthority);
-            })
-            .map(a -> {
-                return ((RealmGrantedAuthority) a).getRealm();
-            })
+            .filter(a -> a.getAuthority().contains(":"))
+            .map(a -> a.getAuthority().split(":")[0])
             .collect(Collectors.toSet());
     }
 

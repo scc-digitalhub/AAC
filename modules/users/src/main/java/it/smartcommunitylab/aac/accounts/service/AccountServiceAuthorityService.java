@@ -24,7 +24,7 @@ import it.smartcommunitylab.aac.accounts.provider.AccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
 import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Collection;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
