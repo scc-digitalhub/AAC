@@ -59,7 +59,6 @@ public class SpidProviderResponseValidatorBuilder {
                     new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
                 );
             }
-            // TODO: verifica come scrivere CODICI ERRORE SPID
             // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
             Response response = responseToken.getResponse();
             if (response.getVersion() == null || !isVersion20(response)) {
@@ -264,7 +263,7 @@ public class SpidProviderResponseValidatorBuilder {
     }
 
     /* Result of validation of StatusCode in a SPID SAML Response.
-     * Known errors are in bijection with those described at
+     * Known errors are the same as those described at
      *  https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/messaggi-errore.html#anomalie-derivanti-dall-utente
      */
     private enum ResponseStatusValidationResult {
