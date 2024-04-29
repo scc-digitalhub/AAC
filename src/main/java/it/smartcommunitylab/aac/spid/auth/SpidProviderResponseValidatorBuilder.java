@@ -63,37 +63,65 @@ public class SpidProviderResponseValidatorBuilder {
             // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
             Response response = responseToken.getResponse();
             if (response.getVersion() == null || !isVersion20(response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_010", "missing or wrong response version"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or wrong response version")
+                );
             }
 
             // Issue Instant must be present, be non null, have correct format
             Instant issueInstant = response.getIssueInstant();
             if (issueInstant == null) {
-                return result.concat(new Saml2Error("SPID_ERROR_011", "missing or undefined issue instant attribute"));
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "missing or undefined issue instant attribute"
+                    )
+                );
             }
             if (!isIssueInstantFormatValid(response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_012", "invalid issue instant format"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "invalid issue instant format")
+                );
             }
             if (!isIssueInstantAfterRequest(initiatingRequest, response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_14", "issue instant is before request issue instant"));
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "issue instant is before request issue instant"
+                    )
+                );
             }
 
             // InResponseTo attribute must exists an d be nontrivial
             if (!StringUtils.hasText(response.getInResponseTo())) {
-                return result.concat(new Saml2Error("SPID_ERROR_017", "missing or empty InResponseTo attribute"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or empty InResponseTo attribute")
+                );
             }
             // Destination attribute must exists and be nontrivial
             if (!StringUtils.hasText(response.getDestination())) {
-                return result.concat(new Saml2Error("SPID_ERROR_019", "missing or empty Destination attribute"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or empty Destination attribute")
+                );
             }
 
             // Issuer Format attribute must be entity
             if (!isIssuerFormatEntity(response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_030", "wrong or missing Issuer Format Attribute"));
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "wrong or missing Issuer Format Attribute"
+                    )
+                );
             }
 
             if (!isResponseAcrValid(initiatingRequest, response)) {
-                return result.concat(new Saml2Error("SPID_ERROR_094", "obtained ACR does not match requested ACR"));
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "obtained ACR does not match requested ACR"
+                    )
+                );
             }
 
             return result;

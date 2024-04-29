@@ -55,27 +55,31 @@ public class SpidProviderAssertionValidatorBuilder {
                     new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
                 );
             }
-            // TODO: valuta i codici di errore: attualmente sono una reference al test
             // assertions must be signed; note that signature validity is performed by default validator; here we check signature existence
             Assertion assertion = assertionToken.getAssertion();
             if (assertion.getSignature() == null) {
-                return result.concat(new Saml2Error("SPID_ERROR_004", "missing assertion signature"));
+                return result.concat(new Saml2Error(Saml2ErrorCodes.INVALID_SIGNATURE, "missing assertion signature"));
             }
 
             // IssueInstant attribute must exists and be non trivial
             if (assertion.getIssueInstant() == null) {
-                return result.concat(new Saml2Error("SPID_ERROR_037", "missing IssueInstant attribute"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing IssueInstant attribute")
+                );
             }
             if (!isAssertionIssueInstantFormatValid(assertion)) {}
             if (!isAssertionIssueInstantAfterRequest(initiatingRequest, assertion)) {
                 return result.concat(
-                    new Saml2Error("SPID_ERROR_39", "assertion IssueInstant before request IssueInstant")
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "assertion IssueInstant before request IssueInstant"
+                    )
                 );
             }
             if (!isAssertionIssueInstantBeforeRequestReception(assertion)) {
                 return result.concat(
                     new Saml2Error(
-                        "SPID_ERROR_40",
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
                         "assertion IssueInstant is after the instant of the received response"
                     )
                 );
@@ -85,21 +89,37 @@ public class SpidProviderAssertionValidatorBuilder {
                 assertion.getSubject().getNameID() == null ||
                 assertion.getSubject().getNameID().getNameQualifier() == null
             ) {
-                return result.concat(new Saml2Error("SPID_ERROR_048", "missing NameQualifier attribute in NameId"));
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "missing NameQualifier attribute in NameId"
+                    )
+                );
             }
 
             if (!isAssertionSubjectConfirmationValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_51", "missing SubjectConfirmation"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing SubjectConfirmation")
+                );
             }
 
             if (!isAssertionIssuerValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_70", "missing or invalid Assertion Issuer"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or invalid Assertion Issuer")
+                );
             }
             if (!isAssertionConditionsValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_73", "missing or invalid Conditions attribute"));
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or invalid Conditions attribute")
+                );
             }
             if (!isAssertionAuthStatementValid(assertion)) {
-                return result.concat(new Saml2Error("SPID_ERROR_88", "missing or invalid AuthStatement attribute"));
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "missing or invalid AuthStatement attribute"
+                    )
+                );
             }
 
             //            if (!areRequestedAttributesObtained(initiatingRequest, this.configuredSpidAttributeSets, assertion)) {
