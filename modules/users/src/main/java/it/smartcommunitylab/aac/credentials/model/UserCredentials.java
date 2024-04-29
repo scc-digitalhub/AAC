@@ -17,8 +17,7 @@
 package it.smartcommunitylab.aac.credentials.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.model.Credentials;
-import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.model.UserResource;
 import org.springframework.security.core.CredentialsContainer;
 
 public interface UserCredentials extends UserResource, Credentials, CredentialsContainer {

@@ -28,17 +28,15 @@ import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
-import it.smartcommunitylab.aac.password.provider.PasswordCredentialsServiceConfig;
-import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
 import org.springframework.util.StringUtils;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = PasswordCredentialsServiceConfig.class, name = PasswordCredentialsServiceConfig.RESOURCE_TYPE),
-        @Type(value = WebAuthnCredentialsServiceConfig.class, name = WebAuthnCredentialsServiceConfig.RESOURCE_TYPE),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = PasswordCredentialsServiceConfig.class, name = PasswordCredentialsServiceConfig.RESOURCE_TYPE),
+//         @Type(value = WebAuthnCredentialsServiceConfig.class, name = WebAuthnCredentialsServiceConfig.RESOURCE_TYPE),
+//     }
+// )
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractCredentialsServiceConfig<M extends AbstractConfigMap>

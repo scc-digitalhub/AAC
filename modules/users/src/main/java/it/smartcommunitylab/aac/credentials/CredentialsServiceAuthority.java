@@ -17,13 +17,13 @@
 package it.smartcommunitylab.aac.credentials;
 
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfig;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
+import it.smartcommunitylab.aac.model.ConfigMap;
 
 public interface CredentialsServiceAuthority<
     S extends CredentialsService<R, E, M, C>,

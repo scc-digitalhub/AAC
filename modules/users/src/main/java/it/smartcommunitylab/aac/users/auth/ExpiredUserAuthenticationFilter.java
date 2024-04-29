@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.users.auth;
 
-import it.smartcommunitylab.aac.core.auth.ComposedAuthenticationToken;
 import java.io.IOException;
 import java.util.Set;
 import javax.servlet.FilterChain;
@@ -73,10 +72,7 @@ public class ExpiredUserAuthenticationFilter extends OncePerRequestFilter {
         if (auth instanceof UserAuthentication) {
             return (UserAuthentication) auth;
         }
-        if (auth instanceof ComposedAuthenticationToken) {
-            return ((ComposedAuthenticationToken) auth).getUserAuthentication();
-        } else {
-            return null;
-        }
+
+        return null;
     }
 }

@@ -18,12 +18,14 @@ package it.smartcommunitylab.aac.users.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.auth.model.ExtendedAuthenticationToken;
+import it.smartcommunitylab.aac.auth.model.WebAuthenticationDetails;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.model.UserDetails;
+import it.smartcommunitylab.aac.users.model.UserStatus;
+import it.smartcommunitylab.aac.users.model.UserSubject;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -87,7 +89,12 @@ public class DefaultUserAuthenticationToken extends AbstractAuthenticationToken 
         Assert.notNull(realm, "realm is required");
         Assert.notNull(userDetails, "details are required");
 
-        this.subject = new Subject(userId, realm, username, SystemKeys.RESOURCE_USER);
+        this.subject = new UserSubject(
+            userId,
+            realm,
+            username,
+            userDetails.isLocked() ? UserStatus.LOCKED : UserStatus.ACTIVE
+        );
         this.realm = realm;
 
         this.createdAt = Instant.now();

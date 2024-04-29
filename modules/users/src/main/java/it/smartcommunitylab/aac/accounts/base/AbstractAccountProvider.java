@@ -23,7 +23,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.users.model.UserStatus;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

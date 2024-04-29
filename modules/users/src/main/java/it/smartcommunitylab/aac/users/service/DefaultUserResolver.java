@@ -22,7 +22,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntityConverter;

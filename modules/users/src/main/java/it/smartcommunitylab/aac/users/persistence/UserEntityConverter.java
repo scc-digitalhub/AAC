@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.users.persistence;
 
-import it.smartcommunitylab.aac.model.UserStatus;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.users.model.UserStatus;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

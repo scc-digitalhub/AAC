@@ -21,12 +21,12 @@ import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.config.ProvidersProperties;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.model.ConfigMap;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.UUID;
@@ -41,7 +41,11 @@ import org.springframework.validation.DataBinder;
 @Service
 @Transactional
 public class IdentityProviderService
-    extends AbstractConfigurableProviderService<ConfigurableIdentityProvider, IdentityProviderSettingsMap> {
+    extends AbstractConfigurableProviderService<
+        ConfigurableIdentityProvider,
+        IdentityProviderSettingsMap,
+        IdentityProvider<? extends
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

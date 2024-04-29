@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
 import it.smartcommunitylab.aac.core.provider.SubjectProvider;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.users.model.UserStatus;
 import it.smartcommunitylab.aac.users.model.UserSubject;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntityRepository;

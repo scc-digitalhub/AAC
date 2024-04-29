@@ -27,7 +27,7 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.users.model.UserStatus;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;

@@ -16,10 +16,8 @@
 
 package it.smartcommunitylab.aac.credentials.base;
 
-import com.fasterxml.jackson.databind.JavaType;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfigurationProvider;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
@@ -30,22 +28,9 @@ public abstract class AbstractCredentialsConfigurationProvider<
     extends AbstractConfigurationProvider<P, ConfigurableCredentialsProvider, CredentialsServiceSettingsMap, M>
     implements CredentialsServiceConfigurationProvider<P, M> {
 
-    protected AbstractCredentialsConfigurationProvider(
-        String authority,
-        ProviderConfigRepository<P> registrationRepository
-    ) {
-        super(authority, registrationRepository);
+    protected AbstractCredentialsConfigurationProvider(String authority) {
+        super(authority);
         setDefaultSettingsMap(new CredentialsServiceSettingsMap());
-    }
-
-    @Override
-    protected JavaType extractSettingsType() {
-        return mapper.getTypeFactory().constructSimpleType(CredentialsServiceSettingsMap.class, null);
-    }
-
-    @Override
-    protected JavaType extractConfigType() {
-        return _extractJavaType(1);
     }
 
     @Override

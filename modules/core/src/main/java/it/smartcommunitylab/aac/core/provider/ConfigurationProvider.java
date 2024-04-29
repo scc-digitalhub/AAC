@@ -33,12 +33,12 @@ public interface ConfigurationProvider<
     //configs are tied to an authority
     public String getAuthority();
 
-    //expose the config repository
-    public ProviderConfigRepository<P> getRepository();
+    // //expose the config repository
+    // public ProviderConfigRepository<P> getRepository();
 
-    public P register(C config) throws RegistrationException;
+    // public P register(C config) throws RegistrationException;
 
-    public void unregister(String providerId);
+    // public void unregister(String providerId);
 
     // public default String getType() {
     //     return SystemKeys.RESOURCE_CONFIG;

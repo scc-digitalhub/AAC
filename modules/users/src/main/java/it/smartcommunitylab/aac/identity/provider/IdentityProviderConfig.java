@@ -16,15 +16,12 @@
 
 package it.smartcommunitylab.aac.identity.provider;
 
-import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.provider.config.ProviderConfig;
-import it.smartcommunitylab.aac.model.PersistenceMode;
+import it.smartcommunitylab.aac.core.model.ProviderConfig;
+import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Map;
 
 public interface IdentityProviderConfig<M extends ConfigMap> extends ProviderConfig<IdentityProviderSettingsMap, M> {
     public boolean isLinkable();
-
-    public PersistenceMode getPersistence();
 
     //TODO map events as ENUM
     public String getEvents();

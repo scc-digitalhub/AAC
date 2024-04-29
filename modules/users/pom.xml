@@ -28,7 +28,16 @@
             <artifactId>aac-core</artifactId>
             <version>${revision}</version>
         </dependency>
-
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-attributes</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-auth</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <!-- external deps  -->
         <dependency>
             <groupId>org.projectlombok</groupId>

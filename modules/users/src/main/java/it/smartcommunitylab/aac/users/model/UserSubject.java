@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.users.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.model.UserStatus;
+
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

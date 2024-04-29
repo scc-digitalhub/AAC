@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.core.authorities;
 
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
@@ -37,14 +39,11 @@ public interface ConfigurableProviderAuthority<
     extends ProviderAuthority<RP> {
     /*
      * Registration
-     *
-     * TODO remove and make interface RO
      */
 
-    // public C registerProvider(ConfigurableProvider config)
-    //     throws IllegalArgumentException, RegistrationException, SystemException;
+    public P registerProvider(C config) throws IllegalArgumentException, RegistrationException, SystemException;
 
-    // public void unregisterProvider(String providerId) throws SystemException;
+    public void unregisterProvider(String providerId) throws SystemException;
 
     /*
      * Config provider exposes configuration

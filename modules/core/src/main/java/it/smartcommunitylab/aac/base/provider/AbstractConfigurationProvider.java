@@ -64,19 +64,16 @@ public abstract class AbstractConfigurationProvider<
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final String authority;
-    protected final ProviderConfigRepository<P> registrationRepository;
 
-    protected SmartValidator validator;
+    // protected SmartValidator validator;
 
     protected S defaultSettingsMap;
     protected M defaultConfigMap;
 
-    protected AbstractConfigurationProvider(String authority, ProviderConfigRepository<P> registrationRepository) {
+    protected AbstractConfigurationProvider(String authority) {
         Assert.hasText(authority, "authority id  is mandatory");
-        Assert.notNull(registrationRepository, "provider registration repository is mandatory");
 
         this.authority = authority;
-        this.registrationRepository = registrationRepository;
 
         this.settingsType = extractSettingsType();
         this.configType = extractConfigType();
@@ -85,17 +82,17 @@ public abstract class AbstractConfigurationProvider<
         Assert.notNull(configType, "config type could not be extracted");
     }
 
-    protected JavaType _extractJavaType(int pos) {
+    private JavaType _extractJavaType(int pos) {
         // resolve generics type via subclass trick
         Type t = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[pos];
         return mapper.getTypeFactory().constructSimpleType((Class<?>) t, null);
     }
 
-    protected JavaType extractSettingsType() {
+    private JavaType extractSettingsType() {
         return _extractJavaType(2);
     }
 
-    protected JavaType extractConfigType() {
+    private JavaType extractConfigType() {
         return _extractJavaType(3);
     }
 
@@ -107,10 +104,10 @@ public abstract class AbstractConfigurationProvider<
         this.defaultConfigMap = defaultConfigMap;
     }
 
-    @Autowired
-    public void setValidator(SmartValidator validator) {
-        this.validator = validator;
-    }
+    // @Autowired
+    // public void setValidator(SmartValidator validator) {
+    //     this.validator = validator;
+    // }
 
     protected abstract C buildConfigurable(P pc);
 
@@ -137,10 +134,10 @@ public abstract class AbstractConfigurationProvider<
         return authority;
     }
 
-    @Override
-    public ProviderConfigRepository<P> getRepository() {
-        return this.registrationRepository;
-    }
+    // @Override
+    // public ProviderConfigRepository<P> getRepository() {
+    //     return this.registrationRepository;
+    // }
 
     @Override
     public P getConfig(C cp, boolean mergeDefault) {
@@ -234,106 +231,106 @@ public abstract class AbstractConfigurationProvider<
     //     }
     // }
 
-    @Override
-    public P register(C cp) throws RegistrationException {
-        // we support only matching provider as resource providers
-        if (cp != null && getAuthority().equals(cp.getAuthority())) {
-            String providerId = cp.getProvider();
-            String realm = cp.getRealm();
+    // @Override
+    // public P register(C cp) throws RegistrationException {
+    //     // we support only matching provider as resource providers
+    //     if (cp != null && getAuthority().equals(cp.getAuthority())) {
+    //         String providerId = cp.getProvider();
+    //         String realm = cp.getRealm();
 
-            logger.debug("register provider {} for realm {}", providerId, realm);
-            if (logger.isTraceEnabled()) {
-                logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
-            }
+    //         logger.debug("register provider {} for realm {}", providerId, realm);
+    //         if (logger.isTraceEnabled()) {
+    //             logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
+    //         }
 
-            try {
-                // check if exists or id clashes with another provider from a different realm
-                P e = registrationRepository.findByProviderId(providerId);
-                if (e != null) {
-                    if (!realm.equals(e.getRealm())) {
-                        // name clash
-                        throw new RegistrationException(
-                            "a provider with the same id already exists under a different realm"
-                        );
-                    }
+    //         try {
+    //             // check if exists or id clashes with another provider from a different realm
+    //             P e = registrationRepository.findByProviderId(providerId);
+    //             if (e != null) {
+    //                 if (!realm.equals(e.getRealm())) {
+    //                     // name clash
+    //                     throw new RegistrationException(
+    //                         "a provider with the same id already exists under a different realm"
+    //                     );
+    //                 }
 
-                    // evaluate version against current
-                    if (cp.getVersion() == null) {
-                        throw new RegistrationException("invalid version");
-                    } else if (e.getVersion() == cp.getVersion()) {
-                        return e;
-                    } else if (e.getVersion() > cp.getVersion()) {
-                        throw new RegistrationException("invalid version");
-                    }
-                }
+    //                 // evaluate version against current
+    //                 if (cp.getVersion() == null) {
+    //                     throw new RegistrationException("invalid version");
+    //                 } else if (e.getVersion() == cp.getVersion()) {
+    //                     return e;
+    //                 } else if (e.getVersion() > cp.getVersion()) {
+    //                     throw new RegistrationException("invalid version");
+    //                 }
+    //             }
 
-                // build config
-                P providerConfig = getConfig(cp);
-                if (logger.isTraceEnabled()) {
-                    logger.trace(
-                        "provider active config v{}: {}",
-                        providerConfig.getVersion(),
-                        String.valueOf(providerConfig.getConfigMap().getConfiguration())
-                    );
-                }
+    //             // build config
+    //             P providerConfig = getConfig(cp);
+    //             if (logger.isTraceEnabled()) {
+    //                 logger.trace(
+    //                     "provider active config v{}: {}",
+    //                     providerConfig.getVersion(),
+    //                     String.valueOf(providerConfig.getConfigMap().getConfiguration())
+    //                 );
+    //             }
 
-                //validate configs
-                validateConfigMap(providerConfig.getSettingsMap());
-                validateConfigMap(providerConfig.getConfigMap());
+    //             //validate configs
+    //             validateConfigMap(providerConfig.getSettingsMap());
+    //             validateConfigMap(providerConfig.getConfigMap());
 
-                // register, we defer loading to authority
-                // should update if existing
-                registrationRepository.addRegistration(providerConfig);
+    //             // register, we defer loading to authority
+    //             // should update if existing
+    //             registrationRepository.addRegistration(providerConfig);
 
-                // return effective config from repo
-                return registrationRepository.findByProviderId(providerId);
-            } catch (Exception ex) {
-                // cleanup
-                registrationRepository.removeRegistration(providerId);
-                logger.error("error registering provider {}: {}", providerId, ex.getMessage());
+    //             // return effective config from repo
+    //             return registrationRepository.findByProviderId(providerId);
+    //         } catch (Exception ex) {
+    //             // cleanup
+    //             registrationRepository.removeRegistration(providerId);
+    //             logger.error("error registering provider {}: {}", providerId, ex.getMessage());
 
-                throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
-            }
-        } else {
-            throw new IllegalArgumentException("illegal configurable");
-        }
-    }
+    //             throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
+    //         }
+    //     } else {
+    //         throw new IllegalArgumentException("illegal configurable");
+    //     }
+    // }
 
-    @Override
-    public void unregister(String providerId) {
-        P registration = registrationRepository.findByProviderId(providerId);
+    // @Override
+    // public void unregister(String providerId) {
+    //     P registration = registrationRepository.findByProviderId(providerId);
 
-        if (registration != null) {
-            // can't unregister system providers, check
-            if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
-                return;
-            }
+    //     if (registration != null) {
+    //         // can't unregister system providers, check
+    //         if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
+    //             return;
+    //         }
 
-            logger.debug("unregister provider {} for realm {}", providerId, registration.getRealm());
+    //         logger.debug("unregister provider {} for realm {}", providerId, registration.getRealm());
 
-            // remove from registrations, we defer unloading to authority
-            registrationRepository.removeRegistration(providerId);
-        }
-    }
+    //         // remove from registrations, we defer unloading to authority
+    //         registrationRepository.removeRegistration(providerId);
+    //     }
+    // }
 
-    protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
-        // check with validator
-        if (validator != null) {
-            DataBinder binder = new DataBinder(configurable);
-            validator.validate(configurable, binder.getBindingResult());
-            if (binder.getBindingResult().hasErrors()) {
-                StringBuilder sb = new StringBuilder();
-                binder
-                    .getBindingResult()
-                    .getFieldErrors()
-                    .forEach(e -> {
-                        sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-                    });
-                String errorMsg = sb.toString();
-                throw new RegistrationException(errorMsg);
-            }
-        }
-    }
+    // protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
+    //     // check with validator
+    //     if (validator != null) {
+    //         DataBinder binder = new DataBinder(configurable);
+    //         validator.validate(configurable, binder.getBindingResult());
+    //         if (binder.getBindingResult().hasErrors()) {
+    //             StringBuilder sb = new StringBuilder();
+    //             binder
+    //                 .getBindingResult()
+    //                 .getFieldErrors()
+    //                 .forEach(e -> {
+    //                     sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+    //                 });
+    //             String errorMsg = sb.toString();
+    //             throw new RegistrationException(errorMsg);
+    //         }
+    //     }
+    // }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
     static class NoTypes {}

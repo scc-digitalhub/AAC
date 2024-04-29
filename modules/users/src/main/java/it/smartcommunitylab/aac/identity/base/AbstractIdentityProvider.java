@@ -28,7 +28,7 @@ import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.identity.provider.IdentityAttributeProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.users.auth.ExtendedUserAuthenticationProvider;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -102,7 +102,7 @@ public abstract class AbstractIdentityProvider<
      * Provider-specific
      */
     @Override
-    public abstract ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
+    public abstract ExtendedUserAuthenticationProvider<P, U> getAuthenticationProvider();
 
     protected abstract AccountPrincipalConverter<U> getAccountPrincipalConverter();
 

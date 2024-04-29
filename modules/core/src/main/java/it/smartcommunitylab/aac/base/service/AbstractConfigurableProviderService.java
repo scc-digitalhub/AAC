@@ -485,13 +485,13 @@ public abstract class AbstractConfigurableProviderService<
             throw new IllegalArgumentException();
         }
 
-        ConfigurationProvider<ProviderConfig<S, ?>, C, S, ?> configProvider = getConfigurationProvider(
-            cp.getAuthority()
-        );
-        if (configProvider != null) {
-            // always register and pop up errors
-            configProvider.register(cp);
+        ConfigurableProviderAuthority<T, C, ProviderConfig<S, ?>, S, ?> authority = authorities.get(cp.getAuthority());
+        if (authority == null) {
+            throw new NoSuchAuthorityException();
         }
+
+        // always register and pop up errors
+        authority.registerProvider(cp);
     }
 
     public void unregisterProvider(String providerId)
@@ -501,13 +501,13 @@ public abstract class AbstractConfigurableProviderService<
         // fetch, only persisted configurations can be registered
         C cp = getConfigurableProvider(providerId);
 
-        //fetch config provider from authority
-        ConfigurationProvider<ProviderConfig<S, ?>, C, S, ?> configProvider = getConfigurationProvider(
-            cp.getAuthority()
-        );
+        ConfigurableProviderAuthority<T, C, ProviderConfig<S, ?>, S, ?> authority = authorities.get(cp.getAuthority());
+        if (authority == null) {
+            throw new NoSuchAuthorityException();
+        }
 
         // always unregister, when not active nothing will happen
-        configProvider.unregister(cp.getProvider());
+        authority.unregisterProvider(cp.getProvider());
     }
 
     public boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException {

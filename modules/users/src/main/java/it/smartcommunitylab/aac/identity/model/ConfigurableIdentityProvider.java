@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import javax.validation.Valid;
 
@@ -36,81 +36,4 @@ public class ConfigurableIdentityProvider extends ConfigurableProviderImpl<Ident
     public ConfigurableIdentityProvider() {
         super(SystemKeys.RESOURCE_IDENTITY, null, null, null);
     }
-    // public Boolean getLinkable() {
-    //     return linkable;
-    // }
-
-    // public void setLinkable(Boolean linkable) {
-    //     this.linkable = linkable;
-    // }
-
-    // public String getPersistence() {
-    //     return persistence;
-    // }
-
-    // public void setPersistence(String persistence) {
-    //     this.persistence = persistence;
-    // }
-
-    // public String getEvents() {
-    //     return events;
-    // }
-
-    // public void setEvents(String events) {
-    //     this.events = events;
-    // }
-
-    // public Integer getPosition() {
-    //     return position;
-    // }
-
-    // public void setPosition(Integer position) {
-    //     this.position = position;
-    // }
-
-    // public Map<String, String> getHookFunctions() {
-    //     return hookFunctions;
-    // }
-
-    // public void setHookFunctions(Map<String, String> hookFunctions) {
-    //     this.hookFunctions = hookFunctions;
-    // }
-
-    // @JsonProperty("hookFunctions")
-    // public Map<String, String> getHookFunctionsBase64() {
-    //     if (hookFunctions == null) {
-    //         return null;
-    //     }
-    //     return hookFunctions
-    //         .entrySet()
-    //         .stream()
-    //         .filter(e -> StringUtils.hasText(e.getValue()))
-    //         .collect(
-    //             Collectors.toMap(
-    //                 e -> e.getKey(),
-    //                 e -> {
-    //                     return Base64.getEncoder().withoutPadding().encodeToString(e.getValue().getBytes());
-    //                 }
-    //             )
-    //         );
-    // }
-
-    // @JsonProperty("hookFunctions")
-    // public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
-    //     if (hookFunctions != null) {
-    //         this.hookFunctions =
-    //             hookFunctions
-    //                 .entrySet()
-    //                 .stream()
-    //                 .filter(e -> StringUtils.hasText(e.getValue()))
-    //                 .collect(
-    //                     Collectors.toMap(
-    //                         e -> e.getKey(),
-    //                         e -> {
-    //                             return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-    //                         }
-    //                     )
-    //                 );
-    //     }
-    // }
 }

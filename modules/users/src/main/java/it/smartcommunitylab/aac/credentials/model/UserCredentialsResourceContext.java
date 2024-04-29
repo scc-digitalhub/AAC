@@ -17,9 +17,9 @@
 package it.smartcommunitylab.aac.credentials.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ResourceContext;
-import it.smartcommunitylab.aac.users.model.UserResource;
-import it.smartcommunitylab.aac.users.model.UserResourceContext;
+import it.smartcommunitylab.aac.model.ResourceContext;
+import it.smartcommunitylab.aac.model.UserResource;
+import it.smartcommunitylab.aac.model.UserResourceContext;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

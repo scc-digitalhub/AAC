@@ -20,17 +20,15 @@ import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.ClientDetails;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.users.auth.ExtendedAuthenticationProvider;
+import it.smartcommunitylab.aac.model.ConfigMap;
+import it.smartcommunitylab.aac.users.auth.ExtendedUserAuthenticationProvider;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
 import it.smartcommunitylab.aac.users.provider.UserResolver;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
 
 /*
  * Identity providers handle authentication for users and produce a valid user identity
@@ -74,7 +72,7 @@ public interface IdentityProvider<
      * DEPRECATED: to be replaced with EAP interface
      */
     @Deprecated
-    public ExtendedAuthenticationProvider<P, U> getAuthenticationProvider();
+    public ExtendedUserAuthenticationProvider<P, U> getAuthenticationProvider();
 
     /*
      * User resolvers can discover a matching user by receiving identifying
@@ -163,8 +161,8 @@ public interface IdentityProvider<
 
     @Deprecated
     public LoginProvider getLoginProvider(
-        @Nullable ClientDetails clientDetails,
-        @Nullable AuthorizationRequest authRequest
+        // @Nullable ClientDetails clientDetails,
+        // @Nullable AuthorizationRequest authRequest
     );
 
     //    public AuthenticationEntryPoint getAuthenticationEntryPoint();

@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.users.provider;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 
 /*

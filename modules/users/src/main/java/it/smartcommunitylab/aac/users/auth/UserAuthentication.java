@@ -17,9 +17,8 @@
 package it.smartcommunitylab.aac.users.auth;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.auth.ExtendedAuthentication;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.auth.model.ExtendedAuthentication;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.users.model.UserDetails;
 import javax.annotation.Nullable;
 
@@ -52,16 +51,4 @@ public interface UserAuthentication extends ExtendedAuthentication {
     public @Nullable User getUser();
 
     public void setUser(User user);
-
-    /*
-     * web auth details
-     * TODO remove from here, some auth could be NOT web
-     */
-    public @Nullable WebAuthenticationDetails getWebAuthenticationDetails();
-
-    @Override
-    default Object getDetails() {
-        //web auth are the default details,
-        return getWebAuthenticationDetails();
-    }
 }

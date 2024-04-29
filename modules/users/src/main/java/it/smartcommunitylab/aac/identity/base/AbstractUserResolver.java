@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.identity.base;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.model.User;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntityConverter;
 import it.smartcommunitylab.aac.users.provider.UserResolver;

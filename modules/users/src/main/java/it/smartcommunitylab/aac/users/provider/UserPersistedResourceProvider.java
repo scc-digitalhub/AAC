@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.users.provider;
 
 import it.smartcommunitylab.aac.core.provider.PersistedResourceProvider;
-import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.model.UserResource;
 
 /*
  * A provider for resources of a given type, for a specific authority

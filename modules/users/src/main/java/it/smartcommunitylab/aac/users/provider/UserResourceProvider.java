@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.users.provider;
 
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
-import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.model.UserResource;
 import java.util.Collection;
 
 /*

@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.users.base;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import it.smartcommunitylab.aac.base.model.AbstractBaseResource;
-import it.smartcommunitylab.aac.users.model.UserResource;
+import it.smartcommunitylab.aac.model.UserResource;
 
 public abstract class AbstractBaseUserResource extends AbstractBaseResource implements UserResource {
 

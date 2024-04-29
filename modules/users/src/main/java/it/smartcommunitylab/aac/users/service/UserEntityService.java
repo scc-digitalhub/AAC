@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.users.service;
 
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.model.UserStatus;
+import it.smartcommunitylab.aac.users.model.UserStatus;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.persistence.UserEntityRepository;
 import java.util.Date;
