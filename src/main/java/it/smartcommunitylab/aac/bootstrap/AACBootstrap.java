@@ -23,6 +23,8 @@ import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
+import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
@@ -40,16 +42,33 @@ import it.smartcommunitylab.aac.crypto.PasswordHash;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.model.AttributeType;
 import it.smartcommunitylab.aac.model.ClientApp;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.model.ScopeType;
 import it.smartcommunitylab.aac.model.SpaceRole;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientAppService;
+import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.password.auth.UsernamePasswordAuthenticationToken;
 import it.smartcommunitylab.aac.password.model.InternalUserPassword;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
+import it.smartcommunitylab.aac.scope.AuthorityScopeApprover;
+import it.smartcommunitylab.aac.scope.CombinedScopeApprover;
+import it.smartcommunitylab.aac.scope.DelegateScopeApprover;
+import it.smartcommunitylab.aac.scope.RoleScopeApprover;
+import it.smartcommunitylab.aac.scope.Scope;
+import it.smartcommunitylab.aac.scope.ScopeApprover;
+import it.smartcommunitylab.aac.scope.ScopeProvider;
+import it.smartcommunitylab.aac.scope.ScopeRegistry;
+import it.smartcommunitylab.aac.scope.ScriptScopeApprover;
+import it.smartcommunitylab.aac.scope.StoreScopeApprover;
+import it.smartcommunitylab.aac.scope.WhitelistScopeApprover;
 import it.smartcommunitylab.aac.services.Service;
+import it.smartcommunitylab.aac.services.ServiceClaim;
+import it.smartcommunitylab.aac.services.ServiceScope;
+import it.smartcommunitylab.aac.services.ServiceScopeProvider;
 import it.smartcommunitylab.aac.services.ServicesService;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.service.TemplateProviderService;
@@ -58,12 +77,17 @@ import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +183,15 @@ public class AACBootstrap {
 
     @Autowired
     private PasswordHash hasher;
+    
+    @Autowired
+    private ScopeRegistry scopeRegistry;
+    
+    @Autowired
+    private ScriptExecutionService executionService;
+    
+    @Autowired
+    private SearchableApprovalStore approvalStore;
 
     //    @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
@@ -721,9 +754,56 @@ public class AACBootstrap {
                                             String.valueOf(s.getRealm())
                                         );
 
-                                        service =
-                                            serviceService.updateService(id, s.getName(), s.getDescription(), null);
+                                        service = serviceService.updateService(id, s.getName(), s.getDescription(), null);
                                     }
+                                    
+                                        // optional
+                                        Map<String, String> claimMapping = s.getClaimMapping();
+                                        if (claimMapping != null && !claimMapping.isEmpty()) {
+                                            s = serviceService.updateService(id, s.getName(), s.getDescription(), s.getClaimMapping());
+                                        }
+
+                                        // related
+                                        Collection<ServiceScope> scopes = s.getScopes();
+                                        Set<ServiceScope> serviceScopes = new HashSet<>();
+
+                                        if (scopes != null && !scopes.isEmpty()) {
+                                            for (ServiceScope sc : scopes) {
+                                                sc.setServiceId(id);
+                                                ServiceScope ss = addServiceScope(s.getRealm(), id, sc);
+                                                serviceScopes.add(ss);
+                                            }
+                                        }
+                                        s.setScopes(serviceScopes);
+
+                                        Collection<ServiceClaim> claims = s.getClaims();
+                                        Set<ServiceClaim> serviceClaims = new HashSet<>();
+                                        if (claims != null && !claims.isEmpty()) {
+                                            for (ServiceClaim sc : claims) {
+                                                sc.setServiceId(id);
+                                                ServiceClaim ss = addServiceClaim(s.getRealm(), id, sc);
+                                                serviceClaims.add(ss);
+                                            }
+                                        }
+                                        s.setClaims(serviceClaims);
+
+                                        // build provider
+                                        if (!serviceScopes.isEmpty()) {
+                                            ServiceScopeProvider sp = new ServiceScopeProvider(s);
+
+                                            // add approvers where needed
+                                            for (ServiceScope sc : serviceScopes) {
+                                                ScopeApprover approver = buildScopeApprover(s.getRealm(), s.getNamespace(), sc);
+                                                if (approver != null) {
+                                                    sp.addApprover(sc.getScope(), approver);
+                                                }
+                                            }
+
+                                            // register
+                                            scopeRegistry.registerScopeProvider(sp);
+                                        }
+                                  
+                                    
                                 } catch (RegistrationException | NoSuchServiceException e) {
                                     logger.error(
                                         "error creating service " +
@@ -1175,6 +1255,171 @@ public class AACBootstrap {
          * Migrations?
          */
 
+    }
+    
+    public ServiceClaim addServiceClaim(String realm, String serviceId, ServiceClaim claim)
+            throws NoSuchServiceException, RegistrationException {
+            // use finder to avoid loading all related
+            Service service = serviceService.findService(serviceId);
+            if (service == null) {
+                throw new NoSuchServiceException();
+            }
+
+            if (!realm.equals(service.getRealm())) {
+                throw new IllegalArgumentException("service does not match realm");
+            }
+
+            // explode
+            String key = Jsoup.clean(claim.getKey(), Safelist.none());
+            String name = claim.getName();
+            String description = claim.getDescription();
+            if (StringUtils.hasText(name)) {
+                name = Jsoup.clean(name, Safelist.none());
+            }
+            if (StringUtils.hasText(description)) {
+                description = Jsoup.clean(description, Safelist.none());
+            }
+            if (!StringUtils.hasText(name)) {
+                name = key;
+            }
+            AttributeType type = claim.getType() != null ? claim.getType() : AttributeType.STRING;
+            boolean isMultiple = claim.isMultiple();
+
+            ServiceClaim sc = serviceService.addClaim(serviceId, key, name, description, type, isMultiple);
+
+            return sc;
+        }
+
+
+	public ServiceScope addServiceScope(String realm, String serviceId, ServiceScope sc)
+            throws NoSuchServiceException, RegistrationException {
+            // use finder to avoid loading all related
+            Service service = serviceService.findService(serviceId);
+            if (service == null) {
+                throw new NoSuchServiceException();
+            }
+
+            if (!realm.equals(service.getRealm())) {
+                throw new IllegalArgumentException("service does not match realm");
+            }
+
+            // explode
+            String scope = Jsoup.clean(sc.getScope().toLowerCase(), Safelist.none());
+            String name = sc.getName();
+            String description = sc.getDescription();
+            if (StringUtils.hasText(name)) {
+                name = Jsoup.clean(name, Safelist.none());
+            }
+            if (StringUtils.hasText(description)) {
+                description = Jsoup.clean(description, Safelist.none());
+            }
+            if (!StringUtils.hasText(name)) {
+                name = scope;
+            }
+
+            // check if scope if already defined elsewhere
+            Scope se = scopeRegistry.findScope(scope);
+            if (se != null) {
+                throw new DuplicatedDataException("scope");
+            }
+
+            ScopeType type = sc.getType() != null ? sc.getType() : ScopeType.GENERIC;
+            Set<String> claims = sc.getClaims();
+            Set<String> roles = sc.getApprovalRoles();
+            Set<String> spaceRoles = sc.getApprovalSpaceRoles();
+            String approvalFunction = sc.getApprovalFunction();
+
+            boolean approvalAny = sc.isApprovalAny();
+            boolean approvalRequired = sc.isApprovalRequired();
+
+            ServiceScope s = serviceService.addScope(
+                serviceId,
+                scope,
+                name,
+                description,
+                type,
+                claims,
+                roles,
+                spaceRoles,
+                approvalFunction,
+                approvalRequired,
+                approvalAny
+            );
+
+            // refresh service
+            String namespace = service.getNamespace();
+            List<ServiceScope> serviceScopes = serviceService.listScopes(serviceId);
+            service.setScopes(serviceScopes);
+
+            // unregister provider if present
+            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+            if (spr != null && spr instanceof ServiceScopeProvider) {
+                scopeRegistry.unregisterScopeProvider(spr);
+            }
+
+            // build provider
+            if (!serviceScopes.isEmpty()) {
+                ServiceScopeProvider sp = new ServiceScopeProvider(service);
+
+                // add approvers where needed
+                for (ServiceScope scs : serviceScopes) {
+                    ScopeApprover approver = buildScopeApprover(service.getRealm(), service.getNamespace(), scs);
+                    if (approver != null) {
+                        sp.addApprover(scs.getScope(), approver);
+                    }
+                }
+
+                // register
+                scopeRegistry.registerScopeProvider(sp);
+            }
+
+            return s;
+        }
+    
+    private ScopeApprover buildScopeApprover(String realm, String namespace, ServiceScope sc) {
+        String scope = sc.getScope();
+        List<ScopeApprover> approvers = new ArrayList<>();
+        if (StringUtils.hasText(sc.getApprovalFunction())) {
+            ScriptScopeApprover sa = new ScriptScopeApprover(realm, namespace, scope);
+            sa.setExecutionService(executionService);
+            sa.setFunctionCode(sc.getApprovalFunction());
+            approvers.add(sa);
+        }
+
+        if (sc.getApprovalRoles() != null && !sc.getApprovalRoles().isEmpty()) {
+            AuthorityScopeApprover sa = new AuthorityScopeApprover(realm, namespace, scope);
+            sa.setAuthorities(sc.getApprovalRoles());
+            approvers.add(sa);
+        }
+
+        if (sc.getApprovalSpaceRoles() != null && !sc.getApprovalSpaceRoles().isEmpty()) {
+            RoleScopeApprover sa = new RoleScopeApprover(realm, namespace, scope);
+            sa.setRoles(sc.getApprovalSpaceRoles());
+            approvers.add(sa);
+        }
+
+        if (sc.isApprovalRequired()) {
+            StoreScopeApprover sa = new StoreScopeApprover(realm, namespace, scope);
+            sa.setApprovalStore(approvalStore);
+            // we use serviceId as the authorizer authority
+            sa.setUserId(sc.getServiceId());
+            approvers.add(sa);
+        }
+
+        if (approvers.isEmpty()) {
+            // use whitelist, scope is autoapproved
+            return new WhitelistScopeApprover(realm, namespace, scope);
+        }
+
+        if (approvers.size() == 1) {
+            return approvers.get(0);
+        }
+
+        if (sc.isApprovalAny()) {
+            return new DelegateScopeApprover(realm, namespace, scope, approvers);
+        } else {
+            return new CombinedScopeApprover(realm, namespace, scope, approvers);
+        }
     }
     /*
      * Call init on each service we expect services to be independent and to execute
