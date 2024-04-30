@@ -20,17 +20,17 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
-import it.smartcommunitylab.aac.spid.model.SpidEditableUserAccount;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public class SpidAccountService
-    extends AbstractAccountService<SpidUserAccount, SpidEditableUserAccount, SpidAccountServiceConfig, SpidIdentityProviderConfigMap> {
+    extends AbstractAccountService<SamlUserAccount, SamlEditableUserAccount, SpidAccountServiceConfig, SpidIdentityProviderConfigMap> {
 
     public SpidAccountService(
         String providerId,
-        UserAccountService<SpidUserAccount> accountService,
+        UserAccountService<SamlUserAccount> accountService,
         SpidAccountServiceConfig config,
         String realm
     ) {
@@ -40,7 +40,7 @@ public class SpidAccountService
     public SpidAccountService(
         String authority,
         String providerId,
-        UserAccountService<SpidUserAccount> accountService,
+        UserAccountService<SamlUserAccount> accountService,
         SpidAccountServiceConfig config,
         String realm
     ) {
@@ -48,8 +48,8 @@ public class SpidAccountService
     }
 
     @Override
-    public SpidEditableUserAccount getEditableAccount(String userId, String subject) throws NoSuchUserException {
-        SpidUserAccount account = findAccount(subject);
+    public SamlEditableUserAccount getEditableAccount(String userId, String subject) throws NoSuchUserException {
+        SamlUserAccount account = findAccount(subject);
         if (account == null) {
             throw new NoSuchUserException();
         }
@@ -59,9 +59,8 @@ public class SpidAccountService
         return toEditableAccount(account);
     }
 
-    public SpidEditableUserAccount toEditableAccount(SpidUserAccount account) {
-        // TODO: ha senso che gli SPID account siano editabili?
-        SpidEditableUserAccount ea = new SpidEditableUserAccount(
+    public SamlEditableUserAccount toEditableAccount(SamlUserAccount account) {
+        SamlEditableUserAccount ea = new SamlEditableUserAccount(
             getAuthority(),
             getProvider(),
             getRealm(),

@@ -19,20 +19,24 @@ package it.smartcommunitylab.aac.spid.provider;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
-import it.smartcommunitylab.aac.spid.model.SpidAttribute;
+import it.smartcommunitylab.aac.saml.SamlKeys;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Transactional
 public class SpidAccountPrincipalConverter
-    extends AbstractProvider<SpidUserAccount>
-    implements AccountPrincipalConverter<SpidUserAccount> {
+    extends AbstractProvider<SamlUserAccount>
+    implements AccountPrincipalConverter<SamlUserAccount> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    //    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SpidIdentityProviderConfig config;
     private final String repositoryId;
 
@@ -44,20 +48,27 @@ public class SpidAccountPrincipalConverter
     ) {
         super(authority, providerId, realm);
         this.config = config;
-        // TODO: probabilmente questo è ERRATO: non è detto che in SPID i dati siano isolati per providerId
         this.repositoryId = providerId;
     }
 
     @Override
-    public SpidUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
+    public SamlUserAccount convertAccount(UserAuthenticatedPrincipal userPrincipal, String userId) {
         Assert.isInstanceOf(
             SpidUserAuthenticatedPrincipal.class,
             userPrincipal,
             "principal must be an instance of saml authenticated principal"
         );
-        SpidUserAccount account = new SpidUserAccount(getProvider(), getRealm(), null);
+        SamlUserAccount account = new SamlUserAccount(getProvider(), getRealm(), null);
 
         SpidUserAuthenticatedPrincipal principal = (SpidUserAuthenticatedPrincipal) userPrincipal;
+
+        //filter saml attributes to keep only user attributes
+        Map<String, Serializable> attributes = principal
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !SamlKeys.SAML_ATTRIBUTES.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
 
         account.setRepositoryId(repositoryId);
         account.setSubjectId(principal.getSubjectId());
@@ -66,22 +77,8 @@ public class SpidAccountPrincipalConverter
         account.setUsername(principal.getUsername());
         account.setName(principal.getName());
         account.setEmail(principal.getEmailAddress());
-        account.setSpidCode(principal.getSpidCode());
-        account.setIdp(principal.getIdp());
-
-        // TODO: check that values are non-trivial
-        // TODO: I', not sure if selected tables should be used in the account. We should consider just making the account with generic attributes, and that's it
-        if (principal.getAttributes().get(SpidAttribute.FAMILY_NAME.getValue()) != null) {
-            account.setSurname((String) principal.getAttributes().get(SpidAttribute.FAMILY_NAME.getValue()));
-        }
-        if (principal.getAttributes().get(SpidAttribute.MOBILE_PHONE.getValue()) != null) {
-            account.setPhone((String) principal.getAttributes().get(SpidAttribute.MOBILE_PHONE.getValue()));
-        }
-        if (principal.getAttributes().get(SpidAttribute.FISCAL_NUMBER.getValue()) != null) {
-            account.setFiscalNumber((String) principal.getAttributes().get(SpidAttribute.FISCAL_NUMBER.getValue()));
-        }
-        if (principal.getAttributes().get(SpidAttribute.IVA_CODE.getValue()) != null) {
-            account.setIvaCode((String) principal.getAttributes().get(SpidAttribute.IVA_CODE.getValue()));
+        if (StringUtils.hasText(principal.getEmailAddress())) {
+            account.setEmailVerified(true);
         }
         account.setAttributes(principal.getAttributes());
 

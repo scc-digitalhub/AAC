@@ -21,27 +21,24 @@ import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.model.Subject;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-/*
- * TODO
- */
 @Transactional
-public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> implements SubjectResolver<SpidUserAccount> {
+public class SpidSubjectResolver extends AbstractProvider<SamlUserAccount> implements SubjectResolver<SamlUserAccount> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final UserAccountService<SpidUserAccount> accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
     private final SpidIdentityProviderConfig config;
     private String repositoryId;
 
     public SpidSubjectResolver(
         String authority,
         String providerId,
-        UserAccountService<SpidUserAccount> userAccountService,
+        UserAccountService<SamlUserAccount> userAccountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {
@@ -57,7 +54,7 @@ public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> imple
     @Transactional(readOnly = true)
     public Subject resolveBySubjectId(String subjectId) {
         logger.debug("resolve by subjectId {}", String.valueOf(subjectId));
-        SpidUserAccount account = accountService.findAccountById(repositoryId, subjectId);
+        SamlUserAccount account = accountService.findAccountById(repositoryId, subjectId);
         if (account == null) {
             return null;
         }
@@ -88,7 +85,7 @@ public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> imple
     @Transactional(readOnly = true)
     public Subject resolveByUsername(String username) {
         logger.debug("resolve by username {}", String.valueOf(username));
-        SpidUserAccount account = accountService
+        SamlUserAccount account = accountService
             .findAccountsByUsername(repositoryId, username)
             .stream()
             .findFirst()
@@ -109,7 +106,7 @@ public class SpidSubjectResolver extends AbstractProvider<SpidUserAccount> imple
         }
 
         logger.debug("resolve by email {}", String.valueOf(email));
-        SpidUserAccount account = accountService
+        SamlUserAccount account = accountService
             .findAccountsByEmail(repositoryId, email)
             .stream()
             .findFirst()

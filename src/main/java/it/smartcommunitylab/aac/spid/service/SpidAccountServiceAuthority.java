@@ -26,11 +26,8 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
-import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfig;
-import it.smartcommunitylab.aac.saml.provider.SamlAccountServiceConfigConverter;
-import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
-import it.smartcommunitylab.aac.spid.model.SpidEditableUserAccount;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.provider.SpidAccountService;
 import it.smartcommunitylab.aac.spid.provider.SpidAccountServiceConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidAccountServiceConfigConverter;
@@ -44,15 +41,15 @@ import org.springframework.util.Assert;
 public class SpidAccountServiceAuthority
     extends AbstractProviderAuthority<SpidAccountService, SpidAccountServiceConfig>
     implements
-        AccountServiceAuthority<SpidAccountService, SpidUserAccount, SpidEditableUserAccount, SpidAccountServiceConfig, SpidIdentityProviderConfigMap> {
+        AccountServiceAuthority<SpidAccountService, SamlUserAccount, SamlEditableUserAccount, SpidAccountServiceConfig, SpidIdentityProviderConfigMap> {
 
-    private final UserAccountService<SpidUserAccount> accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
 
     private ResourceEntityService resourceService;
 
     public SpidAccountServiceAuthority(
         String authorityId,
-        UserAccountService<SpidUserAccount> userAccountService,
+        UserAccountService<SamlUserAccount> userAccountService,
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
     ) {
         super(authorityId, new SpidConfigTranslatorRepository(registrationRepository));
@@ -62,7 +59,7 @@ public class SpidAccountServiceAuthority
 
     @Autowired
     public SpidAccountServiceAuthority(
-        UserAccountService<SpidUserAccount> userAccountService,
+        UserAccountService<SamlUserAccount> userAccountService,
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
     ) {
         this(SystemKeys.AUTHORITY_SPID, userAccountService, registrationRepository);

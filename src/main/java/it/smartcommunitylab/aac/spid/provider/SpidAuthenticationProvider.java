@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.core.auth.ExtendedAuthenticationProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationToken;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidProviderAssertionValidatorBuilder;
 import it.smartcommunitylab.aac.spid.auth.SpidProviderResponseConverterBuilder;
@@ -35,7 +36,6 @@ import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,17 +57,16 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.util.StringUtils;
 
 public class SpidAuthenticationProvider
-    extends ExtendedAuthenticationProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
+    extends ExtendedAuthenticationProvider<SpidUserAuthenticatedPrincipal, SamlUserAccount> {
 
     public static final String ACR_ATTRIBUTE = "authnContextClassRef";
     public static final String ISSUER_ATTRIBUTE = "spidIssuer";
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private static final SpidUserAttribute SUBJECT_ATTRIBUTE = SpidUserAttribute.SUBJECT;
-    private final UserAccountService<SpidUserAccount> accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
     private final Set<String> registrationIds;
     private final SpidUserAttribute subjectAttribute;
     private final SpidUserAttribute usernameAttribute;
-    //    private final SpidResponseValidator spidValidator;
     private final String accountRepositoryId;
 
     private final OpenSaml4AuthenticationProvider openSamlProvider;
@@ -77,7 +76,7 @@ public class SpidAuthenticationProvider
 
     public SpidAuthenticationProvider(
         String providerId,
-        UserAccountService<SpidUserAccount> accountService,
+        UserAccountService<SamlUserAccount> accountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {
@@ -87,7 +86,7 @@ public class SpidAuthenticationProvider
     public SpidAuthenticationProvider(
         String authority,
         String providerId,
-        UserAccountService<SpidUserAccount> accountService,
+        UserAccountService<SamlUserAccount> accountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {
@@ -134,7 +133,7 @@ public class SpidAuthenticationProvider
                     );
                 }
                 // check if account is locked
-                SpidUserAccount account = accountService.findAccountById(accountRepositoryId, subject);
+                SamlUserAccount account = accountService.findAccountById(accountRepositoryId, subject);
                 if (account != null && account.isLocked()) {
                     throw new SamlAuthenticationException(
                         new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "account_unavailable"),

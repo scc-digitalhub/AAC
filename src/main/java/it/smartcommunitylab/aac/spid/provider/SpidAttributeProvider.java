@@ -28,8 +28,8 @@ import it.smartcommunitylab.aac.attributes.model.DefaultUserAttributesImpl;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityAttributeProvider;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class SpidAttributeProvider
-    extends AbstractIdentityAttributeProvider<SpidUserAuthenticatedPrincipal, SpidUserAccount> {
+    extends AbstractIdentityAttributeProvider<SpidUserAuthenticatedPrincipal, SamlUserAccount> {
 
     private final OpenIdAttributesMapper openidMapper;
     private final SpidAttributesMapper spidMapper;
@@ -64,7 +64,7 @@ public class SpidAttributeProvider
 
     @Override
     protected List<UserAttributes> extractUserAttributes(
-        SpidUserAccount account,
+        SamlUserAccount account,
         Map<String, Serializable> principalAttributes
     ) {
         List<UserAttributes> attributes = new ArrayList<>();

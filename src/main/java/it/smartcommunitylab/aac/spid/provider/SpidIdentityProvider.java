@@ -25,10 +25,10 @@ import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,9 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.util.StringUtils;
 
-// TODO: review what class we are inheriting from
 public class SpidIdentityProvider
-    extends AbstractIdentityProvider<SpidUserIdentity, SpidUserAccount, SpidUserAuthenticatedPrincipal, SpidIdentityProviderConfigMap, SpidIdentityProviderConfig> {
+    extends AbstractIdentityProvider<SpidUserIdentity, SamlUserAccount, SpidUserAuthenticatedPrincipal, SpidIdentityProviderConfigMap, SpidIdentityProviderConfig> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -52,7 +51,7 @@ public class SpidIdentityProvider
 
     public SpidIdentityProvider(
         String providerId,
-        UserAccountService<SpidUserAccount> userAccountService,
+        UserAccountService<SamlUserAccount> userAccountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {
@@ -62,7 +61,7 @@ public class SpidIdentityProvider
     public SpidIdentityProvider(
         String authority,
         String providerId,
-        UserAccountService<SpidUserAccount> userAccountService,
+        UserAccountService<SamlUserAccount> userAccountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {
@@ -103,12 +102,12 @@ public class SpidIdentityProvider
     }
 
     @Override
-    protected AccountPrincipalConverter<SpidUserAccount> getAccountPrincipalConverter() {
+    protected AccountPrincipalConverter<SamlUserAccount> getAccountPrincipalConverter() {
         return this.principalConverter;
     }
 
     @Override
-    protected AccountProvider<SpidUserAccount> getAccountProvider() {
+    protected AccountProvider<SamlUserAccount> getAccountProvider() {
         return this.accountService;
     }
 
@@ -123,7 +122,7 @@ public class SpidIdentityProvider
     }
 
     @Override
-    public SubjectResolver<SpidUserAccount> getSubjectResolver() {
+    public SubjectResolver<SamlUserAccount> getSubjectResolver() {
         return this.subjectResolver;
     }
 
@@ -179,7 +178,7 @@ public class SpidIdentityProvider
 
     @Override
     protected SpidUserIdentity buildIdentity(
-        SpidUserAccount account,
+        SamlUserAccount account,
         SpidUserAuthenticatedPrincipal principal,
         Collection<UserAttributes> attributes
     ) {

@@ -64,10 +64,7 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.SamlJpaUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccountEntityRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
-import it.smartcommunitylab.aac.spid.service.SpidJpaUserAccountService;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
@@ -228,8 +225,8 @@ public class PersistenceConfig {
         // this is a workaround to let localhost work even without https - localhost is never "https" and therefore
         // would set "Lax" cookies, and this might break things. The following two lines of codes force the same
         // cookies setting in every case.
-//        serializer.setSameSite("None");
-//        serializer.setUseSecureCookie(true);
+        //        serializer.setSameSite("None");
+        //        serializer.setUseSecureCookie(true);
 
         // config can override
         if (StringUtils.hasText(sessionCookieSameSite)) {
@@ -268,13 +265,13 @@ public class PersistenceConfig {
         return new SamlJpaUserAccountService(accountRepository, subjectService);
     }
 
-    @Bean
-    public UserAccountService<SpidUserAccount> spidUserAccountService(
-        SpidUserAccountEntityRepository accountRepository,
-        SubjectService subjectService
-    ) {
-        return new SpidJpaUserAccountService(accountRepository, subjectService);
-    }
+    //    @Bean
+    //    public UserAccountService<SpidUserAccount> spidUserAccountService(
+    //        SpidUserAccountEntityRepository accountRepository,
+    //        SubjectService subjectService
+    //    ) {
+    //        return new SpidJpaUserAccountService(accountRepository, subjectService);
+    //    }
 
     @Bean
     public UserAccountService<InternalUserAccount> internalUserAccountService(

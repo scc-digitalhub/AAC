@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.spid.model;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,14 +34,14 @@ public class SpidUserIdentity extends AbstractUserIdentity {
         SystemKeys.RESOURCE_IDENTITY + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_SAML;
     private SpidUserAuthenticatedPrincipal principal;
 
-    private final SpidUserAccount account;
+    private final SamlUserAccount account;
     private Set<UserAttributes> attributes;
 
     public SpidUserIdentity(
         String authority,
         String provider,
         String realm,
-        SpidUserAccount account,
+        SamlUserAccount account,
         SpidUserAuthenticatedPrincipal principal
     ) {
         super(authority, provider, realm, account.getUuid(), account.getUserId());
@@ -63,7 +63,7 @@ public class SpidUserIdentity extends AbstractUserIdentity {
     }
 
     @Override
-    public SpidUserAccount getAccount() {
+    public SamlUserAccount getAccount() {
         return account;
     }
 

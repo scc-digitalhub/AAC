@@ -26,9 +26,9 @@ import it.smartcommunitylab.aac.config.SpidProperties;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
+import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.model.SpidUserIdentity;
-import it.smartcommunitylab.aac.spid.persistence.SpidUserAccount;
 import it.smartcommunitylab.aac.spid.provider.SpidFilterProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
@@ -49,7 +49,7 @@ public class SpidIdentityAuthority
     implements ApplicationEventPublisherAware {
 
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_SPID + "/";
-    private final UserAccountService<SpidUserAccount> accountService;
+    private final UserAccountService<SamlUserAccount> accountService;
     private final SpidRelyingPartyRegistrationRepository registrationRepository;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
     private final SpidFilterProvider filterProvider;
@@ -80,7 +80,7 @@ public class SpidIdentityAuthority
 
     public SpidIdentityAuthority(
         String authorityId,
-        UserAccountService<SpidUserAccount> accountService,
+        UserAccountService<SamlUserAccount> accountService,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
         super(authorityId, providerConfigRepository);
@@ -92,7 +92,7 @@ public class SpidIdentityAuthority
 
     @Autowired
     public SpidIdentityAuthority(
-        UserAccountService<SpidUserAccount> accountService,
+        UserAccountService<SamlUserAccount> accountService,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
         this(SystemKeys.AUTHORITY_SPID, accountService, providerConfigRepository);
