@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.users.persistence;
 
+import it.smartcommunitylab.aac.users.model.UserStatus;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,8 +27,6 @@ import javax.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import it.smartcommunitylab.aac.users.model.UserStatus;
 
 @Entity
 @Table(name = "users")

@@ -16,22 +16,22 @@
 
 package it.smartcommunitylab.aac.attributes.service;
 
-import it.smartcommunitylab.aac.attributes.DefaultAttributesSet;
 import it.smartcommunitylab.aac.attributes.base.AbstractAttribute;
 import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
-import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
-import it.smartcommunitylab.aac.attributes.model.DateAttribute;
-import it.smartcommunitylab.aac.attributes.model.DateTimeAttribute;
-import it.smartcommunitylab.aac.attributes.model.NumberAttribute;
-import it.smartcommunitylab.aac.attributes.model.SerializableAttribute;
-import it.smartcommunitylab.aac.attributes.model.StringAttribute;
-import it.smartcommunitylab.aac.attributes.model.TimeAttribute;
+import it.smartcommunitylab.aac.attributes.model.AttributeType;
+import it.smartcommunitylab.aac.attributes.model.DefaultAttributesSet;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
+import it.smartcommunitylab.aac.attributes.types.BooleanAttribute;
+import it.smartcommunitylab.aac.attributes.types.DateAttribute;
+import it.smartcommunitylab.aac.attributes.types.DateTimeAttribute;
+import it.smartcommunitylab.aac.attributes.types.NumberAttribute;
+import it.smartcommunitylab.aac.attributes.types.SerializableAttribute;
+import it.smartcommunitylab.aac.attributes.types.StringAttribute;
+import it.smartcommunitylab.aac.attributes.types.TimeAttribute;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.model.AttributeType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

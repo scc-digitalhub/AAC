@@ -16,13 +16,13 @@
 
 package it.smartcommunitylab.aac.attributes.service;
 
+import it.smartcommunitylab.aac.attributes.model.AttributeType;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeEntityRepository;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntity;
 import it.smartcommunitylab.aac.attributes.persistence.AttributeSetEntityRepository;
 import it.smartcommunitylab.aac.common.NoSuchAttributeException;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
-import it.smartcommunitylab.aac.model.AttributeType;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

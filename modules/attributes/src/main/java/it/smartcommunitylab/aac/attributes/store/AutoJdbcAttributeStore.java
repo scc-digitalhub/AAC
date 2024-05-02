@@ -16,6 +16,11 @@
 
 package it.smartcommunitylab.aac.attributes.store;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,13 +32,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
-import org.springframework.security.oauth2.common.util.SerializationUtils;
 import org.springframework.util.Assert;
 
+@Slf4j
 public class AutoJdbcAttributeStore {
 
     private static final String DEFAULT_SELECT_STATEMENT =
@@ -57,11 +63,15 @@ public class AutoJdbcAttributeStore {
     private String clearAttributeSql = DEFAULT_CLEAR_STATEMENT;
 
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<Pair<String, Optional<Serializable>>> rowMapper = new AttributeRowMapper();
+    private final RowMapper<Pair<String, Optional<Serializable>>> rowMapper;
+    private final ObjectMapper mapper;
 
     public AutoJdbcAttributeStore(DataSource dataSource) {
         Assert.notNull(dataSource, "DataSource required");
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        // use a custom mapper to serialize to compact representation
+        this.mapper = new CBORMapper().registerModule(new JavaTimeModule());
+        this.rowMapper = new AttributeRowMapper(this.mapper);
     }
 
     public Serializable getAttribute(String providerId, String entityId, String key) {
@@ -97,25 +107,34 @@ public class AutoJdbcAttributeStore {
         jdbcTemplate.update(clearAttributeSql, providerId, entityId);
 
         for (Entry<String, Serializable> entry : attributesSet) {
-            jdbcTemplate.update(
-                insertAttributeSql,
-                new Object[] {
-                    providerId,
-                    entityId,
-                    entry.getKey(),
-                    new SqlLobValue(SerializationUtils.serialize(entry.getValue())),
-                },
-                new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB }
-            );
+            try {
+                byte[] bytes = mapper.writeValueAsBytes(entry.getValue());
+
+                jdbcTemplate.update(
+                    insertAttributeSql,
+                    new Object[] { providerId, entityId, entry.getKey(), new SqlLobValue(bytes) },
+                    new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB }
+                );
+            } catch (JsonProcessingException e) {
+                log.error("error converting attribute {}: {}", entry.getKey(), e.getMessage());
+                throw new RuntimeException(e.getMessage());
+            }
         }
     }
 
     public void addAttribute(String providerId, String entityId, String key, Serializable value) {
-        jdbcTemplate.update(
-            insertAttributeSql,
-            new Object[] { providerId, entityId, key, new SqlLobValue(SerializationUtils.serialize(value)) },
-            new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB }
-        );
+        try {
+            byte[] bytes = mapper.writeValueAsBytes(value);
+
+            jdbcTemplate.update(
+                insertAttributeSql,
+                new Object[] { providerId, entityId, key, new SqlLobValue(bytes) },
+                new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB }
+            );
+        } catch (JsonProcessingException e) {
+            log.error("error converting attribute {}: {}", key, e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public void updateAttribute(String providerId, String entityId, String key, Serializable value) {
@@ -156,11 +175,27 @@ public class AutoJdbcAttributeStore {
 
     private static class AttributeRowMapper implements RowMapper<Pair<String, Optional<Serializable>>> {
 
+        private final ObjectMapper mapper;
+
+        public AttributeRowMapper(ObjectMapper mapper) {
+            Assert.notNull(mapper, "mapper required");
+            this.mapper = mapper;
+        }
+
         @Override
         public Pair<String, Optional<Serializable>> mapRow(ResultSet rs, int rowNum) throws SQLException {
             String key = rs.getString("attr_key");
-            Serializable value = SerializationUtils.deserialize(rs.getBytes("attr_value"));
-            return Pair.of(key, Optional.ofNullable(value));
+            byte[] bytes = rs.getBytes("attr_value");
+            if (bytes == null || bytes.length == 0) {
+                return Pair.of(key, Optional.ofNullable(null));
+            }
+            try {
+                Serializable value = mapper.readValue(bytes, Serializable.class);
+                return Pair.of(key, Optional.ofNullable(value));
+            } catch (IOException e) {
+                log.error("error reading value for {}: {}", key, e.getMessage());
+                throw new SQLException();
+            }
         }
     }
 }

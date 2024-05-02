@@ -36,14 +36,14 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 public abstract class AbstractConfigurableProviderAuthority<
-    RP extends AbstractConfigurableResourceProvider<? extends Resource, P, S, M>,
-    C extends ConfigurableProvider<S>,
-    P extends AbstractProviderConfig<S, M>,
+    T extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
+    P extends ConfigurableProvider<S>,
+    C extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractProviderAuthority<RP, P>
-    implements ConfigurableProviderAuthority<RP, C, P, S, M>, InitializingBean {
+    extends AbstractProviderAuthority<T, C>
+    implements ConfigurableProviderAuthority<T, P, C, S, M>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -51,7 +51,7 @@ public abstract class AbstractConfigurableProviderAuthority<
 
     protected AbstractConfigurableProviderAuthority(
         String authorityId,
-        ProviderConfigRepository<P> registrationRepository
+        ProviderConfigRepository<C> registrationRepository
     ) {
         super(authorityId, registrationRepository);
     }
@@ -67,7 +67,7 @@ public abstract class AbstractConfigurableProviderAuthority<
     }
 
     @Override
-    public P registerProvider(C cp) throws IllegalArgumentException, RegistrationException, SystemException {
+    public C registerProvider(P cp) throws IllegalArgumentException, RegistrationException, SystemException {
         // we support only matching provider as resource providers
         if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
             String providerId = cp.getProvider();
@@ -80,7 +80,7 @@ public abstract class AbstractConfigurableProviderAuthority<
 
             try {
                 // check if exists or id clashes with another provider from a different realm
-                P e = registrationRepository.findByProviderId(providerId);
+                C e = registrationRepository.findByProviderId(providerId);
                 if (e != null) {
                     if (!realm.equals(e.getRealm())) {
                         // name clash
@@ -95,7 +95,7 @@ public abstract class AbstractConfigurableProviderAuthority<
                     } else if (e.getVersion() == cp.getVersion()) {
                         // same version, already registered, nothing to do
                         // load to warm cache
-                        RP rp = providers.get(providerId);
+                        T rp = providers.get(providerId);
 
                         // return effective config
                         return rp.getConfig();
@@ -105,7 +105,7 @@ public abstract class AbstractConfigurableProviderAuthority<
                 }
 
                 // build config
-                P providerConfig = getConfigurationProvider().getConfig(cp);
+                C providerConfig = getConfigurationProvider().getConfig(cp);
                 if (logger.isTraceEnabled()) {
                     logger.trace(
                         "provider active config v{}: {}",
@@ -123,7 +123,7 @@ public abstract class AbstractConfigurableProviderAuthority<
                 registrationRepository.addRegistration(providerConfig);
 
                 // load to warm cache
-                RP rp = providers.get(providerId);
+                T rp = providers.get(providerId);
 
                 // return effective config
                 return rp.getConfig();
@@ -141,7 +141,7 @@ public abstract class AbstractConfigurableProviderAuthority<
 
     @Override
     public void unregisterProvider(String providerId) {
-        P registration = registrationRepository.findByProviderId(providerId);
+        C registration = registrationRepository.findByProviderId(providerId);
 
         if (registration != null) {
             // can't unregister system providers, check

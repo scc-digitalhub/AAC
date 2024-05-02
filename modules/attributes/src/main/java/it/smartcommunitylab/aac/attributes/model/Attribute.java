@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.attributes.model;
 
-import it.smartcommunitylab.aac.model.AttributeType;
 import java.io.Serializable;
 
 /*

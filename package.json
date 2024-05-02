@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "prettier:application": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"application/src/**/*.java\"",
-    "prettier:modules": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"modules/src/**/*.java\" \"idps/src/**/*.java\"",
+    "prettier:modules": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"modules/*/src/**/*.java\"",
+    "prettier:providers": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"providers/*/src/**/*.java\"",
+    "prettier:frontend": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"frontend/*/src/**/*.java\"",
     "prettier": "prettier --with-node-modules --plugin=prettier-plugin-java --config ./.prettierrc.yml --write --list-different \"modules/*/src/**/*.java\" \"idps/*/src/**/*.java\" \"frontend/*/src/**/*.java\" \"application/src/**/*.java\""
+
   },
   "devDependencies": {
     "prettier": "3.2.5",

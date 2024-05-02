@@ -30,13 +30,13 @@ import org.springframework.lang.Nullable;
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
  */
 public interface ConfigurableProviderAuthority<
-    RP extends ConfigurableResourceProvider<? extends Resource, P, S, M>,
+    T extends ConfigurableResourceProvider<? extends Resource, P, S, M>,
     C extends ConfigurableProvider<S>,
     P extends ProviderConfig<S, M>,
     S extends ConfigMap,
     M extends ConfigMap
 >
-    extends ProviderAuthority<RP> {
+    extends ProviderAuthority<T> {
     /*
      * Registration
      */

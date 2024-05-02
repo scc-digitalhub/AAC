@@ -24,7 +24,7 @@ import java.util.List;
 /*
  * Provider authorities handle resource providers
  */
-public interface ProviderAuthority<S extends ResourceProvider<? extends Resource>> {
+public interface ProviderAuthority<T extends ResourceProvider<? extends Resource>> {
     /*
      * Details
      */
@@ -39,12 +39,12 @@ public interface ProviderAuthority<S extends ResourceProvider<? extends Resource
 
     public boolean hasProvider(String providerId);
 
-    public S findProvider(String providerId);
+    public T findProvider(String providerId);
 
-    public S getProvider(String providerId) throws NoSuchProviderException;
+    public T getProvider(String providerId) throws NoSuchProviderException;
 
-    public List<S> listProviders();
+    public List<T> listProviders();
 
     // authorities are global, let consumers filter by realm
-    public List<S> getProvidersByRealm(String realm);
+    public List<T> getProvidersByRealm(String realm);
 }

@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 public abstract class AbstractProviderAuthority<
-    P extends AbstractConfigurableResourceProvider<
+    T extends AbstractConfigurableResourceProvider<
         ? extends Resource,
         C,
         ? extends AbstractSettingsMap,
@@ -46,7 +46,7 @@ public abstract class AbstractProviderAuthority<
     >,
     C extends AbstractProviderConfig<? extends AbstractSettingsMap, ? extends AbstractConfigMap>
 >
-    implements ProviderAuthority<P> {
+    implements ProviderAuthority<T> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -58,13 +58,13 @@ public abstract class AbstractProviderAuthority<
     // loading cache for idps
     // TODO replace with external loadableProviderRepository for
     // ProviderRepository<InternalIdentityProvider>
-    protected final LoadingCache<String, P> providers = CacheBuilder.newBuilder()
+    protected final LoadingCache<String, T> providers = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS) // expires 1 hour after fetch
         .maximumSize(100)
         .build(
-            new CacheLoader<String, P>() {
+            new CacheLoader<String, T>() {
                 @Override
-                public P load(final String id) throws Exception {
+                public T load(final String id) throws Exception {
                     logger.debug("load config from repository for {}", id);
                     try {
                         C config = registrationRepository.findByProviderId(id);
@@ -95,7 +95,7 @@ public abstract class AbstractProviderAuthority<
         return authorityId;
     }
 
-    protected abstract P buildProvider(C config);
+    protected abstract T buildProvider(C config);
 
     @Override
     public boolean hasProvider(String providerId) {
@@ -104,7 +104,7 @@ public abstract class AbstractProviderAuthority<
     }
 
     @Override
-    public P findProvider(String providerId) {
+    public T findProvider(String providerId) {
         Assert.hasText(providerId, "provider id can not be null or empty");
 
         try {
@@ -117,7 +117,7 @@ public abstract class AbstractProviderAuthority<
                 return null;
             }
 
-            P p = providers.get(providerId);
+            T p = providers.get(providerId);
 
             // check config version match against repo
             if (config.getVersion() > p.getConfig().getVersion()) {
@@ -134,9 +134,9 @@ public abstract class AbstractProviderAuthority<
     }
 
     @Override
-    public P getProvider(String providerId) throws NoSuchProviderException {
+    public T getProvider(String providerId) throws NoSuchProviderException {
         Assert.hasText(providerId, "provider id can not be null or empty");
-        P p = findProvider(providerId);
+        T p = findProvider(providerId);
         if (p == null) {
             throw new NoSuchProviderException();
         }
@@ -145,7 +145,18 @@ public abstract class AbstractProviderAuthority<
     }
 
     @Override
-    public List<P> getProvidersByRealm(String realm) {
+    public List<T> listProviders() {
+        // we need to fetch registrations and get idp from cache, with optional load
+        Collection<C> registrations = registrationRepository.findAll();
+        return registrations
+            .stream()
+            .map(r -> findProvider(r.getProvider()))
+            .filter(p -> (p != null))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<T> getProvidersByRealm(String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         Collection<C> registrations = registrationRepository.findByRealm(realm);
         return registrations

@@ -30,18 +30,18 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractSingleConfigurableProviderAuthority<
-    RP extends AbstractConfigurableResourceProvider<? extends Resource, P, S, M>,
-    C extends ConfigurableProvider<S>,
-    P extends AbstractProviderConfig<S, M>,
+    T extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
+    P extends ConfigurableProvider<S>,
+    C extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractConfigurableProviderAuthority<RP, C, P, S, M>
-    implements SingleProviderAuthority<RP, P, S, M> {
+    extends AbstractConfigurableProviderAuthority<T, P, C, S, M>
+    implements SingleProviderAuthority<T, C, S, M> {
 
     protected AbstractSingleConfigurableProviderAuthority(
         String authorityId,
-        ProviderConfigRepository<P> registrationRepository
+        ProviderConfigRepository<C> registrationRepository
     ) {
         super(authorityId, registrationRepository);
     }
@@ -69,10 +69,10 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     // }
 
     @Override
-    public RP findProviderByRealm(String realm) {
+    public T findProviderByRealm(String realm) {
         // we need to fetch registrations and get idp from cache, with optional load
         // we expect a single provider per realm, so fetch first
-        Collection<P> registrations = registrationRepository.findByRealm(realm);
+        Collection<C> registrations = registrationRepository.findByRealm(realm);
         return registrations
             .stream()
             .map(r -> findProvider(r.getProvider()))
@@ -82,9 +82,9 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     }
 
     @Override
-    public RP getProviderByRealm(String realm) throws NoSuchProviderException {
+    public T getProviderByRealm(String realm) throws NoSuchProviderException {
         // fetch first if available
-        RP provider = findProviderByRealm(realm);
+        T provider = findProviderByRealm(realm);
 
         if (provider == null) {
             throw new NoSuchProviderException();
@@ -94,9 +94,9 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
     }
 
     @Override
-    public List<RP> getProvidersByRealm(String realm) {
+    public List<T> getProvidersByRealm(String realm) {
         // fetch first if available
-        RP provider = findProviderByRealm(realm);
+        T provider = findProviderByRealm(realm);
         if (provider == null) {
             return Collections.emptyList();
         }

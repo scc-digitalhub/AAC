@@ -87,8 +87,6 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    
-
     // TODO replace manager with services for idp and ap
     //    private final AuthorityManager authorityManager;
     private final UserEntityService userService;
@@ -225,8 +223,10 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
                 // TODO rework loop
                 for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-                    ExtendedUserAuthenticationProvider<? extends UserAuthenticatedPrincipal, ? extends UserAccount> eap =
-                        idp.getAuthenticationProvider();
+                    ExtendedUserAuthenticationProvider<
+                        ? extends UserAuthenticatedPrincipal,
+                        ? extends UserAccount
+                    > eap = idp.getAuthenticationProvider();
                     if (eap == null) {
                         continue;
                     }
