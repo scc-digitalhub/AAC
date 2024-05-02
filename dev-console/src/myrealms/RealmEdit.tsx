@@ -24,12 +24,10 @@ export const RealmEdit = () => {
     };
 
     const transform = (data: any) => {
-        {
-            console.log(data);
-            let body = createRealm(data);
-            console.log(body);
-            return body;
-        }
+        console.log(data);
+        let body = createRealm(data);
+        console.log(body);
+        return body;
     };
 
     return (
