@@ -23,11 +23,11 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.attributes.provider.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfig;
+import it.smartcommunitylab.aac.attributes.provider.UserAttributeProviderConfig;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfig;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
@@ -47,7 +47,7 @@ import java.util.Set;
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractAttributeProviderConfig<M extends AbstractConfigMap>
     extends AbstractProviderConfig<AttributeProviderSettingsMap, M>
-    implements AttributeProviderConfig<M> {
+    implements UserAttributeProviderConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 

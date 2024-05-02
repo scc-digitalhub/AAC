@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.attributes.base;
 
+import it.smartcommunitylab.aac.attributes.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.attributes.provider.AttributeConfigurationProvider;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProviderAuthority;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.attributes.provider.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;

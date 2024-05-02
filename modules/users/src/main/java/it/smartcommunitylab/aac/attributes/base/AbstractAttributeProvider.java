@@ -17,8 +17,8 @@
 package it.smartcommunitylab.aac.attributes.base;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
+import it.smartcommunitylab.aac.attributes.provider.UserAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeService;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
@@ -33,7 +33,7 @@ public abstract class AbstractAttributeProvider<
     U extends AbstractUserAttributes, C extends AbstractAttributeProviderConfig<M>, M extends AbstractConfigMap
 >
     extends AbstractConfigurableResourceProvider<U, C, AttributeProviderSettingsMap, M>
-    implements AttributeProvider<U, M, C>, InitializingBean {
+    implements UserAttributeProvider<U, M, C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

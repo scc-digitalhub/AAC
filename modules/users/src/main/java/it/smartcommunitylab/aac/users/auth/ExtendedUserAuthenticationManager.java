@@ -19,7 +19,7 @@ package it.smartcommunitylab.aac.users.auth;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
+import it.smartcommunitylab.aac.attributes.provider.UserAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.auth.model.ExtendedAuthenticationToken;
 import it.smartcommunitylab.aac.auth.model.ProviderWrappedAuthenticationToken;
@@ -557,13 +557,13 @@ public class ExtendedUserAuthenticationManager implements AuthenticationManager 
 
             // load additional attributes from providers
             UserDetails userDetails = userAuth.getUser();
-            Collection<AttributeProvider<?, ?, ?>> attributeProviders = attributeProviderAuthorityService
+            Collection<UserAttributeProvider<?, ?, ?>> attributeProviders = attributeProviderAuthorityService
                 .getAuthorities()
                 .stream()
                 .flatMap(a -> a.getProvidersByRealm(realm).stream())
                 .collect(Collectors.toList());
 
-            for (AttributeProvider<?, ?, ?> ap : attributeProviders) {
+            for (UserAttributeProvider<?, ?, ?> ap : attributeProviders) {
                 // try to fetch attributes, don't stop authentication on errors
                 // attributes from aps are optional by definition
                 try {

@@ -26,8 +26,8 @@ import it.smartcommunitylab.aac.accounts.service.AccountServiceAuthorityService;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.attributes.model.UserAttributesResourceContext;
-import it.smartcommunitylab.aac.attributes.provider.AttributeProvider;
 import it.smartcommunitylab.aac.attributes.provider.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.provider.UserAttributeProvider;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.attributes.service.AttributeProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
@@ -612,7 +612,7 @@ public class UserService {
         }
 
         // fetch active
-        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
+        UserAttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(cap.getAuthority())
             .getProvider(cap.getProvider());
 
@@ -634,7 +634,7 @@ public class UserService {
         // }
 
         // fetch active
-        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
+        UserAttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(cap.getAuthority())
             .getProvider(cap.getProvider());
 
@@ -682,7 +682,7 @@ public class UserService {
         // }
 
         // fetch active
-        AttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
+        UserAttributeProvider<?, ?, ?> ap = attributeProviderAuthorityService
             .getAuthority(cap.getAuthority())
             .getProvider(cap.getProvider());
 
@@ -731,12 +731,12 @@ public class UserService {
     public List<UserAttributes> fetchUserAttributes(String subjectId, String realm) throws NoSuchUserException {
         List<UserAttributes> attributes = new ArrayList<>();
         // fetch from providers
-        Collection<AttributeProvider<?, ?, ?>> aps = attributeProviderAuthorityService
+        Collection<UserAttributeProvider<?, ?, ?>> aps = attributeProviderAuthorityService
             .getAuthorities()
             .stream()
             .flatMap(a -> a.getProvidersByRealm(realm).stream())
             .collect(Collectors.toList());
-        for (AttributeProvider<?, ?, ?> ap : aps) {
+        for (UserAttributeProvider<?, ?, ?> ap : aps) {
             attributes.addAll(ap.getUserAttributes(subjectId));
         }
 

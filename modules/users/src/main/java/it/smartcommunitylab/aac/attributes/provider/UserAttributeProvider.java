@@ -44,7 +44,7 @@ import java.util.Collection;
  *  they should not handle identities
  */
 public interface UserAttributeProvider<
-    U extends UserAttributes, M extends ConfigMap, C extends AttributeProviderConfig<M>
+    U extends UserAttributes, M extends ConfigMap, C extends UserAttributeProviderConfig<M>
 >
     extends ConfigurableResourceProvider<U, C, AttributeProviderSettingsMap, M> {
     /*

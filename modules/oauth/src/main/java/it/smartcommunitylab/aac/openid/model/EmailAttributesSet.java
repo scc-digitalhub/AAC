@@ -20,7 +20,6 @@ import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.types.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.types.StringAttribute;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
