@@ -153,13 +153,24 @@ public class ServicesService {
             .filter(s -> s != null)
             .collect(Collectors.toList());
     }
-
+    
     public it.smartcommunitylab.aac.services.Service addService(
         String realm,
         String serviceId,
         String namespace,
         String name,
         String description
+    ) throws RegistrationException {
+        return addService(realm, serviceId, namespace, name, description, null);
+    }
+
+    public it.smartcommunitylab.aac.services.Service addService(
+        String realm,
+        String serviceId,
+        String namespace,
+        String name,
+        String description,
+        Map<String, String> claimMapping
     ) throws RegistrationException {
         if (!StringUtils.hasText(realm)) {
             throw new MissingDataException("realm");
@@ -189,7 +200,9 @@ public class ServicesService {
         se.setName(name);
         se.setDescription(description);
 
-        se = serviceRepository.save(se);
+        se.setClaimMappings(claimMapping);
+
+        se = serviceRepository.saveAndFlush(se);
         return toService(se);
     }
 
@@ -208,7 +221,7 @@ public class ServicesService {
         se.setDescription(description);
         se.setClaimMappings(claimMapping);
 
-        se = serviceRepository.save(se);
+        se = serviceRepository.saveAndFlush(se);
 
         // check if subject exists
         Subject s = subjectService.findSubject(serviceId);
@@ -369,7 +382,7 @@ public class ServicesService {
         se.setApprovalAny(approvalAny);
         se.setApprovalRequired(approvalRequired);
 
-        se = scopeRepository.save(se);
+        se = scopeRepository.saveAndFlush(se);
 
         return ServiceScope.from(se, service.getNamespace());
     }
@@ -414,7 +427,7 @@ public class ServicesService {
         se.setApprovalAny(approvalAny);
         se.setApprovalRequired(approvalRequired);
 
-        se = scopeRepository.save(se);
+        se = scopeRepository.saveAndFlush(se);
 
         return ServiceScope.from(se, service.getNamespace());
     }
@@ -507,7 +520,7 @@ public class ServicesService {
         sc.setType(type.getValue());
         sc.setMultiple(multiple);
 
-        sc = claimRepository.save(sc);
+        sc = claimRepository.saveAndFlush(sc);
 
         return ServiceClaim.from(sc);
     }
@@ -535,7 +548,7 @@ public class ServicesService {
         sc.setType(type.getValue());
         sc.setMultiple(multiple);
 
-        sc = claimRepository.save(sc);
+        sc = claimRepository.saveAndFlush(sc);
 
         return ServiceClaim.from(sc);
     }
