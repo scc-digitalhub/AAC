@@ -52,7 +52,7 @@ import org.springframework.util.StringUtils;
 //         @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
 //     }
 // )
-public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S>, Serializable {
+public class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S>, Serializable {
 
     //TODO evaluate ENUM for known types
     @NotBlank
@@ -97,7 +97,7 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     @JsonProperty(access = Access.READ_ONLY)
     protected JsonSchema schema;
 
-    protected ConfigurableProviderImpl(String type, String authority, String provider, String realm) {
+    public ConfigurableProviderImpl(String type, String authority, String provider, String realm) {
         Assert.hasText(type, "type is required");
         this.type = type;
 

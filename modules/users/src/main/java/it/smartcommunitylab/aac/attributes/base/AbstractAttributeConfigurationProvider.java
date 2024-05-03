@@ -16,13 +16,11 @@
 
 package it.smartcommunitylab.aac.attributes.base;
 
-import com.fasterxml.jackson.databind.JavaType;
 import it.smartcommunitylab.aac.attributes.provider.AttributeConfigurationProvider;
 import it.smartcommunitylab.aac.attributes.provider.AttributeProviderSettingsMap;
 import it.smartcommunitylab.aac.attributes.provider.ConfigurableAttributeProvider;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 
 public abstract class AbstractAttributeConfigurationProvider<
     P extends AbstractAttributeProviderConfig<M>, M extends AbstractConfigMap
@@ -33,25 +31,24 @@ public abstract class AbstractAttributeConfigurationProvider<
     protected AbstractAttributeConfigurationProvider(String authority) {
         super(authority);
     }
+    // @Override
+    // protected ConfigurableAttributeProvider buildConfigurable(P providerConfig) {
+    //     ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(
+    //         providerConfig.getAuthority(),
+    //         providerConfig.getProvider(),
+    //         providerConfig.getRealm()
+    //     );
 
-    @Override
-    protected ConfigurableAttributeProvider buildConfigurable(P providerConfig) {
-        ConfigurableAttributeProvider cp = new ConfigurableAttributeProvider(
-            providerConfig.getAuthority(),
-            providerConfig.getProvider(),
-            providerConfig.getRealm()
-        );
+    //     cp.setName(providerConfig.getName());
+    //     cp.setTitleMap(providerConfig.getTitleMap());
+    //     cp.setDescriptionMap(providerConfig.getDescriptionMap());
 
-        cp.setName(providerConfig.getName());
-        cp.setTitleMap(providerConfig.getTitleMap());
-        cp.setDescriptionMap(providerConfig.getDescriptionMap());
+    //     cp.setSettings(getConfiguration(providerConfig.getSettingsMap()));
+    //     cp.setConfiguration(getConfiguration(providerConfig.getConfigMap()));
 
-        cp.setSettings(getConfiguration(providerConfig.getSettingsMap()));
-        cp.setConfiguration(getConfiguration(providerConfig.getConfigMap()));
+    //     // provider config are active by definition
+    //     cp.setEnabled(true);
 
-        // provider config are active by definition
-        cp.setEnabled(true);
-
-        return cp;
-    }
+    //     return cp;
+    // }
 }

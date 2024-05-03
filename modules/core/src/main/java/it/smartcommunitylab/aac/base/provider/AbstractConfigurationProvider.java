@@ -21,14 +21,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
+import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -36,15 +36,16 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
+@Slf4j
 public abstract class AbstractConfigurationProvider<
-    P extends AbstractProviderConfig<S, M>,
+    P extends ProviderConfig<S, M>,
     C extends ConfigurableProvider<S>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
@@ -54,46 +55,49 @@ public abstract class AbstractConfigurationProvider<
     protected static final ObjectMapper mapper = new ObjectMapper()
         .addMixIn(AbstractSettingsMap.class, NoTypes.class)
         .addMixIn(AbstractConfigMap.class, NoTypes.class);
-    private final JavaType configType;
+
+    private final JavaType providerType;
+    private final JavaType configurableType;
     private final JavaType settingsType;
+    private final JavaType configType;
 
     private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
         HashMap<String, Serializable>
     >() {};
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     protected final String authority;
-
-    // protected SmartValidator validator;
 
     protected S defaultSettingsMap;
     protected M defaultConfigMap;
 
+    protected SmartValidator validator;
+
     protected AbstractConfigurationProvider(String authority) {
         Assert.hasText(authority, "authority id  is mandatory");
+        log.debug("init configuration provider for {}", authority);
 
         this.authority = authority;
 
-        this.settingsType = extractSettingsType();
-        this.configType = extractConfigType();
+        this.providerType = _extractJavaType(0);
+        this.configurableType = _extractJavaType(1);
+        this.settingsType = _extractJavaType(2);
+        this.configType = _extractJavaType(3);
 
+        Assert.notNull(providerType, "settings type could not be extracted");
+        Assert.notNull(configurableType, "settings type could not be extracted");
         Assert.notNull(settingsType, "settings type could not be extracted");
         Assert.notNull(configType, "config type could not be extracted");
+
+        log.debug("init configuration provider for {}: {}", configurableType.getTypeName(), providerType.getTypeName());
+        if (log.isTraceEnabled()) {
+            log.trace("inferred generics types: {},{}", settingsType.getTypeName(), configType.getTypeName());
+        }
     }
 
     private JavaType _extractJavaType(int pos) {
         // resolve generics type via subclass trick
         Type t = ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[pos];
         return mapper.getTypeFactory().constructSimpleType((Class<?>) t, null);
-    }
-
-    private JavaType extractSettingsType() {
-        return _extractJavaType(2);
-    }
-
-    private JavaType extractConfigType() {
-        return _extractJavaType(3);
     }
 
     protected void setDefaultSettingsMap(S defaultSettingsMap) {
@@ -104,14 +108,104 @@ public abstract class AbstractConfigurationProvider<
         this.defaultConfigMap = defaultConfigMap;
     }
 
-    // @Autowired
-    // public void setValidator(SmartValidator validator) {
-    //     this.validator = validator;
-    // }
+    @Autowired
+    public void setValidator(SmartValidator validator) {
+        this.validator = validator;
+    }
 
-    protected abstract C buildConfigurable(P pc);
+    protected C buildConfigurable(@NotNull P pc) {
+        //sanity check
+        if (pc == null || !authority.equals(pc.getAuthority())) {
+            throw new IllegalArgumentException("invalid or mismatched config");
+        }
 
-    protected abstract P buildConfig(C cp);
+        //try auto-build if C is subclass of default
+        if (configurableType.isTypeOrSubTypeOf(ConfigurableProviderImpl.class)) {
+            log.debug("build configurable for {}", pc.getProvider());
+            if (log.isTraceEnabled()) {
+                log.trace("config: {}", pc);
+            }
+
+            try {
+                //build as typed
+                @SuppressWarnings("unchecked")
+                C cp = (C) configurableType.getClass().getDeclaredConstructor().newInstance();
+                cp.setAuthority(pc.getAuthority());
+                cp.setProvider(pc.getProvider());
+                cp.setRealm(pc.getRealm());
+
+                cp.setName(pc.getName());
+                cp.setTitleMap(pc.getTitleMap());
+                cp.setDescriptionMap(pc.getDescriptionMap());
+
+                cp.setSettings(getConfiguration(pc.getSettingsMap()));
+                cp.setConfiguration(getConfiguration(pc.getConfigMap()));
+
+                // provider config are active by definition
+                cp.setEnabled(true);
+
+                if (log.isTraceEnabled()) {
+                    log.trace("configurable: {}", cp);
+                }
+
+                return cp;
+            } catch (Exception e) {
+                throw new UnsupportedOperationException();
+            }
+        }
+
+        throw new UnsupportedOperationException();
+    }
+
+    protected P buildConfig(@NotNull C cp) {
+        //sanity check
+        if (cp == null || !authority.equals(cp.getAuthority())) {
+            throw new IllegalArgumentException("invalid or mismatched config");
+        }
+
+        //try auto-build if C is subclass of default
+        if (providerType.isTypeOrSubTypeOf(AbstractProviderConfig.class)) {
+            log.debug("build config for {}", cp.getProvider());
+            if (log.isTraceEnabled()) {
+                log.trace("configurable: {}", cp);
+            }
+
+            //build as typed
+            try {
+                @SuppressWarnings("unchecked")
+                P pc = (P) providerType
+                    .getClass()
+                    .getDeclaredConstructor(String.class, String.class, String.class)
+                    .newInstance(cp.getAuthority(), cp.getProvider(), cp.getRealm());
+                @SuppressWarnings("unchecked")
+                AbstractProviderConfig<S, M> apc = (AbstractProviderConfig<S, M>) pc;
+
+                apc.setName(cp.getName());
+                apc.setTitleMap(cp.getTitleMap());
+                apc.setDescriptionMap(cp.getDescriptionMap());
+
+                apc.setSettingsMap(getSettingsMap(cp.getSettings()));
+                apc.setConfigMap(getConfigMap(cp.getConfiguration()));
+                apc.setVersion(cp.getVersion());
+
+                if (validator != null) {
+                    //validate configs
+                    validateConfigMap(pc.getSettingsMap());
+                    validateConfigMap(pc.getConfigMap());
+                }
+
+                if (log.isTraceEnabled()) {
+                    log.trace("config: {}", pc);
+                }
+
+                return pc;
+            } catch (Exception e) {
+                throw new UnsupportedOperationException();
+            }
+        }
+
+        throw new UnsupportedOperationException();
+    }
 
     // protected C buildConfig(C cp) {
     //     try {
@@ -313,24 +407,31 @@ public abstract class AbstractConfigurationProvider<
     //     }
     // }
 
-    // protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
-    //     // check with validator
-    //     if (validator != null) {
-    //         DataBinder binder = new DataBinder(configurable);
-    //         validator.validate(configurable, binder.getBindingResult());
-    //         if (binder.getBindingResult().hasErrors()) {
-    //             StringBuilder sb = new StringBuilder();
-    //             binder
-    //                 .getBindingResult()
-    //                 .getFieldErrors()
-    //                 .forEach(e -> {
-    //                     sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-    //                 });
-    //             String errorMsg = sb.toString();
-    //             throw new RegistrationException(errorMsg);
-    //         }
-    //     }
-    // }
+    protected void validateConfigMap(ConfigMap configurable) throws RegistrationException {
+        // check with validator
+        if (validator != null) {
+            log.debug("validate configMap");
+            if (log.isTraceEnabled()) {
+                log.trace("configMap: {}", configurable);
+            }
+
+            DataBinder binder = new DataBinder(configurable);
+            validator.validate(configurable, binder.getBindingResult());
+            if (binder.getBindingResult().hasErrors()) {
+                log.debug("errors with configMap: {}", binder.getBindingResult().getFieldErrors());
+
+                StringBuilder sb = new StringBuilder();
+                binder
+                    .getBindingResult()
+                    .getFieldErrors()
+                    .forEach(e -> {
+                        sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+                    });
+                String errorMsg = sb.toString();
+                throw new RegistrationException(errorMsg);
+            }
+        }
+    }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
     static class NoTypes {}

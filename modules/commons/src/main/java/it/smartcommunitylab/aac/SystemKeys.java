@@ -20,8 +20,8 @@ public class SystemKeys {
 
     // to be upgraded when serialized objects are updated, breaks db
     // TODO implement
-    public static final long AAC_COMMON_SERIAL_VERSION = 420L;
-    public static final long AAC_CORE_SERIAL_VERSION = 420L;
+    public static final long AAC_COMMON_SERIAL_VERSION = 600L;
+    public static final long AAC_CORE_SERIAL_VERSION = 600L;
     public static final long AAC_OAUTH2_SERIAL_VERSION = 420L;
     public static final long AAC_OIDC_SERIAL_VERSION = 420L;
     public static final long AAC_SAML_SERIAL_VERSION = 420L;

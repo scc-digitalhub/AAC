@@ -52,11 +52,6 @@ public abstract class AbstractAttributeAuthority<
         this.attributeService = attributeService;
     }
 
-    // @Override
-    // public String getType() {
-    //     return SystemKeys.RESOURCE_ATTRIBUTES;
-    // }
-
     @Override
     public AttributeConfigurationProvider<C, M> getConfigurationProvider() {
         return configProvider;
