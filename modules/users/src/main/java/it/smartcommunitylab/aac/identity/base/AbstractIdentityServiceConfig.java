@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityService;
@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<AccountServiceSettingsMap, M>
+    extends AbstractProviderConfig<AccountProviderSettingsMap, M>
     implements IdentityServiceConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -47,7 +47,7 @@ public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
         String authority,
         String provider,
         String realm,
-        AccountServiceSettingsMap settingsMap,
+        AccountProviderSettingsMap settingsMap,
         M configMap
     ) {
         super(authority, provider, realm, settingsMap, configMap);
@@ -55,7 +55,7 @@ public abstract class AbstractIdentityServiceConfig<M extends AbstractConfigMap>
 
     protected AbstractIdentityServiceConfig(
         ConfigurableIdentityService cp,
-        AccountServiceSettingsMap settingsMap,
+        AccountProviderSettingsMap settingsMap,
         M configMap
     ) {
         super(cp, settingsMap, configMap);

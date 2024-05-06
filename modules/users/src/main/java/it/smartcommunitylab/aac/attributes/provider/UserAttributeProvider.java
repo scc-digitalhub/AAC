@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.common.NoSuchAttributeSetException;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
 import java.util.Collection;
 
 /*
@@ -46,7 +47,7 @@ import java.util.Collection;
 public interface UserAttributeProvider<
     U extends UserAttributes, M extends ConfigMap, C extends UserAttributeProviderConfig<M>
 >
-    extends ConfigurableResourceProvider<U, C, AttributeProviderSettingsMap, M> {
+    extends ConfigurableResourceProvider<U, C, AttributeProviderSettingsMap, M>, UserPersistedResourceProvider<U> {
     /*
      * Attribute sets (for scopes)
      *

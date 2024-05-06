@@ -545,7 +545,7 @@ public abstract class AbstractConfigurableProviderService<
     }
 
     @Override
-    public T getResourceProvider(String providerId) throws NoSuchProviderException {
+    public T getResourceProvider(String providerId) throws NoSuchProviderException, NoSuchAuthorityException {
         // ask authority
         return authorities
             .values()

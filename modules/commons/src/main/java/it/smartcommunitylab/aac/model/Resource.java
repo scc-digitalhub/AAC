@@ -42,7 +42,7 @@ public interface Resource extends Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append(getType()).append("://");
         sb.append(getAuthority()).append("/");
-        sb.append(getRealm()).append("/");
+        sb.append(getProvider()).append(":");
         sb.append(getId());
 
         return sb.toString();

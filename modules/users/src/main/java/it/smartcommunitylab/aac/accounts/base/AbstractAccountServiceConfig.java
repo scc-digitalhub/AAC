@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfig;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderConfig;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import org.springframework.util.StringUtils;
@@ -42,8 +42,8 @@ import org.springframework.util.StringUtils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
 public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
-    extends AbstractProviderConfig<AccountServiceSettingsMap, M>
-    implements AccountServiceConfig<M> {
+    extends AbstractProviderConfig<AccountProviderSettingsMap, M>
+    implements AccountProviderConfig<M> {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
@@ -51,15 +51,15 @@ public abstract class AbstractAccountServiceConfig<M extends AbstractConfigMap>
         String authority,
         String provider,
         String realm,
-        AccountServiceSettingsMap settingsMap,
+        AccountProviderSettingsMap settingsMap,
         M configMap
     ) {
         super(authority, provider, realm, settingsMap, configMap);
     }
 
     protected AbstractAccountServiceConfig(
-        ConfigurableAccountService cp,
-        AccountServiceSettingsMap settingsMap,
+        ConfigurableAccountProvider cp,
+        AccountProviderSettingsMap settingsMap,
         M configMap
     ) {
         super(cp, settingsMap, configMap);

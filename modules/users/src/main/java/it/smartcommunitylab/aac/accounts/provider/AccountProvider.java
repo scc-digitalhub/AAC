@@ -20,11 +20,14 @@ import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchResourceException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
+import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
 import java.util.Collection;
 
 //TODO split identityAccountProvider out, make this Configurable (merge from accountService)
-public interface AccountProvider<U extends UserAccount> extends UserPersistedResourceProvider<U> {
+public interface AccountProvider<U extends UserAccount, M extends ConfigMap, C extends AccountProviderConfig<M>>
+    extends ConfigurableResourceProvider<U, C, AccountProviderSettingsMap, M>, UserPersistedResourceProvider<U> {
     /*
      * Fetch accounts from this provider
      */

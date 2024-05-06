@@ -16,9 +16,13 @@
 
 package it.smartcommunitylab.aac.model;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.util.Assert;
 
 public interface ResourceContext<R extends Resource> {
@@ -46,5 +50,21 @@ public interface ResourceContext<R extends Resource> {
         } else {
             getResources().put(type, resources);
         }
+    }
+
+    static Resource resolveKey(String key) {
+        Pattern pattern = Pattern.compile(SystemKeys.PATH_PATTERN);
+        Matcher matcher = pattern.matcher(key);
+        if (matcher.matches()) {
+            Map<String, String> fields = new HashMap<>();
+            fields.put("type", matcher.group(0));
+            fields.put("authority", matcher.group(1));
+            fields.put("provider ", matcher.group(2));
+            fields.put(" id ", matcher.group(3));
+
+            return ResourceAccessor.with(fields);
+        }
+
+        throw new IllegalArgumentException("Cannot create accessor for the given task string.");
     }
 }

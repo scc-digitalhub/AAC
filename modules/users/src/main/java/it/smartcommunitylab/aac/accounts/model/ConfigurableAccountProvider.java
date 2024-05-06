@@ -20,20 +20,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
 import javax.validation.Valid;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigurableAccountService extends ConfigurableProviderImpl<AccountServiceSettingsMap> {
+public class ConfigurableAccountProvider extends ConfigurableProviderImpl<AccountProviderSettingsMap> {
 
-    public ConfigurableAccountService(String authority, String provider, String realm) {
+    public ConfigurableAccountProvider(String authority, String provider, String realm) {
         super(SystemKeys.RESOURCE_ACCOUNT, authority, provider, realm);
     }
 
-    public ConfigurableAccountService() {
+    public ConfigurableAccountProvider() {
         super(SystemKeys.RESOURCE_ACCOUNT, null, null, null);
     }
 }

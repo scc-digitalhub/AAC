@@ -16,10 +16,11 @@
 
 package it.smartcommunitylab.aac.accounts.base;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
-import it.smartcommunitylab.aac.base.provider.AbstractProvider;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -32,9 +33,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 @Transactional
-public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
-    extends AbstractProvider<U>
-    implements AccountProvider<U> {
+public abstract class AbstractAccountProvider<
+    U extends AbstractUserAccount, C extends AbstractAccountServiceConfig<M>, M extends AbstractConfigMap
+>
+    extends AbstractConfigurableResourceProvider<U, C, AccountProviderSettingsMap, M>
+    implements AccountProvider<U, M, C> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -46,12 +49,14 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
         String authority,
         String providerId,
         UserAccountService<U> accountService,
-        String repositoryId,
+        C config,
         String realm
     ) {
-        super(authority, providerId, realm);
+        super(authority, providerId, realm, config);
         Assert.notNull(accountService, "account service is mandatory");
-        Assert.hasText(repositoryId, "repository id is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
+
+        this.repositoryId = config.getRepositoryId();
 
         logger.debug(
             "create {} account provider for realm {} with id {}",
@@ -61,7 +66,6 @@ public abstract class AbstractAccountProvider<U extends AbstractUserAccount>
         );
 
         this.accountService = accountService;
-        this.repositoryId = repositoryId;
     }
 
     // @Override

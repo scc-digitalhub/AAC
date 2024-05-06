@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.core.service;
 
+import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.provider.ResourceProvider;
 import it.smartcommunitylab.aac.model.Resource;
@@ -30,7 +31,7 @@ public interface ResourceProviderRegistry<S extends ResourceProvider<? extends R
 
     public S findResourceProvider(String providerId);
 
-    public S getResourceProvider(String providerId) throws NoSuchProviderException;
+    public S getResourceProvider(String providerId) throws NoSuchProviderException, NoSuchAuthorityException;
 
     public Collection<S> listResourceProviders();
 

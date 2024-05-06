@@ -16,41 +16,40 @@
 
 package it.smartcommunitylab.aac.accounts.base;
 
-import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountService;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceConfigurationProvider;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.accounts.model.ConfigurableAccountProvider;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderConfigurationProvider;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
 
 public abstract class AbstractAccountServiceConfigurationProvider<
     P extends AbstractAccountServiceConfig<M>, M extends AbstractConfigMap
 >
-    extends AbstractConfigurationProvider<P, ConfigurableAccountService, AccountServiceSettingsMap, M>
-    implements AccountServiceConfigurationProvider<P, M> {
+    extends AbstractConfigurationProvider<P, ConfigurableAccountProvider, AccountProviderSettingsMap, M>
+    implements AccountProviderConfigurationProvider<P, M> {
 
     protected AbstractAccountServiceConfigurationProvider(String authority) {
         super(authority);
-        setDefaultSettingsMap(new AccountServiceSettingsMap());
+        setDefaultSettingsMap(new AccountProviderSettingsMap());
     }
+    // @Override
+    // protected ConfigurableAccountService buildConfigurable(P providerConfig) {
+    //     ConfigurableAccountService cp = new ConfigurableAccountService(
+    //         providerConfig.getAuthority(),
+    //         providerConfig.getProvider(),
+    //         providerConfig.getRealm()
+    //     );
 
-    @Override
-    protected ConfigurableAccountService buildConfigurable(P providerConfig) {
-        ConfigurableAccountService cp = new ConfigurableAccountService(
-            providerConfig.getAuthority(),
-            providerConfig.getProvider(),
-            providerConfig.getRealm()
-        );
+    //     cp.setName(providerConfig.getName());
+    //     cp.setTitleMap(providerConfig.getTitleMap());
+    //     cp.setDescriptionMap(providerConfig.getDescriptionMap());
 
-        cp.setName(providerConfig.getName());
-        cp.setTitleMap(providerConfig.getTitleMap());
-        cp.setDescriptionMap(providerConfig.getDescriptionMap());
+    //     cp.setSettings(getConfiguration(providerConfig.getSettingsMap()));
+    //     cp.setConfiguration(getConfiguration(providerConfig.getConfigMap()));
 
-        cp.setSettings(getConfiguration(providerConfig.getSettingsMap()));
-        cp.setConfiguration(getConfiguration(providerConfig.getConfigMap()));
+    //     // provider config are active by definition
+    //     cp.setEnabled(true);
 
-        // provider config are active by definition
-        cp.setEnabled(true);
-
-        return cp;
-    }
+    //     return cp;
+    // }
 }

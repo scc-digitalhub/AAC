@@ -29,12 +29,12 @@ import javax.validation.Valid;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AccountServiceSettingsMap extends AbstractSettingsMap {
+public class AccountProviderSettingsMap extends AbstractSettingsMap {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     public static final String RESOURCE_TYPE =
-        SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_ACCOUNT_SERVICE;
+        SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_ACCOUNT;
 
     private String repositoryId;
 
@@ -47,7 +47,7 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
     }
 
     @JsonIgnore
-    public void setConfiguration(AccountServiceSettingsMap map) {
+    public void setConfiguration(AccountProviderSettingsMap map) {
         if (map == null) {
             throw new IllegalArgumentException();
         }
@@ -60,13 +60,13 @@ public class AccountServiceSettingsMap extends AbstractSettingsMap {
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        AccountServiceSettingsMap map = mapper.convertValue(props, AccountServiceSettingsMap.class);
+        AccountProviderSettingsMap map = mapper.convertValue(props, AccountProviderSettingsMap.class);
         setConfiguration(map);
     }
 
     @Override
     @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
-        return schemaGen.generateSchema(AccountServiceSettingsMap.class);
+        return schemaGen.generateSchema(AccountProviderSettingsMap.class);
     }
 }

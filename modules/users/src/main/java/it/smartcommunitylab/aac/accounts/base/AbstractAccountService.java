@@ -20,8 +20,8 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvider;
 import it.smartcommunitylab.aac.common.MissingDataException;
@@ -47,7 +47,7 @@ public abstract class AbstractAccountService<
     C extends AbstractAccountServiceConfig<M>,
     M extends AbstractConfigMap
 >
-    extends AbstractConfigurableResourceProvider<U, C, AccountServiceSettingsMap, M>
+    extends AbstractConfigurableResourceProvider<U, C, AccountProviderSettingsMap, M>
     implements AccountService<U, E, M, C>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

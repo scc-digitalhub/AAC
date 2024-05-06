@@ -17,7 +17,7 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableAuthorityService;
 import it.smartcommunitylab.aac.identity.IdentityServiceAuthority;
 import java.util.Collection;
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 //TODO drop whole identity service
 @Service
 public class IdentityServiceAuthorityService
-    extends AbstractConfigurableAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>, AccountServiceSettingsMap>
+    extends AbstractConfigurableAuthorityService<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>, AccountProviderSettingsMap>
     implements InitializingBean {
 
     public IdentityServiceAuthorityService(Collection<IdentityServiceAuthority<?, ?, ?, ?, ?, ?>> authorities) {

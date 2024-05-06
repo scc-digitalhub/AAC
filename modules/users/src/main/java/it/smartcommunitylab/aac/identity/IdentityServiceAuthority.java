@@ -18,7 +18,7 @@ package it.smartcommunitylab.aac.identity;
 
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
-import it.smartcommunitylab.aac.accounts.provider.AccountServiceSettingsMap;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
@@ -35,7 +35,7 @@ public interface IdentityServiceAuthority<
     M extends ConfigMap,
     C extends IdentityServiceConfig<M>
 >
-    extends ConfigurableProviderAuthority<S, ConfigurableIdentityService, C, AccountServiceSettingsMap, M> {
+    extends ConfigurableProviderAuthority<S, ConfigurableIdentityService, C, AccountProviderSettingsMap, M> {
     /*
      * Filter provider exposes filters for registration in filter chain
      */
