@@ -78,7 +78,6 @@ public class SpidWebSsoAuthenticationRequestFilter
     private ApplicationEventPublisher eventPublisher;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
 
-    //TODO replace with spid specific implementation, handling resolution via relayState AND/OR requestId
     private Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository =
         new HttpSessionSaml2AuthenticationRequestRepository(
             HttpSessionSaml2AuthenticationRequestRepository.class.getName() + ".SPID_AUTHORIZATION_REQUEST"

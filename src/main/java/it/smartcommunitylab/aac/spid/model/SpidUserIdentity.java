@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.springframework.util.Assert;
 
-// TODO: review whether this class is necessary, as current implementation are OIDCUserIndentity, InternalUserIdentity and
 public class SpidUserIdentity extends AbstractUserIdentity {
 
     private static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;

@@ -46,7 +46,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public class SpidMetadataFilter extends OncePerRequestFilter {
 
-    // TODO: check specs if this URI is ok
     public static final String DEFAULT_FILTER_URI = SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
 
     private final Saml2MetadataFilter samlMetadataFilter;

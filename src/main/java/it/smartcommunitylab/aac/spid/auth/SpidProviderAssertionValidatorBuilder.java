@@ -2,28 +2,22 @@ package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.opensaml.saml.saml2.core.Assertion;
-import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.AuthnStatement;
 import org.opensaml.saml.saml2.core.NameIDType;
-import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.saml.saml2.core.SubjectConfirmation;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.Nullable;
 import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.core.Saml2ResponseValidatorResult;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 public class SpidProviderAssertionValidatorBuilder {
 
@@ -148,7 +142,6 @@ public class SpidProviderAssertionValidatorBuilder {
         if (confirmation.getSubjectConfirmationData() == null) {
             return false;
         }
-        // TODO: move subject confirmation data checks somewhere else
         if (confirmation.getSubjectConfirmationData().getRecipient() == null) {
             return false;
         }

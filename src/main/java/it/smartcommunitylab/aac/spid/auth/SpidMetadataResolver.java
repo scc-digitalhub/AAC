@@ -257,25 +257,12 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         assertionConsumerService.setIsDefault(true);
         spSsoDescriptor.getAssertionConsumerServices().add(assertionConsumerService);
 
-        // Add single attribute consuming service to <SPSSODescriptor>
+        // Add single attribute consuming service to <SPSSODescriptor>. The metadata exposes one and only
+        // one index set (Set0) associated to an attribute set configurable by the user.
         AttributeConsumingService attributeConsumingService = attributeConsumingServiceBuilder.buildObject();
-        // TODO: support multiple <AttributeConsumingService>, one per requested attribute set
-        //  - idea: default (index 0) is ask everything, additional sets might be asked from config map
         attributeConsumingService.setIndex(0);
         attributeConsumingService.setIsDefault(true);
 
-        //        // TODO: below we support default set that asks for everything SPID related: support for more index sets to be added
-        //        ServiceName defaultServiceName = serviceNameBuilder.buildObject();
-        //        defaultServiceName.setValue(DEFAULT_SERVICE_NAME);
-        //        defaultServiceName.setXMLLang("it");
-        //        attributeConsumingService.getNames().add(defaultServiceName);
-        //        for (SpidAttribute attr : SpidAttribute.values()) {
-        //            RequestedAttribute reqAttribute = requestedAttributeBuilder.buildObject();
-        //            reqAttribute.setName(attr.getValue());
-        //            attributeConsumingService.getRequestedAttributes().add(reqAttribute);
-        //        }
-
-        // TODO: below we support default set that asks for what is configured in the provider config map: support for more index sets to be added
         ServiceName defaultServiceName = serviceNameBuilder.buildObject();
         defaultServiceName.setValue(DEFAULT_SERVICE_NAME);
         defaultServiceName.setXMLLang("it");
@@ -340,12 +327,6 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
     private ContactPerson buildContactPerson(SpidIdentityProviderConfig config) {
         SpidIdentityProviderConfigMap configMap = config.getConfigMap();
         boolean isPublic = true;
-        // TODO: consider removal as private is currently not supported
-        //        if (configMap.getContactPerson_Public() != null) {
-        //            isPublic = configMap.getContactPerson_Public();
-        //        } else {
-        //            isPublic = true;
-        //        }
 
         ContactPerson contactPerson = contactPersonBuilder.buildObject();
         contactPerson.setType(ContactPersonTypeEnumeration.OTHER);

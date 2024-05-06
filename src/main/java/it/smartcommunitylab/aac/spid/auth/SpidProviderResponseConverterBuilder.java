@@ -39,10 +39,6 @@ public class SpidProviderResponseConverterBuilder {
             Response response = responseToken.getResponse();
             Saml2Authentication auth = defaultResponseConverter.convert(responseToken);
 
-            // TODO: rivedere la posizione del validator: alcuni controllo sono stati spostati su openSamlProvider.setResponseValidator(…) ma potrebbe non essere un approccio idoneo
-            // validate as required by SPID
-            //            spidValidator.validateResponse(responseToken);
-
             // extract extra information and add as attribute, then rebuild auth with new enriched attributes and default authority
             Map<String, List<Object>> attributes = new HashMap<>(
                 ((Saml2AuthenticatedPrincipal) auth.getPrincipal()).getAttributes()
