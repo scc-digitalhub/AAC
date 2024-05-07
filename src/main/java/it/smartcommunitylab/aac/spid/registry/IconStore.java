@@ -67,7 +67,9 @@ public class IconStore {
             metadataUrl = new URL(metadataLocation);
         } catch (MalformedURLException e) {
             logger.error(
-                "unable to build request uri for icon for entity id " + entityId + " due to error: " + e.getMessage()
+                "unable to build request uri for icon for entity id {} due to error: {}",
+                entityId,
+                e.getMessage()
             );
             return null;
         }
@@ -77,9 +79,8 @@ public class IconStore {
             conn.setRequestMethod("GET");
         } catch (IOException e) {
             logger.error(
-                "unable to open connection to retrieve metadata for entity id " +
-                entityId +
-                " due to error: " +
+                "unable to open connection to retrieve metadata for entity id {} due to error: {}",
+                entityId,
                 e.getMessage()
             );
             return null;
@@ -100,7 +101,7 @@ public class IconStore {
         try {
             model = new ObjectMapper().readValue(metadataResult.toString(), SpidIdpMetadataModel.class);
         } catch (JsonProcessingException e) {
-            logger.error("failed to parse metadata for entity id " + entityId + " due to error: " + e.getMessage());
+            logger.error("failed to parse metadata for entity id {} due to error: {}", entityId, e.getMessage());
             return null;
         }
         return model.getLogoUri();

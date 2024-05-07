@@ -49,6 +49,9 @@ public enum SpidError {
     AUTH_FAILED_CANCELED(25, "auth failed: process canceled"),
     AUTH_FAILED_WRONG_IDENTITY_TYPE(30, "auth failed: wrong identity type");
 
+    // TODO: considera la possibilità di aggiungere un valore per i messaggi di errore generico che vanno trasportati all'interfaccia
+    //  copia pure quelli di Samo2ErrorCodes visto che sono generato da cose di quel tipo (mappati a numeri negativi o 1xxx)
+
     private final Integer value;
     private final String message;
 

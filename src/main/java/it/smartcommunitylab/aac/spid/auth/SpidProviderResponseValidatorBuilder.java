@@ -59,11 +59,20 @@ public class SpidProviderResponseValidatorBuilder {
                     new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
                 );
             }
-            // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
+
             Response response = responseToken.getResponse();
+
+            // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
             if (response.getVersion() == null || !isVersion20(response)) {
                 return result.concat(
                     new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or wrong response version")
+                );
+            }
+
+            // ID must exists and must be not null
+            if (!StringUtils.hasText(response.getID())) {
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing ID attribute in response")
                 );
             }
 
@@ -79,7 +88,10 @@ public class SpidProviderResponseValidatorBuilder {
             }
             if (!isIssueInstantFormatValid(response)) {
                 return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "invalid issue instant format")
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "invalid issue instant format in response"
+                    )
                 );
             }
             if (!isIssueInstantAfterRequest(initiatingRequest, response)) {
@@ -94,13 +106,19 @@ public class SpidProviderResponseValidatorBuilder {
             // InResponseTo attribute must exists an d be nontrivial
             if (!StringUtils.hasText(response.getInResponseTo())) {
                 return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or empty InResponseTo attribute")
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "missing or empty InResponseTo attribute in response"
+                    )
                 );
             }
             // Destination attribute must exists and be nontrivial
             if (!StringUtils.hasText(response.getDestination())) {
                 return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or empty Destination attribute")
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "missing or empty Destination attribute in response"
+                    )
                 );
             }
 
@@ -118,7 +136,7 @@ public class SpidProviderResponseValidatorBuilder {
                 return result.concat(
                     new Saml2Error(
                         Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "obtained ACR does not match requested ACR"
+                        "obtained ACR does not match requested ACR in response"
                     )
                 );
             }
