@@ -82,6 +82,8 @@ public class SpidAccountPrincipalConverter
         }
         account.setAttributes(principal.getAttributes());
 
+        // TODO: (1) aggiungi l'issuer (è l'idp upstream - prendendolo come attributo custom)
+        // TODO: (2) aggiungi lo status (che deve essere active)
         return account;
     }
 }

@@ -26,6 +26,7 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     private final String relyingPartyRegistrationId;
+    private final String assertingPartyRegistrationId;
     private final String issuer;
     private final String relayState;
     private final AbstractSaml2AuthenticationRequest samlAuthenticationRequest;
@@ -44,6 +45,25 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
         this.issuer = issuer;
         this.relayState = relayState;
         this.samlAuthenticationRequest = samlAuthenticationRequest;
+        this.assertingPartyRegistrationId = null;
+    }
+
+    public SerializableSaml2AuthenticationRequestContext(
+        String relyingPartyRegistrationId,
+        String assertingPartyRegistrationId,
+        String issuer,
+        String relayState,
+        AbstractSaml2AuthenticationRequest samlAuthenticationRequest
+    ) {
+        Assert.hasText(relyingPartyRegistrationId, "relyingPartyRegistrationId is required");
+        Assert.hasText(relayState, "relayState is required");
+        Assert.hasText(issuer, "issuer is required");
+
+        this.relyingPartyRegistrationId = relyingPartyRegistrationId;
+        this.assertingPartyRegistrationId = assertingPartyRegistrationId;
+        this.issuer = issuer;
+        this.relayState = relayState;
+        this.samlAuthenticationRequest = samlAuthenticationRequest;
     }
 
     protected SerializableSaml2AuthenticationRequestContext() {
@@ -52,6 +72,10 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
 
     public String getRelyingPartyRegistrationId() {
         return relyingPartyRegistrationId;
+    }
+
+    public String getAssertingPartyRegistrationId() {
+        return assertingPartyRegistrationId;
     }
 
     public String getIssuer() {
@@ -69,13 +93,22 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
     @Override
     public String toString() {
         return (
-            "SerializableSaml2AuthenticationRequestContext [relyingPartyRegistrationId=" +
+            "SerializableSaml2AuthenticationRequestContext{" +
+            "relyingPartyRegistrationId='" +
             relyingPartyRegistrationId +
-            ", issuer=" +
+            '\'' +
+            ", assertingPartyRegistrationId='" +
+            assertingPartyRegistrationId +
+            '\'' +
+            ", issuer='" +
             issuer +
-            ", relayState=" +
+            '\'' +
+            ", relayState='" +
             relayState +
-            "]"
+            '\'' +
+            ", samlAuthenticationRequest=" +
+            samlAuthenticationRequest +
+            '}'
         );
     }
 }

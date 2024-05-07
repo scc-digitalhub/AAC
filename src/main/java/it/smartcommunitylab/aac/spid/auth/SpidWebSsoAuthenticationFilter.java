@@ -29,7 +29,11 @@ import it.smartcommunitylab.aac.saml.service.Saml2AuthenticationTokenConverter;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import java.io.IOException;
+import java.net.http.HttpRequest;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,10 +53,13 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
+import org.springframework.security.web.util.UrlUtils;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /*
  * SpidWebSsoAuthenticationRequestFilter is the filter that intercepts SPID SAML authentication "responses" and
@@ -66,6 +73,7 @@ import org.springframework.util.StringUtils;
 public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     public static final String DEFAULT_FILTER_URI = SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
+    private static final char PATH_DELIMITER = '/';
 
     private final RequestMatcher requestMatcher;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRegistrationRepository;
@@ -98,11 +106,23 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
 
         // build a default resolver, will lookup by registrationId, to create default token converter
-        DefaultRelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(
-            relyingPartyRegistrationRepository
-        );
+        //        DefaultRelyingPartyRegistrationResolver registrationResolver = new DefaultRelyingPartyRegistrationResolver(
+        //            relyingPartyRegistrationRepository
+        //        );
+        //        this.authenticationConverter =
+        //            new Saml2AuthenticationTokenConverter((HttpServletRequest request, String relyingPartyRegistrationId) -> {
+        //                SerializableSaml2AuthenticationRequestContext ctx =
+        //                    authenticationRequestRepository.loadAuthenticationRequest(request);
+        //                if (ctx == null) {
+        //                    return null;
+        //                }
+        //                String regId = ctx.getAssertingPartyRegistrationId();
+        //                return relyingPartyRegistrationRepository.findByRegistrationId(regId);
+        //            });
         this.authenticationConverter =
-            new Saml2AuthenticationTokenConverter((RelyingPartyRegistrationResolver) registrationResolver);
+            new Saml2AuthenticationTokenConverter(
+                buildRelyingPartyRegistrationResolver(relyingPartyRegistrationRepository)
+            );
         setRequiresAuthenticationRequestMatcher(requestMatcher); // required by superclass logic and definition in order to intercept the /sso endpoint
 
         // redirect failed attempts to login
@@ -138,6 +158,85 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     public AuthenticationEntryPoint getAuthenticationEntryPoint() {
         return authenticationEntryPoint;
+    }
+
+    private RelyingPartyRegistrationResolver buildRelyingPartyRegistrationResolver(
+        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository
+    ) {
+        return (HttpServletRequest request, String relyingPartyRegistrationId) -> {
+            SerializableSaml2AuthenticationRequestContext ctx =
+                authenticationRequestRepository.loadAuthenticationRequest(request);
+            if (ctx == null) {
+                return null;
+            }
+            String regId = ctx.getAssertingPartyRegistrationId();
+            RelyingPartyRegistration relyingPartyRegistration = relyingPartyRegistrationRepository.findByRegistrationId(
+                regId
+            );
+            String applicationUri = getApplicationUri(request);
+            Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
+            String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());
+            String assertionConsumerServiceLocation = templateResolver.apply(
+                relyingPartyRegistration.getAssertionConsumerServiceLocation()
+            );
+            String singleLogoutServiceLocation = templateResolver.apply(
+                relyingPartyRegistration.getSingleLogoutServiceLocation()
+            );
+            String singleLogoutServiceResponseLocation = templateResolver.apply(
+                relyingPartyRegistration.getSingleLogoutServiceResponseLocation()
+            );
+            return RelyingPartyRegistration
+                .withRelyingPartyRegistration(relyingPartyRegistration)
+                .entityId(relyingPartyEntityId)
+                .assertionConsumerServiceLocation(assertionConsumerServiceLocation)
+                .singleLogoutServiceLocation(singleLogoutServiceLocation)
+                .singleLogoutServiceResponseLocation(singleLogoutServiceResponseLocation)
+                .build();
+        };
+    }
+
+    private static String getApplicationUri(HttpServletRequest request) {
+        UriComponents uriComponents = UriComponentsBuilder
+            .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+            .replacePath(request.getContextPath())
+            .replaceQuery(null)
+            .fragment(null)
+            .build();
+        return uriComponents.toUriString();
+    }
+
+    private Function<String, String> templateResolver(String applicationUri, RelyingPartyRegistration relyingParty) {
+        return template -> resolveUrlTemplate(template, applicationUri, relyingParty);
+    }
+
+    private static String resolveUrlTemplate(String template, String baseUrl, RelyingPartyRegistration relyingParty) {
+        if (template == null) {
+            return null;
+        }
+        String entityId = relyingParty.getAssertingPartyDetails().getEntityId();
+        String registrationId = relyingParty.getRegistrationId();
+        Map<String, String> uriVariables = new HashMap<>();
+        UriComponents uriComponents = UriComponentsBuilder
+            .fromHttpUrl(baseUrl)
+            .replaceQuery(null)
+            .fragment(null)
+            .build();
+        String scheme = uriComponents.getScheme();
+        uriVariables.put("baseScheme", (scheme != null) ? scheme : "");
+        String host = uriComponents.getHost();
+        uriVariables.put("baseHost", (host != null) ? host : "");
+        // following logic is based on HierarchicalUriComponents#toUriString()
+        int port = uriComponents.getPort();
+        uriVariables.put("basePort", (port == -1) ? "" : ":" + port);
+        String path = uriComponents.getPath();
+        if (StringUtils.hasLength(path) && path.charAt(0) != PATH_DELIMITER) {
+            path = PATH_DELIMITER + path;
+        }
+        uriVariables.put("basePath", (path != null) ? path : "");
+        uriVariables.put("baseUrl", uriComponents.toUriString());
+        uriVariables.put("entityId", StringUtils.hasText(entityId) ? entityId : "");
+        uriVariables.put("registrationId", StringUtils.hasText(registrationId) ? registrationId : "");
+        return UriComponentsBuilder.fromUriString(template).buildAndExpand(uriVariables).toUriString();
     }
 
     @Override
@@ -197,7 +296,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
             throw new Saml2AuthenticationException(saml2Error);
         }
         // chat that auth request and initiating request has matching RP registration id
-        String authRequestRegistrationId = authnReqContext.getRelyingPartyRegistrationId();
+        String authRequestRegistrationId = authnReqContext.getAssertingPartyRegistrationId();
         RelyingPartyRegistration registration = authenticationRequest.getRelyingPartyRegistration();
         if (!registration.getRegistrationId().equals(authRequestRegistrationId)) {
             // response doesn't belong here...

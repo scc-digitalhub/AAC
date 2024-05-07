@@ -333,7 +333,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
             .stream()
             .map(u -> {
                 try {
-                    return evalRelyingPartyRegistrationId(evalIdpKeyIdentifier(u));
+                    return encodeRegistrationId(evalRelyingPartyRegistrationId(evalIdpKeyIdentifier(u)));
                 } catch (URISyntaxException e) {
                     throw new IllegalArgumentException("invalid metadata uri " + e.getMessage());
                 }

@@ -168,6 +168,7 @@ public class SpidWebSsoAuthenticationRequestFilter
 
         SerializableSaml2AuthenticationRequestContext ctx = new SerializableSaml2AuthenticationRequestContext(
             authRequestId,
+            context.getRelyingPartyRegistration().getRegistrationId(),
             context.getIssuer(),
             context.getRelayState(),
             authenticationRequest
