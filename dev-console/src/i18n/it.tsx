@@ -125,6 +125,11 @@ const messages: TranslationMessages = {
             welcome: 'Benvenuto, %{name}',
             description:
                 'Gestisci le tue informazioni personali, gli account e le opzioni di sicurezza',
+            apps: {
+                title: 'Applicazioni client',
+                description: 'Rivedi e gestisci gli applicazioni',
+                manage: 'Gestisci gli applicazioni',
+            },
             accounts: {
                 title: 'Account',
                 description: 'Rivedi e gestisci gli account',
@@ -170,60 +175,6 @@ const messages: TranslationMessages = {
                 title: "Modifica l'account",
                 description: 'Aggiorna le tue informazioni di registrazione',
             },
-        },
-        profiles: {
-            header: 'Informazioni personali',
-            description:
-                'Rivedi e controlla le tue informazioni personali, come disponibili a applicazioni e servizi collegati',
-        },
-        connections: {
-            header: 'Applicazioni collegate',
-            description:
-                'Gestisci e controlla le applicazioni e i permessi. Hai dato accesso ad alcune delle tue informazioni personali a applicazioni di terze parti e siti web. Rivedi e rimuovi le applicazioni che non utilizzi più o che non ritieni affidabili',
-            permissions_num: 'Ha accesso a %{num} permessi',
-        },
-        credentials: {
-            header: 'Credenziali',
-            description:
-                'Rivedi, modifica, reimposta e rimuovi le credenziali di sicurezza associate al tuo account',
-        },
-        password: {
-            title: 'Gestisci le password',
-            subtitle:
-                'Imposta, cambia e aggiorna la tua password personale per il login',
-            edit: {
-                title: 'Modifica la password',
-                description:
-                    'Cambia la tua vecchia password e impostane una nuova',
-            },
-            delete: {
-                content:
-                    'Sei sicuro di voler rimuovere la password? Senza non potrai più effettuare il login via password',
-            },
-        },
-        webauthn: {
-            title: 'Gestisci le chiavi di sicurezza',
-            subtitle:
-                'Registra e utilizza per il login delle chiavi di sicurezza, come il tuo telefono o una chiave portatile',
-            create: {
-                title: 'Registra una chiave di sicurezza',
-                description:
-                    'Associa una chiave locale o trasferibile al tuo account personale',
-            },
-            edit: {
-                title: 'Modifica la chiave di sicurezza',
-                description:
-                    'Aggiorna la registrazione della chiave modificando le proprietà',
-            },
-            delete: {
-                content:
-                    'Sei sicuro di voler rimuovere la chiave? Non potrai più utilizzarla per il login',
-            },
-        },
-        security: {
-            header: 'Sicurezza',
-            description:
-                'Accedi alle impostazioni di sicurezza e consulta il registro delle operazioni',
         },
         audit: {
             title: 'Registro operazioni',
