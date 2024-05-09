@@ -5,47 +5,6 @@ import utils from '../utils';
 
 const raMessages = utils.deepCopy(germanMessages);
 
-// raMessages.ra.action = {
-//     add_filter: 'Filter hinzufügen',
-//     add: 'Hinzufügen',
-//     back: 'Zurück',
-//     bulk_actions:
-//         '1 ausgewähltes Element |||| %{smart_count} ausgewählte Elemente',
-//     cancel: 'Abbrechen',
-//     clear_array_input: 'Die Liste löschen',
-//     clear_input_value: 'Das Array löschen',
-//     clone: 'Klonen',
-//     confirm: 'Bestätigen',
-//     create: 'Erstellen',
-//     create_item: 'Erstellen %{item}',
-//     delete: 'Entfernen',
-//     edit: 'Bearbeiten',
-//     export: 'Exportieren',
-//     list: 'Liste',
-//     refresh: 'Aktualisieren',
-//     remove_filter: 'Filter entfernen',
-//     remove_all_filters: 'Alle Filter entfernen',
-//     remove: 'Entfernen',
-//     save: 'Speichern',
-//     search: 'Suchen',
-//     select_all: 'Alles auswählen',
-//     select_row: 'Zeile auswählen',
-//     show: 'Anzeigen',
-//     sort: 'Sortieren',
-//     undo: 'Rückgängig',
-//     unselect: 'Abwählen',
-//     expand: 'Erweitern',
-//     close: 'Schließen',
-//     open_menu: 'Menü öffnen',
-//     close_menu: 'Menü schließen',
-//     update: 'Bearbeiten',
-//     move_up: 'Nach oben bewegen',
-//     move_down: 'Nach unten bewegen',
-//     open: 'Öffnen',
-//     toggle_theme: 'Thema wechseln',
-//     select_columns: 'Spalten auswählen',
-// };
-
 raMessages.ra.page = {
     create: 'Erstellen Sie %{name}',
     dashboard: 'Dashboard',
@@ -126,6 +85,11 @@ const messages: TranslationMessages = {
             welcome: 'Willkommen, %{name}',
             description:
                 'Verwalten Sie Ihre persönlichen Informationen, Konten und Sicherheitsoptionen',
+            apps: {
+                title: 'Anwendungen Client',
+                description: 'überprüfen und verwalten anwendungen',
+                manage: 'Konten anwendungen',
+            },
             accounts: {
                 title: 'Konto',
                 description: 'Konten überprüfen und verwalten',
@@ -172,60 +136,6 @@ const messages: TranslationMessages = {
                 description:
                     'Aktualisieren Sie Ihre Registrierungsinformationen',
             },
-        },
-        profiles: {
-            header: 'Persönliche Informationen',
-            description:
-                'Überprüfen und kontrollieren Sie Ihre persönlichen Informationen, die für verwandte Anwendungen und Dienste verfügbar sind',
-        },
-        connections: {
-            header: 'Verbundene Anwendungen',
-            description:
-                'Verwalten und kontrollieren Sie Anwendungen und Berechtigungen. Sie haben Anwendungen und Websites von Drittanbietern Zugriff auf einige Ihrer persönlichen Daten gewährt. Überprüfen und entfernen Sie Anwendungen, die Sie nicht mehr verwenden oder die Sie nicht für vertrauenswürdig halten',
-            permissions_num: 'Sie haben Zugriff auf %{num} Berechtigungen',
-        },
-        credentials: {
-            header: 'Anmeldeinformationen',
-            description:
-                'Überprüfen, bearbeiten, zurücksetzen und entfernen Sie die mit Ihrem Konto verbundenen Sicherheitsanmeldeinformationen',
-        },
-        password: {
-            title: 'Passwörter verwalten',
-            subtitle:
-                'Ihr persönliches Anmeldepasswort festlegen, ändern und aktualisieren',
-            edit: {
-                title: 'Passwort ändern',
-                description:
-                    'Ändern Sie Ihr altes Passwort und setzen Sie ein neues',
-            },
-            delete: {
-                content:
-                    'Sind Sie sicher, dass Sie Ihr Passwort löschen wollen? Ohne dieses können Sie sich nicht mehr mit Ihrem Passwort anmelden',
-            },
-        },
-        webauthn: {
-            title: 'Sicherheitsschlüssel verwalten',
-            subtitle:
-                'Registrieren Sie sich und verwenden Sie für die Anmeldung Sicherheitsschlüssel, wie Ihr Telefon oder einen tragbaren Schlüssel',
-            create: {
-                title: 'Einen Sicherheitsschlüssel registrieren',
-                description:
-                    'Verknüpfen Sie einen lokalen oder übertragbaren Schlüssel mit Ihrem persönlichen Konto',
-            },
-            edit: {
-                title: 'Sicherheitsschlüssel bearbeiten',
-                description:
-                    'Aktualisieren Sie die Schlüsselregistrierung durch Ändern der Eigenschaften',
-            },
-            delete: {
-                content:
-                    'Sind Sie sicher, dass Sie den Schlüssel entfernen wollen? Sie können ihn dann nicht mehr für die Anmeldung verwenden',
-            },
-        },
-        security: {
-            header: 'Sicherheit',
-            description:
-                'Zugriff auf Sicherheitseinstellungen und Abfrage des Betriebsprotokolls',
         },
         audit: {
             title: 'Betriebsprotokoll',

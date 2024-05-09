@@ -63,6 +63,11 @@ const enMessages: TranslationMessages = {
             welcome: 'Welcome, %{name}',
             description:
                 'Manage you personal information, accounts and review your security settings',
+            apps: {
+                title: 'Client Application',
+                description: 'Review and manage your applications',
+                manage: 'Manage applications',
+            },
             accounts: {
                 title: 'Accounts',
                 description: 'Review and manage your accounts',
@@ -106,57 +111,6 @@ const enMessages: TranslationMessages = {
                 title: 'Update account',
                 description: 'Change your account information',
             },
-        },
-        profiles: {
-            header: 'Personal info',
-            description:
-                'Review and inspect your personal information, as available to applications and services',
-        },
-        connections: {
-            header: 'Connected applications',
-            description:
-                'Manage and control application permissions. You gave access to some of your personal information to applications and sites. Review and remove access to applications you no longer use or trust',
-            permissions_num: 'Has access to %{num} permissions',
-        },
-        credentials: {
-            header: 'Credentials',
-            description:
-                'Review, update, reset and delete the security credentials associated to your account',
-        },
-        password: {
-            title: 'Manage password',
-            subtitle: 'Set, change and rotate your personal password for login',
-            edit: {
-                title: 'Update password',
-                description: 'Change your old password and set a new one',
-            },
-            delete: {
-                content:
-                    "Are you sure you want to delete your password? You won't be able to login via password",
-            },
-        },
-        webauthn: {
-            title: 'Manage security keys',
-            subtitle:
-                'Register and use security keys such as your phone or a portable key',
-            create: {
-                title: 'Register a security key',
-                description:
-                    'Associate a local or roaming security key to your personal account',
-            },
-            edit: {
-                title: 'Update a security key',
-                description:
-                    'Update the security key registration by changing the properties',
-            },
-            delete: {
-                content:
-                    'Are you sure you want to delete the key? This operation can not be undone',
-            },
-        },
-        security: {
-            header: 'Security',
-            description: 'View your security settings and review the audit',
         },
         audit: {
             title: 'Audit',

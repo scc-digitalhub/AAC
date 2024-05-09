@@ -22,8 +22,6 @@ export default polyglotI18nProvider(
     [
         { locale: 'en', name: 'EN' },
         { locale: 'it', name: 'IT' },
-        // { locale: 'lv', name: 'LV' },
-        // { locale: 'es', name: 'ES' },
         { locale: 'de', name: 'DE' },
     ]
 );

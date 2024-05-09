@@ -4,7 +4,7 @@ import { useGetIdentity, useTranslate } from 'react-admin';
 import LinearProgress from '@mui/material/LinearProgress';
 import { Card, CardContent, CardActions, CardHeader } from '@mui/material';
 import { Container, Grid, Button, Avatar } from '@mui/material';
-
+import { useLocation } from 'react-router-dom';
 import GroupIcon from '@mui/icons-material/Group';
 import KeyIcon from '@mui/icons-material/Key';
 import AppShortcutIcon from '@mui/icons-material/AppShortcut';
@@ -12,10 +12,19 @@ import { PageTitle } from '../components/pageTitle';
 
 const UserDashboard = () => {
     const { data, isLoading } = useGetIdentity();
+    let url = useLocation();
     const translate = useTranslate();
     if (isLoading === true || !data) {
         return <LinearProgress />;
     }
+
+    const regDomain = new RegExp('(?<=(/r/|/domains/))([^/]+)');
+    const realmId = regDomain.test(url?.pathname)
+        ? url?.pathname?.match(regDomain)![0] !== 'create'
+            ? url?.pathname?.match(regDomain)![0]
+            : ''
+        : '';
+
     return (
         <Container maxWidth="lg">
             <PageTitle
@@ -48,16 +57,16 @@ const UserDashboard = () => {
                 <Grid item xs={12} md={6} zeroMinWidth>
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
-                            title={translate('page.dashboard.accounts.title')}
+                            title={translate('page.dashboard.apps.title')}
                             avatar={<GroupIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
-                            {translate('page.dashboard.accounts.description')}
+                            {translate('page.dashboard.apps.description')}
                         </CardContent>
                         <CardActions>
-                            <Button component={Link} to="/accounts">
-                                {translate('page.dashboard.accounts.manage')}
+                            <Button component={Link} to={`/apps/r/${realmId}`}>
+                                {translate('page.dashboard.apps.manage')}
                             </Button>
                         </CardActions>
                     </Card>
