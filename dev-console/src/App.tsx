@@ -23,7 +23,7 @@ import { AppCreate } from './apps/AppCreate';
 import { AppEdit } from './apps/AppEdit';
 import { IdpList } from './idps/IdpList';
 import { IdpCreate } from './idps/IdpCreate';
-import { i18nProvider } from './i18nProvider';
+import i18nProvider from './i18nProvider';
 import { IdpEdit } from './idps/IdpEdit';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
