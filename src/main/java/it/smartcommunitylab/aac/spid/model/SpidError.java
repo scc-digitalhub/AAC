@@ -47,10 +47,26 @@ public enum SpidError {
     AUTH_FAILED_NOT_APPROVED(22, "auth failed: not approved"),
     AUTH_FAILED_USER_LOCKED(23, "auth failed: user locked"),
     AUTH_FAILED_CANCELED(25, "auth failed: process canceled"),
-    AUTH_FAILED_WRONG_IDENTITY_TYPE(30, "auth failed: wrong identity type");
+    AUTH_FAILED_WRONG_IDENTITY_TYPE(30, "auth failed: wrong identity type"),
 
-    // TODO: considera la possibilità di aggiungere un valore per i messaggi di errore generico che vanno trasportati all'interfaccia
-    //  copia pure quelli di Samo2ErrorCodes visto che sono generato da cose di quel tipo (mappati a numeri negativi o 1xxx)
+    SPID_FAILED_RESPONSE_VALIDATION(1000, "invalid_spid_response"),
+
+    // custom codes mapped 1←→1 with Saml Error Codes; used to distinguish Spid exclusive validation errors from generic Saml validation errors produced by Spring/OpenSaml
+    SAML_UNKNOWN_RESPONSE_CLASS(1001, "unknown_response_class"),
+    SAML_MALFORMED_REQUEST_DATA(1002, "malformed_request_data"),
+    SAML_MALFORMED_RESPONSE_DATA(1003, "malformed_response_data"),
+    SAML_INVALID_REQUEST(1004, "invalid_request"),
+    SAML_INVALID_RESPONSE(1005, "invalid_response"),
+    SAML_INVALID_DESTINATION(1006, "invalid_destination"),
+    SAML_INVALID_ASSERTION(1007, "invalid_assertion"),
+    SAML_INVALID_SIGNATURE(1008, "invalid_signature"),
+    SAML_SUBJECT_NOT_FOUND(1009, "subject_not_found"),
+    SAML_USERNAME_NOT_FOUND(1010, "username_not_found"),
+    SAML_DECRYPTION_ERROR(1011, "decryption_error"),
+    SAML_INVALID_ISSUER(1012, "invalid_issuer"),
+    SAML_INTERNAL_VALIDATION_ERROR(1013, "internal_validation_error"),
+    SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND(1014, "relying_party_registration_not_found"),
+    SAML_INVALID_IN_RESPONSE_TO(1015, "invalid_in_response_to");
 
     private final Integer value;
     private final String message;
@@ -96,37 +112,37 @@ public enum SpidError {
 
         switch (saml2Error.getErrorCode()) {
             case Saml2ErrorCodes.UNKNOWN_RESPONSE_CLASS:
-                error = UNKNOWN_RESPONSE_CLASS;
+                error = SAML_UNKNOWN_RESPONSE_CLASS;
                 break;
             case Saml2ErrorCodes.MALFORMED_RESPONSE_DATA:
-                error = MALFORMED_RESPONSE_DATA;
+                error = SAML_MALFORMED_REQUEST_DATA;
                 break;
             case Saml2ErrorCodes.INVALID_DESTINATION:
-                error = INVALID_DESTINATION;
+                error = SAML_INVALID_DESTINATION;
                 break;
             case Saml2ErrorCodes.INVALID_ASSERTION:
-                error = MALFORMED_RESPONSE_DATA;
+                error = SAML_INVALID_ASSERTION;
                 break;
             case Saml2ErrorCodes.INVALID_SIGNATURE:
-                error = INVALID_SIGNATURE;
+                error = SAML_INVALID_SIGNATURE;
                 break;
             case Saml2ErrorCodes.SUBJECT_NOT_FOUND:
-                error = MALFORMED_RESPONSE_DATA;
+                error = SAML_SUBJECT_NOT_FOUND;
                 break;
             case Saml2ErrorCodes.USERNAME_NOT_FOUND:
-                error = MALFORMED_RESPONSE_DATA;
+                error = SAML_USERNAME_NOT_FOUND;
                 break;
             case Saml2ErrorCodes.DECRYPTION_ERROR:
-                error = INVALID_SIGNATURE;
+                error = SAML_DECRYPTION_ERROR;
                 break;
             case Saml2ErrorCodes.INVALID_ISSUER:
-                error = INVALID_ISSUER;
+                error = SAML_INVALID_ISSUER;
                 break;
             case Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR:
-                error = MALFORMED_RESPONSE_DATA;
+                error = SAML_INTERNAL_VALIDATION_ERROR;
                 break;
             case Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND:
-                error = INVALID_DESTINATION;
+                error = SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND;
                 break;
         }
 

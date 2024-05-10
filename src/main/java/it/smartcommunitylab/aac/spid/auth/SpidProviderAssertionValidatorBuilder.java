@@ -2,6 +2,7 @@ package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
+import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.time.Instant;
 import java.util.HashMap;
@@ -45,9 +46,7 @@ public class SpidProviderAssertionValidatorBuilder {
                 assertionToken.getToken().getAuthenticationRequest()
             );
             if (initiatingRequest == null) {
-                return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
             // assertions must be signed; note that signature validity is performed by default validator; here we check signature existence
             Assertion assertion = assertionToken.getAssertion();
@@ -61,7 +60,9 @@ public class SpidProviderAssertionValidatorBuilder {
                     new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing IssueInstant attribute")
                 );
             }
-            if (!isAssertionIssueInstantFormatValid(assertion)) {}
+            if (!isAssertionIssueInstantFormatValid(assertion)) {
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
+            }
             if (!isAssertionIssueInstantAfterRequest(initiatingRequest, assertion)) {
                 return result.concat(
                     new Saml2Error(

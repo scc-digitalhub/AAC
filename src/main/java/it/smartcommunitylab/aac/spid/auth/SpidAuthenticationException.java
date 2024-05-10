@@ -91,7 +91,10 @@ public class SpidAuthenticationException extends AuthenticationException {
     }
 
     public String getErrorMessage() {
-        return "error.spid_authentication." + getError().getErrorCode();
+        if (getError().getValue() < 1000) {
+            return "error.spid_authentication." + getError().getErrorCode();
+        }
+        return "error.spid_authentication.1xxx";
     }
 
     public String getSaml2Request() {

@@ -4,23 +4,18 @@ import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import liquibase.pro.packaged.S;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 import org.opensaml.saml.saml2.core.NameIDType;
 import org.opensaml.saml.saml2.core.Response;
-import org.opensaml.saml.saml2.core.Status;
 import org.opensaml.saml.saml2.core.StatusCode;
 import org.opensaml.saml.saml2.core.StatusMessage;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
-import org.springframework.security.saml2.core.Saml2Error;
-import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.core.Saml2ResponseValidatorResult;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.util.CollectionUtils;
@@ -37,16 +32,9 @@ public class SpidProviderResponseValidatorBuilder {
         return responseToken -> {
             Saml2ResponseValidatorResult result = defaultValidator.convert(responseToken);
             // overwrite status code validation in order to inject custom Status interpretation and return to user meaningful information
-            switch (validateResponseStatus(responseToken.getResponse())) {
-                case ERROR_UNKNOWN_OR_MALFORMED -> result =
-                    result.concat(new Saml2Error("SPID_ERROR_26", "invalid status code"));
-                case ERROR_19 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_REQUEST_COUNT);
-                case ERROR_20 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_INVALID_CREDENTIALS);
-                case ERROR_21 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_TIMEOUT);
-                case ERROR_22 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_NOT_APPROVED);
-                case ERROR_23 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_USER_LOCKED);
-                case ERROR_25 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_CANCELED);
-                case ERROR_30 -> throw new SpidAuthenticationException(SpidError.AUTH_FAILED_WRONG_IDENTITY_TYPE);
+            SpidError codeError = validateResponseStatus(responseToken.getResponse());
+            if (codeError != null) {
+                throw new SpidAuthenticationException(codeError);
             }
             if (result != null && !result.getErrors().isEmpty()) {
                 return result; // already invalid, no need to go on
@@ -55,90 +43,49 @@ public class SpidProviderResponseValidatorBuilder {
                 responseToken.getToken().getAuthenticationRequest()
             );
             if (initiatingRequest == null) {
-                return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing initiating saml request")
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             Response response = responseToken.getResponse();
 
             // version must exists and must be 2.0 as per https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response
             if (response.getVersion() == null || !isVersion20(response)) {
-                return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing or wrong response version")
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             // ID must exists and must be not null
             if (!StringUtils.hasText(response.getID())) {
-                return result.concat(
-                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing ID attribute in response")
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             // Issue Instant must be present, be non null, have correct format
             Instant issueInstant = response.getIssueInstant();
             if (issueInstant == null) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "missing or undefined issue instant attribute"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
             if (!isIssueInstantFormatValid(response)) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "invalid issue instant format in response"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
             if (!isIssueInstantAfterRequest(initiatingRequest, response)) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "issue instant is before request issue instant"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             // InResponseTo attribute must exists an d be nontrivial
             if (!StringUtils.hasText(response.getInResponseTo())) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "missing or empty InResponseTo attribute in response"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
             // Destination attribute must exists and be nontrivial
             if (!StringUtils.hasText(response.getDestination())) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "missing or empty Destination attribute in response"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             // Issuer Format attribute must be entity
             if (!isIssuerFormatEntity(response)) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "wrong or missing Issuer Format Attribute"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             if (!isResponseAcrValid(initiatingRequest, response)) {
-                return result.concat(
-                    new Saml2Error(
-                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
-                        "obtained ACR does not match requested ACR in response"
-                    )
-                );
+                throw new SpidAuthenticationException(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
             }
 
             return result;
@@ -159,45 +106,60 @@ public class SpidProviderResponseValidatorBuilder {
     }
 
     /*
-     * Verify if the authentication was positive on the user side. The result
-     * can be one of 3 possible cases:
-     * (1) Positive, in which case OK is returned.
+     * Verify if the Status Code of the authentication response was positive.
+     * (1) Positive, in which case null is returned.
      * (2) Negative, which either unknown reason or due to malformed data
-     *  response, in which case ERROR_UNKNOWN_OR_MALFORMED is returned.
-     * (3) Negative due to a known user anomaly, in which case
-     *  ERROR_19 to ERROR_30 is returned.
+     *  response, in which case SPID_FAILED_RESPONSE_VALIDATION is returned.
+     * (3) Negative due to a known anomaly, in which case the corresponding
+     *  Spid Error is returned: https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/messaggi-errore.html
+     * Note that status codes 19 to 30 are regulated as should be associated to
+     *  a specific error message on the user side.
      */
-    private ResponseStatusValidationResult validateResponseStatus(Response response)
-        throws SpidAuthenticationException {
+    private @Nullable SpidError validateResponseStatus(Response response) throws SpidAuthenticationException {
         if (response.getStatus() == null || response.getStatus().getStatusCode() == null) {
-            return ResponseStatusValidationResult.ERROR_UNKNOWN_OR_MALFORMED;
+            return SpidError.SPID_FAILED_RESPONSE_VALIDATION;
         }
         StatusCode sc = response.getStatus().getStatusCode();
         if (StatusCode.SUCCESS.equals(sc.getValue())) {
-            return ResponseStatusValidationResult.OK;
+            return null;
         }
-        // check if user anomaly is among those in listed in
-        // https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/messaggi-errore.html#anomalie-derivanti-dall-utente
         if (!StatusCode.RESPONDER.equals(sc.getValue())) {
-            return ResponseStatusValidationResult.ERROR_UNKNOWN_OR_MALFORMED;
+            return SpidError.SPID_FAILED_RESPONSE_VALIDATION;
         }
         StatusCode subCode = sc.getStatusCode();
         if (subCode == null || !StatusCode.AUTHN_FAILED.equals(subCode.getValue())) {
-            return ResponseStatusValidationResult.ERROR_UNKNOWN_OR_MALFORMED;
+            return SpidError.SPID_FAILED_RESPONSE_VALIDATION;
         }
         StatusMessage status = response.getStatus().getStatusMessage();
         if (status == null || !StringUtils.hasText(status.getValue())) {
-            return ResponseStatusValidationResult.ERROR_UNKNOWN_OR_MALFORMED;
+            return SpidError.SPID_FAILED_RESPONSE_VALIDATION;
         }
         return switch (status.getValue()) {
-            case "ErrorCode nr19" -> ResponseStatusValidationResult.ERROR_19;
-            case "ErrorCode nr20" -> ResponseStatusValidationResult.ERROR_20;
-            case "ErrorCode nr21" -> ResponseStatusValidationResult.ERROR_21;
-            case "ErrorCode nr22" -> ResponseStatusValidationResult.ERROR_22;
-            case "ErrorCode nr23" -> ResponseStatusValidationResult.ERROR_23;
-            case "ErrorCode nr25" -> ResponseStatusValidationResult.ERROR_25;
-            case "ErrorCode nr30" -> ResponseStatusValidationResult.ERROR_30;
-            default -> ResponseStatusValidationResult.ERROR_UNKNOWN_OR_MALFORMED;
+            case "ErrorCode nr02" -> SpidError.SYSTEM_UNAVAILABLE;
+            case "ErrorCode nr03" -> SpidError.SYSTEM_ERROR;
+            case "ErrorCode nr04" -> SpidError.INVALID_BINDING_FORMAT;
+            case "ErrorCode nr05" -> SpidError.INVALID_SIGNATURE;
+            case "ErrorCode nr06" -> SpidError.INVALID_BINDING;
+            case "ErrorCode nr07" -> SpidError.INVALID_REQUEST_SIGNATURE;
+            case "ErrorCode nr08" -> SpidError.MALFORMED_RESPONSE_DATA;
+            case "ErrorCode nr09" -> SpidError.UNKNOWN_RESPONSE_CLASS;
+            case "ErrorCode nr10" -> SpidError.INVALID_ISSUER;
+            case "ErrorCode nr11" -> SpidError.INVALID_ID;
+            case "ErrorCode nr12" -> SpidError.INVALID_AUTHNCONTEXT;
+            case "ErrorCode nr13" -> SpidError.INVALID_ISSUEINSTANT;
+            case "ErrorCode nr14" -> SpidError.INVALID_DESTINATION;
+            case "ErrorCode nr15" -> SpidError.ISPASSIVE_ERROR;
+            case "ErrorCode nr16" -> SpidError.INVALID_ACS;
+            case "ErrorCode nr17" -> SpidError.INVALID_NAMEFORMAT;
+            case "ErrorCode nr18" -> SpidError.INVALID_ACS_INDEX;
+            case "ErrorCode nr19" -> SpidError.AUTH_FAILED_REQUEST_COUNT;
+            case "ErrorCode nr20" -> SpidError.AUTH_FAILED_INVALID_CREDENTIALS;
+            case "ErrorCode nr21" -> SpidError.AUTH_FAILED_TIMEOUT;
+            case "ErrorCode nr22" -> SpidError.AUTH_FAILED_NOT_APPROVED;
+            case "ErrorCode nr23" -> SpidError.AUTH_FAILED_USER_LOCKED;
+            case "ErrorCode nr25" -> SpidError.AUTH_FAILED_CANCELED;
+            case "ErrorCode nr30" -> SpidError.AUTH_FAILED_WRONG_IDENTITY_TYPE;
+            default -> SpidError.SPID_FAILED_RESPONSE_VALIDATION;
         };
     }
 
@@ -278,21 +240,5 @@ public class SpidProviderResponseValidatorBuilder {
 
         String acrValue = authnContext.getAuthnContextClassRef().getURI();
         return SpidAuthnContext.parse(acrValue);
-    }
-
-    /* Result of validation of StatusCode in a SPID SAML Response.
-     * Known errors are the same as those described at
-     *  https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/messaggi-errore.html#anomalie-derivanti-dall-utente
-     */
-    private enum ResponseStatusValidationResult {
-        OK,
-        ERROR_UNKNOWN_OR_MALFORMED,
-        ERROR_19,
-        ERROR_20,
-        ERROR_21,
-        ERROR_22,
-        ERROR_23,
-        ERROR_25,
-        ERROR_30,
     }
 }

@@ -155,6 +155,10 @@ public class SpidAuthenticationProvider
             // check if wrapped spid ex
             if (e.getCause() instanceof SpidAuthenticationException) {
                 SpidError err = ((SpidAuthenticationException) e.getCause()).getError();
+                // spid errors 03 to 19 should be logged as they might be result of a bad Spid SAML request
+                if (err.getValue() >= 4 && err.getValue() < 18) {
+                    logger.error("invalid spid response {}", serializedResponse);
+                }
                 throw new SpidAuthenticationException(err, null, serializedResponse);
             }
 
