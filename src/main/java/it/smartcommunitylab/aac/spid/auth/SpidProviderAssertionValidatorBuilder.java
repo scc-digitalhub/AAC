@@ -19,6 +19,7 @@ import org.springframework.security.saml2.core.Saml2Error;
 import org.springframework.security.saml2.core.Saml2ErrorCodes;
 import org.springframework.security.saml2.core.Saml2ResponseValidatorResult;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
+import org.springframework.util.StringUtils;
 
 public class SpidProviderAssertionValidatorBuilder {
 
@@ -117,6 +118,14 @@ public class SpidProviderAssertionValidatorBuilder {
                 );
             }
 
+            if (!isAssertionNameIDFormatValid(assertion)) {
+                return result.concat(
+                    new Saml2Error(
+                        Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR,
+                        "missing or invalid NameID Format attribute in assertion"
+                    )
+                );
+            }
             //            if (!areRequestedAttributesObtained(initiatingRequest, this.configuredSpidAttributeSets, assertion)) {
             //                return result.concat(new Saml2Error("SPID_ERROR_103", "missing requested attributes attribute"));
             //            }
@@ -155,6 +164,14 @@ public class SpidProviderAssertionValidatorBuilder {
         return true;
     }
 
+    private boolean isAssertionNameIDFormatValid(Assertion assertion) {
+        if (assertion == null || assertion.getSubject() == null || assertion.getSubject().getNameID() == null) {
+            return false;
+        }
+        String fmt = assertion.getSubject().getNameID().getFormat();
+        return StringUtils.hasText(fmt) && fmt.equals(NameIDType.TRANSIENT);
+    }
+
     private boolean isAssertionIssuerValid(Assertion assertion) {
         if (assertion == null || assertion.getIssuer() == null) {
             return false;
@@ -183,10 +200,7 @@ public class SpidProviderAssertionValidatorBuilder {
         if (requestInstant == null || assertionInstant == null) {
             return false;
         }
-        if (assertionInstant.isBefore(requestInstant)) {
-            return false;
-        }
-        return true;
+        return !assertionInstant.isBefore(requestInstant);
     }
 
     private boolean isAssertionIssueInstantBeforeRequestReception(Assertion assertion) {
@@ -230,10 +244,7 @@ public class SpidProviderAssertionValidatorBuilder {
         if (acr == null) {
             return false;
         }
-        if (SpidAuthnContext.parse(acr.getURI()) == null) {
-            return false;
-        }
-        return true;
+        return SpidAuthnContext.parse(acr.getURI()) != null;
     }
 
     /*
