@@ -122,7 +122,6 @@ public class SpidAuthenticationProvider
         try {
             Authentication auth = openSamlProvider.authenticate(authentication);
             if (auth != null) {
-                // TODO: here Saml does the following (0) checks that the token has a subject, (1) checks that account isn't locked and (2) inserts a default role "ROLE_USER" - is this required? Btw this uses the (currently unused) accountService
                 // convert to local token, after checking that the authentication is not associated to a locked account
                 Saml2Authentication authSamlToken = (Saml2Authentication) auth;
                 // extract sub identifier
@@ -132,6 +131,7 @@ public class SpidAuthenticationProvider
                         new Saml2Error(Saml2ErrorCodes.USERNAME_NOT_FOUND, "username_not_found")
                     );
                 }
+
                 // check if account is locked
                 SamlUserAccount account = accountService.findAccountById(accountRepositoryId, subject);
                 if (account != null && account.isLocked()) {
@@ -294,7 +294,7 @@ public class SpidAuthenticationProvider
                             // each spid attribute is authoritative and cannot be overwritten or re-evaluated
                             .filter(e -> SpidAttribute.contains(e.getKey()))
                             .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
-                        //                        user.setAttributes(principalAttributes); // TODO: da chiarire con Matteo
+                        user.setAttributes(principalAttributes);
                     }
                 } catch (SystemException | InvalidDefinitionException ex) {
                     logger.debug("error mapping principal attributes via script: " + ex.getMessage());

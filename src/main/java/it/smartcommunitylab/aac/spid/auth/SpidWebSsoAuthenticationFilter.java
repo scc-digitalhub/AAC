@@ -29,7 +29,6 @@ import it.smartcommunitylab.aac.saml.service.Saml2AuthenticationTokenConverter;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import java.io.IOException;
-import java.net.http.HttpRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -46,7 +45,6 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
-import org.springframework.security.saml2.provider.service.web.DefaultRelyingPartyRegistrationResolver;
 import org.springframework.security.saml2.provider.service.web.RelyingPartyRegistrationResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.WebAttributes;
@@ -160,6 +158,11 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         return authenticationEntryPoint;
     }
 
+    /*
+     * buildRelyingPartyRegistrationResolver build a resolver that recovers a relying party registration
+     * for an authentication response. The registration is actually recovered from the authentication
+     * request, which can be accesses from the request context.
+     */
     private RelyingPartyRegistrationResolver buildRelyingPartyRegistrationResolver(
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository
     ) {
@@ -173,6 +176,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
             RelyingPartyRegistration relyingPartyRegistration = relyingPartyRegistrationRepository.findByRegistrationId(
                 regId
             );
+            // resolve template fields of the registration, such as {baseUrl}
             String applicationUri = getApplicationUri(request);
             Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
             String relyingPartyEntityId = templateResolver.apply(relyingPartyRegistration.getEntityId());

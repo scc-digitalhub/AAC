@@ -80,10 +80,9 @@ public class SpidAccountPrincipalConverter
         if (StringUtils.hasText(principal.getEmailAddress())) {
             account.setEmailVerified(true);
         }
-        account.setAttributes(principal.getAttributes());
+        account.setAttributes(attributes);
 
-        // TODO: (1) aggiungi l'issuer (è l'idp upstream - prendendolo come attributo custom)
-        // TODO: (2) aggiungi lo status (che deve essere active)
+        account.setIssuer(principal.getIdp());
         return account;
     }
 }

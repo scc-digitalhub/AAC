@@ -26,7 +26,7 @@ public class SerializableSaml2AuthenticationRequestContext implements Serializab
     private static final long serialVersionUID = SystemKeys.AAC_SAML_SERIAL_VERSION;
 
     private final String relyingPartyRegistrationId;
-    private final String assertingPartyRegistrationId;
+    private final String assertingPartyRegistrationId; // required for SPID where there are N+1 registration and we must distinguish the actual registration that identifies the upstream identity provider
     private final String issuer;
     private final String relayState;
     private final AbstractSaml2AuthenticationRequest samlAuthenticationRequest;
