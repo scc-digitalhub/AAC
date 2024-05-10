@@ -95,17 +95,15 @@ const messages: TranslationMessages = {
                 description: 'Konten überprüfen und verwalten',
                 manage: 'Konten verwalten',
             },
-            connections: {
-                title: 'Verbundene Apps',
-                description:
-                    'Anzeigen und Verwalten von Drittanbieteranwendungen, die mit Ihrem Konto verbunden sind',
-                manage: 'Verbindungen verwalten',
+            services: {
+                title: 'Verbundene dienstleistungen',
+                description: 'Dienste anzeigen und verwalten',
+                manage: 'Verbindungen dienstleistungen',
             },
-            credentials: {
-                title: 'Anmeldeinformationen',
-                description:
-                    'Ihre Anmeldeinformationen anzeigen und bearbeiten',
-                manage: 'Verwalten Sie Ihre Anmeldeinformationen',
+            authentications: {
+                title: 'Authentifizierungen',
+                description: 'Ihre Authentifizierungen anzeigen und bearbeiten',
+                manage: 'Verwalten Sie Ihre Authentifizierungen',
             },
         },
         accounts: {
