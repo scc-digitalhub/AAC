@@ -135,17 +135,15 @@ const messages: TranslationMessages = {
                 description: 'Rivedi e gestisci gli account',
                 manage: 'Gestisci gli account',
             },
-            connections: {
-                title: 'App connesse',
-                description:
-                    'Vedi e gestisci le applicazioni di terze parti connesse al tuo account',
-                manage: 'Gestisci le connessioni',
+            services: {
+                title: 'App servizi',
+                description: 'Vedi e gestisci le servizi',
+                manage: 'Gestisci le servizi',
             },
-            credentials: {
-                title: 'Credenziali',
-                description:
-                    'Visualizza e modifica le tue credenziali di accesso',
-                manage: 'Gestisci le credenziali',
+            authentications: {
+                title: 'Autenticazioni',
+                description: 'Visualizza e modifica le tue autenticazioni',
+                manage: 'Gestisci le autenticazioni',
             },
         },
         accounts: {

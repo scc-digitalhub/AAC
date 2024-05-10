@@ -5,9 +5,9 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { Card, CardContent, CardActions, CardHeader } from '@mui/material';
 import { Container, Grid, Button, Avatar } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-import GroupIcon from '@mui/icons-material/Group';
-import KeyIcon from '@mui/icons-material/Key';
-import AppShortcutIcon from '@mui/icons-material/AppShortcut';
+import AppsIcon from '@mui/icons-material/Apps';
+import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { PageTitle } from '../components/pageTitle';
 
 const UserDashboard = () => {
@@ -58,7 +58,7 @@ const UserDashboard = () => {
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
                             title={translate('page.dashboard.apps.title')}
-                            avatar={<GroupIcon />}
+                            avatar={<AppsIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
@@ -75,20 +75,19 @@ const UserDashboard = () => {
                 <Grid item xs={12} md={6} zeroMinWidth>
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
-                            title={translate(
-                                'page.dashboard.credentials.title'
-                            )}
-                            avatar={<KeyIcon />}
+                            title={translate('page.dashboard.services.title')}
+                            avatar={<MiscellaneousServicesIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
-                            {translate(
-                                'page.dashboard.credentials.description'
-                            )}
+                            {translate('page.dashboard.services.description')}
                         </CardContent>
                         <CardActions>
-                            <Button component={Link} to="/credentials">
-                                {translate('page.dashboard.credentials.manage')}
+                            <Button
+                                component={Link}
+                                to={`/services/r/${realmId}`}
+                            >
+                                {translate('page.dashboard.services.manage')}
                             </Button>
                         </CardActions>
                     </Card>
@@ -98,23 +97,25 @@ const UserDashboard = () => {
                     <Card sx={{ height: '100%' }}>
                         <CardHeader
                             title={translate(
-                                'page.dashboard.connections.title'
+                                'page.dashboard.authentications.title'
                             )}
-                            avatar={<AppShortcutIcon />}
+                            avatar={<VpnKeyIcon />}
                             titleTypographyProps={{ variant: 'h6' }}
                         />
                         <CardContent>
                             {translate(
-                                'page.dashboard.connections.description'
+                                'page.dashboard.authentications.description'
                             )}
                         </CardContent>
                         <CardActions>
                             <Button
                                 component={Link}
-                                to="/connections"
+                                to={`/idps/r/${realmId}`}
                                 size="small"
                             >
-                                {translate('page.dashboard.connections.manage')}
+                                {translate(
+                                    'page.dashboard.authentications.manage'
+                                )}
                             </Button>
                         </CardActions>
                     </Card>

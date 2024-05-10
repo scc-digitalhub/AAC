@@ -73,15 +73,15 @@ const enMessages: TranslationMessages = {
                 description: 'Review and manage your accounts',
                 manage: 'Manage accounts',
             },
-            connections: {
-                title: 'Connected applications',
-                description: 'View and manage 3rd party connected applications',
-                manage: 'Manage connections',
+            services: {
+                title: 'Connected services',
+                description: 'View and manage services',
+                manage: 'Manage services',
             },
-            credentials: {
-                title: 'Credentials',
-                description: 'View and update your credentials',
-                manage: 'Manage credentials',
+            authentications: {
+                title: 'Authentications',
+                description: 'View and update your authentications',
+                manage: 'Manage authentications',
             },
         },
         accounts: {
