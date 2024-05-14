@@ -26,7 +26,12 @@ const UserAuthAuditDetails = () => {
         <Box sx={{ pb: 2 }}>
             <Stack direction="row" spacing={2}>
                 <Labeled>
-                    <DateField label="timestamp" source="timestamp" />
+                    <DateField
+                        label="timestamp"
+                        source="timestamp"
+                        showTime
+                        transform={(value: number) => new Date(value * 1000)}
+                    />
                 </Labeled>
 
                 <Labeled>
