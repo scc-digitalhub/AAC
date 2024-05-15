@@ -1,6 +1,6 @@
 CREATE TABLE
     IF NOT EXISTS audit_events (
-        event_time TIMESTAMP,
+        event_time TIMESTAMP PRIMARY KEY,
         principal varchar(255),
         realm varchar(255) DEFAULT NULL,
         tx varchar(255),
