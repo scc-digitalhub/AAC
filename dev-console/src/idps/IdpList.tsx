@@ -32,6 +32,7 @@ import {
     useNotify,
     useRefresh,
     ExportButton,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
@@ -85,6 +86,7 @@ const RealmFilters = [<SearchInput source="q" alwaysOn />];
 const IdpListActions = () => {
     const params = useParams();
     const notify = useNotify();
+    const translate = useTranslate();
     const options = {
         meta: { realmId: params.realmId, import: false, resetId: false },
     };
@@ -147,9 +149,7 @@ const IdpListActions = () => {
                     >
                         <SimpleForm toolbar={<ImportToolbar />}>
                             <Typography>
-                                Provide a valid YAML file with the full provider
-                                definition, or with a list of valid providers
-                                nested under key providers.
+                                {translate('page.idp.import.description')}
                             </Typography>
                             <Box>
                                 <AceEditorInput

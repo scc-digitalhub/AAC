@@ -11,7 +11,7 @@ import {
     Menu,
     Button,
 } from 'react-admin';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { FunctionComponent } from 'react';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';

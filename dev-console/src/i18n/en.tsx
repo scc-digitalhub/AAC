@@ -120,6 +120,13 @@ const enMessages: TranslationMessages = {
             header: 'Login',
             description: 'Login is required to access the console',
         },
+        idp: {
+            import: {
+                title: 'Import Provider',
+                description:
+                    'Provide a valid YAML file with the full provider definition, or with a list of valid providers nested under key providers.',
+            },
+        },
     },
     alert: {
         authorization_expired: 'The authorization is expired',

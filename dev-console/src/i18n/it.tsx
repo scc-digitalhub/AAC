@@ -182,6 +182,13 @@ const messages: TranslationMessages = {
             header: 'Login',
             description: 'Per accedere alla console è richiesto il login',
         },
+        idp: {
+            import: {
+                title: 'Import Provider',
+                description:
+                    'Fornisci un file YAML valido con la definizione completa del provider o con un elenco di provider validi nidificati sotto i provider.',
+            },
+        },
     },
     alert: {
         authorization_expired: "L'autorizzazione è scaduta",
