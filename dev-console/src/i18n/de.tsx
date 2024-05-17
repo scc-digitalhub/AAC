@@ -144,6 +144,13 @@ const messages: TranslationMessages = {
             description:
                 'Für den Zugriff auf die Konsole ist eine Anmeldung erforderlich',
         },
+        idp: {
+            import: {
+                title: 'Import Provider',
+                description:
+                    'Stellen Sie eine gültige YAML-Datei mit der vollständigen Anbieterdefinition oder mit einer Liste gültiger Anbieter bereit, die unter Schlüsselanbietern verschachtelt ist.',
+            },
+        },
     },
     alert: {
         authorization_expired: 'Ihre Autorisierung ist abgelaufen',

@@ -117,7 +117,6 @@ const OAuth2TokenAuditDetails = () => {
                         showTime
                     />
                 </Labeled>
-
                 <Labeled>
                     <DateField
                         label="expiresAt"
