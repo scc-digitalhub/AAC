@@ -30,16 +30,44 @@
 	</properties>
 
 	<dependencies>
+        <!-- aac deps  -->
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-commons</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-attributes</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-auth</artifactId>
+            <version>${revision}</version>
+        </dependency>
+		<dependency>
+            <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-users</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <!-- external deps  -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
 		<!-- keep only for upgrade -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-properties-migrator</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
 		<dependency>

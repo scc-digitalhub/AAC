@@ -44,6 +44,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 @Slf4j
+@Deprecated(forRemoval = true)
 public abstract class AbstractConfigurationProvider<
     P extends ProviderConfig<S, M>,
     C extends ConfigurableProvider<S>,

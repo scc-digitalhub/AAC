@@ -18,13 +18,12 @@ package it.smartcommunitylab.aac.identity;
 
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigMap;
-import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 
 public interface IdentityProviderAuthority<
@@ -42,7 +41,7 @@ public interface IdentityProviderAuthority<
     /*
      * Filter provider exposes auth filters for registration in filter chain
      */
-    public FilterProvider getFilterProvider();
+    // public FilterProvider getFilterProvider();
     //    /*
     //     * Config provider exposes configuration validation and schema
     //     */

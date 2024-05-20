@@ -32,7 +32,7 @@ public abstract class AbstractAttributeAuthority<
     M extends AbstractConfigMap,
     C extends AbstractAttributeProviderConfig<M>
 >
-    extends AbstractConfigurableProviderAuthority<S, ConfigurableAttributeProvider, C, AttributeProviderSettingsMap, M>
+    extends AbstractConfigurableProviderAuthority<S, C, AttributeProviderSettingsMap, M>
     implements AttributeProviderAuthority<S, C, M> {
 
     // attributes sets service
@@ -50,11 +50,6 @@ public abstract class AbstractAttributeAuthority<
         Assert.notNull(attributeService, "attribute service is mandatory");
 
         this.attributeService = attributeService;
-    }
-
-    @Override
-    public AttributeConfigurationProvider<C, M> getConfigurationProvider() {
-        return configProvider;
     }
 
     @Autowired

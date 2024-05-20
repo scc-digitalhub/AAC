@@ -1,0 +1,9 @@
+providers:
+    - authority: internal
+      name: internal
+      provider: tenant1identity
+      type: identity
+    - authority: internal
+      name: internal2
+      provider: tenant2identity
+      type: account          

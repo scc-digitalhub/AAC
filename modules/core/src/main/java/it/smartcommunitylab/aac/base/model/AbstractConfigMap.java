@@ -22,7 +22,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import it.smartcommunitylab.aac.model.ConfigMap;
@@ -30,6 +32,8 @@ import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.ResolvableTypeProvider;
 
 //TODO evaluate adding generic type and resolving javatype for conversion here
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -47,17 +51,23 @@ import java.util.Map;
 //         @Type(value = TemplateProviderConfigMap.class, name = TemplateProviderConfigMap.RESOURCE_TYPE),
 //     }
 // )
-public abstract class AbstractConfigMap implements ConfigMap, Serializable {
+public abstract class AbstractConfigMap implements ConfigMap, Serializable, ResolvableTypeProvider {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
+
     private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
         HashMap<String, Serializable>
     >() {};
     protected static final JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
     protected static final SchemaGenerator generator;
+    private final ResolvableType type;
 
     static {
         generator = SchemaGeneratorFactory.build(mapper);
+    }
+
+    protected AbstractConfigMap() {
+        this.type = ResolvableType.forClass(getClass());
     }
 
     @JsonIgnore
@@ -66,5 +76,10 @@ public abstract class AbstractConfigMap implements ConfigMap, Serializable {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         return mapper.convertValue(this, typeRef);
+    }
+
+    @Override
+    public ResolvableType getResolvableType() {
+        return type;
     }
 }

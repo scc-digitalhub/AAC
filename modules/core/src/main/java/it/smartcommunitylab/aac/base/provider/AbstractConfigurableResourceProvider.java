@@ -16,13 +16,16 @@
 
 package it.smartcommunitylab.aac.base.provider;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
+import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
 import it.smartcommunitylab.aac.model.Resource;
 import java.util.Locale;
 import java.util.Map;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 
 public abstract class AbstractConfigurableResourceProvider<
@@ -32,8 +35,9 @@ public abstract class AbstractConfigurableResourceProvider<
     M extends AbstractConfigMap
 >
     extends AbstractProvider<R>
-    implements ConfigurableResourceProvider<R, C, S, M> {
+    implements ConfigurableResourceProvider<R, C, S, M>, ResolvableGenericsTypeProvider {
 
+    private ResolvableType ctype;
     protected final C config;
 
     protected AbstractConfigurableResourceProvider(String authority, String provider, String realm, C providerConfig) {
@@ -46,6 +50,9 @@ public abstract class AbstractConfigurableResourceProvider<
         Assert.isTrue(realm.equals(providerConfig.getRealm()), "configuration does not match this provider");
 
         this.config = providerConfig;
+
+        //resolve types
+        this.ctype = ResolvableType.forClass(AbstractConfigurableResourceProvider.class, getClass());
     }
 
     @Override
@@ -84,5 +91,17 @@ public abstract class AbstractConfigurableResourceProvider<
 
     public Map<String, String> getDescriptionMap() {
         return config.getDescriptionMap();
+    }
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType() {
+        return ctype;
+    }
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType(int pos) {
+        return ctype != null ? ctype.getGeneric(pos) : null;
     }
 }

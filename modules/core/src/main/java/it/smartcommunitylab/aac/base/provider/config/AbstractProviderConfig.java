@@ -20,25 +20,28 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
+import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
+import it.smartcommunitylab.aac.model.ConfigMap;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
+import org.springframework.core.ResolvableType;
 
 // @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.ALWAYS)
-public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M extends AbstractConfigMap>
-    implements ProviderConfig<S, M>, Serializable {
+public abstract class AbstractProviderConfig<S extends ConfigMap, M extends ConfigMap>
+    implements ProviderConfig<S, M>, ResolvableGenericsTypeProvider, Serializable {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private ResolvableType ctype;
+    private ResolvableType btype;
 
-    private final String authority;
-    private final String realm;
-    private final String provider;
+    private String authority;
+    private String realm;
+    private String provider;
 
     protected String name;
     protected Map<String, String> titleMap;
@@ -83,12 +86,24 @@ public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M ex
         return authority;
     }
 
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
     public String getRealm() {
         return realm;
     }
 
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
     public String getProvider() {
         return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getName() {
@@ -155,5 +170,43 @@ public abstract class AbstractProviderConfig<S extends AbstractSettingsMap, M ex
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType() {
+        if (this.ctype == null) {
+            try {
+                this.ctype = ResolvableType.forClass(getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return ctype;
+    }
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType(int pos) {
+        if (this.btype == null) {
+            try {
+                this.btype = ResolvableType.forClass(AbstractProviderConfig.class, getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return btype != null ? btype.getGeneric(pos) : null;
+    }
+
+    @JsonIgnoreProperties
+    public ResolvableType getSettingsType() {
+        return getResolvableType(0);
+    }
+
+    @JsonIgnoreProperties
+    public ResolvableType getConfigType() {
+        return getResolvableType(1);
     }
 }

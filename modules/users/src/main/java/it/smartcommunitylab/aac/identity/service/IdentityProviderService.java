@@ -17,17 +17,25 @@
 package it.smartcommunitylab.aac.identity.service;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
+import it.smartcommunitylab.aac.core.model.ProviderProperties;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.model.ConfigMap;
+import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -42,9 +50,16 @@ import org.springframework.validation.DataBinder;
 @Transactional
 public class IdentityProviderService
     extends AbstractConfigurableProviderService<
+        IdentityProvider<
+            ? extends UserIdentity,
+            ? extends UserAccount,
+            ? extends UserAuthenticatedPrincipal,
+            ConfigMap,
+            IdentityProviderConfig<ConfigMap>
+        >,
         ConfigurableIdentityProvider,
-        IdentityProviderSettingsMap,
-        IdentityProvider<? extends
+        IdentityProviderConfig<ConfigMap>,
+        IdentityProviderSettingsMap
     > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -53,7 +68,7 @@ public class IdentityProviderService
         IdentityProviderAuthorityService authorityService,
         ConfigurableProviderEntityService providerService
     ) {
-        super(SystemKeys.RESOURCE_IDENTITY, authorityService, providerService, ConfigurableIdentityProvider::new);
+        super();
         // create system idps
         // these users access administrative contexts, they will have realm="system"
         // we expect no client/services in global+system realm!
@@ -84,11 +99,14 @@ public class IdentityProviderService
     }
 
     @Autowired
-    private void setProviderProperties(ProvidersProperties providers) {
+    private void setProviderProperties(ProviderProperties properties) {
         // system providers
-        if (providers != null) {
+        if (properties != null) {
             // identity providers
-            for (ConfigurableIdentityProvider cp : providers.getIdentity()) {
+            List<ConfigurableIdentityProvider> providers = properties.<ConfigurableIdentityProvider>get(
+                SystemKeys.RESOURCE_IDENTITY
+            );
+            for (ConfigurableIdentityProvider cp : providers) {
                 if (cp == null || !cp.isEnabled()) {
                     continue;
                 }
@@ -169,5 +187,49 @@ public class IdentityProviderService
                 }
             }
         }
+    }
+
+    public IdentityProvider<
+        ? extends UserIdentity,
+        ? extends UserAccount,
+        ? extends UserAuthenticatedPrincipal,
+        ConfigMap,
+        IdentityProviderConfig<ConfigMap>
+    > findIdentityProvider(String providerId) {
+        return findResourceProvider(providerId);
+    }
+
+    public IdentityProvider<
+        ? extends UserIdentity,
+        ? extends UserAccount,
+        ? extends UserAuthenticatedPrincipal,
+        ConfigMap,
+        IdentityProviderConfig<ConfigMap>
+    > getIdentityProvider(String providerId) throws NoSuchProviderException, NoSuchAuthorityException {
+        return getResourceProvider(providerId);
+    }
+
+    public Collection<
+        IdentityProvider<
+            ? extends UserIdentity,
+            ? extends UserAccount,
+            ? extends UserAuthenticatedPrincipal,
+            ConfigMap,
+            IdentityProviderConfig<ConfigMap>
+        >
+    > listIdentityProviders() {
+        return listResourceProviders();
+    }
+
+    public Collection<
+        IdentityProvider<
+            ? extends UserIdentity,
+            ? extends UserAccount,
+            ? extends UserAuthenticatedPrincipal,
+            ConfigMap,
+            IdentityProviderConfig<ConfigMap>
+        >
+    > listIdentityProvidersByRealm(String realm) {
+        return listResourceProvidersByRealm(realm);
     }
 }

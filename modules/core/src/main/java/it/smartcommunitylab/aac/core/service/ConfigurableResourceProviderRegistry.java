@@ -24,11 +24,9 @@ import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.Resource;
 import javax.validation.constraints.NotNull;
-import org.springframework.lang.Nullable;
 
 /*
  * Configurable resource providers are backed by a config composed of shared settings map and a specific config map.
@@ -42,16 +40,6 @@ public interface ConfigurableResourceProviderRegistry<
     M extends ConfigMap
 >
     extends ResourceProviderRegistry<S> {
-    /*
-     * Config
-     */
-    public @Nullable ConfigurationProvider<
-        ? extends ProviderConfig<M, ?>,
-        C,
-        M,
-        ? extends ConfigMap
-    > getConfigurationProvider(@NotNull String authority) throws NoSuchAuthorityException;
-
     /*
      * Registration
      */

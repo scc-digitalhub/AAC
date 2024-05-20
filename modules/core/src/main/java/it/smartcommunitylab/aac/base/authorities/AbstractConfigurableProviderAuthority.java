@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.base.authorities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
@@ -24,29 +25,30 @@ import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ResolvableType;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.SmartValidator;
 
 public abstract class AbstractConfigurableProviderAuthority<
     T extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
-    P extends ConfigurableProvider<S>,
     C extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
     extends AbstractProviderAuthority<T, C>
-    implements ConfigurableProviderAuthority<T, P, C, S, M>, InitializingBean {
+    implements ConfigurableProviderAuthority<T, C, S, M>, ResolvableGenericsTypeProvider, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private ResolvableType ctype;
     protected SmartValidator validator;
 
     protected AbstractConfigurableProviderAuthority(
@@ -54,6 +56,8 @@ public abstract class AbstractConfigurableProviderAuthority<
         ProviderConfigRepository<C> registrationRepository
     ) {
         super(authorityId, registrationRepository);
+        //resolve types
+        this.ctype = ResolvableType.forClass(AbstractConfigurableProviderAuthority.class, getClass());
     }
 
     @Autowired
@@ -62,21 +66,40 @@ public abstract class AbstractConfigurableProviderAuthority<
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-        // Assert.notNull(getConfigurationProvider(), "config provider is mandatory");
+    public void afterPropertiesSet() throws Exception {}
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType() {
+        return ctype;
     }
 
     @Override
-    public C registerProvider(P cp) throws IllegalArgumentException, RegistrationException, SystemException {
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType(int pos) {
+        return ctype != null ? ctype.getGeneric(pos) : null;
+    }
+
+    @Override
+    public C registerProvider(C providerConfig)
+        throws IllegalArgumentException, RegistrationException, SystemException {
         // we support only matching provider as resource providers
-        if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
-            String providerId = cp.getProvider();
-            String realm = cp.getRealm();
+        if (providerConfig != null && getAuthorityId().equals(providerConfig.getAuthority())) {
+            String providerId = providerConfig.getProvider();
+            String realm = providerConfig.getRealm();
+
+            if (providerConfig.getConfigMap() == null || providerConfig.getSettingsMap() == null) {
+                throw new IllegalArgumentException("invalid or missing configuration");
+            }
 
             logger.debug("register provider {} for realm {}", providerId, realm);
             if (logger.isTraceEnabled()) {
-                logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
+                logger.trace("provider config: {}", String.valueOf(providerConfig.getConfigMap().getConfiguration()));
             }
+
+            //validate configs
+            validateConfigMap(providerConfig.getSettingsMap());
+            validateConfigMap(providerConfig.getConfigMap());
 
             try {
                 // check if exists or id clashes with another provider from a different realm
@@ -90,22 +113,19 @@ public abstract class AbstractConfigurableProviderAuthority<
                     }
 
                     // evaluate version against current
-                    if (cp.getVersion() == null) {
-                        throw new RegistrationException("invalid version");
-                    } else if (e.getVersion() == cp.getVersion()) {
+                    if (e.getVersion() == providerConfig.getVersion()) {
                         // same version, already registered, nothing to do
                         // load to warm cache
                         T rp = providers.get(providerId);
 
                         // return effective config
                         return rp.getConfig();
-                    } else if (e.getVersion() > cp.getVersion()) {
+                    } else if (e.getVersion() > providerConfig.getVersion()) {
                         throw new RegistrationException("invalid version");
                     }
                 }
 
-                // build config
-                C providerConfig = getConfigurationProvider().getConfig(cp);
+                // log config
                 if (logger.isTraceEnabled()) {
                     logger.trace(
                         "provider active config v{}: {}",
@@ -113,10 +133,6 @@ public abstract class AbstractConfigurableProviderAuthority<
                         String.valueOf(providerConfig.getConfigMap().getConfiguration())
                     );
                 }
-
-                //validate configs
-                validateConfigMap(providerConfig.getSettingsMap());
-                validateConfigMap(providerConfig.getConfigMap());
 
                 // register, we defer loading
                 // should update if existing

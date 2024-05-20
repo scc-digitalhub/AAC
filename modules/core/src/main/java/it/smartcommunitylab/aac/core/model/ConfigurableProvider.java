@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.core.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.ConfigurableProperties;
 import java.io.Serializable;

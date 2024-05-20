@@ -28,6 +28,10 @@ public interface IdentityProviderConfig<M extends ConfigMap> extends ProviderCon
 
     public int getPosition();
 
+    public String getTemplate();
+
+    public String getNotes();
+
     //TODO refactor hooks
     public Map<String, String> getHookFunctions();
 }

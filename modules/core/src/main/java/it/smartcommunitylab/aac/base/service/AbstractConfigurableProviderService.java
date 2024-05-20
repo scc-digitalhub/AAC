@@ -16,9 +16,12 @@
 
 package it.smartcommunitylab.aac.base.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.provider.config.DefaultConfigMapConverter;
+import it.smartcommunitylab.aac.base.provider.config.DefaultConfigurableProviderConverter;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -33,12 +36,14 @@ import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntityConverter;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
 import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
+import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.ConfigurableResourceProviderRegistry;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.model.Resource;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,37 +75,40 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @Slf4j
 public abstract class AbstractConfigurableProviderService<
-    T extends ConfigurableResourceProvider<? extends Resource, C, S, ? extends ConfigMap>,
-    P extends ConfigurableProvider<S>,
-    C extends ProviderConfig<S, ? extends ConfigMap>,
+    T extends ConfigurableResourceProvider<? extends Resource, P, S, ? extends ConfigMap>,
+    C extends ConfigurableProvider<S>,
+    P extends ProviderConfig<S, ? extends ConfigMap>,
     S extends ConfigMap
 >
-    implements ConfigurableProviderService<P>, ConfigurableResourceProviderRegistry<T, P, S>, InitializingBean {
+    implements ConfigurableProviderService<C>, ConfigurableResourceProviderRegistry<T, C, S>, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private final ResolvableType ctype;
     protected final String type;
 
-    protected final Map<String, ConfigurableProviderAuthority<T, P, C, S, ? extends ConfigMap>> authorities =
+    protected final Map<String, ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap>> authorities =
         new HashMap<>();
+    protected final Map<String, Converter<C, P>> providerConfigConverters = new HashMap<>();
     // <? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ? extends ConfigMap>
     // keep a local map for system providers since these are not in db
     // key is providerId
-    protected final Map<String, P> systemProviders = new HashMap<>();
+    protected final Map<String, C> systemProviders = new HashMap<>();
 
     protected SmartValidator validator;
 
     protected ConfigurableProviderEntityService providerService;
     protected Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> configConverter;
-    protected Converter<ProviderEntity, P> entityConverter;
+    protected Converter<ProviderEntity, C> entityConverter;
+    protected Converter<Map<String, Serializable>, S> settingsMapConverter;
 
     protected AbstractConfigurableProviderService() {
         log.debug("create provider for {}", getClass().getName());
 
         //extract type as type info
-        ResolvableType resolvableType = ResolvableType.forClass(getClass());
+        ctype = ResolvableType.forClass(AbstractConfigurableProviderService.class, getClass());
         @SuppressWarnings("unchecked")
-        Class<P> clazz = (Class<P>) resolvableType.getSuperType().getGeneric(1).resolve();
+        Class<C> clazz = (Class<C>) ctype.getSuperType().getGeneric(1).resolve();
         if (clazz == null) {
             throw new IllegalArgumentException("class is not resolvable");
         }
@@ -109,7 +117,7 @@ public abstract class AbstractConfigurableProviderService<
         log.debug("configurable class resolved as type:{}", type);
 
         //build a default factory via no-args constructor
-        Supplier<P> factory = () -> {
+        Supplier<C> factory = () -> {
             try {
                 return (clazz.getDeclaredConstructor().newInstance());
             } catch (
@@ -127,6 +135,12 @@ public abstract class AbstractConfigurableProviderService<
         //set default converters
         this.configConverter = new ConfigurableProviderConverter();
         this.entityConverter = new ProviderEntityConverter<>(factory);
+        this.settingsMapConverter = new DefaultConfigMapConverter<>();
+    }
+
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType() {
+        return ctype;
     }
 
     @Autowired
@@ -136,7 +150,7 @@ public abstract class AbstractConfigurableProviderService<
     }
 
     @Autowired
-    public void setAuthorities(List<ConfigurableProviderAuthority<T, P, C, S, ? extends ConfigMap>> authorities) {
+    public void setAuthorities(List<ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap>> authorities) {
         Assert.notNull(authorities, "authorities are required");
 
         this.authorities.clear();
@@ -145,6 +159,25 @@ public abstract class AbstractConfigurableProviderService<
             .stream()
             .forEach(a -> {
                 this.authorities.put(a.getAuthorityId(), a);
+
+                //extract configMap type and build default converters
+                try {
+                    if (a instanceof ResolvableGenericsTypeProvider) {
+                        //resolve types and build default converter
+                        @SuppressWarnings("unchecked")
+                        Class<T> t = (Class<T>) ((ResolvableGenericsTypeProvider) a).getResolvableType(0).resolve();
+                        Class<P> p = (Class<P>) ((ResolvableGenericsTypeProvider) a).getResolvableType(1).resolve();
+                        Class<S> s = (Class<S>) ctype.getGeneric(3).resolve();
+                        Class<? extends ConfigMap> m = (Class<
+                                ? extends ConfigMap
+                            >) ((ResolvableGenericsTypeProvider) a).getResolvableType(3).resolve();
+
+                        DefaultConfigurableProviderConverter<P, C, S> converter =
+                            new DefaultConfigurableProviderConverter<P, C, S>();
+                    }
+                } catch (Exception e) {
+                    log.error("error building default converter: {}", e.getMessage());
+                }
             });
 
         log.debug("registered authorities for {}: {}", type, this.authorities.keySet());
@@ -153,6 +186,13 @@ public abstract class AbstractConfigurableProviderService<
     @Autowired
     public void setValidator(SmartValidator validator) {
         this.validator = validator;
+    }
+
+    public void registerProviderConfigConverter(String authority, Converter<C, P> converter) {
+        Assert.hasText(authority, "authority can not be null or empty");
+        Assert.notNull(converter, "config converter is required");
+
+        this.providerConfigConverters.put(authority, converter);
     }
 
     @Override
@@ -168,32 +208,15 @@ public abstract class AbstractConfigurableProviderService<
         this.configConverter = configConverter;
     }
 
-    public void setEntityConverter(Converter<ProviderEntity, P> entityConverter) {
+    public void setEntityConverter(Converter<ProviderEntity, C> entityConverter) {
         this.entityConverter = entityConverter;
-    }
-
-    public ConfigurationProvider<C, P, S, ? extends ConfigMap> getConfigurationProvider(String authorityId)
-        throws NoSuchAuthorityException {
-        //fetch config provider from authority
-        ConfigurableProviderAuthority<T, P, C, S, ? extends ConfigMap> authority = authorities.get(authorityId);
-        if (authority == null) {
-            throw new NoSuchAuthorityException();
-        }
-
-        ConfigurationProvider<C, P, S, ? extends ConfigMap> configProvider = authority.getConfigurationProvider();
-        //config provider could be null for authorities which don't expose dynamic config
-        if (configProvider == null) {
-            throw new IllegalArgumentException("config provider not available");
-        }
-
-        return configProvider;
     }
 
     /*
      * CRUD via entities
      */
     @Transactional(readOnly = true)
-    public Page<P> searchConfigurableProviders(String realm, String q, Pageable pageRequest) {
+    public Page<C> searchConfigurableProviders(String realm, String q, Pageable pageRequest) {
         Page<ProviderEntity> page = providerService.searchProviders(type, realm, q, pageRequest);
         return PageableExecutionUtils.getPage(
             page.getContent().stream().map(pe -> entityConverter.convert(pe)).collect(Collectors.toList()),
@@ -203,7 +226,7 @@ public abstract class AbstractConfigurableProviderService<
     }
 
     @Transactional(readOnly = true)
-    public Collection<P> listConfigurableProviders() {
+    public Collection<C> listConfigurableProviders() {
         logger.debug("list all providers");
 
         //return only persisted
@@ -216,7 +239,7 @@ public abstract class AbstractConfigurableProviderService<
     }
 
     @Transactional(readOnly = true)
-    public Collection<P> listConfigurableProvidersByRealm(String realm) {
+    public Collection<C> listConfigurableProvidersByRealm(String realm) {
         logger.debug("list providers for realm {}", StringUtils.trimAllWhitespace(realm));
 
         if (SystemKeys.REALM_GLOBAL.equals(realm)) {
@@ -237,7 +260,7 @@ public abstract class AbstractConfigurableProviderService<
     }
 
     @Transactional(readOnly = true)
-    public P findConfigurableProvider(String providerId) {
+    public C findConfigurableProvider(String providerId) {
         // lookup in global map first
         if (systemProviders.containsKey(providerId)) {
             return systemProviders.get(providerId);
@@ -252,7 +275,7 @@ public abstract class AbstractConfigurableProviderService<
     }
 
     @Transactional(readOnly = true)
-    public P getConfigurableProvider(String providerId) throws NoSuchProviderException {
+    public C getConfigurableProvider(String providerId) throws NoSuchProviderException {
         logger.debug("get provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // lookup in global map first
@@ -261,7 +284,7 @@ public abstract class AbstractConfigurableProviderService<
         }
 
         ProviderEntity pe = providerService.getProvider(type, providerId);
-        P config = entityConverter.convert(pe);
+        C config = entityConverter.convert(pe);
         if (config == null) {
             throw new NoSuchProviderException();
         }
@@ -269,7 +292,7 @@ public abstract class AbstractConfigurableProviderService<
         return config;
     }
 
-    public P addConfigurableProvider(String realm, String providerId, P cp)
+    public C addConfigurableProvider(String realm, String providerId, C cp)
         throws RegistrationException, SystemException, NoSuchAuthorityException, MethodArgumentNotValidException {
         logger.debug("add provider for realm {}", StringUtils.trimAllWhitespace(realm));
         if (logger.isTraceEnabled()) {
@@ -324,9 +347,9 @@ public abstract class AbstractConfigurableProviderService<
         String authority = cp.getAuthority();
 
         // we validate config by converting to specific configMap
-        ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
+        Converter<C, P> converter = providerConfigConverters.get(authority);
         ConfigMap config = configProvider.getConfigMap(cp.getConfiguration());
-        ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
+        ConfigMap settings = settingsMapConverter.convert(cp.getSettings());
 
         // check with validator
         validateConfigMap(config);
@@ -346,7 +369,7 @@ public abstract class AbstractConfigurableProviderService<
         return entityConverter.convert(pe);
     }
 
-    public P updateConfigurableProvider(String providerId, P cp)
+    public C updateConfigurableProvider(String providerId, C cp)
         throws NoSuchProviderException, NoSuchAuthorityException, RegistrationException, MethodArgumentNotValidException {
         logger.debug("update provider {}", StringUtils.trimAllWhitespace(providerId));
         if (logger.isTraceEnabled()) {
@@ -399,9 +422,8 @@ public abstract class AbstractConfigurableProviderService<
 
         String authority = pe.getAuthority();
 
-        ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
         ConfigMap config = configProvider.getConfigMap(cp.getConfiguration());
-        ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
+        ConfigMap settings = settingsMapConverter.convert(cp.getSettings());
 
         // check with validator
         validateConfigMap(config);
@@ -474,7 +496,100 @@ public abstract class AbstractConfigurableProviderService<
      * Config via authorities
      */
 
-    public void registerProvider(String providerId, P cp)
+    //  @Override
+    //  public C registerProvider(P cp) throws IllegalArgumentException, RegistrationException, SystemException {
+    //      // we support only matching provider as resource providers
+    //      if (cp != null && getAuthorityId().equals(cp.getAuthority())) {
+    //          String providerId = cp.getProvider();
+    //          String realm = cp.getRealm();
+
+    //          logger.debug("register provider {} for realm {}", providerId, realm);
+    //          if (logger.isTraceEnabled()) {
+    //              logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
+    //          }
+
+    //          try {
+    //              // check if exists or id clashes with another provider from a different realm
+    //              C e = registrationRepository.findByProviderId(providerId);
+    //              if (e != null) {
+    //                  if (!realm.equals(e.getRealm())) {
+    //                      // name clash
+    //                      throw new RegistrationException(
+    //                          "a provider with the same id already exists under a different realm"
+    //                      );
+    //                  }
+
+    //                  // evaluate version against current
+    //                  if (cp.getVersion() == null) {
+    //                      throw new RegistrationException("invalid version");
+    //                  } else if (e.getVersion() == cp.getVersion()) {
+    //                      // same version, already registered, nothing to do
+    //                      // load to warm cache
+    //                      T rp = providers.get(providerId);
+
+    //                      // return effective config
+    //                      return rp.getConfig();
+    //                  } else if (e.getVersion() > cp.getVersion()) {
+    //                      throw new RegistrationException("invalid version");
+    //                  }
+    //              }
+
+    //              // build config
+    //              C providerConfig = getConfigurationProvider().getConfig(cp);
+    //              if (logger.isTraceEnabled()) {
+    //                  logger.trace(
+    //                      "provider active config v{}: {}",
+    //                      providerConfig.getVersion(),
+    //                      String.valueOf(providerConfig.getConfigMap().getConfiguration())
+    //                  );
+    //              }
+
+    //              //validate configs
+    //              validateConfigMap(providerConfig.getSettingsMap());
+    //              validateConfigMap(providerConfig.getConfigMap());
+
+    //              // register, we defer loading
+    //              // should update if existing
+    //              registrationRepository.addRegistration(providerConfig);
+
+    //              // load to warm cache
+    //              T rp = providers.get(providerId);
+
+    //              // return effective config
+    //              return rp.getConfig();
+    //          } catch (Exception ex) {
+    //              // cleanup
+    //              registrationRepository.removeRegistration(providerId);
+    //              logger.error("error registering provider {}: {}", providerId, ex.getMessage());
+
+    //              throw new RegistrationException("invalid provider configuration: " + ex.getMessage(), ex);
+    //          }
+    //      } else {
+    //          throw new IllegalArgumentException("illegal configurable");
+    //      }
+    //  }
+
+    //  @Override
+    //  public void unregisterProvider(String providerId) {
+    //      C registration = registrationRepository.findByProviderId(providerId);
+
+    //      if (registration != null) {
+    //          // can't unregister system providers, check
+    //          if (SystemKeys.REALM_SYSTEM.equals(registration.getRealm())) {
+    //              return;
+    //          }
+
+    //          logger.debug("unregister provider {} for realm {}", providerId, registration.getRealm());
+
+    //          // remove from cache
+    //          providers.invalidate(providerId);
+
+    //          // remove from registrations
+    //          registrationRepository.removeRegistration(providerId);
+    //      }
+    //  }
+
+    public void registerProvider(String providerId, C cp)
         throws NoSuchRealmException, NoSuchProviderException, NoSuchAuthorityException, RegistrationException {
         Assert.hasText(providerId, "provider id can not be null or empty");
         Assert.notNull(cp, "configurable provider can not be null");
@@ -483,14 +598,14 @@ public abstract class AbstractConfigurableProviderService<
         logger.debug("register provider {}", StringUtils.trimAllWhitespace(cp.getProvider()));
 
         // fetch, only persisted configurations can be registered
-        P config = getConfigurableProvider(cp.getProvider());
+        C config = getConfigurableProvider(cp.getProvider());
 
         //TODO evaluate if config are the same
         if (cp.getAuthority() != config.getAuthority()) {
             throw new IllegalArgumentException();
         }
 
-        ConfigurableProviderAuthority<T, P, C, S, ? extends ConfigMap> authority = authorities.get(cp.getAuthority());
+        ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap> authority = authorities.get(cp.getAuthority());
         if (authority == null) {
             throw new NoSuchAuthorityException();
         }
@@ -504,9 +619,9 @@ public abstract class AbstractConfigurableProviderService<
         logger.debug("unregister provider {}", StringUtils.trimAllWhitespace(providerId));
 
         // fetch, only persisted configurations can be registered
-        P cp = getConfigurableProvider(providerId);
+        C cp = getConfigurableProvider(providerId);
 
-        ConfigurableProviderAuthority<T, P, C, S, ? extends ConfigMap> authority = authorities.get(cp.getAuthority());
+        ConfigurableProviderAuthority<T, C, P, S, ? extends ConfigMap> authority = authorities.get(cp.getAuthority());
         if (authority == null) {
             throw new NoSuchAuthorityException();
         }
@@ -517,7 +632,7 @@ public abstract class AbstractConfigurableProviderService<
 
     public boolean isProviderRegistered(String providerId) throws NoSuchProviderException, NoSuchAuthorityException {
         // fetch, only persisted configurations can be registered
-        P cp = getConfigurableProvider(providerId);
+        C cp = getConfigurableProvider(providerId);
 
         if (!cp.isEnabled()) {
             return false;

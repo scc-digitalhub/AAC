@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.io.Serializable;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -52,7 +54,11 @@ import org.springframework.util.StringUtils;
 //         @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
 //     }
 // )
-public class ConfigurableProviderImpl<S extends ConfigMap> implements ConfigurableProvider<S>, Serializable {
+public class ConfigurableProviderImpl<S extends ConfigMap>
+    implements ConfigurableProvider<S>, ResolvableGenericsTypeProvider, Serializable {
+
+    private ResolvableType ctype;
+    private ResolvableType btype;
 
     //TODO evaluate ENUM for known types
     @NotBlank
@@ -119,9 +125,7 @@ public class ConfigurableProviderImpl<S extends ConfigMap> implements Configurab
      * reflection
      */
     @SuppressWarnings("unused")
-    private ConfigurableProviderImpl() {
-        this((String) null, (String) null, (String) null, (String) null);
-    }
+    private ConfigurableProviderImpl() {}
 
     @Override
     public String getAuthority() {
@@ -280,5 +284,38 @@ public class ConfigurableProviderImpl<S extends ConfigMap> implements Configurab
             configuration +
             "]"
         );
+    }
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType() {
+        if (this.ctype == null) {
+            try {
+                this.ctype = ResolvableType.forClass(getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return ctype;
+    }
+
+    @Override
+    @JsonIgnoreProperties
+    public ResolvableType getResolvableType(int pos) {
+        if (this.btype == null) {
+            try {
+                this.btype = ResolvableType.forClass(ConfigurableProviderImpl.class, getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return btype != null ? btype.getGeneric(pos) : null;
+    }
+
+    @JsonIgnoreProperties
+    public ResolvableType getConfigType() {
+        return getResolvableType(0);
     }
 }

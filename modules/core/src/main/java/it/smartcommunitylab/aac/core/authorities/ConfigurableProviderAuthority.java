@@ -18,20 +18,16 @@ package it.smartcommunitylab.aac.core.authorities;
 
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.Resource;
-import org.springframework.lang.Nullable;
 
 /*
  * Provider authorities handle (configurable) resource providers by managing registrations and configuration
  */
 public interface ConfigurableProviderAuthority<
     T extends ConfigurableResourceProvider<? extends Resource, P, S, M>,
-    C extends ConfigurableProvider<S>,
     P extends ProviderConfig<S, M>,
     S extends ConfigMap,
     M extends ConfigMap
@@ -41,12 +37,11 @@ public interface ConfigurableProviderAuthority<
      * Registration
      */
 
-    public P registerProvider(C config) throws IllegalArgumentException, RegistrationException, SystemException;
+    public P registerProvider(P config) throws IllegalArgumentException, RegistrationException, SystemException;
 
     public void unregisterProvider(String providerId) throws SystemException;
-
     /*
      * Config provider exposes configuration
      */
-    public @Nullable ConfigurationProvider<P, C, S, M> getConfigurationProvider();
+    // public @Nullable ConfigurationProvider<P, C, S, M> getConfigurationProvider();
 }
