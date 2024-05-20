@@ -1,6 +1,6 @@
 CREATE TABLE
     IF NOT EXISTS audit_events (
-        event_id UUID DEFAULT RANDOM_UUID() PRIMARY KEY,
+        event_id UUID PRIMARY KEY,
         event_time TIMESTAMP,
         principal varchar(255),
         realm varchar(255) DEFAULT NULL,
