@@ -326,7 +326,7 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
 
     private ContactPerson buildContactPerson(SpidIdentityProviderConfig config) {
         SpidIdentityProviderConfigMap configMap = config.getConfigMap();
-        boolean isPublic = true;
+        boolean isPublic = true; // private sp are currently not supported
 
         ContactPerson contactPerson = contactPersonBuilder.buildObject();
         contactPerson.setType(ContactPersonTypeEnumeration.OTHER);
@@ -335,33 +335,14 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         emailAddress.setURI(configMap.getContactPerson_EmailAddress());
         contactPerson.getEmailAddresses().add(emailAddress);
 
-        //        OPTIONAL
-        //        if (StringUtils.hasText(configMap.getContactPerson_TelephoneNumber())) {
-        //            TelephoneNumber telephoneNumber = telephoneNumberBuilder.buildObject();
-        //            telephoneNumber.setNumber(configMap.getContactPerson_TelephoneNumber());
-        //            contactPerson.getTelephoneNumbers().add(telephoneNumber);
-        //        }
-
         Extensions contactExtension = extensionsBuilder.buildObject();
         List<XMLObject> contactExtensions = new ArrayList<>();
-        //        OPTIONAL FOR PUBLIC
-        //        if (StringUtils.hasText(configMap.getContactPerson_VATNumber())) {
-        //            XSAny vatNumber = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "VATNumber", SPID_NAMESPACE_PREFIX);
-        //            vatNumber.setTextContent(configMap.getContactPerson_VATNumber());
-        //            contactExtensions.add(vatNumber);
-        //        }
 
         if (StringUtils.hasText(configMap.getContactPerson_IPACode()) && isPublic) {
             XSAny ipaCode = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "IPACode", SPID_NAMESPACE_PREFIX);
             ipaCode.setTextContent(configMap.getContactPerson_IPACode());
             contactExtensions.add(ipaCode);
         }
-        //        OPTIONAL FOR PUBLIC
-        //        if (StringUtils.hasText(configMap.getContactPerson_FiscalCode()) && !isPublic) {
-        //            XSAny fiscalCode = xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "FiscalCode", SPID_NAMESPACE_PREFIX);
-        //            fiscalCode.setTextContent(configMap.getContactPerson_FiscalCode());
-        //            contactExtensions.add(fiscalCode);
-        //        }
 
         if (isPublic) {
             contactExtensions.add(xsAnyBuilder.buildObject(SPID_NAMESPACE_URI, "Public", SPID_NAMESPACE_PREFIX));
