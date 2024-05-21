@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.saml.provider;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.crypto.CertificateParser;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
@@ -29,6 +28,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -236,15 +237,28 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     //
     private Saml2X509Credential getVerificationCertificate(String certificate)
         throws CertificateException, IOException {
-        return new Saml2X509Credential(CertificateParser.parseX509(certificate), Saml2X509CredentialType.VERIFICATION);
+        return new Saml2X509Credential(parseX509Certificate(certificate), Saml2X509CredentialType.VERIFICATION);
     }
 
     private Saml2X509Credential getCredentials(String key, String certificate, Saml2X509CredentialType... keyUse)
         throws IOException, CertificateException {
         //        PrivateKey pk = RsaKeyConverters.pkcs8().convert(new ByteArrayInputStream(key.getBytes()));
-        PrivateKey pk = CertificateParser.parsePrivateWithUndefinedHeader(key);
-        X509Certificate cert = CertificateParser.parseX509(certificate);
+        PrivateKey pk = parsePrivateKeyFallback(key);
+        X509Certificate cert = parseX509Certificate(certificate);
         return new Saml2X509Credential(pk, cert, keyUse);
+    }
+
+    private PrivateKey parsePrivateKeyFallback(String key) throws IOException {
+        // first try as rsa
+        PrivateKey pk = null;
+        try {
+            pk = parsePrivateKey(fixPem(key, "RSA PRIVATE KEY"));
+        } catch (IllegalArgumentException | IOException e) {
+            // fallback as private
+            pk = parsePrivateKey(fixPem(key, "PRIVATE KEY"));
+        }
+
+        return pk;
     }
 
     private PrivateKey parsePrivateKey(String key) throws IOException {
@@ -264,6 +278,31 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         throw new IllegalArgumentException("invalid private key");
     }
 
+    //    private X509Certificate parseX509Certificate(String source) {
+    //        try {
+    //            final CertificateFactory factory = CertificateFactory.getInstance("X.509");
+    //            return (X509Certificate) factory.generateCertificate(
+    //                    new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)));
+    //        } catch (Exception e) {
+    //            throw new IllegalArgumentException(e);
+    //        }
+    //    }
+
+    private X509Certificate parseX509Certificate(String source) throws IOException, CertificateException {
+        String src = fixPem(source, "CERTIFICATE");
+        StringReader sr = new StringReader(src);
+        PEMParser pr = new PEMParser(sr);
+        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+        Object pem = pr.readObject();
+        sr.close();
+
+        if (pem instanceof X509CertificateHolder) {
+            return converter.getCertificate((X509CertificateHolder) pem);
+        }
+
+        throw new IllegalArgumentException("invalid certificate");
+    }
+
     private Saml2MessageBinding getServiceBinding(String value) {
         Saml2MessageBinding ssoServiceBinding = Saml2MessageBinding.POST;
         if ("HTTP-Redirect".equals(value)) {
@@ -271,5 +310,71 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         }
 
         return ssoServiceBinding;
+    }
+
+    //    // TODO rewrite with proper parser
+    //    private String cleanupPem(String kind, String value) {
+    //        // build headers
+    //        // we set a fixed length separator because spring rsaKeyConverter checks for
+    //        // this specific amount of dashes..
+    //        String sep = "-----";
+    //        String header = "BEGIN " + kind;
+    //        String footer = "END " + kind;
+    //
+    //        String[] lines = value.split("\\R");
+    //        String[] keyLines = lines;
+    //
+    //        if (lines.length > 2) {
+    //            // headers?
+    //            String headerLine = lines[0];
+    //            String footerLine = lines[lines.length - 1];
+    //
+    //            if (headerLine.contains(header)) {
+    //                // extract key
+    //                keyLines = new String[lines.length - 2];
+    //                System.arraycopy(lines, 1, keyLines, 0, keyLines.length);
+    //            }
+    //        }
+    //
+    //        // cleanup and rebuild string
+    //        StringBuilder sb = new StringBuilder();
+    //        sb.append(sep).append(header).append(sep).append("\n");
+    //        for (int c = 0; c < keyLines.length; c++) {
+    //            sb.append(keyLines[c].trim()).append("\n");
+    //        }
+    //
+    //        sb.append(sep).append(footer).append(sep);
+    //        return sb.toString();
+    //    }
+
+    private String fixPem(String value, String kind) {
+        String sep = "-----";
+        String begin = "BEGIN " + kind;
+        String end = "END " + kind;
+
+        String header = sep + begin + sep;
+        String footer = sep + end + sep;
+
+        String[] lines = value.split("\\R");
+
+        if (lines.length > 2) {
+            // headers?
+            String headerLine = lines[0];
+            String footerLine = lines[lines.length - 1];
+
+            if (headerLine.startsWith(sep) && footerLine.startsWith(sep)) {
+                // return unchanged, don't mess with content
+                return value;
+            }
+        }
+
+        // rewrite
+        StringBuilder sb = new StringBuilder();
+        sb.append(header).append("\n");
+        for (int c = 0; c < lines.length; c++) {
+            sb.append(lines[c].trim()).append("\n");
+        }
+        sb.append(footer);
+        return sb.toString();
     }
 }
