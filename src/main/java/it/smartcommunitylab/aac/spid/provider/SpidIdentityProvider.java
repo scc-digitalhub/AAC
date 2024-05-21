@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.provider.SubjectResolver;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
@@ -34,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.util.StringUtils;
 
@@ -133,7 +135,7 @@ public class SpidIdentityProvider
     }
 
     @Override
-    public SpidLoginProvider getLoginProvider() {
+    public SpidLoginProvider getLoginProvider(ClientDetails clientDetails, AuthorizationRequest authRequest) {
         SpidLoginProvider lp = new SpidLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         // bind identity provider configs to login provider
         lp.setTitleMap(getTitleMap()); // TODO: Remove? Localization and customization might not be supported for SPID buttons
