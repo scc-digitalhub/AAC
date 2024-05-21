@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
@@ -47,7 +48,7 @@ import org.springframework.util.Assert;
 public class SpidFilterProvider implements FilterProvider, ApplicationEventPublisherAware {
 
     private static final String[] NO_CORS_ENDPOINTS = { "authenticate/**", "sso/**" }; // must match filters endpoints
-    private final String authorityId;
+    private static final String authorityId = SystemKeys.AUTHORITY_SPID;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
     private final SpidRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
 
@@ -55,15 +56,12 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
     private AuthenticationManager authManager;
 
     public SpidFilterProvider(
-        String authorityId,
         SpidRelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
-        Assert.hasText(authorityId, "authority can not be null or empty");
         Assert.notNull(providerConfigRepository, "registration repository is mandatory");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party registration repository is mandatory");
 
-        this.authorityId = authorityId;
         this.providerConfigRepository = providerConfigRepository;
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
     }
@@ -82,7 +80,6 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
 
         // build filters
         SpidWebSsoAuthenticationRequestFilter requestFilter = new SpidWebSsoAuthenticationRequestFilter(
-            authorityId,
             providerConfigRepository,
             relyingPartyRegistrationRepository,
             buildFilterUrl("authenticate/{registrationId}")

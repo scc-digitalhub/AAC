@@ -36,13 +36,12 @@ public class SpidSubjectResolver extends AbstractProvider<SamlUserAccount> imple
     private String repositoryId;
 
     public SpidSubjectResolver(
-        String authority,
         String providerId,
         UserAccountService<SamlUserAccount> userAccountService,
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        super(authority, providerId, realm);
+        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(userAccountService, "account service is mandatory");
         Assert.notNull(config, "provider config is mandatory");
 

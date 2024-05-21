@@ -47,16 +47,7 @@ public class SpidAttributeProvider
     private final SpidAttributesMapper spidMapper;
 
     public SpidAttributeProvider(String providerId, SpidIdentityProviderConfig providerConfig, String realm) {
-        this(SystemKeys.AUTHORITY_SPID, providerId, providerConfig, realm);
-    }
-
-    public SpidAttributeProvider(
-        String authority,
-        String providerId,
-        SpidIdentityProviderConfig providerConfig,
-        String realm
-    ) {
-        super(authority, providerId, realm);
+        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         Assert.notNull(providerConfig, "provider config is mandatory");
         openidMapper = new OpenIdAttributesMapper();
         spidMapper = new SpidAttributesMapper();

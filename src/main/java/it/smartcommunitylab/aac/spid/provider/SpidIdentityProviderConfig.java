@@ -69,13 +69,15 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     private Map<String, SpidRegistration> identityProviders; // local registry
 
     public SpidIdentityProviderConfig(String provider, String realm) {
-        this(SystemKeys.AUTHORITY_SPID, provider, realm);
-    }
-
-    public SpidIdentityProviderConfig(String authority, String provider, String realm) {
-        super(authority, provider, realm, new IdentityProviderSettingsMap(), new SpidIdentityProviderConfigMap());
+        super(
+            SystemKeys.AUTHORITY_SPID,
+            provider,
+            realm,
+            new IdentityProviderSettingsMap(),
+            new SpidIdentityProviderConfigMap()
+        );
         this.relyingPartyRegistrations = null;
-        this.identityProviders = Collections.emptyMap(); // TODO: check later on if this should be passed in the constructor
+        this.identityProviders = Collections.emptyMap();
     }
 
     public SpidIdentityProviderConfig(

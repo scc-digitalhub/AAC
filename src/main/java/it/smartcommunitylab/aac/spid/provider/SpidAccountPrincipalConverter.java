@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
@@ -40,13 +41,8 @@ public class SpidAccountPrincipalConverter
     private final SpidIdentityProviderConfig config;
     private final String repositoryId;
 
-    public SpidAccountPrincipalConverter(
-        String authority,
-        String providerId,
-        SpidIdentityProviderConfig config,
-        String realm
-    ) {
-        super(authority, providerId, realm);
+    public SpidAccountPrincipalConverter(String providerId, SpidIdentityProviderConfig config, String realm) {
+        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         this.config = config;
         this.repositoryId = providerId;
     }

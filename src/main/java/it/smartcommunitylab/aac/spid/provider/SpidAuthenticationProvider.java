@@ -80,17 +80,7 @@ public class SpidAuthenticationProvider
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        this(SystemKeys.AUTHORITY_SPID, providerId, accountService, config, realm);
-    }
-
-    public SpidAuthenticationProvider(
-        String authority,
-        String providerId,
-        UserAccountService<SamlUserAccount> accountService,
-        SpidIdentityProviderConfig config,
-        String realm
-    ) {
-        super(authority, providerId, realm);
+        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
         this.accountService = accountService;
         this.registrationIds = config.getRelyingPartyRegistrationIds();
         this.subjectAttribute = config.getSubAttributeName();

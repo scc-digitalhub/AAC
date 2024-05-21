@@ -57,23 +57,13 @@ public class SpidIdentityProvider
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        this(SystemKeys.AUTHORITY_SPID, providerId, userAccountService, config, realm);
-    }
-
-    public SpidIdentityProvider(
-        String authority,
-        String providerId,
-        UserAccountService<SamlUserAccount> userAccountService,
-        SpidIdentityProviderConfig config,
-        String realm
-    ) {
-        super(authority, providerId, config, realm);
+        super(SystemKeys.AUTHORITY_SPID, providerId, config, realm);
         logger.debug("create spid provider with id {}", providerId);
         SpidAccountServiceConfigConverter configConverter = new SpidAccountServiceConfigConverter();
         this.accountService =
-            new SpidAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
-        this.principalConverter = new SpidAccountPrincipalConverter(authority, providerId, config, realm);
-        this.attributeProvider = new SpidAttributeProvider(authority, providerId, config, realm);
+            new SpidAccountService(providerId, userAccountService, configConverter.convert(config), realm);
+        this.principalConverter = new SpidAccountPrincipalConverter(providerId, config, realm);
+        this.attributeProvider = new SpidAttributeProvider(providerId, config, realm);
         this.authenticationProvider =
             new SpidAuthenticationProvider(
                 providerId,
@@ -81,7 +71,7 @@ public class SpidIdentityProvider
                 config,
                 realm
             );
-        this.subjectResolver = new SpidSubjectResolver(authority, providerId, userAccountService, config, realm);
+        this.subjectResolver = new SpidSubjectResolver(providerId, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null) {

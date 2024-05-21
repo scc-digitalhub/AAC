@@ -38,12 +38,9 @@ public class SpidIdentityConfigurationProvider
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
         IdentityAuthoritiesProperties authoritiesProperties
     ) {
-        this(
-            SystemKeys.AUTHORITY_SPID,
-            registrationRepository,
-            new IdentityProviderSettingsMap(),
-            new SpidIdentityProviderConfigMap()
-        );
+        super(SystemKeys.AUTHORITY_SPID, registrationRepository);
+        setDefaultSettingsMap(new IdentityProviderSettingsMap());
+        setDefaultConfigMap(new SpidIdentityProviderConfigMap());
         if (
             authoritiesProperties != null &&
             authoritiesProperties.getSettings() != null &&
@@ -52,17 +49,6 @@ public class SpidIdentityConfigurationProvider
             setDefaultSettingsMap(authoritiesProperties.getSettings());
             setDefaultConfigMap(authoritiesProperties.getSpid());
         }
-    }
-
-    public SpidIdentityConfigurationProvider(
-        String authority,
-        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository,
-        IdentityProviderSettingsMap settings,
-        SpidIdentityProviderConfigMap configs
-    ) {
-        super(authority, registrationRepository);
-        setDefaultSettingsMap(settings);
-        setDefaultConfigMap(configs);
     }
 
     @Override

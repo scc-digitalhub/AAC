@@ -70,7 +70,7 @@ public class SpidWebSsoAuthenticationRequestFilter
     private static final String DEFAULT_FILTER_URI =
         SpidIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}"; // NOTE: if multiple upstream idps are possible, then registration id must somehow also encode which idp is target of the authentication request
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final String authorityId;
+    private static final String authorityId = SystemKeys.AUTHORITY_SPID;
     private final RequestMatcher requestMatcher;
 
     private final Saml2AuthenticationRequestContextResolver authenticationRequestContextResolver;
@@ -87,16 +87,10 @@ public class SpidWebSsoAuthenticationRequestFilter
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository,
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository
     ) {
-        this(
-            SystemKeys.AUTHORITY_SPID,
-            providerConfigRepository,
-            relyingPartyRegistrationRepository,
-            DEFAULT_FILTER_URI
-        );
+        this(providerConfigRepository, relyingPartyRegistrationRepository, DEFAULT_FILTER_URI);
     }
 
     public SpidWebSsoAuthenticationRequestFilter(
-        String authorityId,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository,
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
         String filterProcessingUrl
@@ -105,7 +99,6 @@ public class SpidWebSsoAuthenticationRequestFilter
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
-        this.authorityId = authorityId;
         this.providerConfigRepository = providerConfigRepository;
         // use custom implementation to add secure relayState param
         this.authenticationRequestContextResolver =

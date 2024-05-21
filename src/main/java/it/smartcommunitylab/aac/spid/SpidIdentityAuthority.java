@@ -78,24 +78,16 @@ public class SpidIdentityAuthority
             }
         );
 
-    public SpidIdentityAuthority(
-        String authorityId,
-        UserAccountService<SamlUserAccount> accountService,
-        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
-    ) {
-        super(authorityId, providerConfigRepository);
-        this.accountService = accountService;
-        this.providerConfigRepository = providerConfigRepository;
-        this.registrationRepository = new SpidRelyingPartyRegistrationRepository(providerConfigRepository);
-        this.filterProvider = new SpidFilterProvider(authorityId, registrationRepository, providerConfigRepository);
-    }
-
     @Autowired
     public SpidIdentityAuthority(
         UserAccountService<SamlUserAccount> accountService,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
-        this(SystemKeys.AUTHORITY_SPID, accountService, providerConfigRepository);
+        super(SystemKeys.AUTHORITY_SPID, providerConfigRepository);
+        this.accountService = accountService;
+        this.providerConfigRepository = providerConfigRepository;
+        this.registrationRepository = new SpidRelyingPartyRegistrationRepository(providerConfigRepository);
+        this.filterProvider = new SpidFilterProvider(registrationRepository, providerConfigRepository);
     }
 
     @Autowired
@@ -148,7 +140,7 @@ public class SpidIdentityAuthority
     @Override
     protected SpidIdentityProvider buildProvider(SpidIdentityProviderConfig config) {
         String id = config.getProvider();
-        SpidIdentityProvider idp = new SpidIdentityProvider(authorityId, id, accountService, config, config.getRealm());
+        SpidIdentityProvider idp = new SpidIdentityProvider(id, accountService, config, config.getRealm());
         idp.setExecutionService(executionService);
         idp.setResourceService(resourceService);
         return idp;

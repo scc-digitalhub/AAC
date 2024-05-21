@@ -47,22 +47,14 @@ public class SpidAccountServiceAuthority
 
     private ResourceEntityService resourceService;
 
-    public SpidAccountServiceAuthority(
-        String authorityId,
-        UserAccountService<SamlUserAccount> userAccountService,
-        ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
-    ) {
-        super(authorityId, new SpidConfigTranslatorRepository(registrationRepository));
-        Assert.notNull(userAccountService, "account service is mandatory");
-        this.accountService = userAccountService;
-    }
-
     @Autowired
     public SpidAccountServiceAuthority(
         UserAccountService<SamlUserAccount> userAccountService,
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
     ) {
-        this(SystemKeys.AUTHORITY_SPID, userAccountService, registrationRepository);
+        super(SystemKeys.AUTHORITY_SPID, new SpidConfigTranslatorRepository(registrationRepository));
+        Assert.notNull(userAccountService, "account service is mandatory");
+        this.accountService = userAccountService;
     }
 
     @Autowired

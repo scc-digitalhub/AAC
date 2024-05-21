@@ -37,16 +37,6 @@ public class SpidAccountService
         super(SystemKeys.AUTHORITY_SPID, providerId, accountService, config, realm);
     }
 
-    public SpidAccountService(
-        String authority,
-        String providerId,
-        UserAccountService<SamlUserAccount> accountService,
-        SpidAccountServiceConfig config,
-        String realm
-    ) {
-        super(authority, providerId, accountService, config, realm);
-    }
-
     @Override
     public SamlEditableUserAccount getEditableAccount(String userId, String subject) throws NoSuchUserException {
         SamlUserAccount account = findAccount(subject);
