@@ -22,31 +22,14 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class SpidLoginProvider extends AbstractLoginProvider {
-
-    public static final String[] ICONS = { "google", "facebook", "github", "microsoft", "apple", "instagram" };
 
     private List<SpidIdpButton> idpButtons;
 
     public SpidLoginProvider(String authority, String providerId, String realm, String name) {
         super(authority, providerId, realm, name);
-        setTemplate("button-spid");
-
-        // TODO: tutto quanto sotto probabilmente è da rivedere
-        // no custom icon for now, default on authority or key
-        String icon = "it-key";
-        if (ArrayUtils.contains(ICONS, getAuthority())) {
-            icon = "logo-" + getAuthority();
-        } else if (ArrayUtils.contains(ICONS, getKey())) {
-            icon = "logo-" + getKey();
-        }
-
-        String iconUrl = icon.startsWith("logo-") ? "svg/sprite.svg#" + icon : "italia/svg/sprite.svg#" + icon;
-
-        setIcon(icon);
-        setIconUrl(iconUrl);
+        setTemplate("button-spid"); // SPID button template also defines the icon and the icon url
         this.idpButtons = new LinkedList<>();
     }
 
