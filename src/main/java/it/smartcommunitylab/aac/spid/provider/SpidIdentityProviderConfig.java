@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,7 @@ import org.opensaml.security.credential.CredentialSupport;
 import org.opensaml.security.credential.UsageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.saml2.Saml2Exception;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
@@ -158,7 +160,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
             for (String idpMetadataUrl : idpMetadataUrls) {
                 try {
                     registrations.add(toRelyingPartyRegistration(idpMetadataUrl));
-                } catch (IOException e) {
+                } catch (Saml2Exception | ConnectException e) {
                     // skip that registration if that idp is offline
                     logger.warn("error building registration for {} due to error {} ", idpMetadataUrl, e.getMessage());
                 }
