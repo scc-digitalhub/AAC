@@ -1,5 +1,11 @@
 package it.smartcommunitylab.aac.crypto;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.PrivateKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.regex.Pattern;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -7,65 +13,54 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.security.saml2.core.Saml2X509Credential;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.security.PrivateKey;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import org.springframework.util.StringUtils;
 
 public class CertificateParser {
 
-    // updatePemHeaderFooter ensured that a PEM (as UTF-8 string) starts
-    // and terminated with the appropriate footer. Which footer is appropriate
-    // depends in the the params kind
-    // TODO: kind should be enum
-    private static String updatePemHeaderFooter(String value, String kind) {
-        String sep = "-----";
-        String begin = "BEGIN " + kind;
-        String end = "END " + kind;
+    private static final Pattern headPat = Pattern.compile("^-----BEGIN [A-Z]*-----$");
+    private static final Pattern footPat = Pattern.compile("^-----END [A-Z]*-----$");
+    private static final String headFmt = "-----BEGIN %s-----";
+    private static final String footFmt = "-----END %s-----";
 
-        String header = sep + begin + sep;
-        String footer = sep + end + sep;
-
-        String[] lines = value.split("\\R");
-
+    // withoutHeader verify if the given PEM is missing either the header
+    // or the footer (or both)
+    private static boolean withoutHeader(String pem) {
+        if (!StringUtils.hasText(pem)) {
+            return true;
+        }
+        String[] lines = pem.split("\\R");
         if (lines.length > 2) {
-            // headers?
             String headerLine = lines[0];
             String footerLine = lines[lines.length - 1];
-
-            if (headerLine.startsWith(sep) && footerLine.startsWith(sep)) {
-                // return unchanged, don't mess with content
-                return value;
-            }
+            return headPat.matcher(headerLine).find() && footPat.matcher(footerLine).find();
         }
-
-        // rewrite
-        StringBuilder sb = new StringBuilder();
-        sb.append(header).append("\n");
-        for (String line : lines) {
-            sb.append(line.trim()).append("\n");
-        }
-        sb.append(footer);
-        return sb.toString();
+        return true;
     }
 
-    public static X509Certificate parseX509(String source) throws IOException, CertificateException {
-        String src = updatePemHeaderFooter(source, "CERTIFICATE");
-        StringReader sr = new StringReader(src);
-        PEMParser pr = new PEMParser(sr);
-        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
-        Object pem = pr.readObject();
-        sr.close();
-
-        if (pem instanceof X509CertificateHolder) {
-            return converter.getCertificate((X509CertificateHolder) pem);
-        }
-        throw new IllegalArgumentException("invalid certificate");
+    // addHeader inserts a header and a footer of the given kind to a PEM
+    // The header is ALWAYS inserted, even when it's already present; as such
+    //  usage should often be accompanied by withoutHeader function
+    private static String addHeader(String pem, String kind) {
+        String header = String.format(headFmt, kind);
+        String footer = String.format(footFmt, kind);
+        return header + "\n" + pem + "\n" + footer;
     }
 
-    public static PrivateKey parsePrivateKey(String key) throws IOException {
+    // verifyHeader checks if the given pem has an header of the given kind
+    private static boolean checkHeader(String pem, String kind) {
+        String header = String.format(headFmt, kind);
+        String footer = String.format(footFmt, kind);
+        String[] lines = pem.split("\\R");
+        if (lines.length > 2) {
+            String headerLine = lines[0];
+            String footerLine = lines[lines.length - 1];
+            return (headerLine.equals(header) && footerLine.equals(footer));
+        }
+        // header is missing: for sure it's wrong
+        return false;
+    }
+
+    private static PrivateKey parsePrivateKeyStrict(String key) throws IOException {
         StringReader sr = new StringReader(key);
         PEMParser pr = new PEMParser(sr);
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
@@ -82,22 +77,51 @@ public class CertificateParser {
         throw new IllegalArgumentException("invalid private key");
     }
 
-    public static PrivateKey parsePrivateWithUndefinedHeader(String key) throws IOException {
-        // first try as rsa
+    private static PrivateKey parsePrivateKey(String keyPem) throws IOException {
         PrivateKey pk = null;
-        try {
-            pk = parsePrivateKey(updatePemHeaderFooter(key, "RSA PRIVATE KEY"));
-        } catch (IllegalArgumentException | IOException e) {
-            // fallback as private
-            pk = parsePrivateKey(updatePemHeaderFooter(key, "PRIVATE KEY"));
+        if (withoutHeader(keyPem)) {
+            // header must be guessed: try RSA first, then generic
+            try {
+                pk = parsePrivateKeyStrict(addHeader(keyPem, "RSA PRIVATE KEY"));
+            } catch (IllegalArgumentException | IOException e) {
+                pk = parsePrivateKeyStrict(addHeader(keyPem, "PRIVATE KEY"));
+            }
+            return pk;
         }
-
+        pk = parsePrivateKeyStrict(keyPem);
         return pk;
     }
 
-    public static Saml2X509Credential genCredentials(String key, String certificate, Saml2X509Credential.Saml2X509CredentialType... keyUse)
-            throws IOException, CertificateException {
-        PrivateKey pk = CertificateParser.parsePrivateWithUndefinedHeader(key);
+    private static X509Certificate parseX509(String source) throws IOException, CertificateException {
+        // if source is missing header, try to guess it in order to parse as X509 certificate
+        String pemSrc;
+        if (withoutHeader(source)) {
+            pemSrc = addHeader(source, "CERTIFICATE");
+        } else {
+            pemSrc = source;
+        }
+        if (!checkHeader(source, "CERTIFICATE")) {
+            throw new IllegalArgumentException("invalid certificate");
+        }
+
+        StringReader sr = new StringReader(pemSrc);
+        PEMParser pr = new PEMParser(sr);
+        JcaX509CertificateConverter converter = new JcaX509CertificateConverter();
+        Object pem = pr.readObject();
+        sr.close();
+
+        if (pem instanceof X509CertificateHolder) {
+            return converter.getCertificate((X509CertificateHolder) pem);
+        }
+        throw new IllegalArgumentException("invalid certificate");
+    }
+
+    public static Saml2X509Credential genCredentials(
+        String key,
+        String certificate,
+        Saml2X509Credential.Saml2X509CredentialType... keyUse
+    ) throws IOException, CertificateException {
+        PrivateKey pk = CertificateParser.parsePrivateKey(key);
         X509Certificate cert = CertificateParser.parseX509(certificate);
         return new Saml2X509Credential(pk, cert, keyUse);
     }

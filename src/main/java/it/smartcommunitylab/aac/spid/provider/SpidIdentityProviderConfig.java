@@ -29,8 +29,6 @@ import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
@@ -285,14 +283,6 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         }
 
         return builder.build();
-    }
-
-    public X509Certificate getSigningCertificate() throws CertificateException, IOException {
-        return CertificateParser.parseX509(configMap.getSigningCertificate());
-    }
-
-    public PrivateKey getSigningKey() throws IOException {
-        return CertificateParser.parsePrivateWithUndefinedHeader(configMap.getSigningKey());
     }
 
     public List<Credential> getRelyingPartySigningCredentials() {
