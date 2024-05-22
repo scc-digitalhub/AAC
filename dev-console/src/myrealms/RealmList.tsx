@@ -17,9 +17,13 @@ import {
     Button,
     Box,
     Typography,
+    ListItemIcon,
+    IconButton,
 } from '@mui/material';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
+import GroupsIcon from '@mui/icons-material/Groups';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 const RealmListContent = () => {
     const { data: realms, isLoading } = useListContext<any>();
@@ -32,6 +36,17 @@ const RealmListContent = () => {
             {realms.map(realm => (
                 <RecordContextProvider key={realm.id} value={realm}>
                     <ListItem>
+                        {realm.public && (
+                            <IconButton title="Public">
+                                <GroupsIcon />
+                            </IconButton>
+                        )}
+                        {!realm.public && (
+                            <IconButton title="Private">
+                                <VisibilityOffIcon />
+                            </IconButton>
+                        )}
+                        &nbsp; &nbsp;
                         <ListItemText
                             primary={`${realm.slug}`}
                             secondary={`${realm.name}`}
