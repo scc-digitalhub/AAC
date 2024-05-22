@@ -17,14 +17,14 @@ import org.springframework.util.StringUtils;
 
 public class CertificateParser {
 
-    private static final Pattern headPat = Pattern.compile("^-----BEGIN [A-Z]*-----$");
-    private static final Pattern footPat = Pattern.compile("^-----END [A-Z]*-----$");
+    private static final Pattern headPat = Pattern.compile("^-----BEGIN.*-----");
+    private static final Pattern footPat = Pattern.compile("^-----END.*-----");
     private static final String headFmt = "-----BEGIN %s-----";
     private static final String footFmt = "-----END %s-----";
 
-    // withoutHeader verify if the given PEM is missing either the header
-    // or the footer (or both)
-    private static boolean withoutHeader(String pem) {
+    // withoutHeaderFooter verify if the given PEM is missing either the
+    //  header or the footer (or both)
+    private static boolean withoutHeaderFooter(String pem) {
         if (!StringUtils.hasText(pem)) {
             return true;
         }
@@ -32,14 +32,15 @@ public class CertificateParser {
         if (lines.length > 2) {
             String headerLine = lines[0];
             String footerLine = lines[lines.length - 1];
-            return headPat.matcher(headerLine).find() && footPat.matcher(footerLine).find();
+            return !headPat.matcher(headerLine).find() || !footPat.matcher(footerLine).find();
         }
         return true;
     }
 
     // addHeader inserts a header and a footer of the given kind to a PEM
-    // The header is ALWAYS inserted, even when it's already present; as such
-    //  usage should often be accompanied by withoutHeader function
+    // The header and the footer are ALWAYS inserted, even when it's already
+    //  present; as such usage should often be accompanied by
+    //  withoutHeaderFooter function
     private static String addHeader(String pem, String kind) {
         String header = String.format(headFmt, kind);
         String footer = String.format(footFmt, kind);
@@ -52,8 +53,8 @@ public class CertificateParser {
         String footer = String.format(footFmt, kind);
         String[] lines = pem.split("\\R");
         if (lines.length > 2) {
-            String headerLine = lines[0];
-            String footerLine = lines[lines.length - 1];
+            String headerLine = lines[0].trim();
+            String footerLine = lines[lines.length - 1].trim();
             return (headerLine.equals(header) && footerLine.equals(footer));
         }
         // header is missing: for sure it's wrong
@@ -79,7 +80,7 @@ public class CertificateParser {
 
     private static PrivateKey parsePrivateKey(String keyPem) throws IOException {
         PrivateKey pk = null;
-        if (withoutHeader(keyPem)) {
+        if (withoutHeaderFooter(keyPem)) {
             // header must be guessed: try RSA first, then generic
             try {
                 pk = parsePrivateKeyStrict(addHeader(keyPem, "RSA PRIVATE KEY"));
@@ -95,12 +96,12 @@ public class CertificateParser {
     private static X509Certificate parseX509(String source) throws IOException, CertificateException {
         // if source is missing header, try to guess it in order to parse as X509 certificate
         String pemSrc;
-        if (withoutHeader(source)) {
+        if (withoutHeaderFooter(source)) {
             pemSrc = addHeader(source, "CERTIFICATE");
         } else {
             pemSrc = source;
         }
-        if (!checkHeader(source, "CERTIFICATE")) {
+        if (!checkHeader(pemSrc, "CERTIFICATE")) {
             throw new IllegalArgumentException("invalid certificate");
         }
 
