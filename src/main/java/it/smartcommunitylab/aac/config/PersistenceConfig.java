@@ -222,11 +222,6 @@ public class PersistenceConfig {
                 serializer.setSameSite("Lax");
             }
         }
-        // this is a workaround to let localhost work even without https - localhost is never "https" and therefore
-        // would set "Lax" cookies, and this might break things. The following two lines of codes force the same
-        // cookies setting in every case.
-        //        serializer.setSameSite("None");
-        //        serializer.setUseSecureCookie(true);
 
         // config can override
         if (StringUtils.hasText(sessionCookieSameSite)) {
@@ -264,14 +259,6 @@ public class PersistenceConfig {
     ) {
         return new SamlJpaUserAccountService(accountRepository, subjectService);
     }
-
-    //    @Bean
-    //    public UserAccountService<SpidUserAccount> spidUserAccountService(
-    //        SpidUserAccountEntityRepository accountRepository,
-    //        SubjectService subjectService
-    //    ) {
-    //        return new SpidJpaUserAccountService(accountRepository, subjectService);
-    //    }
 
     @Bean
     public UserAccountService<InternalUserAccount> internalUserAccountService(
