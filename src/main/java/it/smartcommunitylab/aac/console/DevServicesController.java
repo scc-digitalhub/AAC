@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.services.BaseServicesController;
 import it.smartcommunitylab.aac.services.Service;
 import java.io.IOException;
@@ -125,14 +126,8 @@ public class DevServicesController extends BaseServicesController {
                     regs.add(reg);
                 }
             } else {
-                Service reg;
-                if (file != null) {
-                    // try single element from file
-                    reg = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
-                } else {
-                    // use obj as single element
-                    reg = yamlObjectMapper.convertValue(obj, Service.class);
-                }
+                // try single element
+                Service reg = yamlObjectMapper.readValue(yaml, Service.class);
                 regs.add(reg);
             }
 
