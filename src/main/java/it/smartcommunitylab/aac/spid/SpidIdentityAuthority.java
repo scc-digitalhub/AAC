@@ -35,7 +35,6 @@ import it.smartcommunitylab.aac.spid.provider.SpidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.registry.LocalSpidRegistry;
-import it.smartcommunitylab.aac.spid.registry.RemoteSpidRegistry;
 import it.smartcommunitylab.aac.spid.service.SpidRegistry;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,14 +113,12 @@ public class SpidIdentityAuthority
     public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
         if (spidProperties != null) {
-            //  for more, see https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n42-spid_bottone.pdf
-            //            spidRegistry = new RemoteSpidRegistry();
             if (
                 spidRegistry == null ||
                 spidRegistry.getIdentityProviders() == null ||
                 spidRegistry.getIdentityProviders().isEmpty()
             ) {
-                // fallback to local registry
+                // remote Spid Registry currently not supported
                 spidRegistry = new LocalSpidRegistry(spidProperties);
             }
         }

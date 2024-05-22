@@ -23,6 +23,8 @@ import java.util.Collection;
  * SpidRegistry is a registry of SPID certified identity providers, such as Infocert, Lepida, Poste, etc.
  * For an up to date list of certified providers, see the page
  *      https://registry.spid.gov.it/identity-providers
+ * For more on a possible remote SPID registry, see
+ *      https://www.agid.gov.it/sites/default/files/repository_files/spid-avviso-n42-spid_bottone.pdf
  */
 public interface SpidRegistry {
     public Collection<SpidRegistration> getIdentityProviders();
