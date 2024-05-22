@@ -34,7 +34,12 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import javax.sql.DataSource;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -162,7 +167,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         String clazz = eae.getClazz();
 
         // Generate Primary Key UUID
-        UUID eventId = UUID.randomUUID();
+        String eventId = UUID.randomUUID().toString();
 
         //pack audit event in data
         Map<String, Object> data = mapper.convertValue(event, typeRef);
@@ -173,7 +178,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
             insertAuditEventSql,
             new Object[] { eventId, new java.sql.Timestamp(time), principal, realm, tx, type, clazz, new SqlLobValue(bytes) },
             new int[] {
-                Types.OTHER,
+                Types.VARCHAR,
                 Types.TIMESTAMP,
                 Types.VARCHAR,
                 Types.VARCHAR,
