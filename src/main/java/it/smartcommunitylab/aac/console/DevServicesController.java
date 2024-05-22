@@ -26,7 +26,6 @@ import it.smartcommunitylab.aac.common.NoSuchServiceException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.dto.FunctionValidationBean;
-import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.services.BaseServicesController;
 import it.smartcommunitylab.aac.services.Service;
 import java.io.IOException;
