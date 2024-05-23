@@ -14,9 +14,11 @@ import {
     useRedirect,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { YamlExporter } from '../components/YamlExporter';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
 export const AppList = () => {
     const params = useParams();
     const options = { meta: { realmId: params.realmId } };
@@ -40,7 +42,7 @@ export const AppList = () => {
             >
                 <Datagrid bulkActionButtons={false}>
                     <TextField source="name" />
-                    <TextField source="id" />
+                    <IdField source="id" />
                     <ShowAppButton />
                     <EditAppButton />
                     <DeleteButtonDialog
@@ -132,5 +134,22 @@ const ExportAppButton = () => {
         <>
             <Button onClick={handleExport} label="Export"></Button>
         </>
+    );
+};
+
+const IdField = (props: any) => {
+    const record = useRecordContext();
+    if (!record) return null;
+    return (
+        <span>
+            {record.id}
+            <IconButton
+                onClick={() => {
+                    navigator.clipboard.writeText(`${record.id}`);
+                }}
+            >
+                <ContentCopyIcon />
+            </IconButton>
+        </span>
     );
 };
