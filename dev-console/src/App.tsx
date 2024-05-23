@@ -25,6 +25,8 @@ import { IdpList } from './idps/IdpList';
 import { IdpCreate } from './idps/IdpCreate';
 import i18nProvider from './i18nProvider';
 import { IdpEdit } from './idps/IdpEdit';
+import { ServiceList } from './service/ServiceList';
+import { ServiceCreate } from './service/ServiceCreate';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -131,7 +133,8 @@ const App = () => (
             <Route path="/r/:realmId/*" element={<AuditList />} />
         </Resource>
         <Resource name="services">
-            <Route path="/r/:realmId/*" element={<DebugList />} />
+            <Route path="/r/:realmId/*" element={<ServiceList />} />
+            <Route path="/r/:realmId/create/*" element={<ServiceCreate />} />
         </Resource>
         <Resource name="users">
             <Route path="/r/:realmId/*" element={<DebugList />} />
