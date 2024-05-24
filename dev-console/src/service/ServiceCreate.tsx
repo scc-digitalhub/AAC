@@ -73,8 +73,7 @@ export const ServiceCreate = () => {
 function createService(data: any, realmId: any): any {
     let body: any = {};
     body['name'] = data.name;
-    body['type'] = 'oauth2';
-    body['realm'] = realmId;
-    body['configuration'] = { applicationType: data.type };
+    body['description'] = data.description;
+    body['namespace'] = data.namespace;
     return body;
 }
