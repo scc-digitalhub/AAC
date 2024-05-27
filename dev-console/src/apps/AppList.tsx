@@ -138,14 +138,15 @@ const ExportAppButton = () => {
 };
 
 const IdField = (props: any) => {
+    let s = props.source;
     const record = useRecordContext();
     if (!record) return null;
     return (
         <span>
-            {record.id}
+            {record[s]}
             <IconButton
                 onClick={() => {
-                    navigator.clipboard.writeText(`${record.id}`);
+                    navigator.clipboard.writeText(record[s]);
                 }}
             >
                 <ContentCopyIcon />
