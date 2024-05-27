@@ -16,10 +16,8 @@
 
 package it.smartcommunitylab.aac.base.provider.config;
 
-import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Collections;

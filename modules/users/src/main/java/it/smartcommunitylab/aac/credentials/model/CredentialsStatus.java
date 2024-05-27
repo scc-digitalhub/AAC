@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.internal.model;
+package it.smartcommunitylab.aac.credentials.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.util.Assert;

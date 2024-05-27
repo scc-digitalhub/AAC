@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import javax.validation.Valid;
 
@@ -30,7 +30,7 @@ import javax.validation.Valid;
 public class ConfigurableCredentialsProvider extends ConfigurableProviderImpl<CredentialsServiceSettingsMap> {
 
     public ConfigurableCredentialsProvider(String authority, String provider, String realm) {
-        super(SystemKeys.RESOURCE_CREDENTIALS, authority, provider, realm);
+        super(authority, provider, realm);
     }
 
     /**
@@ -41,6 +41,6 @@ public class ConfigurableCredentialsProvider extends ConfigurableProviderImpl<Cr
      */
     @SuppressWarnings("unused")
     private ConfigurableCredentialsProvider() {
-        super(SystemKeys.RESOURCE_CREDENTIALS, null, null, null);
+        super(null, null, null);
     }
 }

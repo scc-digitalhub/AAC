@@ -16,17 +16,19 @@
 
 package it.smartcommunitylab.aac.credentials.service;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.MissingDataException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.persistence.ResourceEntity;
-import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
+import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfig;
+import it.smartcommunitylab.aac.model.ConfigMap;
+import it.smartcommunitylab.aac.model.Resource;
+import it.smartcommunitylab.aac.model.ResourceContext;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
@@ -50,54 +52,59 @@ public class UserCredentialsService {
     private UserEntityService userService;
 
     @Autowired
-    private ResourceEntityService resourceService;
-
-    @Autowired
-    private CredentialsServiceAuthorityService credentialsServiceAuthorityService;
+    private CredentialsProviderService credentialsProviderService;
 
     /*
-     * User credentials via UUID
+     * User credentials via key
      */
 
     @Transactional(readOnly = false)
-    public UserCredentials findUserCredentials(String uuid) throws NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("find user credentials {}", StringUtils.trimAllWhitespace(uuid));
+    public UserCredentials findUserCredentials(String realm, String key)
+        throws NoSuchProviderException, NoSuchAuthorityException {
+        logger.debug("find user credentials {}", StringUtils.trimAllWhitespace(key));
 
-        // fetch resource registration to resolve
-        ResourceEntity res = findResource(uuid);
-        if (res == null) {
+        // resolve resource
+        Resource res = ResourceContext.resolveKey(key);
+        String provider = res.getProvider();
+        String id = res.getId();
+        if (!StringUtils.hasText(provider) || !StringUtils.hasText(id)) {
             return null;
         }
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-            .getAuthority(res.getAuthority())
-            .getProvider(res.getProvider());
+        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(provider);
+        if (!service.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // find
-        return service.findCredential(res.getResourceId());
+        return service.findCredential(id);
     }
 
     @Transactional(readOnly = false)
-    public UserCredentials getUserCredentials(String uuid)
+    public UserCredentials getUserCredentials(String realm, String key)
         throws NoSuchCredentialException, NoSuchProviderException, NoSuchAuthorityException {
-        logger.debug("get user credentials {}", StringUtils.trimAllWhitespace(uuid));
+        logger.debug("get user credentials {}", StringUtils.trimAllWhitespace(key));
 
-        // fetch resource registration to resolve
-        ResourceEntity res = getResource(uuid);
-        String authorityId = res.getAuthority();
-        String providerId = res.getProvider();
-        String credentialId = res.getResourceId();
+        // resolve resource
+        Resource res = ResourceContext.resolveKey(key);
+        String authority = res.getAuthority();
+        String provider = res.getProvider();
+        String id = res.getId();
+        if (!StringUtils.hasText(authority) || !StringUtils.hasText(provider) || !StringUtils.hasText(id)) {
+            return null;
+        }
 
-        logger.debug("get user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
+        logger.debug("get user credentials {} via provider {}:{}", id, authority, provider);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-            .getAuthority(res.getAuthority())
-            .getProvider(res.getProvider());
+        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(provider);
+        if (!service.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // find
-        return service.getCredential(res.getResourceId());
+        return service.getCredential(id);
     }
 
     //    @Transactional(readOnly = false)
@@ -186,19 +193,25 @@ public class UserCredentialsService {
     //    }
 
     @Transactional(readOnly = false)
-    public Collection<UserCredentials> listUserCredentials(String userId) throws NoSuchUserException {
+    public Collection<UserCredentials> listUserCredentials(String realm, String userId) throws NoSuchUserException {
         logger.debug("get user {} credentials", StringUtils.trimAllWhitespace(userId));
 
         // fetch user
         UserEntity ue = userService.getUser(userId);
-        String realm = ue.getRealm();
+        if (!ue.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // collect from all providers for the same realm
-        List<CredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService
-            .getAuthorities()
-            .stream()
-            .flatMap(e -> e.getProvidersByRealm(realm).stream())
-            .collect(Collectors.toList());
+        Collection<
+            CredentialsService<
+                ? extends UserCredentials,
+                ? extends EditableUserCredentials,
+                ConfigMap,
+                CredentialsServiceConfig<ConfigMap>
+            >
+        > services = credentialsProviderService.listCredentialsServicesByRealm(realm);
+
         List<UserCredentials> creds = services
             .stream()
             .flatMap(s -> s.listCredentials(userId).stream())
@@ -206,6 +219,10 @@ public class UserCredentialsService {
 
         return creds;
     }
+
+    /*
+     * Credentials via providers
+     */
 
     //    @Transactional(readOnly = false)
     //    public EditableUserCredentials registerUserCredentials(String authority, String providerId, String accountId,
@@ -257,6 +274,7 @@ public class UserCredentialsService {
 
     @Transactional(readOnly = false)
     public UserCredentials createUserCredentials(
+        String realm,
         String authority,
         String providerId,
         String userId,
@@ -275,117 +293,124 @@ public class UserCredentialsService {
         }
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-            .getAuthority(authority)
-            .getProvider(providerId);
+        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        if (!service.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // execute
         return service.addCredential(userId, credentialId, reg);
     }
 
     @Transactional(readOnly = false)
-    public UserCredentials updateUserCredentials(String uuid, UserCredentials reg)
+    public UserCredentials updateUserCredentials(String realm, String key, UserCredentials reg)
         throws NoSuchCredentialException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("update user credentials {}", StringUtils.trimAllWhitespace(uuid));
+        logger.debug("update user credentials {}", StringUtils.trimAllWhitespace(key));
 
         if (reg == null) {
             throw new MissingDataException("registration");
         }
 
         // resolve resource
-        ResourceEntity res = getResource(uuid);
+        Resource res = ResourceContext.resolveKey(key);
         String authorityId = res.getAuthority();
         String providerId = res.getProvider();
-        String credentialId = res.getResourceId();
+        String credentialId = res.getId();
+        if (
+            !StringUtils.hasText(authorityId) || !StringUtils.hasText(providerId) || !StringUtils.hasText(credentialId)
+        ) {
+            return null;
+        }
 
         logger.debug("update user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-            .getAuthority(authorityId)
-            .getProvider(providerId);
+        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        if (!service.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // execute
         return service.setCredential(credentialId, reg);
     }
 
     @Transactional(readOnly = false)
-    public UserCredentials revokeUserCredentials(String uuid)
+    public UserCredentials revokeUserCredentials(String realm, String key)
         throws NoSuchCredentialException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("revoke user credentials {}", StringUtils.trimAllWhitespace(uuid));
+        logger.debug("revoke user credentials {}", StringUtils.trimAllWhitespace(key));
 
         // resolve resource
-        ResourceEntity res = getResource(uuid);
+        Resource res = ResourceContext.resolveKey(key);
         String authorityId = res.getAuthority();
         String providerId = res.getProvider();
-        String credentialId = res.getResourceId();
+        String credentialId = res.getId();
+        if (
+            !StringUtils.hasText(authorityId) || !StringUtils.hasText(providerId) || !StringUtils.hasText(credentialId)
+        ) {
+            return null;
+        }
 
         logger.debug("revoke user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-            .getAuthority(authorityId)
-            .getProvider(providerId);
+        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        if (!service.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // execute
         return service.revokeCredential(credentialId);
     }
 
     @Transactional(readOnly = false)
-    public void deleteUserCredentials(String uuid)
+    public void deleteUserCredentials(String realm, String key)
         throws NoSuchCredentialException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
-        logger.debug("delete user credentials {}", StringUtils.trimAllWhitespace(uuid));
+        logger.debug("delete user credentials {}", StringUtils.trimAllWhitespace(key));
 
         // resolve resource
-        ResourceEntity res = getResource(uuid);
+        Resource res = ResourceContext.resolveKey(key);
         String authorityId = res.getAuthority();
         String providerId = res.getProvider();
-        String credentialId = res.getResourceId();
+        String credentialId = res.getId();
+        if (
+            !StringUtils.hasText(authorityId) || !StringUtils.hasText(providerId) || !StringUtils.hasText(credentialId)
+        ) {
+            return;
+        }
 
         logger.debug("delete user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsServiceAuthorityService
-            .getAuthority(authorityId)
-            .getProvider(providerId);
+        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        if (!service.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         service.deleteCredential(credentialId);
     }
 
     @Transactional(readOnly = false)
-    public void deleteAllUserCredentials(String userId)
+    public void deleteAllUserCredentials(String realm, String userId)
         throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("delete all user {} credentials", StringUtils.trimAllWhitespace(userId));
 
         // fetch user
-        UserEntity ue = userService.getUser(userId);
-        String realm = ue.getRealm();
-
-        // collect from all providers for the same realm
-        List<CredentialsService<?, ?, ?, ?>> services = credentialsServiceAuthorityService
-            .getAuthorities()
-            .stream()
-            .flatMap(e -> e.getProvidersByRealm(realm).stream())
-            .collect(Collectors.toList());
-
-        services.forEach(s -> s.deleteCredentials(userId));
-    }
-
-    /*
-     * Resource registrations
-     * helpers
-     */
-
-    private ResourceEntity findResource(String uuid) {
-        return resourceService.findResourceEntity(SystemKeys.RESOURCE_CREDENTIALS, uuid);
-    }
-
-    private ResourceEntity getResource(String uuid) throws NoSuchCredentialException {
-        ResourceEntity res = resourceService.findResourceEntity(SystemKeys.RESOURCE_CREDENTIALS, uuid);
-        if (res == null) {
-            throw new NoSuchCredentialException();
+        UserEntity ue = userService.findUser(userId);
+        if (ue != null && !ue.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
         }
 
-        return res;
+        // collect from all providers for the same realm
+        // collect from all providers for the same realm
+        Collection<
+            CredentialsService<
+                ? extends UserCredentials,
+                ? extends EditableUserCredentials,
+                ConfigMap,
+                CredentialsServiceConfig<ConfigMap>
+            >
+        > services = credentialsProviderService.listCredentialsServicesByRealm(realm);
+
+        services.forEach(s -> s.deleteCredentials(userId));
     }
 }

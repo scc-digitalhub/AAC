@@ -76,7 +76,6 @@ public abstract class AbstractIdentityProvider<
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(getAuthenticationProvider(), "authentication provider is mandatory");
-        Assert.notNull(getAccountProvider(), "account provider is mandatory");
         Assert.notNull(getAccountService(), "account service is mandatory");
         Assert.notNull(getAttributeProvider(), "attribute provider is mandatory");
         Assert.notNull(getUserResolver(), "user resolver is mandatory");
@@ -111,7 +110,7 @@ public abstract class AbstractIdentityProvider<
      * persisted in the provider or available for requests. Do note that idps are
      * not required to persist accounts.
      */
-    protected abstract AccountProvider<U> getAccountProvider();
+    protected abstract AccountProvider<U, ?, ?> getAccountProvider();
 
     protected abstract AccountService<U, ?, ?, ?> getAccountService();
 

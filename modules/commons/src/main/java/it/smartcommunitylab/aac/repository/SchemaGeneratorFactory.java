@@ -16,7 +16,9 @@
 
 package it.smartcommunitylab.aac.repository;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.victools.jsonschema.generator.Option;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
@@ -59,4 +61,48 @@ public class SchemaGeneratorFactory {
         SchemaGeneratorConfig config = configBuilder.build();
         return new SchemaGenerator(config);
     }
+
+    public static final SchemaGenerator GENERATOR;
+
+    static {
+        ObjectMapper schemaMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .setAnnotationIntrospector(new SchemaAnnotationIntrospector());
+
+        JacksonModule jacksonModule = new JacksonModule(
+            JacksonOption.IGNORE_TYPE_INFO_TRANSFORM,
+            JacksonOption.RESPECT_JSONPROPERTY_ORDER,
+            JacksonOption.INCLUDE_ONLY_JSONPROPERTY_ANNOTATED_METHODS
+        );
+        // JakartaValidationModule jakartaModule = new JakartaValidationModule(
+        //     JakartaValidationOption.NOT_NULLABLE_FIELD_IS_REQUIRED,
+        //     JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
+        // );
+        Swagger2Module swagger2Module = new Swagger2Module();
+
+        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(
+            schemaMapper,
+            SchemaVersion.DRAFT_2020_12,
+            OptionPreset.PLAIN_JSON
+        )
+            .with(jacksonModule)
+            // .with(jakartaModule)
+            .with(swagger2Module)
+            //options
+            .with(Option.DEFINITIONS_FOR_ALL_OBJECTS)
+            .with(Option.MAP_VALUES_AS_ADDITIONAL_PROPERTIES)
+            .with(Option.PLAIN_DEFINITION_KEYS)
+            .with(Option.ENUM_KEYWORD_FOR_SINGLE_VALUES)
+            .with(Option.FLATTENED_ENUMS_FROM_TOSTRING)
+            //avoid fields without getters (ex. unwrapped fields)
+            .without(Option.NONPUBLIC_NONSTATIC_FIELDS_WITHOUT_GETTERS);
+
+        GENERATOR = new SchemaGenerator(configBuilder.build());
+    }
+
+    public static JsonNode schema(Class<?> clazz) {
+        return GENERATOR.generateSchema(clazz);
+    }
+
+    private SchemaGeneratorFactory() {}
 }

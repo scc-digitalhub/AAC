@@ -23,16 +23,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
+import it.smartcommunitylab.aac.accounts.model.UserAccountsResourceContext;
 import it.smartcommunitylab.aac.identity.model.UserIdentitiesResourceContext;
-import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
-import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.users.model.User;
+import it.smartcommunitylab.aac.model.User;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 
-@SpringJUnitWebConfig
+// @SpringJUnitWebConfig
 public class UserContextTests {
 
     private static ObjectMapper mapper = new ObjectMapper();
@@ -63,30 +63,29 @@ public class UserContextTests {
     @Test
     public void identitiesContextTest() throws Exception {
         User user = new User("user-id", "test");
-        InternalUserAccount account = new InternalUserAccount("internal", "internal", "test", "account-id");
-        account.setUserId("user-id");
-        InternalUserIdentity identity = new InternalUserIdentity("internal", "internal", "test", account);
+        TestUserAccount account = TestUserAccount.builder().username("test").uuid("123123lkj123").build();
+        TestUserAccount account2 = TestUserAccount.builder().username("test2").uuid("123123lkj123").build();
 
-        user.setResources("identity", Collections.singletonList(identity));
+        user.setResources("account", List.of(account, account2));
 
-        assertThat(user.getResources("identity")).isNotEmpty();
-        assertThat(user.getResources("identity")).contains(identity);
+        assertThat(user.getResources("account")).isNotEmpty();
+        assertThat(user.getResources("account")).contains(account);
 
         String value = mapper.writeValueAsString(user);
         System.out.println(value);
 
-        UserIdentitiesResourceContext ctx = UserIdentitiesResourceContext.from(user);
-        assertThat(ctx.getIdentities()).isNotEmpty();
-        assertThat(ctx.getIdentities()).contains(identity);
-        System.out.println("TESTSTSTSTS");
+        UserAccountsResourceContext ctx = UserAccountsResourceContext.from(user);
+        assertThat(ctx.getAccounts()).isNotEmpty();
+        assertThat(ctx.getAccounts()).contains(account);
+        System.out.println(ctx.getAccounts());
 
         value = mapper.writeValueAsString(ctx);
         System.out.println(value);
 
-        UserIdentitiesResourceContext wtx = UserIdentitiesResourceContext.with(user);
-        wtx.setIdentities(null);
+        UserAccountsResourceContext wtx = UserAccountsResourceContext.with(user);
+        wtx.setAccounts(null);
 
-        assertThat(ctx.getIdentities()).isEmpty();
-        assertThat(user.getResources("identity")).isEmpty();
+        assertThat(ctx.getAccounts()).isEmpty();
+        assertThat(user.getResources("account")).isEmpty();
     }
 }

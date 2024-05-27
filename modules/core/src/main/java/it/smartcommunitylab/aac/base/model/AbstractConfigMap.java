@@ -17,16 +17,17 @@
 package it.smartcommunitylab.aac.base.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
+import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.repository.SchemaGeneratorFactory;
 import java.io.Serializable;
@@ -51,23 +52,34 @@ import org.springframework.core.ResolvableTypeProvider;
 //         @Type(value = TemplateProviderConfigMap.class, name = TemplateProviderConfigMap.RESOURCE_TYPE),
 //     }
 // )
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(title = "configuration")
 public abstract class AbstractConfigMap implements ConfigMap, Serializable, ResolvableTypeProvider {
 
-    protected static final ObjectMapper mapper = new ObjectMapper();
+    protected static final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
         HashMap<String, Serializable>
     >() {};
-    protected static final JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper);
     protected static final SchemaGenerator generator;
-    private final ResolvableType type;
+    protected transient JsonNode schema;
+    private ResolvableType ctype;
 
     static {
-        generator = SchemaGeneratorFactory.build(mapper);
+        generator = SchemaGeneratorFactory.GENERATOR;
     }
 
-    protected AbstractConfigMap() {
-        this.type = ResolvableType.forClass(getClass());
+    protected AbstractConfigMap() {}
+
+    @Override
+    @JsonIgnore
+    public JsonNode getSchema() throws JsonMappingException {
+        if (schema == null) {
+            schema = generator.generateSchema(getClass());
+        }
+
+        return schema;
     }
 
     @JsonIgnore
@@ -79,7 +91,16 @@ public abstract class AbstractConfigMap implements ConfigMap, Serializable, Reso
     }
 
     @Override
+    @JsonIgnore
     public ResolvableType getResolvableType() {
-        return type;
+        if (this.ctype == null) {
+            try {
+                this.ctype = ResolvableType.forClass(getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return ctype;
     }
 }

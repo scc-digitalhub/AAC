@@ -16,12 +16,12 @@
 
 package it.smartcommunitylab.aac.base.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.provider.config.AbstractConfigurableProviderConverter;
 import it.smartcommunitylab.aac.base.provider.config.DefaultConfigMapConverter;
-import it.smartcommunitylab.aac.base.provider.config.DefaultConfigurableProviderConverter;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
@@ -35,13 +35,12 @@ import it.smartcommunitylab.aac.core.persistence.ConfigurableProviderConverter;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntity;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntityConverter;
 import it.smartcommunitylab.aac.core.provider.ConfigurableResourceProvider;
-import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableConverterFactory;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderService;
 import it.smartcommunitylab.aac.core.service.ConfigurableResourceProviderRegistry;
 import it.smartcommunitylab.aac.model.ConfigMap;
-import it.smartcommunitylab.aac.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.model.Resource;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -85,30 +84,42 @@ public abstract class AbstractConfigurableProviderService<
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ResolvableType ctype;
+    private final ResolvableType btype;
+
     protected final String type;
 
     protected final Map<String, ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap>> authorities =
         new HashMap<>();
-    protected final Map<String, Converter<C, P>> providerConfigConverters = new HashMap<>();
+
     // <? extends ConfigurableProviderAuthority<?, C, ? extends ProviderConfig<S, ?>, S, ? extends ConfigMap>
     // keep a local map for system providers since these are not in db
     // key is providerId
     protected final Map<String, C> systemProviders = new HashMap<>();
 
     protected SmartValidator validator;
-
     protected ConfigurableProviderEntityService providerService;
-    protected Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> configConverter;
-    protected Converter<ProviderEntity, C> entityConverter;
-    protected Converter<Map<String, Serializable>, S> settingsMapConverter;
+
+    protected final Map<String, Converter<C, P>> providerConfigConverters = new HashMap<>();
+    protected final Map<String, Converter<Map<String, Serializable>, ? extends ConfigMap>> mapConfigConverters =
+        new HashMap<>();
+
+    protected final Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> configConverter;
+    protected final Converter<ProviderEntity, C> entityConverter;
+    protected final Converter<Map<String, Serializable>, S> settingsMapConverter;
+    protected final ConfigurableConverterFactory configurableConverterFactory = ConfigurableConverterFactory.instance();
+
+    //default configs
+    protected S defaultSettings;
+    protected final Map<String, Map<String, Serializable>> defaultConfigs = new HashMap<>();
 
     protected AbstractConfigurableProviderService() {
         log.debug("create provider for {}", getClass().getName());
 
         //extract type as type info
-        ctype = ResolvableType.forClass(AbstractConfigurableProviderService.class, getClass());
+        ctype = ResolvableType.forClass(getClass());
+        btype = ResolvableType.forClass(AbstractConfigurableProviderService.class, getClass());
         @SuppressWarnings("unchecked")
-        Class<C> clazz = (Class<C>) ctype.getSuperType().getGeneric(1).resolve();
+        Class<C> clazz = (Class<C>) btype.getGeneric(1).resolve();
         if (clazz == null) {
             throw new IllegalArgumentException("class is not resolvable");
         }
@@ -136,11 +147,20 @@ public abstract class AbstractConfigurableProviderService<
         this.configConverter = new ConfigurableProviderConverter();
         this.entityConverter = new ProviderEntityConverter<>(factory);
         this.settingsMapConverter = new DefaultConfigMapConverter<>();
-    }
 
-    @JsonIgnoreProperties
-    public ResolvableType getResolvableType() {
-        return ctype;
+        //build default settings as blank
+        try {
+            this.defaultSettings = ((Class<S>) btype.getGeneric(3).resolve()).getDeclaredConstructor().newInstance();
+        } catch (
+            InstantiationException
+            | IllegalAccessException
+            | IllegalArgumentException
+            | InvocationTargetException
+            | NoSuchMethodException
+            | SecurityException e
+        ) {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Autowired
@@ -165,15 +185,20 @@ public abstract class AbstractConfigurableProviderService<
                     if (a instanceof ResolvableGenericsTypeProvider) {
                         //resolve types and build default converter
                         @SuppressWarnings("unchecked")
-                        Class<T> t = (Class<T>) ((ResolvableGenericsTypeProvider) a).getResolvableType(0).resolve();
+                        Class<C> c = (Class<C>) btype.getGeneric(1).resolve();
                         Class<P> p = (Class<P>) ((ResolvableGenericsTypeProvider) a).getResolvableType(1).resolve();
-                        Class<S> s = (Class<S>) ctype.getGeneric(3).resolve();
+                        Class<S> s = (Class<S>) btype.getGeneric(3).resolve();
                         Class<? extends ConfigMap> m = (Class<
                                 ? extends ConfigMap
                             >) ((ResolvableGenericsTypeProvider) a).getResolvableType(3).resolve();
 
-                        DefaultConfigurableProviderConverter<P, C, S> converter =
-                            new DefaultConfigurableProviderConverter<P, C, S>();
+                        DefaultConfigMapConverter<? extends ConfigMap> mConv = ConfigurableConverterFactory.instance()
+                            .buildConfigMapConverter(m);
+                        this.mapConfigConverters.put(a.getAuthorityId(), mConv);
+
+                        AbstractConfigurableProviderConverter<ProviderConfig<S, ConfigMap>, C, S, ConfigMap> pConv =
+                            configurableConverterFactory.buildConfigurableProviderConverter(p, c, s, m);
+                        this.providerConfigConverters.put(a.getAuthorityId(), (Converter<C, P>) pConv);
                     }
                 } catch (Exception e) {
                     log.error("error building default converter: {}", e.getMessage());
@@ -200,16 +225,6 @@ public abstract class AbstractConfigurableProviderService<
         Assert.notNull(providerService, "provider service is required");
         Assert.notNull(configConverter, "config converter is required");
         Assert.notNull(entityConverter, "entity converter is required");
-    }
-
-    public void setConfigConverter(
-        Converter<ConfigurableProvider<? extends ConfigMap>, ProviderEntity> configConverter
-    ) {
-        this.configConverter = configConverter;
-    }
-
-    public void setEntityConverter(Converter<ProviderEntity, C> entityConverter) {
-        this.entityConverter = entityConverter;
     }
 
     /*
@@ -346,18 +361,26 @@ public abstract class AbstractConfigurableProviderService<
 
         String authority = cp.getAuthority();
 
-        // we validate config by converting to specific configMap
-        Converter<C, P> converter = providerConfigConverters.get(authority);
-        ConfigMap config = configProvider.getConfigMap(cp.getConfiguration());
+        // we validate settings by converting to specific configMap
         ConfigMap settings = settingsMapConverter.convert(cp.getSettings());
-
         // check with validator
-        validateConfigMap(config);
         validateConfigMap(settings);
-
         //replace with valid configs
-        entity.setConfigurationMap(config.getConfiguration());
         entity.setSettingsMap(settings.getConfiguration());
+
+        // we validate config by converting to specific configMap
+        Converter<Map<String, Serializable>, ? extends ConfigMap> configMapConverter = mapConfigConverters.get(
+            authority
+        );
+        if (configMapConverter != null) {
+            ConfigMap config = configMapConverter.convert(cp.getConfiguration());
+            // check with validator
+            validateConfigMap(config);
+            //replace with valid configs
+            entity.setConfigurationMap(config.getConfiguration());
+        } else {
+            log.warn("skip configMap validation for {}: missing converter for {}", providerId, authority);
+        }
 
         if (logger.isTraceEnabled()) {
             logger.trace("entity bean: {}", StringUtils.trimAllWhitespace(entity.toString()));
@@ -422,16 +445,26 @@ public abstract class AbstractConfigurableProviderService<
 
         String authority = pe.getAuthority();
 
-        ConfigMap config = configProvider.getConfigMap(cp.getConfiguration());
+        // we validate settings by converting to specific configMap
         ConfigMap settings = settingsMapConverter.convert(cp.getSettings());
-
         // check with validator
-        validateConfigMap(config);
         validateConfigMap(settings);
-
         //replace with valid configs
-        entity.setConfigurationMap(config.getConfiguration());
         entity.setSettingsMap(settings.getConfiguration());
+
+        // we validate config by converting to specific configMap
+        Converter<Map<String, Serializable>, ? extends ConfigMap> configMapConverter = mapConfigConverters.get(
+            authority
+        );
+        if (configMapConverter != null) {
+            ConfigMap config = configMapConverter.convert(cp.getConfiguration());
+            // check with validator
+            validateConfigMap(config);
+            //replace with valid configs
+            entity.setConfigurationMap(config.getConfiguration());
+        } else {
+            log.warn("skip configMap validation for {}: missing converter for {}", providerId, authority);
+        }
 
         if (logger.isTraceEnabled()) {
             logger.trace("entity bean: {}", StringUtils.trimAllWhitespace(entity.toString()));
@@ -610,8 +643,15 @@ public abstract class AbstractConfigurableProviderService<
             throw new NoSuchAuthorityException();
         }
 
+        //convert
+        Converter<C, P> converter = providerConfigConverters.get(authority.getAuthorityId());
+        if (converter == null) {
+            log.error("error registering provider {}: missing provider config converter for {}", providerId, authority);
+            throw new IllegalArgumentException();
+        }
+
         // always register and pop up errors
-        authority.registerProvider(cp);
+        authority.registerProvider(converter.convert(config));
     }
 
     public void unregisterProvider(String providerId)
@@ -621,7 +661,7 @@ public abstract class AbstractConfigurableProviderService<
         // fetch, only persisted configurations can be registered
         C cp = getConfigurableProvider(providerId);
 
-        ConfigurableProviderAuthority<T, C, P, S, ? extends ConfigMap> authority = authorities.get(cp.getAuthority());
+        ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap> authority = authorities.get(cp.getAuthority());
         if (authority == null) {
             throw new NoSuchAuthorityException();
         }
@@ -691,35 +731,53 @@ public abstract class AbstractConfigurableProviderService<
      * Configuration schemas
      */
 
+    // @Transactional(readOnly = true)
+    // public ConfigurableProperties getConfigurableProperties(String authority, String type)
+    //     throws NoSuchAuthorityException {
+    //     ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
+    //     if (SystemKeys.RESOURCE_SETTINGS.equals(type)) {
+    //         return configProvider.getDefaultSettingsMap();
+    //     } else if (SystemKeys.RESOURCE_CONFIG.equals(type)) {
+    //         return configProvider.getDefaultConfigMap();
+    //     }
+    //     throw new IllegalArgumentException("invalid type");
+    // }
+
     @Transactional(readOnly = true)
-    public ConfigurableProperties getConfigurableProperties(String authority, String type)
-        throws NoSuchAuthorityException {
-        ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
-        if (SystemKeys.RESOURCE_SETTINGS.equals(type)) {
-            return configProvider.getDefaultSettingsMap();
-        } else if (SystemKeys.RESOURCE_CONFIG.equals(type)) {
-            return configProvider.getDefaultConfigMap();
+    public JsonNode getSettingsSchema(String authority) throws NoSuchAuthorityException {
+        //all authorities share the same settings map
+        if (defaultSettings == null) {
+            throw new NoSuchAuthorityException();
         }
-        throw new IllegalArgumentException("invalid type");
+
+        try {
+            return defaultSettings.getSchema();
+        } catch (JsonMappingException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
-    public JsonSchema getSettingsSchema(String authority) throws NoSuchAuthorityException {
-        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
-        try {
-            return configProvider.getDefaultSettingsMap().getSchema();
-        } catch (JsonMappingException e) {
-            throw new SystemException(e.getMessage());
+    public JsonNode getConfigurationSchema(String authority) throws NoSuchAuthorityException {
+        Converter<Map<String, Serializable>, ? extends ConfigMap> converter = mapConfigConverters.get(authority);
+        if (converter == null) {
+            throw new NoSuchAuthorityException();
         }
-    }
 
-    @Transactional(readOnly = true)
-    public JsonSchema getConfigurationSchema(String authority) throws NoSuchAuthorityException {
-        ConfigurationProvider<?, ?, S, ? extends ConfigMap> configProvider = getConfigurationProvider(authority);
+        Map<String, Serializable> values = defaultConfigs.get(authority) != null
+            ? defaultConfigs.get(authority)
+            : Map.of();
+
+        //TODO describe with default values from map
+        ConfigMap config = converter.convert(values);
+        if (config == null) {
+            throw new NoSuchAuthorityException();
+        }
+
         try {
-            return configProvider.getDefaultConfigMap().getSchema();
+            return config.getSchema();
         } catch (JsonMappingException e) {
-            throw new SystemException(e.getMessage());
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 }

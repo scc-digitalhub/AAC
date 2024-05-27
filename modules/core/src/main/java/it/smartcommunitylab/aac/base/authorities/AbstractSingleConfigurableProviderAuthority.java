@@ -22,21 +22,20 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.core.authorities.SingleProviderAuthority;
-import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.model.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@Deprecated(forRemoval = true)
 public abstract class AbstractSingleConfigurableProviderAuthority<
     T extends AbstractConfigurableResourceProvider<? extends Resource, C, S, M>,
-    P extends ConfigurableProvider<S>,
     C extends AbstractProviderConfig<S, M>,
     S extends AbstractSettingsMap,
     M extends AbstractConfigMap
 >
-    extends AbstractConfigurableProviderAuthority<T, P, C, S, M>
+    extends AbstractConfigurableProviderAuthority<T, C, S, M>
     implements SingleProviderAuthority<T, C, S, M> {
 
     protected AbstractSingleConfigurableProviderAuthority(
@@ -46,7 +45,7 @@ public abstract class AbstractSingleConfigurableProviderAuthority<
         super(authorityId, registrationRepository);
     }
 
-    // TODO move to singleconfigurationprovider
+    // TODO refactor
     // @Override
     // public C registerProvider(ConfigurableProvider cp) throws RegistrationException {
     //     if (cp != null && getAuthorityId().equals(cp.getAuthority())) {

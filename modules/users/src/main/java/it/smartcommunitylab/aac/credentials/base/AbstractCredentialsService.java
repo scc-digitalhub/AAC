@@ -22,13 +22,12 @@ import it.smartcommunitylab.aac.base.provider.AbstractConfigurableResourceProvid
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.core.service.ResourceEntityService;
+import it.smartcommunitylab.aac.credentials.model.CredentialsStatus;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
-import it.smartcommunitylab.aac.internal.model.CredentialsStatus;
 import it.smartcommunitylab.aac.users.persistence.UserEntity;
 import it.smartcommunitylab.aac.users.service.UserEntityService;
 import java.util.Collection;
@@ -62,7 +61,6 @@ public abstract class AbstractCredentialsService<
     //TODO replace with userService after refactoring userService
     protected UserEntityService userService;
     // protected UserService userService;
-    protected ResourceEntityService resourceService;
 
     // provider configuration
     protected final String repositoryId;
@@ -93,14 +91,8 @@ public abstract class AbstractCredentialsService<
         this.userService = userService;
     }
 
-    public void setResourceService(ResourceEntityService resourceService) {
-        this.resourceService = resourceService;
-    }
-
     @Override
-    public void afterPropertiesSet() throws Exception {
-        Assert.notNull(resourceService, "resource service is mandatory");
-    }
+    public void afterPropertiesSet() throws Exception {}
 
     @Override
     public final String getType() {
@@ -203,17 +195,6 @@ public abstract class AbstractCredentialsService<
 
         R cred = credentialsService.addCredentials(repositoryId, id, reg);
 
-        if (resourceService != null) {
-            // register
-            resourceService.addResourceEntity(
-                cred.getUuid(),
-                SystemKeys.RESOURCE_CREDENTIALS,
-                getAuthority(),
-                getProvider(),
-                id
-            );
-        }
-
         // map to ourselves
         cred.setProvider(getProvider());
 
@@ -299,11 +280,6 @@ public abstract class AbstractCredentialsService<
 
         // delete
         credentialsService.deleteCredentials(repositoryId, credentialsId);
-
-        if (resourceService != null) {
-            // delete resource
-            resourceService.deleteResourceEntity(cred.getUuid());
-        }
     }
 
     @Override
@@ -316,17 +292,6 @@ public abstract class AbstractCredentialsService<
         // delete in batch
         Set<String> ids = credentials.stream().map(p -> p.getId()).collect(Collectors.toSet());
         credentialsService.deleteAllCredentials(repositoryId, ids);
-
-        if (resourceService != null) {
-            // remove resources
-            try {
-                // delete in batch
-                Set<String> uuids = credentials.stream().map(p -> p.getUuid()).collect(Collectors.toSet());
-                resourceService.deleteAllResourceEntities(uuids);
-            } catch (RuntimeException re) {
-                logger.error("error removing resources: {}", re.getMessage());
-            }
-        }
     }
 
     /*

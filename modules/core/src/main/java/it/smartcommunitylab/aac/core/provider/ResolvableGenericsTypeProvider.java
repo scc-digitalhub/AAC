@@ -16,11 +16,17 @@
 
 package it.smartcommunitylab.aac.core.provider;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.ResolvableTypeProvider;
 import org.springframework.lang.Nullable;
 
 public interface ResolvableGenericsTypeProvider extends ResolvableTypeProvider {
     @Nullable
+    @JsonIgnore
+    ResolvableType getResolvableType();
+
+    @Nullable
+    @JsonIgnore
     ResolvableType getResolvableType(int pos);
 }

@@ -38,6 +38,8 @@ public abstract class AbstractConfigurableResourceProvider<
     implements ConfigurableResourceProvider<R, C, S, M>, ResolvableGenericsTypeProvider {
 
     private ResolvableType ctype;
+    private ResolvableType btype;
+
     protected final C config;
 
     protected AbstractConfigurableResourceProvider(String authority, String provider, String realm, C providerConfig) {
@@ -50,9 +52,6 @@ public abstract class AbstractConfigurableResourceProvider<
         Assert.isTrue(realm.equals(providerConfig.getRealm()), "configuration does not match this provider");
 
         this.config = providerConfig;
-
-        //resolve types
-        this.ctype = ResolvableType.forClass(AbstractConfigurableResourceProvider.class, getClass());
     }
 
     @Override
@@ -96,12 +95,28 @@ public abstract class AbstractConfigurableResourceProvider<
     @Override
     @JsonIgnoreProperties
     public ResolvableType getResolvableType() {
+        if (this.ctype == null) {
+            try {
+                this.ctype = ResolvableType.forClass(getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
         return ctype;
     }
 
     @Override
     @JsonIgnoreProperties
     public ResolvableType getResolvableType(int pos) {
-        return ctype != null ? ctype.getGeneric(pos) : null;
+        if (this.btype == null) {
+            try {
+                this.btype = ResolvableType.forClass(AbstractConfigurableResourceProvider.class, getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return btype != null ? btype.getGeneric(pos) : null;
     }
 }

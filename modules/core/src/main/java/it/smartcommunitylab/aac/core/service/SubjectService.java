@@ -17,13 +17,17 @@
 package it.smartcommunitylab.aac.core.service;
 
 import it.smartcommunitylab.aac.common.NoSuchSubjectException;
+import it.smartcommunitylab.aac.core.persistence.SubjectAuthorityEntity;
+import it.smartcommunitylab.aac.core.persistence.SubjectAuthorityEntityRepository;
 import it.smartcommunitylab.aac.core.provider.SubjectProvider;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.repository.PaginationUtils.PageOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -34,6 +38,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -44,10 +50,17 @@ import org.springframework.util.StringUtils;
 @Transactional
 public class SubjectService {
 
+    private final SubjectAuthorityEntityRepository authorityRepository;
     private TreeMap<String, SubjectProvider<? extends Subject>> providers;
 
-    public SubjectService(List<SubjectProvider<? extends Subject>> providers) {
+    public SubjectService(
+        SubjectAuthorityEntityRepository authorityRepository,
+        List<SubjectProvider<? extends Subject>> providers
+    ) {
+        Assert.notNull(authorityRepository, "autorities repository is required");
         Assert.notNull(providers, "providers can not be null");
+
+        this.authorityRepository = authorityRepository;
 
         //collect into key-ordered map
         this.providers = providers
@@ -160,5 +173,254 @@ public class SubjectService {
         //     : Page.empty();
 
         return Page.empty();
+    }
+
+    /*
+     * Authorities
+     */
+
+    @Transactional(readOnly = true)
+    public List<GrantedAuthority> getAuthorities(String subjectId) {
+        return authorityRepository
+            .findBySubject(subjectId)
+            .stream()
+            .map(a -> toAuthority(a))
+            .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<GrantedAuthority> getAuthorities(String subjectId, String realm) {
+        return authorityRepository
+            .findBySubjectAndRealm(subjectId, realm)
+            .stream()
+            .map(a -> toAuthority(a))
+            .collect(Collectors.toList());
+    }
+
+    public List<GrantedAuthority> addAuthorities(String uuid, String realm, Collection<String> roles)
+        throws NoSuchSubjectException {
+        //fetch subject
+        Subject s = findSubject(uuid);
+        if (s == null) {
+            throw new NoSuchSubjectException("subject not found for " + uuid);
+        }
+
+        // fetch current roles
+        List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubjectAndRealm(uuid, realm);
+
+        // unpack roles
+        Set<SubjectAuthorityEntity> newRoles = roles
+            .stream()
+            .map(r -> {
+                SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);
+                re.setRealm(realm);
+                re.setRole(r);
+                return re;
+            })
+            .collect(Collectors.toSet());
+
+        // update
+        Set<SubjectAuthorityEntity> toAdd = newRoles
+            .stream()
+            .filter(r -> !oldRoles.contains(r))
+            .collect(Collectors.toSet());
+
+        return authorityRepository.saveAll(toAdd).stream().map(a -> toAuthority(a)).collect(Collectors.toList());
+    }
+
+    public List<GrantedAuthority> addAuthorities(String uuid, Collection<Map.Entry<String, String>> roles)
+        throws NoSuchSubjectException {
+        //fetch subject
+        Subject s = findSubject(uuid);
+        if (s == null) {
+            throw new NoSuchSubjectException("subject not found for " + uuid);
+        }
+
+        // fetch current roles
+        List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubject(uuid);
+
+        // unpack roles
+        Set<SubjectAuthorityEntity> newRoles = roles
+            .stream()
+            .map(e -> {
+                SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);
+                re.setRealm(e.getKey());
+                re.setRole(e.getValue());
+                return re;
+            })
+            .collect(Collectors.toSet());
+
+        // update
+        Set<SubjectAuthorityEntity> toAdd = newRoles
+            .stream()
+            .filter(r -> !oldRoles.contains(r))
+            .collect(Collectors.toSet());
+
+        return authorityRepository.saveAll(toAdd).stream().map(a -> toAuthority(a)).collect(Collectors.toList());
+    }
+
+    public void removeAuthorities(String uuid, String realm, Collection<String> roles) throws NoSuchSubjectException {
+        //fetch subject
+        Subject s = findSubject(uuid);
+        if (s == null) {
+            throw new NoSuchSubjectException("subject not found for " + uuid);
+        }
+
+        // fetch current roles
+        List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubjectAndRealm(uuid, realm);
+
+        // unpack roles
+        Set<SubjectAuthorityEntity> newRoles = roles
+            .stream()
+            .map(r -> {
+                SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);
+                re.setRealm(realm);
+                re.setRole(r);
+                return re;
+            })
+            .collect(Collectors.toSet());
+
+        // update
+        Set<SubjectAuthorityEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> newRoles.contains(r))
+            .collect(Collectors.toSet());
+
+        authorityRepository.deleteAll(toDelete);
+    }
+
+    public void removeAuthorities(String uuid, Collection<Map.Entry<String, String>> roles)
+        throws NoSuchSubjectException {
+        //fetch subject
+        Subject s = findSubject(uuid);
+        if (s == null) {
+            throw new NoSuchSubjectException("subject not found for " + uuid);
+        }
+
+        // fetch current roles
+        List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubject(uuid);
+
+        // unpack roles
+        Set<SubjectAuthorityEntity> newRoles = roles
+            .stream()
+            .map(e -> {
+                SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);
+                re.setRealm(e.getKey());
+                re.setRole(e.getValue());
+                return re;
+            })
+            .collect(Collectors.toSet());
+
+        // update
+        Set<SubjectAuthorityEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> newRoles.contains(r))
+            .collect(Collectors.toSet());
+
+        authorityRepository.deleteAll(toDelete);
+    }
+
+    public List<GrantedAuthority> updateAuthorities(String uuid, String realm, Collection<String> roles)
+        throws NoSuchSubjectException {
+        //fetch subject
+        Subject s = findSubject(uuid);
+        if (s == null) {
+            throw new NoSuchSubjectException("subject not found for " + uuid);
+        }
+
+        // fetch current roles
+        List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubjectAndRealm(uuid, realm);
+
+        // unpack roles
+        Set<SubjectAuthorityEntity> newRoles = roles
+            .stream()
+            .map(r -> {
+                SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);
+                re.setRealm(realm);
+                re.setRole(r);
+                return re;
+            })
+            .collect(Collectors.toSet());
+
+        // update
+        Set<SubjectAuthorityEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> !newRoles.contains(r))
+            .collect(Collectors.toSet());
+        Set<SubjectAuthorityEntity> toAdd = newRoles
+            .stream()
+            .filter(r -> !oldRoles.contains(r))
+            .collect(Collectors.toSet());
+
+        authorityRepository.deleteAll(toDelete);
+        authorityRepository.saveAll(toAdd);
+
+        return authorityRepository
+            .findBySubjectAndRealm(uuid, realm)
+            .stream()
+            .map(a -> toAuthority(a))
+            .collect(Collectors.toList());
+    }
+
+    public List<GrantedAuthority> updateAuthorities(String uuid, Collection<Map.Entry<String, String>> roles)
+        throws NoSuchSubjectException {
+        //fetch subject
+        Subject s = findSubject(uuid);
+        if (s == null) {
+            throw new NoSuchSubjectException("subject not found for " + uuid);
+        }
+
+        // fetch current roles
+        List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubject(uuid);
+
+        // unpack roles
+        Set<SubjectAuthorityEntity> newRoles = roles
+            .stream()
+            .map(e -> {
+                SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);
+                re.setRealm(e.getKey());
+                re.setRole(e.getValue());
+                return re;
+            })
+            .collect(Collectors.toSet());
+
+        // update
+        Set<SubjectAuthorityEntity> toDelete = oldRoles
+            .stream()
+            .filter(r -> !newRoles.contains(r))
+            .collect(Collectors.toSet());
+        Set<SubjectAuthorityEntity> toAdd = newRoles
+            .stream()
+            .filter(r -> !oldRoles.contains(r))
+            .collect(Collectors.toSet());
+
+        authorityRepository.deleteAll(toDelete);
+        authorityRepository.saveAll(toAdd);
+
+        return authorityRepository.findBySubject(uuid).stream().map(a -> toAuthority(a)).collect(Collectors.toList());
+    }
+
+    public void deleteAuthorities(String subjectId) {
+        List<SubjectAuthorityEntity> roles = authorityRepository.findBySubject(subjectId);
+        if (!roles.isEmpty()) {
+            // remove
+            authorityRepository.deleteAll(roles);
+        }
+    }
+
+    public void deleteAuthorities(String subjectId, String realm) {
+        List<SubjectAuthorityEntity> roles = authorityRepository.findBySubjectAndRealm(subjectId, realm);
+        if (!roles.isEmpty()) {
+            // remove
+            authorityRepository.deleteAll(roles);
+        }
+    }
+
+    private GrantedAuthority toAuthority(SubjectAuthorityEntity authority) {
+        if (StringUtils.hasText(authority.getRealm())) {
+            return new SimpleGrantedAuthority(authority.getRealm() + ":" + authority.getRole());
+        } else {
+            return new SimpleGrantedAuthority(authority.getRole());
+        }
     }
 }

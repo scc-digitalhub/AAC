@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.repository.SafeString;
@@ -32,10 +32,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
+import lombok.ToString;
 import org.springframework.util.StringUtils;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ToString
+@JsonTypeName(SystemKeys.RESOURCE_IDENTITY)
+@Schema(title = "idp.settings.title", description = "idp.settings.description")
 public class IdentityProviderSettingsMap extends AbstractSettingsMap {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
@@ -53,6 +57,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private String notes;
 
     @JsonIgnore
+    @ToString.Exclude
     private Map<String, String> hookFunctions = new HashMap<>();
 
     public Boolean getLinkable() {
@@ -169,11 +174,5 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         IdentityProviderSettingsMap map = mapper.convertValue(props, IdentityProviderSettingsMap.class);
         setConfiguration(map);
-    }
-
-    @Override
-    @JsonIgnore
-    public JsonSchema getSchema() throws JsonMappingException {
-        return schemaGen.generateSchema(IdentityProviderSettingsMap.class);
     }
 }

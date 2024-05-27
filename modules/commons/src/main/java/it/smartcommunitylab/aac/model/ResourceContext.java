@@ -23,10 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
 public interface ResourceContext<R extends Resource> {
-    Map<String, List<? extends R>> getResources();
+    Map<String, List<R>> getResources();
 
     default boolean hasResources(String type) {
         Assert.notNull(type, "type cannot be null");
@@ -43,12 +44,12 @@ public interface ResourceContext<R extends Resource> {
         }
     }
 
-    default void setResources(String type, List<? extends R> resources) {
+    default <T extends R> void setResources(String type, List<T> resources) {
         Assert.notNull(type, "type cannot be null");
         if (resources == null && hasResources(type)) {
             getResources().remove(type);
         } else {
-            getResources().put(type, resources);
+            getResources().put(type, resources.stream().map(r -> (R) r).collect(Collectors.toList()));
         }
     }
 

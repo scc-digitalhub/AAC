@@ -20,22 +20,25 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.base.provider.config.AbstractConfigurableProviderConverter;
-import it.smartcommunitylab.aac.base.provider.config.DefaultConfigurableProviderConverter;
+import it.smartcommunitylab.aac.base.provider.config.DefaultConfigMapConverter;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
-import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.model.ProviderProperties;
 import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
-import it.smartcommunitylab.aac.core.provider.config.ConfigurableProviderConverterFactory;
+import it.smartcommunitylab.aac.core.provider.config.ConfigurableConverterFactory;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
@@ -43,7 +46,11 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.type.TypeDescription;
@@ -51,12 +58,14 @@ import org.apache.tomcat.util.http.fileupload.util.Streams;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jackson.JsonMixinModule;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
@@ -68,9 +77,18 @@ public class JacksonTests {
     private static final String BOOTSTRAP_FILE = "classpath:/bootstrap-test.yaml";
 
     private ResourceLoader resourceLoader = new DefaultResourceLoader();
-    private ObjectMapper mapper = yamlObjectMapper()
-        .addMixIn(ConfigurableProviderImpl.class, ConfigurableIdentityProviderMixins.class)
-        .addMixIn(ConfigurableProviderImpl.class, ConfigurableAccountProviderMixins.class);
+    private ObjectMapper yamlMapper = yamlObjectMapper();
+
+    private ObjectMapper jsonMapper = new ObjectMapper();
+
+    private AnnotationConfigApplicationContext context;
+
+    @Test
+    public void schema() throws Exception {
+        IdentityProviderSettingsMap a = new IdentityProviderSettingsMap();
+        JsonNode schema = a.getSchema();
+        System.out.println("schema: " + schema.toString());
+    }
 
     @Test
     public void types() {
@@ -208,7 +226,8 @@ public class JacksonTests {
             ConfigurableIdentityProvider,
             IdentityProviderSettingsMap,
             ConfigMap
-        > c = ConfigurableProviderConverterFactory.instance().build(configType, configurableType, mapType, mapType);
+        > c = ConfigurableConverterFactory.instance()
+            .buildConfigurableProviderConverter(configType, configurableType, mapType, mapType);
 
         // Converter<ConfigurableIdentityProvider, ? extends ProviderConfig<?, ?>> c = (Converter<
         //         ConfigurableIdentityProvider,
@@ -240,6 +259,40 @@ public class JacksonTests {
         // TestConfig o = c.convert(cp);
         ProviderConfig<?, ?> o = c.convert(cp);
         System.out.println("res: " + String.valueOf(o));
+    }
+
+    @Test
+    public void convertMap() throws Exception {
+        IdentityProviderSettingsMap im = new IdentityProviderSettingsMap();
+        Map<String, java.io.Serializable> map = new HashMap<>();
+        map.put("notes", "NASDLOASDLA");
+
+        Class<?> iType = im.getResolvableType().resolve();
+        System.out.println(iType.getName());
+
+        DefaultConfigMapConverter<IdentityProviderSettingsMap> c = ConfigurableConverterFactory.instance()
+            .buildConfigMapConverter(iType);
+
+        ResolvableType t0 = ((ResolvableGenericsTypeProvider) c).getResolvableType(0);
+
+        System.out.println("class " + c.getClass().getName());
+        System.out.println("t " + t0.resolve().getName());
+
+        // TestConfig o = c.convert(cp);
+        IdentityProviderSettingsMap o = c.convert(map);
+        System.out.println("res: " + String.valueOf(o));
+
+        DefaultConfigMapConverter<? extends ConfigMap> c1 = ConfigurableConverterFactory.instance()
+            .buildConfigMapConverter(iType);
+
+        ResolvableType t1 = ((ResolvableGenericsTypeProvider) c1).getResolvableType(0);
+
+        System.out.println("class " + c1.getClass().getName());
+        System.out.println("t " + t1.resolve().getName());
+
+        // TestConfig o = c.convert(cp);
+        ConfigMap o1 = c1.convert(map);
+        System.out.println("res: " + String.valueOf(o1));
     }
 
     // @Test
@@ -289,14 +342,95 @@ public class JacksonTests {
     // }
 
     @Test
+    public void serialize() throws Exception {
+        IdentityProviderSettingsMap a = new IdentityProviderSettingsMap();
+        a.setNotes("adasda");
+        String value = jsonMapper.writeValueAsString(a);
+        System.out.println("json: \n" + value);
+
+        ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider();
+        cp.setSettings(Map.of("notes", "test"));
+        value = jsonMapper.writeValueAsString(cp);
+        System.out.println("json: \n" + value);
+    }
+
+    @Test
+    public void serializeNoType() throws Exception {
+        AccountProviderSettingsMap a = new AccountProviderSettingsMap();
+        a.setRepositoryId("adasda");
+        String value = jsonMapper.writeValueAsString(a);
+        System.out.println("json: \n" + value);
+    }
+
+    @Test
+    public void deserializeMap() throws Exception {
+        String value = "{\"type\":\"identity\",\"notes\":\"adasda\",\"hookFunctions\":{}}";
+        // String value =
+        // "{\"type\":\"it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap\",\"notes\":\"adasda\",\"hookFunctions\":{}}";
+
+        jsonMapper.registerSubtypes(new NamedType(IdentityProviderSettingsMap.class, "identity"));
+
+        ConfigMap a = jsonMapper.readValue(value, AbstractSettingsMap.class);
+
+        System.out.println("obj: \n" + a);
+
+        String value2 = "{\"type\":\"AccountProviderSettingsMap\",\"repositoryId\":\"adasda\"}";
+        a = jsonMapper.readValue(value2, AbstractSettingsMap.class);
+
+        System.out.println("obj: \n" + a);
+    }
+
+    @Test
+    public void deserializeMapScanned() throws Exception {
+        String value = "{\"type\":\"identity\",\"notes\":\"adasda\",\"hookFunctions\":{}}";
+        // String value =
+        // "{\"type\":\"it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap\",\"notes\":\"adasda\",\"hookFunctions\":{}}";
+        SubtypeModule module = new SubtypeModule(
+            new AnnotationConfigApplicationContext(),
+            "it.smartcommunitylab.aac.identity.provider",
+            "it.smartcommunitylab.aac.identity.model"
+        );
+        //important: do before adding to jackson
+        module.afterPropertiesSet();
+
+        jsonMapper.registerModule(module);
+
+        ConfigMap a = jsonMapper.readValue(value, AbstractSettingsMap.class);
+
+        System.out.println("obj: \n" + a);
+
+        String value2 =
+            "{\"type\":\"identity\",\"enabled\":false,\"titleMap\":{},\"descriptionMap\":{},\"configuration\":{},\"settings\":{\"notes\":\"test\"}}";
+
+        ConfigurableProvider<ConfigMap> cp = jsonMapper.readValue(value2, ConfigurableProvider.class);
+        System.out.println("cp: \n" + cp);
+
+        //resolve
+        ResolvableType gt = ((ResolvableGenericsTypeProvider) cp).getResolvableType();
+        System.out.println("gt: \n" + gt);
+        ResolvableType mt = ((ResolvableGenericsTypeProvider) cp).getResolvableType(0);
+        System.out.println("mt: \n" + mt);
+    }
+
+    @Test
     public void deserialize() throws IOException {
         Resource res = resourceLoader.getResource(BOOTSTRAP_FILE);
         log.info("dump file");
         String content = Streams.asString(res.getInputStream());
         System.out.println(content);
 
-        ProviderProperties properties = mapper.readValue(content, ProviderProperties.class);
+        ProviderProperties properties = yamlMapper.readValue(content, ProviderProperties.class);
         log.debug(String.valueOf(properties));
+    }
+
+    private void load(Class<?>... basePackageClasses) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        List<String> basePackages = Arrays.stream(basePackageClasses)
+            .map(ClassUtils::getPackageName)
+            .collect(Collectors.toList());
+        context.registerBean(JsonMixinModule.class, () -> new JsonMixinModule(context, basePackages));
+        context.refresh();
+        this.context = context;
     }
 
     public void scan() {}

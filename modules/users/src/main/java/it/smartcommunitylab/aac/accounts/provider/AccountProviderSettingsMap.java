@@ -19,8 +19,6 @@ package it.smartcommunitylab.aac.accounts.provider;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import java.io.Serializable;
@@ -62,11 +60,5 @@ public class AccountProviderSettingsMap extends AbstractSettingsMap {
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         AccountProviderSettingsMap map = mapper.convertValue(props, AccountProviderSettingsMap.class);
         setConfiguration(map);
-    }
-
-    @Override
-    @JsonIgnore
-    public JsonSchema getSchema() throws JsonMappingException {
-        return schemaGen.generateSchema(AccountProviderSettingsMap.class);
     }
 }

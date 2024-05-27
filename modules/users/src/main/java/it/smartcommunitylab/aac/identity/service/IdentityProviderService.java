@@ -64,10 +64,7 @@ public class IdentityProviderService
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public IdentityProviderService(
-        IdentityProviderAuthorityService authorityService,
-        ConfigurableProviderEntityService providerService
-    ) {
+    public IdentityProviderService() {
         super();
         // create system idps
         // these users access administrative contexts, they will have realm="system"
@@ -98,96 +95,96 @@ public class IdentityProviderService
         systemProviders.put(internalPasswordIdpConfig.getProvider(), internalPasswordIdpConfig);
     }
 
-    @Autowired
-    private void setProviderProperties(ProviderProperties properties) {
-        // system providers
-        if (properties != null) {
-            // identity providers
-            List<ConfigurableIdentityProvider> providers = properties.<ConfigurableIdentityProvider>get(
-                SystemKeys.RESOURCE_IDENTITY
-            );
-            for (ConfigurableIdentityProvider cp : providers) {
-                if (cp == null || !cp.isEnabled()) {
-                    continue;
-                }
+    // @Autowired
+    // private void setProviderProperties(ProviderProperties properties) {
+    //     // system providers
+    //     if (properties != null) {
+    //         // identity providers
+    //         List<ConfigurableIdentityProvider> providers = properties.<ConfigurableIdentityProvider>get(
+    //             SystemKeys.RESOURCE_IDENTITY
+    //         );
+    //         for (ConfigurableIdentityProvider cp : providers) {
+    //             if (cp == null || !cp.isEnabled()) {
+    //                 continue;
+    //             }
 
-                String authority = cp.getAuthority();
-                if (!StringUtils.hasText(authority)) {
-                    continue;
-                }
+    //             String authority = cp.getAuthority();
+    //             if (!StringUtils.hasText(authority)) {
+    //                 continue;
+    //             }
 
-                // we handle only system providers, add others via bootstrap
-                if (StringUtils.hasText(cp.getRealm()) && !SystemKeys.REALM_SYSTEM.equals(cp.getRealm())) {
-                    logger.debug("skip provider {} for realm {}", cp.getAuthority(), String.valueOf(cp.getRealm()));
-                    continue;
-                }
+    //             // we handle only system providers, add others via bootstrap
+    //             if (StringUtils.hasText(cp.getRealm()) && !SystemKeys.REALM_SYSTEM.equals(cp.getRealm())) {
+    //                 logger.debug("skip provider {} for realm {}", cp.getAuthority(), String.valueOf(cp.getRealm()));
+    //                 continue;
+    //             }
 
-                String providerId = StringUtils.hasText(cp.getProvider())
-                    ? cp.getProvider()
-                    : UUID.randomUUID().toString();
-                logger.debug("configure provider {}:{} for realm system", authority, providerId);
-                if (logger.isTraceEnabled()) {
-                    logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
-                }
+    //             String providerId = StringUtils.hasText(cp.getProvider())
+    //                 ? cp.getProvider()
+    //                 : UUID.randomUUID().toString();
+    //             logger.debug("configure provider {}:{} for realm system", authority, providerId);
+    //             if (logger.isTraceEnabled()) {
+    //                 logger.trace("provider config: {}", String.valueOf(cp.getConfiguration()));
+    //             }
 
-                try {
-                    // we validate config by converting to specific configMap
-                    ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
-                    ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
-                    ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
+    //             try {
+    //                 // we validate config by converting to specific configMap
+    //                 ConfigurationProvider<?, ?, ?, ?> configProvider = getConfigurationProvider(authority);
+    //                 ConfigMap configurable = configProvider.getConfigMap(cp.getConfiguration());
+    //                 ConfigMap settings = configProvider.getSettingsMap(cp.getSettings());
 
-                    // check with validator
-                    //TODO check settings?
-                    if (validator != null) {
-                        DataBinder binder = new DataBinder(configurable);
-                        validator.validate(configurable, binder.getBindingResult());
-                        if (binder.getBindingResult().hasErrors()) {
-                            StringBuilder sb = new StringBuilder();
-                            binder
-                                .getBindingResult()
-                                .getFieldErrors()
-                                .forEach(e -> {
-                                    sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
-                                });
-                            String errorMsg = sb.toString();
-                            throw new RegistrationException(errorMsg);
-                        }
-                    }
+    //                 // check with validator
+    //                 //TODO check settings?
+    //                 if (validator != null) {
+    //                     DataBinder binder = new DataBinder(configurable);
+    //                     validator.validate(configurable, binder.getBindingResult());
+    //                     if (binder.getBindingResult().hasErrors()) {
+    //                         StringBuilder sb = new StringBuilder();
+    //                         binder
+    //                             .getBindingResult()
+    //                             .getFieldErrors()
+    //                             .forEach(e -> {
+    //                                 sb.append(e.getField()).append(" ").append(e.getDefaultMessage());
+    //                             });
+    //                         String errorMsg = sb.toString();
+    //                         throw new RegistrationException(errorMsg);
+    //                     }
+    //                 }
 
-                    Map<String, Serializable> configuration = configurable.getConfiguration();
+    //                 Map<String, Serializable> configuration = configurable.getConfiguration();
 
-                    // build a new config to detach from props
-                    ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(
-                        authority,
-                        providerId,
-                        SystemKeys.REALM_SYSTEM
-                    );
-                    cip.setName(cp.getName());
-                    cip.setTitleMap(cp.getTitleMap());
-                    cip.setDescriptionMap(cip.getDescriptionMap());
+    //                 // build a new config to detach from props
+    //                 ConfigurableIdentityProvider cip = new ConfigurableIdentityProvider(
+    //                     authority,
+    //                     providerId,
+    //                     SystemKeys.REALM_SYSTEM
+    //                 );
+    //                 cip.setName(cp.getName());
+    //                 cip.setTitleMap(cp.getTitleMap());
+    //                 cip.setDescriptionMap(cip.getDescriptionMap());
 
-                    cip.setEnabled(true);
-                    cip.setSettings(settings.getConfiguration());
-                    cip.setConfiguration(configuration);
+    //                 cip.setEnabled(true);
+    //                 cip.setSettings(settings.getConfiguration());
+    //                 cip.setConfiguration(configuration);
 
-                    // add version as it might be required by jdbc repository persistence
-                    if (cp.getVersion() == null) {
-                        int registeredVersion = (int) (System.currentTimeMillis() / (60 * 1000)); // current time in minutes
-                        cip.setVersion(registeredVersion);
-                    } else {
-                        cip.setVersion(cp.getVersion());
-                    }
+    //                 // add version as it might be required by jdbc repository persistence
+    //                 if (cp.getVersion() == null) {
+    //                     int registeredVersion = (int) (System.currentTimeMillis() / (60 * 1000)); // current time in minutes
+    //                     cip.setVersion(registeredVersion);
+    //                 } else {
+    //                     cip.setVersion(cp.getVersion());
+    //                 }
 
-                    // register
-                    systemProviders.put(providerId, cip);
-                } catch (
-                    RegistrationException | SystemException | IllegalArgumentException | NoSuchAuthorityException ex
-                ) {
-                    logger.error("error configuring provider :" + ex.getMessage(), ex);
-                }
-            }
-        }
-    }
+    //                 // register
+    //                 systemProviders.put(providerId, cip);
+    //             } catch (
+    //                 RegistrationException | SystemException | IllegalArgumentException | NoSuchAuthorityException ex
+    //             ) {
+    //                 logger.error("error configuring provider :" + ex.getMessage(), ex);
+    //             }
+    //         }
+    //     }
+    // }
 
     public IdentityProvider<
         ? extends UserIdentity,

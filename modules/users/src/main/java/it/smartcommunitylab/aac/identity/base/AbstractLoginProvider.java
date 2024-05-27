@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.identity.base;
 
-import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
 import it.smartcommunitylab.aac.identity.provider.LoginProvider;
+import it.smartcommunitylab.aac.model.ConfigurableProperties;
 import java.util.Map;
 import org.springframework.util.Assert;
 

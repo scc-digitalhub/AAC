@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.base.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.provider.ResolvableGenericsTypeProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.io.Serializable;
@@ -36,6 +38,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import lombok.ToString;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -43,7 +46,7 @@ import org.springframework.util.StringUtils;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 // @JsonSubTypes(
 //     {
 //         @Type(value = ConfigurableAccountService.class, name = SystemKeys.RESOURCE_ACCOUNT),
@@ -54,15 +57,12 @@ import org.springframework.util.StringUtils;
 //         @Type(value = ConfigurableTemplateProvider.class, name = SystemKeys.RESOURCE_TEMPLATE),
 //     }
 // )
-public class ConfigurableProviderImpl<S extends ConfigMap>
+@ToString
+public abstract class ConfigurableProviderImpl<S extends ConfigMap>
     implements ConfigurableProvider<S>, ResolvableGenericsTypeProvider, Serializable {
 
     private ResolvableType ctype;
     private ResolvableType btype;
-
-    //TODO evaluate ENUM for known types
-    @NotBlank
-    private String type;
 
     @NotBlank
     @Size(max = 128)
@@ -103,10 +103,7 @@ public class ConfigurableProviderImpl<S extends ConfigMap>
     @JsonProperty(access = Access.READ_ONLY)
     protected JsonSchema schema;
 
-    public ConfigurableProviderImpl(String type, String authority, String provider, String realm) {
-        Assert.hasText(type, "type is required");
-        this.type = type;
-
+    public ConfigurableProviderImpl(String authority, String provider, String realm) {
         this.authority = authority;
         this.provider = provider;
         this.realm = realm;
@@ -125,7 +122,7 @@ public class ConfigurableProviderImpl<S extends ConfigMap>
      * reflection
      */
     @SuppressWarnings("unused")
-    private ConfigurableProviderImpl() {}
+    protected ConfigurableProviderImpl() {}
 
     @Override
     public String getAuthority() {
@@ -155,15 +152,6 @@ public class ConfigurableProviderImpl<S extends ConfigMap>
     @Override
     public void setProvider(String provider) {
         this.provider = provider;
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     @Override
@@ -260,34 +248,6 @@ public class ConfigurableProviderImpl<S extends ConfigMap>
     }
 
     @Override
-    public String toString() {
-        return (
-            "ConfigurableProvider [authority=" +
-            authority +
-            ", realm=" +
-            realm +
-            ", provider=" +
-            provider +
-            ", type=" +
-            type +
-            ", enabled=" +
-            enabled +
-            ", registered=" +
-            registered +
-            ", name=" +
-            name +
-            ", titleMap=" +
-            titleMap +
-            ", descriptionMap=" +
-            descriptionMap +
-            ", configuration=" +
-            configuration +
-            "]"
-        );
-    }
-
-    @Override
-    @JsonIgnoreProperties
     public ResolvableType getResolvableType() {
         if (this.ctype == null) {
             try {
@@ -301,7 +261,6 @@ public class ConfigurableProviderImpl<S extends ConfigMap>
     }
 
     @Override
-    @JsonIgnoreProperties
     public ResolvableType getResolvableType(int pos) {
         if (this.btype == null) {
             try {
@@ -314,7 +273,7 @@ public class ConfigurableProviderImpl<S extends ConfigMap>
         return btype != null ? btype.getGeneric(pos) : null;
     }
 
-    @JsonIgnoreProperties
+    @JsonIgnore
     public ResolvableType getConfigType() {
         return getResolvableType(0);
     }

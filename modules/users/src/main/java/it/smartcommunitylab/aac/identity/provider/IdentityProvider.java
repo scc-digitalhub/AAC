@@ -28,7 +28,6 @@ import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.users.provider.UserPersistedResourceProvider;
 import it.smartcommunitylab.aac.users.provider.UserResolver;
 import java.util.Collection;
-import org.springframework.lang.Nullable;
 
 /*
  * Identity providers handle authentication for users and produce a valid user identity

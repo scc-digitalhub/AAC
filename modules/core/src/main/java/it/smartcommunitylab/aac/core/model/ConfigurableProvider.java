@@ -16,7 +16,9 @@
 
 package it.smartcommunitylab.aac.core.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.ConfigurableProperties;
 import java.io.Serializable;
@@ -27,10 +29,13 @@ import java.util.Map;
  */
 //DISABLED deserialization annotation due to conflict with jsonSubTypes annotated on implementation
 //due to bug in jackson annotation collection this does not work
-// @JsonDeserialize(as = ConfigurableProviderImpl.class)
+@JsonTypeInfo(
+    defaultImpl = ConfigurableProviderImpl.class,
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type"
+)
 public interface ConfigurableProvider<S extends ConfigMap> extends ConfigurableProperties {
-    String getType();
-
     String getAuthority();
     void setAuthority(String authority);
 

@@ -49,6 +49,9 @@ public class UserAccountService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
+    private UserEntityService userService;
+
+    @Autowired
     private AccountProviderService accountProviderService;
 
     /*
@@ -74,7 +77,7 @@ public class UserAccountService {
         }
 
         // find account
-        return service.findAccount(res.getId());
+        return service.findAccount(id);
     }
 
     @Transactional(readOnly = false)
@@ -169,6 +172,11 @@ public class UserAccountService {
     @Transactional(readOnly = false)
     public Collection<UserAccount> listUserAccounts(String realm, String userId) throws NoSuchUserException {
         logger.debug("get user {} accounts", StringUtils.trimAllWhitespace(userId));
+
+        UserEntity ue = userService.getUser(userId);
+        if (!ue.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // collect from all providers for the same realm
         Collection<AccountProvider<? extends UserAccount, ConfigMap, AccountProviderConfig<ConfigMap>>> services =
@@ -422,6 +430,12 @@ public class UserAccountService {
     public void deleteAllUserAccouts(String realm, String userId)
         throws NoSuchUserException, NoSuchProviderException, RegistrationException, NoSuchAuthorityException {
         logger.debug("delete all user {} accounts", StringUtils.trimAllWhitespace(userId));
+
+        // fetch user
+        UserEntity ue = userService.findUser(userId);
+        if (ue != null && !ue.getRealm().equals(realm)) {
+            throw new IllegalArgumentException("realm-mismatch");
+        }
 
         // collect from all providers for the same realm
         Collection<AccountProvider<? extends UserAccount, ConfigMap, AccountProviderConfig<ConfigMap>>> services =

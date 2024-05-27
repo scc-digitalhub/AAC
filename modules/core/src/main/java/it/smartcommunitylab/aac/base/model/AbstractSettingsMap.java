@@ -16,7 +16,9 @@
 
 package it.smartcommunitylab.aac.base.model;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.ToString;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@ToString
+@Schema(title = "settings")
 public abstract class AbstractSettingsMap extends AbstractConfigMap {}

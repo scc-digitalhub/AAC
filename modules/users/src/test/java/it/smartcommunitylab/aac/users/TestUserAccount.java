@@ -14,30 +14,36 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.core.model;
+package it.smartcommunitylab.aac.users;
 
-import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
-import java.util.Collections;
-import java.util.List;
+import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
+import java.io.Serializable;
 import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
-public class ProviderProperties {
+public class TestUserAccount extends AbstractUserAccount {
 
-    // private Map<String, List<ConfigurableProvider<?>>> providers;
-    private List<ConfigurableProviderImpl<?>> providers;
-    // @SuppressWarnings("unchecked")
-    // public <T extends ConfigurableProvider<?>> List<T> get(String type) {
-    //     if (providers != null && providers.containsKey(type)) {
-    //         return providers.get(type).stream().map(p -> (T) p).collect(Collectors.toList());
-    //     }
+    private String username;
+    private String emailAddress;
+    private String status;
+    private boolean isLocked;
+    private String uuid;
+    private String repositoryId;
+    private Map<String, Serializable> attributes;
 
-    //     return Collections.emptyList();
-    // }
+    @Override
+    public boolean isEmailVerified() {
+        return false;
+    }
 }

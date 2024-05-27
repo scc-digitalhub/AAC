@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.accounts.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.ResourceContext;
 import it.smartcommunitylab.aac.model.UserResource;
@@ -23,6 +24,7 @@ import it.smartcommunitylab.aac.model.UserResourceContext;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public interface UserAccountsResourceContext extends UserResourceContext {
     default Collection<UserAccount> getAccounts() {
@@ -40,4 +42,7 @@ public interface UserAccountsResourceContext extends UserResourceContext {
     static UserAccountsResourceContext from(ResourceContext<UserResource> context) {
         return () -> Collections.unmodifiableMap(context.getResources());
     }
+
+    @JsonIgnore
+    Map<String, List<UserResource>> getResources();
 }

@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.model;
 
-import it.smartcommunitylab.aac.model.Resource;
-
 /*
  * A realm scoped user resource, provided by an authority via a specific provider
  */

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
-import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import javax.validation.Valid;
 
 @Valid
@@ -30,10 +30,10 @@ import javax.validation.Valid;
 public class ConfigurableAccountProvider extends ConfigurableProviderImpl<AccountProviderSettingsMap> {
 
     public ConfigurableAccountProvider(String authority, String provider, String realm) {
-        super(SystemKeys.RESOURCE_ACCOUNT, authority, provider, realm);
+        super(authority, provider, realm);
     }
 
     public ConfigurableAccountProvider() {
-        super(SystemKeys.RESOURCE_ACCOUNT, null, null, null);
+        super(null, null, null);
     }
 }

@@ -116,7 +116,7 @@ public class User implements UserResource, UserResourceContext {
 
     // resources stored as map context and read via accessors
     @JsonIgnore
-    private Map<String, List<? extends UserResource>> resources = new HashMap<>();
+    private Map<String, List<UserResource>> resources = new HashMap<>();
 
     public User(@JsonProperty("userId") String userId, @JsonProperty("realm") String realm) {
         Assert.hasText(userId, "userId can not be null or empty");
@@ -297,7 +297,7 @@ public class User implements UserResource, UserResourceContext {
 
     @JsonAnyGetter
     @Override
-    public Map<String, List<? extends UserResource>> getResources() {
+    public Map<String, List<UserResource>> getResources() {
         if (this.resources == null) {
             this.resources = new HashMap<>();
         }
@@ -306,7 +306,7 @@ public class User implements UserResource, UserResourceContext {
     }
 
     @JsonAnySetter
-    public void setResources(Map<String, List<? extends UserResource>> resources) {
+    public void setResources(Map<String, List<UserResource>> resources) {
         this.resources = resources;
     }
 

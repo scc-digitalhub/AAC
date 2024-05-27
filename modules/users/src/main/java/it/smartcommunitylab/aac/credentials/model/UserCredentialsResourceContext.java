@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.credentials.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.ResourceContext;
 import it.smartcommunitylab.aac.model.UserResource;
@@ -23,6 +24,7 @@ import it.smartcommunitylab.aac.model.UserResourceContext;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public interface UserCredentialsResourceContext extends UserResourceContext {
     default Collection<UserCredentials> getCredentials() {
@@ -40,4 +42,7 @@ public interface UserCredentialsResourceContext extends UserResourceContext {
     static UserCredentialsResourceContext from(ResourceContext<UserResource> context) {
         return () -> Collections.unmodifiableMap(context.getResources());
     }
+
+    @JsonIgnore
+    Map<String, List<UserResource>> getResources();
 }

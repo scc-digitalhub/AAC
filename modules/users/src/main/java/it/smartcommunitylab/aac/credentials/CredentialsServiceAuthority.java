@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.credentials;
 
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
-import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
@@ -32,4 +31,4 @@ public interface CredentialsServiceAuthority<
     M extends ConfigMap,
     C extends CredentialsServiceConfig<M>
 >
-    extends ConfigurableProviderAuthority<S, ConfigurableCredentialsProvider, C, CredentialsServiceSettingsMap, M> {}
+    extends ConfigurableProviderAuthority<S, C, CredentialsServiceSettingsMap, M> {}

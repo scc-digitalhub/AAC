@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.core.persistence;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Map;
@@ -34,7 +35,17 @@ public class ConfigurableProviderConverter
     @Override
     public ProviderEntity convert(ConfigurableProvider<? extends ConfigMap> reg) {
         ProviderEntity pe = new ProviderEntity();
-        pe.setType(reg.getType());
+
+        pe.setType(reg.getClass().getName());
+        //try read name from annotation
+        try {
+            JsonTypeName ann = reg.getClass().getAnnotation(JsonTypeName.class);
+            if (ann != null && ann.value() != null) {
+                pe.setType(ann.value());
+            }
+        } catch (Exception e) {
+            //ignore, named type is not required
+        }
 
         pe.setAuthority(reg.getAuthority());
         pe.setProvider(reg.getProvider());

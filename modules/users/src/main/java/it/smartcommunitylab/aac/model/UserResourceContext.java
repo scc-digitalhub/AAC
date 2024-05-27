@@ -16,6 +16,4 @@
 
 package it.smartcommunitylab.aac.model;
 
-import it.smartcommunitylab.aac.model.ResourceContext;
-
 public interface UserResourceContext extends ResourceContext<UserResource> {}

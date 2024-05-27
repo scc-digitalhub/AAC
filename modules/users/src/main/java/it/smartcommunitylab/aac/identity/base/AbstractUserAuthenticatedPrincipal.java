@@ -20,13 +20,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
-import it.smartcommunitylab.aac.internal.model.InternalUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.password.model.InternalPasswordUserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.users.base.AbstractBaseUserResource;
 import it.smartcommunitylab.aac.users.model.UserAuthenticatedPrincipal;
-import it.smartcommunitylab.aac.webauthn.model.WebAuthnUserAuthenticatedPrincipal;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,15 +34,15 @@ import org.springframework.util.StringUtils;
  */
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @Type(value = InternalUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_INTERNAL),
-        @Type(value = InternalPasswordUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_PASSWORD),
-        @Type(value = WebAuthnUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_WEBAUTHN),
-        @Type(value = OIDCUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_OIDC),
-        @Type(value = SamlUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_SAML),
-    }
-)
+// @JsonSubTypes(
+//     {
+//         @Type(value = InternalUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_INTERNAL),
+//         @Type(value = InternalPasswordUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_PASSWORD),
+//         @Type(value = WebAuthnUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_WEBAUTHN),
+//         @Type(value = OIDCUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_OIDC),
+//         @Type(value = SamlUserAuthenticatedPrincipal.class, name = SystemKeys.AUTHORITY_SAML),
+//     }
+// )
 public abstract class AbstractUserAuthenticatedPrincipal
     extends AbstractBaseUserResource
     implements UserAuthenticatedPrincipal {

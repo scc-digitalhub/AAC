@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
@@ -44,7 +45,9 @@ public abstract class AbstractConfigurableConverter<
         .addMixIn(AbstractSettingsMap.class, NoTypes.class)
         .addMixIn(AbstractConfigMap.class, NoTypes.class);
 
-    protected ResolvableType ctype;
+    private ResolvableType ctype;
+    private ResolvableType btype;
+
     protected JavaType providerType;
     protected JavaType configurableType;
     protected JavaType settingsType;
@@ -77,34 +80,32 @@ public abstract class AbstractConfigurableConverter<
         return mapper.getTypeFactory().constructSimpleType((Class<?>) t, null);
     }
 
-    public M getConfigMap(Map<String, Serializable> map) {
-        Assert.notNull(configType, "settingsType can not be null");
-
-        // return a valid config from props
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(map, configType);
-    }
-
-    public S getSettingsMap(Map<String, Serializable> map) {
-        Assert.notNull(settingsType, "settingsType can not be null");
-
-        // return a valid config from props
-        // use mapper
-        mapper.setSerializationInclusion(Include.NON_EMPTY);
-        return mapper.convertValue(map, settingsType);
-    }
-
     @Override
     @JsonIgnoreProperties
     public ResolvableType getResolvableType() {
+        if (this.ctype == null) {
+            try {
+                this.ctype = ResolvableType.forClass(getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
         return ctype;
     }
 
     @Override
     @JsonIgnoreProperties
     public ResolvableType getResolvableType(int pos) {
-        return ctype != null ? ctype.getGeneric(pos) : null;
+        if (this.btype == null) {
+            try {
+                this.btype = ResolvableType.forClass(AbstractConfigurableConverter.class, getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return btype != null ? btype.getGeneric(pos) : null;
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)

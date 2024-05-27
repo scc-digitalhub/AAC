@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import javax.validation.Valid;
 
 @Valid
@@ -29,10 +29,10 @@ import javax.validation.Valid;
 public class ConfigurableAttributeProvider extends ConfigurableProviderImpl<AttributeProviderSettingsMap> {
 
     public ConfigurableAttributeProvider(String authority, String provider, String realm) {
-        super(SystemKeys.RESOURCE_ATTRIBUTES, authority, provider, realm);
+        super(authority, provider, realm);
     }
 
     public ConfigurableAttributeProvider() {
-        super(SystemKeys.RESOURCE_ATTRIBUTES, null, null, null);
+        super(null, null, null);
     }
 }

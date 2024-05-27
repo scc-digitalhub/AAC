@@ -19,21 +19,23 @@ package it.smartcommunitylab.aac.identity.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.core.model.ConfigurableProviderImpl;
+import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import javax.validation.Valid;
 
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeName(SystemKeys.RESOURCE_IDENTITY)
 public class ConfigurableIdentityProvider extends ConfigurableProviderImpl<IdentityProviderSettingsMap> {
 
     public ConfigurableIdentityProvider(String authority, String provider, String realm) {
-        super(SystemKeys.RESOURCE_IDENTITY, authority, provider, realm);
+        super(authority, provider, realm);
     }
 
     public ConfigurableIdentityProvider() {
-        super(SystemKeys.RESOURCE_IDENTITY, null, null, null);
+        super(null, null, null);
     }
 }

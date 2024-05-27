@@ -49,6 +49,8 @@ public abstract class AbstractConfigurableProviderAuthority<
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private ResolvableType ctype;
+    private ResolvableType btype;
+
     protected SmartValidator validator;
 
     protected AbstractConfigurableProviderAuthority(
@@ -56,8 +58,6 @@ public abstract class AbstractConfigurableProviderAuthority<
         ProviderConfigRepository<C> registrationRepository
     ) {
         super(authorityId, registrationRepository);
-        //resolve types
-        this.ctype = ResolvableType.forClass(AbstractConfigurableProviderAuthority.class, getClass());
     }
 
     @Autowired
@@ -71,13 +71,29 @@ public abstract class AbstractConfigurableProviderAuthority<
     @Override
     @JsonIgnoreProperties
     public ResolvableType getResolvableType() {
+        if (this.ctype == null) {
+            try {
+                this.ctype = ResolvableType.forClass(getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
         return ctype;
     }
 
     @Override
     @JsonIgnoreProperties
     public ResolvableType getResolvableType(int pos) {
-        return ctype != null ? ctype.getGeneric(pos) : null;
+        if (this.btype == null) {
+            try {
+                this.btype = ResolvableType.forClass(AbstractConfigurableProviderAuthority.class, getClass());
+            } catch (Exception e) {
+                //ignore
+            }
+        }
+
+        return btype != null ? btype.getGeneric(pos) : null;
     }
 
     @Override

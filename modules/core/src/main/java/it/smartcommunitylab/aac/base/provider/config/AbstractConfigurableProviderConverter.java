@@ -16,16 +16,15 @@
 
 package it.smartcommunitylab.aac.base.provider.config;
 
-import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.model.ConfigMap;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.description.type.TypeDescription;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
@@ -107,5 +106,23 @@ public abstract class AbstractConfigurableProviderConverter<
         }
 
         throw new UnsupportedOperationException();
+    }
+
+    private M getConfigMap(Map<String, Serializable> map) {
+        Assert.notNull(configType, "settingsType can not be null");
+
+        // return a valid config from props
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        return mapper.convertValue(map, configType);
+    }
+
+    private S getSettingsMap(Map<String, Serializable> map) {
+        Assert.notNull(settingsType, "settingsType can not be null");
+
+        // return a valid config from props
+        // use mapper
+        mapper.setSerializationInclusion(Include.NON_EMPTY);
+        return mapper.convertValue(map, settingsType);
     }
 }

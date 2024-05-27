@@ -47,6 +47,13 @@ public class UserEntityConverter implements Converter<UserEntity, User> {
         u.setLoginIp(ue.getLoginIp());
         u.setLoginProvider(ue.getLoginProvider());
 
+        //TODO remove
+        if (ue.getTosAccepted() != null) {
+            u.setTosAccepted(ue.isTosAccepted());
+        } else {
+            u.setTosAccepted(null);
+        }
+
         return u;
     }
 }

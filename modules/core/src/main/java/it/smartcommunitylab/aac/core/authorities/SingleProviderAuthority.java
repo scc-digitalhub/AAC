@@ -25,7 +25,7 @@ import it.smartcommunitylab.aac.model.Resource;
 /*
  * Single provider per realm
  */
-
+@Deprecated(forRemoval = true)
 public interface SingleProviderAuthority<
     P extends ConfigurableResourceProvider<? extends Resource, C, S, M>,
     C extends ProviderConfig<S, M>,

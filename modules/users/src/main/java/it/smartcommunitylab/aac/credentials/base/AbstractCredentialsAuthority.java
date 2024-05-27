@@ -16,14 +16,11 @@
 
 package it.smartcommunitylab.aac.credentials.base;
 
-import it.smartcommunitylab.aac.base.authorities.AbstractSingleConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.credentials.CredentialsServiceAuthority;
-import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfigurationProvider;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
-import org.springframework.util.Assert;
 
 public abstract class AbstractCredentialsAuthority<
     S extends AbstractCredentialsService<R, E, M, C>,
@@ -32,22 +29,15 @@ public abstract class AbstractCredentialsAuthority<
     C extends AbstractCredentialsServiceConfig<M>,
     M extends AbstractConfigMap
 >
-    extends AbstractSingleConfigurableProviderAuthority<
-        S,
-        ConfigurableCredentialsProvider,
-        C,
-        CredentialsServiceSettingsMap,
-        M
-    >
+    extends AbstractConfigurableProviderAuthority<S, C, CredentialsServiceSettingsMap, M>
     implements CredentialsServiceAuthority<S, R, E, M, C> {
 
-    // configuration provider
-    protected CredentialsServiceConfigurationProvider<C, M> configProvider;
+    // // configuration provider
+    // protected CredentialsServiceConfigurationProvider<C, M> configProvider;
 
     protected AbstractCredentialsAuthority(String authorityId, ProviderConfigRepository<C> registrationRepository) {
         super(authorityId, registrationRepository);
     }
-
     // @Override
     // public void afterPropertiesSet() throws Exception {
     //     super.afterPropertiesSet();
@@ -59,13 +49,13 @@ public abstract class AbstractCredentialsAuthority<
     //     return SystemKeys.RESOURCE_CREDENTIALS;
     // }
 
-    @Override
-    public CredentialsServiceConfigurationProvider<C, M> getConfigurationProvider() {
-        return configProvider;
-    }
+    // @Override
+    // public CredentialsServiceConfigurationProvider<C, M> getConfigurationProvider() {
+    //     return configProvider;
+    // }
 
-    public void setConfigProvider(CredentialsServiceConfigurationProvider<C, M> configProvider) {
-        Assert.notNull(configProvider, "config provider is mandatory");
-        this.configProvider = configProvider;
-    }
+    // public void setConfigProvider(CredentialsServiceConfigurationProvider<C, M> configProvider) {
+    //     Assert.notNull(configProvider, "config provider is mandatory");
+    //     this.configProvider = configProvider;
+    // }
 }

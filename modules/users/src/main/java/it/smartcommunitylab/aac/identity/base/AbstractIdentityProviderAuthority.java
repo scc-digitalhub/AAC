@@ -19,7 +19,6 @@ package it.smartcommunitylab.aac.identity.base;
 import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.base.authorities.AbstractConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
-import it.smartcommunitylab.aac.core.provider.FilterProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
@@ -39,7 +38,7 @@ public abstract class AbstractIdentityProviderAuthority<
     C extends AbstractIdentityProviderConfig<M>,
     M extends AbstractConfigMap
 >
-    extends AbstractConfigurableProviderAuthority<P, ConfigurableIdentityProvider, C, IdentityProviderSettingsMap, M>
+    extends AbstractConfigurableProviderAuthority<P, C, IdentityProviderSettingsMap, M>
     implements IdentityProviderAuthority<P, C, M> {
 
     // configuration provider
@@ -57,25 +56,24 @@ public abstract class AbstractIdentityProviderAuthority<
         super.afterPropertiesSet();
         Assert.notNull(configProvider, "config provider is mandatory");
     }
-
     // @Override
     // public String getType() {
     //     return SystemKeys.RESOURCE_IDENTITY;
     // }
 
-    @Override
-    public IdentityProviderConfigurationProvider<C, M> getConfigurationProvider() {
-        return configProvider;
-    }
+    // @Override
+    // public IdentityProviderConfigurationProvider<C, M> getConfigurationProvider() {
+    //     return configProvider;
+    // }
 
-    public void setConfigProvider(IdentityProviderConfigurationProvider<C, M> configProvider) {
-        Assert.notNull(configProvider, "config provider is mandatory");
-        this.configProvider = configProvider;
-    }
+    // public void setConfigProvider(IdentityProviderConfigurationProvider<C, M> configProvider) {
+    //     Assert.notNull(configProvider, "config provider is mandatory");
+    //     this.configProvider = configProvider;
+    // }
 
-    @Override
-    public FilterProvider getFilterProvider() {
-        // authorities are not required to expose filters
-        return null;
-    }
+    // @Override
+    // public FilterProvider getFilterProvider() {
+    //     // authorities are not required to expose filters
+    //     return null;
+    // }
 }
