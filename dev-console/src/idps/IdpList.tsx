@@ -6,6 +6,7 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
+    IconButton,
     Typography,
 } from '@mui/material';
 import 'ace-builds/src-noconflict/mode-yaml';
@@ -38,6 +39,7 @@ import { useParams } from 'react-router-dom';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import { YamlExporter } from '../components/YamlExporter';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export const IdpList = () => {
     const params = useParams();
@@ -63,7 +65,7 @@ export const IdpList = () => {
                 <Datagrid bulkActionButtons={false}>
                     <TextField source="name" />
                     <TextField source="authority" />
-                    <TextField source="provider" />
+                    <IdField source="provider" />
                     {<EnableIdpButton />}
                     <EditIdpButton />
                     <DeleteButtonDialog
@@ -280,3 +282,21 @@ const ImportToolbar = () => (
         <SaveButton label="Import" />
     </Toolbar>
 );
+
+const IdField = (props: any) => {
+    let s = props.source;
+    const record = useRecordContext();
+    if (!record) return null;
+    return (
+        <span>
+            {record[s]}
+            <IconButton
+                onClick={() => {
+                    navigator.clipboard.writeText(record[s]);
+                }}
+            >
+                <ContentCopyIcon />
+            </IconButton>
+        </span>
+    );
+};
