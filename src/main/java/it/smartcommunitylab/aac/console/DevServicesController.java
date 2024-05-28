@@ -126,7 +126,7 @@ public class DevServicesController extends BaseServicesController {
                 }
             } else {
                 // try single element
-                Service reg = yamlObjectMapper.readValue(file.getInputStream(), Service.class);
+                Service reg = yamlObjectMapper.readValue(yaml, Service.class);
                 regs.add(reg);
             }
 
