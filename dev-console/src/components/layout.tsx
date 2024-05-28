@@ -151,17 +151,15 @@ const MyAppBar = (props: AppBarProps) => {
 const MyMenu = (props: any) => {
     let url = useLocation();
     const regDomain = new RegExp('(?<=(/r/|/domains/))([^/]+)');
-
-    const resources = useResourceDefinitions();
-    const getResourceLabel = useGetResourceLabel();
-    const createPath = useCreatePath();
-
     const realmId = regDomain.test(url?.pathname)
         ? url?.pathname?.match(regDomain)![0] !== 'create'
             ? url?.pathname?.match(regDomain)![0]
             : ''
         : '';
 
+    // const resources = useResourceDefinitions();
+    // const getResourceLabel = useGetResourceLabel();
+    // const createPath = useCreatePath();
     // const listHiddenMenu = [
     //     'myrealms',
     //     'App and services',
@@ -183,87 +181,131 @@ const MyMenu = (props: any) => {
     //     });
 
     return (
-        <Menu>
-            {realmId && <Menu.DashboardItem />}
-            {realmId && (
-                <Menu.Item
-                    to={`/apps/r/${realmId}`}
-                    primaryText="Apps"
-                    leftIcon={<AppsIcon />}
-                />
+        <>
+            {realmId !== 'system' && (
+                <Menu>
+                    {realmId && <Menu.DashboardItem />}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/apps/r/${realmId}`}
+                            primaryText="Apps"
+                            leftIcon={<AppsIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/services/r/${realmId}`}
+                            primaryText="Services"
+                            leftIcon={<MiscellaneousServicesIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/users/r/${realmId}`}
+                            primaryText="Users"
+                            leftIcon={<GroupIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/groups/r/${realmId}`}
+                            primaryText="Groups"
+                            leftIcon={<GroupsIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/idps/r/${realmId}`}
+                            primaryText="Authentication"
+                            leftIcon={<VpnKeyIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/roles/r/${realmId}`}
+                            primaryText="Authorization roles"
+                            leftIcon={<LockOpenIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/resources/r/${realmId}`}
+                            primaryText="Authorization scopes"
+                            leftIcon={<PasswordIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/aps/r/${realmId}`}
+                            primaryText="Attributes providers"
+                            leftIcon={<ListAltIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/attributeset/r/${realmId}`}
+                            primaryText="Attributes sets"
+                            leftIcon={<DatasetIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/audit/r/${realmId}`}
+                            primaryText="Audit"
+                            leftIcon={<GradingIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/templates/r/${realmId}`}
+                            primaryText="Configuration"
+                            leftIcon={<SettingsIcon />}
+                        />
+                    )}
+                </Menu>
             )}
-            {realmId && (
-                <Menu.Item
-                    to={`/services/r/${realmId}`}
-                    primaryText="Services"
-                    leftIcon={<MiscellaneousServicesIcon />}
-                />
+
+            {realmId === 'system' && (
+                <Menu>
+                    {realmId && <Menu.DashboardItem />}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/apps/r/${realmId}`}
+                            primaryText="Apps"
+                            leftIcon={<AppsIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/services/r/${realmId}`}
+                            primaryText="Services"
+                            leftIcon={<MiscellaneousServicesIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/users/r/${realmId}`}
+                            primaryText="Users"
+                            leftIcon={<GroupIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/groups/r/${realmId}`}
+                            primaryText="Groups"
+                            leftIcon={<GroupsIcon />}
+                        />
+                    )}
+                    {realmId && (
+                        <Menu.Item
+                            to={`/audit/r/${realmId}`}
+                            primaryText="Audit"
+                            leftIcon={<GradingIcon />}
+                        />
+                    )}
+                </Menu>
             )}
-            {realmId && (
-                <Menu.Item
-                    to={`/users/r/${realmId}`}
-                    primaryText="Users"
-                    leftIcon={<GroupIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/groups/r/${realmId}`}
-                    primaryText="Groups"
-                    leftIcon={<GroupsIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/idps/r/${realmId}`}
-                    primaryText="Authentication"
-                    leftIcon={<VpnKeyIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/roles/r/${realmId}`}
-                    primaryText="Authorization roles"
-                    leftIcon={<LockOpenIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/resources/r/${realmId}`}
-                    primaryText="Authorization scopes"
-                    leftIcon={<PasswordIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/aps/r/${realmId}`}
-                    primaryText="Attributes providers"
-                    leftIcon={<ListAltIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/attributeset/r/${realmId}`}
-                    primaryText="Attributes sets"
-                    leftIcon={<DatasetIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/audit/r/${realmId}`}
-                    primaryText="Audit"
-                    leftIcon={<GradingIcon />}
-                />
-            )}
-            {realmId && (
-                <Menu.Item
-                    to={`/templates/r/${realmId}`}
-                    primaryText="Configuration"
-                    leftIcon={<SettingsIcon />}
-                />
-            )}
-            {/* {links} */}
-        </Menu>
+        </>
     );
 };
 
