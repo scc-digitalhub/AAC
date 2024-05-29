@@ -260,6 +260,6 @@ public class SpidProviderAssertionValidatorBuilder {
      */
     private boolean areRequestedAttributesObtained(Assertion assertion) {
         Set<SpidAttribute> obtainedAttributes = SpidProviderResponseValidatorBuilder.extractAttributes(assertion);
-        return obtainedAttributes.containsAll(this.requestedAttributes);
+        return obtainedAttributes != null && obtainedAttributes.containsAll(this.requestedAttributes);
     }
 }
