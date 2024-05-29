@@ -86,10 +86,10 @@ public class SpidAuthenticationProvider
         this.subjectAttribute = config.getSubAttributeName();
         this.usernameAttribute = config.getUsernameAttributeName();
 
-        //        this.spidValidator = new SpidResponseValidator();
         this.openSamlProvider = new OpenSaml4AuthenticationProvider();
-        SpidProviderAssertionValidatorBuilder assertionValidatorBuilder = new SpidProviderAssertionValidatorBuilder();
-        //        SpidProviderAssertionValidatorBuilder assertionValidatorBuilder = new SpidProviderAssertionValidatorBuilder(new HashMap<>(){{put(0, config.getSpidAttributes());}});
+        SpidProviderAssertionValidatorBuilder assertionValidatorBuilder = new SpidProviderAssertionValidatorBuilder(
+            config.getSpidAttributes()
+        );
         this.openSamlProvider.setAssertionValidator(assertionValidatorBuilder.build());
         SpidProviderResponseValidatorBuilder responseValidatorBuilder = new SpidProviderResponseValidatorBuilder();
         this.openSamlProvider.setResponseValidator(responseValidatorBuilder.build());

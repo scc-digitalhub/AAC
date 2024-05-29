@@ -1,12 +1,19 @@
 package it.smartcommunitylab.aac.spid.auth;
 
+import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Attribute;
+import org.opensaml.saml.saml2.core.AttributeStatement;
 import org.opensaml.saml.saml2.core.AuthnContext;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml.saml2.core.AuthnRequest;
@@ -240,5 +247,26 @@ public class SpidProviderResponseValidatorBuilder {
 
         String acrValue = authnContext.getAuthnContextClassRef().getURI();
         return SpidAuthnContext.parse(acrValue);
+    }
+
+    public static @Nullable Set<SpidAttribute> extractAttributes(Assertion assertion) {
+        if (assertion == null || assertion.getAuthnStatements() == null) {
+            return null;
+        }
+        List<Attribute> attrs = assertion
+            .getAttributeStatements()
+            .stream()
+            .findFirst()
+            .map(AttributeStatement::getAttributes)
+            .orElse(null);
+        if (attrs == null) {
+            return null;
+        }
+        List<SpidAttribute> spidAttrs = attrs
+            .stream()
+            .map(a -> SpidAttribute.parse(a.getName()))
+            .filter(Objects::nonNull) // attributes not matching a spid attribute are parsed to null
+            .toList();
+        return new HashSet<>(spidAttrs);
     }
 }

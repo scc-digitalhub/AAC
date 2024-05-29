@@ -6,6 +6,7 @@ import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.service.SpidRequestParser;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.opensaml.saml.saml2.core.Assertion;
@@ -23,14 +24,14 @@ import org.springframework.util.StringUtils;
 
 public class SpidProviderAssertionValidatorBuilder {
 
-    private Map<Integer, Set<SpidAttribute>> configuredSpidAttributeSets; // map [index set] -> requested attributes associated to that set
+    private final Set<SpidAttribute> requestedAttributes;
 
-    public SpidProviderAssertionValidatorBuilder(Map<Integer, Set<SpidAttribute>> configuredSpidAttributeSets) {
-        this.configuredSpidAttributeSets = configuredSpidAttributeSets;
+    public SpidProviderAssertionValidatorBuilder(Set<SpidAttribute> requestedAttributes) {
+        this.requestedAttributes = requestedAttributes;
     }
 
     public SpidProviderAssertionValidatorBuilder() {
-        this.configuredSpidAttributeSets = new HashMap<>();
+        this.requestedAttributes = new HashSet<>();
     }
 
     public Converter<OpenSaml4AuthenticationProvider.AssertionToken, Saml2ResponseValidatorResult> build() {
@@ -126,9 +127,11 @@ public class SpidProviderAssertionValidatorBuilder {
                     )
                 );
             }
-            //            if (!areRequestedAttributesObtained(initiatingRequest, this.configuredSpidAttributeSets, assertion)) {
-            //                return result.concat(new Saml2Error("SPID_ERROR_103", "missing requested attributes attribute"));
-            //            }
+            if (!areRequestedAttributesObtained(assertion)) {
+                return result.concat(
+                    new Saml2Error(Saml2ErrorCodes.INTERNAL_VALIDATION_ERROR, "missing requested attributes attribute")
+                );
+            }
             return result;
         };
     }
@@ -248,22 +251,15 @@ public class SpidProviderAssertionValidatorBuilder {
     }
 
     /*
-     * This test is always passed as no expected result should is provided.
-     * See reference:
-     *  https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/metadata.html#service-provider
-     * The SPID test 103 serve the purpose of making the service aware of the
-     * fact that received attributes might be different than requested
-     * attributes and the SP should be written in order to either handle
-     * or accommodate this scenario.
+     * Check that the SPID attributes returned by the identity provider match (at least)
+     * the requested SPID attributes.
+     * Note that *in general* a service provider might be configured with multiple attribute
+     * sets and the SAML request actually specify which attribute sets, among the many, is
+     * actually request to the identity provider; but the current SPID implementation
+     * supports the definition of only *one* attribute set and that set is always requested.
      */
-    private boolean areRequestedAttributesObtained(
-        AuthnRequest initiatingRequest,
-        Map<Integer, Set<SpidAttribute>> availableAttributeSets,
-        Assertion assertion
-    ) {
-        //        Set<SpidAttribute> expAttributes = SpidProviderResponseValidatorBuilder.extractRequestedAttributes(initiatingRequest, availableAttributeSets);
-        //        Set<SpidAttribute> obtAttributes = SpidProviderResponseValidatorBuilder.extractAttributes(assertion);
-        //        return expAttributes.containsAll(obtAttributes);
-        return true;
+    private boolean areRequestedAttributesObtained(Assertion assertion) {
+        Set<SpidAttribute> obtainedAttributes = SpidProviderResponseValidatorBuilder.extractAttributes(assertion);
+        return obtainedAttributes.containsAll(this.requestedAttributes);
     }
 }
