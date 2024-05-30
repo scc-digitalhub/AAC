@@ -13,6 +13,7 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 
 export const UserList = () => {
     const params = useParams();
@@ -25,18 +26,23 @@ export const UserList = () => {
             actions={<UserListActions />}
         >
             <Datagrid>
-                <WrapperField source="author">
+                <WrapperField>
                     <Stack>
                         <TextField source="username" />
-                        <TextField source="email" />
+                        <span>
+                            <TextField source="email" />
+                            &nbsp;
+                            <EmailVerified source="emailVerified" />
+                        </span>
                     </Stack>
                 </WrapperField>
                 <IdField source="id" />
                 <ArrayField
                     filter={{ realm: params.realmId }}
                     source="authorities"
+                    emptyText=""
                 >
-                    <Datagrid bulkActionButtons={false}>
+                    <Datagrid bulkActionButtons={false} empty={<></>}>
                         <ChipField source="role" size="small" />
                     </Datagrid>
                 </ArrayField>
@@ -74,6 +80,25 @@ const IdField = (props: any) => {
             >
                 <ContentCopyIcon />
             </IconButton>
+        </span>
+    );
+};
+
+const EmailVerified = (props: any) => {
+    let s = props.source;
+    const record = useRecordContext();
+    if (!record) return null;
+    return (
+        <span>
+            {record[s] && (
+                <IconButton title="Email Verified">
+                    <CheckCircleOutlineOutlinedIcon
+                        color="success"
+                        fontSize="small"
+                        sx={{ 'vertical-align': 'bottom' }}
+                    />
+                </IconButton>
+            )}
         </span>
     );
 };
