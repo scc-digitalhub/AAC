@@ -3,12 +3,14 @@ import {
     Form,
     SelectInput,
     TextInput,
+    Title,
     Toolbar,
     useNotify,
     useRedirect,
 } from 'react-admin';
-import { Card, CardContent, Box, Divider } from '@mui/material';
+import { Card, CardContent, Box, Divider, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
+import { Label } from '@mui/icons-material';
 
 export const UserCreate = () => {
     const params = useParams();
@@ -22,7 +24,7 @@ export const UserCreate = () => {
     };
 
     const onSuccess = (data: any) => {
-        notify(`Service created successfully`);
+        notify(`User invited successfully`);
         redirect(`/users/r/${params.realmId}`);
     };
     return (
@@ -30,6 +32,7 @@ export const UserCreate = () => {
             transform={transform}
             mutationOptions={{ ...options, onSuccess }}
         >
+            <Typography variant="h6">Invite user</Typography>
             <Box mt={2} display="flex">
                 <Box flex="1">
                     <Form>
@@ -40,19 +43,7 @@ export const UserCreate = () => {
                                         <Box flex="1" mt={-1}>
                                             <Box display="flex" width={430}>
                                                 <TextInput
-                                                    source="name"
-                                                    fullWidth
-                                                />
-                                            </Box>
-                                            <Box display="flex" width={430}>
-                                                <TextInput
-                                                    source="description"
-                                                    fullWidth
-                                                />
-                                            </Box>
-                                            <Box display="flex" width={430}>
-                                                <TextInput
-                                                    source="namespace"
+                                                    source="email"
                                                     fullWidth
                                                 />
                                             </Box>
@@ -72,8 +63,6 @@ export const UserCreate = () => {
 
 function createService(data: any, realmId: any): any {
     let body: any = {};
-    body['name'] = data.name;
-    body['description'] = data.description;
-    body['namespace'] = data.namespace;
+    body['email'] = data.name;
     return body;
 }
