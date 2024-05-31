@@ -28,6 +28,7 @@ import { IdpEdit } from './idps/IdpEdit';
 import { ServiceList } from './service/ServiceList';
 import { ServiceCreate } from './service/ServiceCreate';
 import { UserList } from './users/UserList';
+import { UserCreate } from './users/UserCreate';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -139,6 +140,7 @@ const App = () => (
         </Resource>
         <Resource name="users">
             <Route path="/r/:realmId/*" element={<UserList />} />
+            <Route path="/r/:realmId/create/*" element={<UserCreate />} />
         </Resource>
         <Resource name="groups">
             <Route path="/r/:realmId/*" element={<DebugList />} />
