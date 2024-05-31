@@ -29,11 +29,13 @@ export const UserList = () => {
                 <WrapperField>
                     <Stack>
                         <TextField source="username" />
-                        <span>
-                            <TextField source="email" />
-                            &nbsp;
-                            <EmailVerified source="emailVerified" />
-                        </span>
+                        {`${params.realmId}` !== 'system' && (
+                            <span>
+                                <TextField source="email" />
+                                &nbsp;
+                                <EmailVerified source="emailVerified" />
+                            </span>
+                        )}
                     </Stack>
                 </WrapperField>
                 <IdField source="id" />
