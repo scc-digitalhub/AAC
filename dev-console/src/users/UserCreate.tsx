@@ -1,6 +1,8 @@
 import {
+    Button,
     CreateBase,
     Form,
+    SaveButton,
     SelectInput,
     TextInput,
     Title,
@@ -10,7 +12,6 @@ import {
 } from 'react-admin';
 import { Card, CardContent, Box, Divider, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
-import { Label } from '@mui/icons-material';
 
 export const UserCreate = () => {
     const params = useParams();
@@ -32,7 +33,9 @@ export const UserCreate = () => {
             transform={transform}
             mutationOptions={{ ...options, onSuccess }}
         >
-            <Typography variant="h6">Invite user</Typography>
+            <Typography sx={{ 'font-weight': 400, mt: 2 }}>
+                Invite user
+            </Typography>
             <Box mt={2} display="flex">
                 <Box flex="1">
                     <Form>
@@ -52,7 +55,9 @@ export const UserCreate = () => {
                                     </Box>
                                 </Box>
                             </CardContent>
-                            <Toolbar />
+                            <Toolbar>
+                                <SaveButton icon={<></>} label="Invite" />
+                            </Toolbar>
                         </Card>
                     </Form>
                 </Box>
