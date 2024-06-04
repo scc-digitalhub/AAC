@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.oauth.client.OAuth2Client;
 import it.smartcommunitylab.aac.oauth.model.PromptMode;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -58,14 +59,16 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
 
     public AuthorizationEndpointFilter(
         OAuth2ClientService clientService,
-        OAuth2ClientDetailsService clientDetailsService
+        OAuth2ClientDetailsService clientDetailsService,
+        AuthorizationRequestStore authorizationRequestStore
     ) {
-        this(clientService, clientDetailsService, DEFAULT_FILTER_URI);
+        this(clientService, clientDetailsService, authorizationRequestStore, DEFAULT_FILTER_URI);
     }
 
     public AuthorizationEndpointFilter(
         OAuth2ClientService clientService,
         OAuth2ClientDetailsService clientDetailsService,
+        AuthorizationRequestStore authorizationRequestStore,
         String filterProcessingUrl
     ) {
         Assert.notNull(clientService, "client service is required");
@@ -77,6 +80,7 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
         // TODO build a select account entrypoint
         LoginUrlRequestConverter clientAwareConverter = new OAuth2ClientAwareLoginUrlConverter(
             clientDetailsService,
+            authorizationRequestStore,
             "/login"
         );
         ExtendedLoginUrlAuthenticationEntryPoint entryPoint = new ExtendedLoginUrlAuthenticationEntryPoint(

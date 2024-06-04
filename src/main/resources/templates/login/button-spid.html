@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+</head>
+
+<body>
+<div th:fragment="login">
+   <p th:if="${authority.getDescription(#locale.language) != null}" th:text="${authority.getDescription(#locale.language)}"></p>
+   <div class="btn-group">
+      <button type="button" class="btn btn-icon text-left pl-3 btn-login login-spid dropdown-toggle"
+              data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false"
+              th:classAppend="${authority.cssClass}">
+         <span class="btn-login-icon">
+            <img th:src="@{/spid/img/spid-ico-circle-bb.svg}" onerror="this.onerror=null;" alt="" />
+         </span>
+         <span class="btn-login-text">Entra con SPID</span>
+      </button>
+      <div class="dropdown-menu">
+         <div class="spid-idp-button">
+            <ul class="spid-idp-button-menu">
+               <li th:each="idp: ${authority.getIdpButtons()}"
+                   th:data-idp="${idp.getEntityLabel()}">
+                  <a th:href="${idp.getLoginUrl()}">
+                     <span class="spid-sr-only" th:text="${idp.getEntityName()}"></span>
+                     <img th:src="${idp.getIconUrl()}" th:alt="${idp.getEntityName()}">
+                  </a>
+               </li>
+               <li><a class="p-2" href="https://www.spid.gov.it"><span>Maggiori informazioni</span></a></li>
+               <li><a class="p-2" href="https://www.spid.gov.it/richiedi-spid"><span>Non hai SPID?</span></a></li>
+               <li><a class="p-2" href="https://www.spid.gov.it/serve-aiuto"><span>Serve aiuto?</span></a></li>
+            </ul>
+         </div>
+      </div>
+   </div>
+</div>
+</body>
+
+</html>

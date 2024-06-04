@@ -29,18 +29,22 @@
         <div class="row">
             <div class="form-group col ">
                 <label for="signingKey">Signing Key</label>
-                <textarea rows="5" name="signingKey" id="signingKey" ng-model="idp.configuration.signingKey"></textarea>
+                <textarea rows="5" id="signingKey" name="signingKey"
+                    ng-model="idp.configuration.signingKey"
+                    ng-style="!idp.configuration.signingKey && {'border':'1px solid #d9364f'}"></textarea>
             </div>
             <div class="form-group col ">
                 <label for="signingCertificate">Signing Certificate</label>
                 <textarea rows="5" id="signingCertificate" name="signingCertificate"
-                    ng-model="idp.configuration.signingCertificate"></textarea>
+                    ng-model="idp.configuration.signingCertificate"
+                    ng-style="!idp.configuration.signingCertificate && {'border':'1px solid #d9364f'}"></textarea>
             </div>
-        </div>        
+        </div>
     </fieldset>
     <fieldset>
         <legend class="mb-4">SPID Registration</legend>
         <div class="row">
+            <div class="pt-0 mb-4 col-md-12"> Organization information </div>
             <div class="form-group col">
                 <div class="input-group">
                     <label for="organizationName">Organization name</label>
@@ -48,7 +52,7 @@
                         ng-model="idp.configuration.organizationName">
                 </div>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col">
                 <div class="input-group">
                     <label for="organizationUrl">Organization url</label>
                     <input type="text" required class="form-control" id="organizationUrl"
@@ -60,48 +64,32 @@
             <div class="form-group col">
                 <div class="input-group">
                     <label for="organizationDisplayName">Organization display name</label>
-                    <input type="text" class="form-control" id="organizationDisplayName"
+                    <input type="text" required class="form-control" id="organizationDisplayName"
                         ng-model="idp.configuration.organizationDisplayName">
                 </div>
             </div>
         </div>
         <div class="row">
+            <div class="pt-0 mb-4 col-md-12"> Contact person information </div>
             <div class="form-group col">
                 <div class="input-group">
                     <label for="contactPersonEmailAddress">Contact person email</label>
                     <input type="text" required class="form-control" id="contactPersonEmailAddress"
-                        ng-model="idp.configuration.contactPersonEmailAddress">
+                        ng-model="idp.configuration.contactPerson_EmailAddress">
                 </div>
             </div>
-            <div class="form-group col-md-4">
+            <div class="form-group col">
                 <div class="input-group">
                     <label for="contactPersonTelephoneNumber">Contact person phone</label>
                     <input type="text" class="form-control" id="contactPersonTelephoneNumber"
-                        ng-model="idp.configuration.contactPersonTelephoneNumber">
+                        ng-model="idp.configuration.contactPerson_Telephone">
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="pt-0 pb-3 col-md-12"> Provide at least one </div>
             <div class="form-group col">
                 <div class="input-group">
                     <label for="contactPersonIPACode">Contact person IPAcode</label>
-                    <input type="text" class="form-control" id="contactPersonIPACode"
-                        ng-model="idp.configuration.contactPersonIPACode">
-                </div>
-            </div>
-            <div class="form-group col">
-                <div class="input-group">
-                    <label for="contactPersonVATNumber">Contact person VAT</label>
-                    <input type="text" class="form-control" id="contactPersonVATNumber"
-                        ng-model="idp.configuration.contactPersonVATNumber">
-                </div>
-            </div>
-            <div class="form-group col">
-                <div class="input-group">
-                    <label for="contactPersonFiscalCode">Contact person CF</label>
-                    <input type="text" class="form-control" id="contactPersonFiscalCode"
-                        ng-model="idp.configuration.contactPersonFiscalCode">
+                    <input type="text" required class="form-control" id="contactPersonIPACode"
+                           ng-model="idp.configuration.contactPerson_IPACode">
                 </div>
             </div>
         </div>
@@ -111,9 +99,11 @@
         <div class="row">
             <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label>Spid level</label>
+                    <label ng-if="idp.configuration.authnContext">Spid level</label>
+                    <label ng-if="!idp.configuration.authnContext" class="text-danger">Spid level</label>
                     <select title="Select" ng-model="idp.configuration.authnContext">
-                        <option ng-repeat="c in idp.schema.properties.authnContext.enum" value="{{c}}" ng-selected="idp.configuration.authnContext == c">{{c}}
+                        <option ng-repeat="c in idp.schema.properties.authnContext.enum" value="{{c}}"
+                                ng-selected="idp.configuration.authnContext == c">{{c}}
                         </option>
                     </select>
                 </div>
@@ -133,26 +123,17 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="form-group col">
-                <div class="form-check form-check-inline"
-                    ng-click="idp.configuration.useSpidCodeAsNameId = !idp.configuration.useSpidCodeAsNameId">
-                    <input class="form-check-input" type="checkbox" ng-model="idp.configuration.useSpidCodeAsNameId">
-                    <label>Use spidCode as userId</label>
-                </div>
-            </div>
-        </div>
     </fieldset>
     <fieldset>
         <legend class="mb-4">SPID IdP Configuration</legend>
 
-        <div class="pt-0 pb-3"> Auto-configuration will enable all idps in the SPID federation, otherwise
+        <div class="pt-0 mb-4 pb-4"> Auto-configuration will enable all idps in the SPID federation, otherwise
             manually configure asserting parties below. </div>
         <div class="form-group col">
             <div class="bootstrap-select-wrapper border-bottom-0">
-                <label>IdP</label>
-                <select title="Select" multiple="true" data-multiple-separator="" ng-model="idp.configuration.idps">
-                </select>
+                <label>Identity providers</label>
+                <tags-input type="text" placeholder="Add identity providers" ng-model="spidIdps">
+                </tags-input>
             </div>
         </div>
         <div class="pt-0 pb-3 text-center"> -- OR -- </div>
@@ -162,33 +143,28 @@
                 ng-model="idp.configuration.idpMetadataUrl">
         </div>
 
+    </fieldset>    
+    <fieldset>
+        <legend class="mb-5">SAML Advanced Configuration</legend>
         <div class="row">
-            <div class="form-group col-md-3">
+            <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label for="ssoServiceBinding">SSO Service Binding</label>
-                    <select required title="Select one" id="ssoServiceBinding"
-                        ng-model="idp.configuration.ssoServiceBinding">
-                        <option value="HTTP-POST" ng-selected="idp.configuration.ssoServiceBinding=='HTTP-POST'">POST
-                        </option>
-                        <option value="HTTP-Redirect"
-                            ng-selected="idp.configuration.ssoServiceBinding=='HTTP-Redirect'">Redirect
+                    <label>Spid username attribute</label>
+                    <select title="Select" ng-model="idp.configuration.usernameAttributeName">
+                        <option value=""></option>
+                        <option ng-repeat="at in idp.schema.properties.usernameAttributeName.enum"
+                            value="{{at}}" ng-selected="idp.configuration.usernameAttributeName==at">{{at}}
                         </option>
                     </select>
                 </div>
             </div>
-        </div>
-
-
-    </fieldset>    
-    <fieldset>
-        <legend class="mb-4">SAML Advanced Configuration</legend>
-        <div class="row">
-            <div class="form-group col ">
+            <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
-                    <label>Spid username attribute</label>
-                    <select title="Select" ng-model="idp.configuration.userNameAttributeName">
-                        <option ng-repeat="at in idp.schema.properties.spidAttributes.items.enum"
-                            value="{{at}}" ng-selected="idp.configuration.userNameAttributeName==at">{{at}}
+                    <label>Spid subject attribute</label>
+                    <select title="Select" ng-model="idp.configuration.subAttributeName">
+                        <option value=""></option>
+                        <option ng-repeat="at in idp.schema.properties.subAttributeName.enum"
+                                value="{{at}}" ng-selected="idp.configuration.subAttributeName==at">{{at}}
                         </option>
                     </select>
                 </div>

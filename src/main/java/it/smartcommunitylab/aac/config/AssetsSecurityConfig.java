@@ -71,6 +71,7 @@ public class AssetsSecurityConfig {
 
     public static final String[] ASSETS_URLS = {
         // TODO change path to /assets
+        "/spid/**",
         "/svg/**",
         "/css/**",
         "/img/**",

@@ -114,6 +114,10 @@ public class ServicesManager implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        reload();
+    }
+  
+    public void reload() throws Exception {
         // build and register the claims extractor
         resourceClaimsExtractorProvider = new ServiceResourceClaimsExtractorProvider(serviceService);
         resourceClaimsExtractorProvider.setExecutionService(executionService);
@@ -138,10 +142,18 @@ public class ServicesManager implements InitializingBean {
                 }
             }
 
+            // unregister provider if present
+            String namespace = service.getNamespace().toLowerCase();
+            ScopeProvider spr = scopeRegistry.findScopeProvider(namespace);
+            if (spr != null && spr instanceof ServiceScopeProvider) {
+                scopeRegistry.unregisterScopeProvider(spr);
+            }
+
             // register
             scopeRegistry.registerScopeProvider(sp);
         }
-    }
+    } 
+
 
     /*
      * Services

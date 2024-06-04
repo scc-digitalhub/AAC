@@ -21,6 +21,7 @@ import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
+import it.smartcommunitylab.aac.core.ClientDetails;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
@@ -29,6 +30,7 @@ import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.StringUtils;
 
 public class SamlIdentityProvider
@@ -146,7 +148,7 @@ public class SamlIdentityProvider
     }
 
     @Override
-    public SamlLoginProvider getLoginProvider() {
+    public SamlLoginProvider getLoginProvider(ClientDetails clientDetails, AuthorizationRequest authRequest) {
         SamlLoginProvider lp = new SamlLoginProvider(getAuthority(), getProvider(), getRealm(), getName());
         lp.setTitleMap(getTitleMap());
         lp.setDescriptionMap(getDescriptionMap());

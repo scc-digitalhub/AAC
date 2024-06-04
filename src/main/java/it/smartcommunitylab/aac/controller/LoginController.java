@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.identity.provider.LoginProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import it.smartcommunitylab.aac.identity.service.IdentityServiceAuthorityService;
 import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.oauth.store.AuthorizationRequestStore;
 import it.smartcommunitylab.aac.realms.RealmManager;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +54,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -87,6 +89,9 @@ public class LoginController {
 
     @Autowired
     private ClientDetailsService clientDetailsService;
+
+    @Autowired
+    private AuthorizationRequestStore authorizationRequestStore;
 
     // TODO handle COMMON realm
     @RequestMapping(value = { "/login" }, method = RequestMethod.GET)
@@ -158,6 +163,7 @@ public class LoginController {
         @PathVariable("realm") String realm,
         @PathVariable("providerId") Optional<String> providerKey,
         @RequestParam(required = false, name = "client_id") Optional<String> clientKey,
+        @RequestParam(required = false, name = "key") Optional<String> requestKey,
         Model model,
         Locale locale,
         HttpServletRequest req,
@@ -166,9 +172,15 @@ public class LoginController {
         // TODO handle /login as COMMON login, ie any realm is valid
         String providerId = providerKey.isPresent() ? providerKey.get() : "";
         String clientId = clientKey.isPresent() ? clientKey.get() : null;
+        String key = requestKey.isPresent() ? requestKey.get() : null;
 
         if (!StringUtils.hasText(realm)) {
             throw new IllegalArgumentException("no suitable realm for login");
+        }
+
+        AuthorizationRequest authorizationRequest = key != null ? authorizationRequestStore.find(key) : null;
+        if (authorizationRequest != null) {
+            clientId = authorizationRequest.getClientId();
         }
 
         // load realm props
@@ -200,9 +212,12 @@ public class LoginController {
         }
 
         // fetch client if provided
+        ClientDetails clientDetails = null;
         if (clientId != null) {
-            ClientDetails clientDetails = clientDetailsService.loadClient(clientId);
+            clientDetails = clientDetailsService.loadClient(clientId);
             model.addAttribute("client", clientDetails);
+
+            Collection<String> clientProviders = clientDetails.getProviders();
 
             // check realm and providers
             // TODO evaluate enforcing realm (or common) match
@@ -210,13 +225,13 @@ public class LoginController {
                 providers =
                     providers
                         .stream()
-                        .filter(p -> clientDetails.getProviders().contains(p.getProvider()))
+                        .filter(p -> clientProviders.contains(p.getProvider()))
                         .collect(Collectors.toList());
 
                 services =
                     services
                         .stream()
-                        .filter(p -> clientDetails.getProviders().contains(p.getProvider()))
+                        .filter(p -> clientProviders.contains(p.getProvider()))
                         .collect(Collectors.toList());
             }
         }
@@ -225,7 +240,7 @@ public class LoginController {
         // TODO refactor with proper provider + model
         List<LoginProvider> authorities = new ArrayList<>();
         for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-            LoginProvider a = idp.getLoginProvider();
+            LoginProvider a = idp.getLoginProvider(clientDetails, authorizationRequest);
             // lp is optional
             if (a != null) {
                 authorities.add(a);

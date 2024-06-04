@@ -64,6 +64,7 @@ import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.service.SamlJpaUserAccountService;
 import it.smartcommunitylab.aac.scope.InMemoryScopeRegistry;
 import it.smartcommunitylab.aac.scope.ScopeProvider;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.webauthn.persistence.WebAuthnUserCredentialsEntityRepository;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnCredentialsServiceConfig;
@@ -351,6 +352,11 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<SamlIdentityProviderConfig> samlProviderConfigRepository() {
         return buildProviderConfigRepository(SamlIdentityProviderConfig.class, SystemKeys.AUTHORITY_SAML);
+    }
+
+    @Bean
+    public ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
+        return buildProviderConfigRepository(SpidIdentityProviderConfig.class, SystemKeys.AUTHORITY_SPID);
     }
 
     @Bean

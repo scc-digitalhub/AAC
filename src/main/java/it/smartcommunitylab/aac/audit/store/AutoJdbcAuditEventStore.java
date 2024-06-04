@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.sql.DataSource;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -65,7 +66,7 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
     private ObjectMapper mapper;
 
     private static final String DEFAULT_INSERT_STATEMENT =
-        "INSERT INTO audit_events (event_time, principal, realm, tx, event_type, event_class, event_data ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO audit_events (event_id, event_time, principal, realm, tx, event_type, event_class, event_data ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String DEFAULT_SELECT_PRINCIPAL_STATEMENT =
         "SELECT event_time, principal, event_type, event_data FROM audit_events WHERE principal = ?";
@@ -165,6 +166,9 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
         String tx = eae.getTx();
         String clazz = eae.getClazz();
 
+        // Generate Primary Key UUID
+        String eventId = UUID.randomUUID().toString();
+
         //pack audit event in data
         Map<String, Object> data = mapper.convertValue(event, typeRef);
 
@@ -172,8 +176,9 @@ public class AutoJdbcAuditEventStore implements AuditEventStore {
 
         jdbcTemplate.update(
             insertAuditEventSql,
-            new Object[] { new java.sql.Timestamp(time), principal, realm, tx, type, clazz, new SqlLobValue(bytes) },
+            new Object[] { eventId, new java.sql.Timestamp(time), principal, realm, tx, type, clazz, new SqlLobValue(bytes) },
             new int[] {
+                Types.VARCHAR,
                 Types.TIMESTAMP,
                 Types.VARCHAR,
                 Types.VARCHAR,
