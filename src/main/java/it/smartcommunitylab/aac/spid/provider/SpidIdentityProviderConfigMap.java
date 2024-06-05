@@ -50,34 +50,26 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     private String entityId;
 
     // <Signature> options
-    @NotBlank
     private String signingKey;
 
-    @NotBlank
     private String signingCertificate; // for <KeyDescriptor use="signing"><KeyInfo>
 
     // <Organization> options (suggested but not mandatory)
-    @NotBlank
     private String organizationDisplayName;
 
-    @NotBlank
     private String organizationName;
 
-    @NotBlank
     private String organizationUrl;
 
     // <ContactPerson> options, only public SP is currently supported
-    @NotBlank
     @Pattern(regexp = SystemKeys.EMAIL_PATTERN)
     private String contactPerson_EmailAddress;
 
-    @NotBlank
     @Pattern(regexp = "^[A-Za-z0-9_]*$")
     private String contactPerson_IPACode;
 
     private Boolean contactPerson_Public; // Public/Private
 
-    @Pattern(regexp = "^other|billing$")
     private String contactPerson_Type; // "other" (mandatory), optionally includes "billing" (unless private SP, in which case "billing" is also mandatory)
 
     // AAC options
@@ -88,7 +80,6 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     private String idpMetadataUrl; // optional (see note above)
     private Set<SpidAttribute> spidAttributes; // optional
 
-    @NotNull
     private SpidAuthnContext authnContext;
 
     private SpidUserAttribute subAttributeName; // optional
