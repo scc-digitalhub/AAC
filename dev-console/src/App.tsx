@@ -29,6 +29,7 @@ import { ServiceList } from './service/ServiceList';
 import { ServiceCreate } from './service/ServiceCreate';
 import { UserList } from './users/UserList';
 import { UserCreate } from './users/UserCreate';
+import { TemplateList } from './templates/TemplateList';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -158,7 +159,7 @@ const App = () => (
             <Route path="/r/:realmId/*" element={<AttributeSetList />} />
         </Resource>
         <Resource name="templates">
-            <Route path="/r/:realmId/*" element={<DebugList />} />
+            <Route path="/r/:realmId/*" element={<TemplateList />} />
         </Resource>
         <CustomRoutes>
             <Route path="/dashboard/r/:realmId/*" element={<UserDashboard />} />
