@@ -16,23 +16,27 @@
 
 package it.smartcommunitylab.aac.attributes.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.base.AbstractUserAttributes;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.ToString;
 import org.springframework.util.Assert;
 
 /*
  * Default User Attributes is an instantiable bean which contains attributes bound to a user
  */
 
+@ToString
+@JsonTypeName(SystemKeys.RESOURCE_ATTRIBUTES)
 public class DefaultUserAttributesImpl extends AbstractUserAttributes {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private final String identifier;
+    private String identifier;
 
     private Set<Attribute> attributes;
 
@@ -70,6 +74,11 @@ public class DefaultUserAttributesImpl extends AbstractUserAttributes {
         this.attributes.addAll(attributeSet.getAttributes());
         this.name = attributeSet.getName();
         this.description = attributeSet.getDescription();
+    }
+
+    @SuppressWarnings("unused")
+    private DefaultUserAttributesImpl() {
+        super((String) null, (String) null, (String) null, (String) null);
     }
 
     public String getAttributesId() {

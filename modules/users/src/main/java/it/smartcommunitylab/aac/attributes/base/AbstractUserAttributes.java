@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.model.DefaultAttributesImpl;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.users.base.AbstractBaseUserResource;
+import lombok.ToString;
 
 /*
  * Abstract class for user attributes

@@ -18,7 +18,6 @@ package it.smartcommunitylab.aac.base.service;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.provider.config.AbstractConfigurableProviderConverter;
 import it.smartcommunitylab.aac.base.provider.config.DefaultConfigMapConverter;
@@ -29,6 +28,7 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthorityRegistry;
 import it.smartcommunitylab.aac.core.model.ConfigurableProvider;
 import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.persistence.ConfigurableProviderConverter;
@@ -79,7 +79,11 @@ public abstract class AbstractConfigurableProviderService<
     P extends ProviderConfig<S, ? extends ConfigMap>,
     S extends ConfigMap
 >
-    implements ConfigurableProviderService<C>, ConfigurableResourceProviderRegistry<T, C, S>, InitializingBean {
+    implements
+        ConfigurableProviderService<C>,
+        ConfigurableResourceProviderRegistry<T, C, S>,
+        ConfigurableProviderAuthorityRegistry<ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap>, T, P, S>,
+        InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -725,6 +729,30 @@ public abstract class AbstractConfigurableProviderService<
             .stream()
             .flatMap(a -> a.getProvidersByRealm(realm).stream())
             .collect(Collectors.toList());
+    }
+
+    /*
+     * Authorities
+     */
+    @Override
+    public ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap> findProviderAuthority(String authorityId) {
+        return authorities.get(authorityId);
+    }
+
+    @Override
+    public ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap> getProviderAuthority(String authorityId)
+        throws NoSuchAuthorityException {
+        ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap> authority = authorities.get(authorityId);
+        if (authority == null) {
+            throw new NoSuchAuthorityException();
+        }
+
+        return authority;
+    }
+
+    @Override
+    public Collection<ConfigurableProviderAuthority<T, P, S, ? extends ConfigMap>> listProviderAuthorities() {
+        return Collections.unmodifiableCollection(authorities.values());
     }
 
     /*

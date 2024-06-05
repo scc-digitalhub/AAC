@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.attributes.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.UserResource;
 
@@ -30,6 +31,7 @@ import it.smartcommunitylab.aac.model.UserResource;
  * Scopes binded to profiles should require implicit/explicit approval of set scope
  *
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 public interface UserAttributes extends AttributeSet, UserResource {
     // // a local unique identifier for this set for this user
     // public String getAttributesId();

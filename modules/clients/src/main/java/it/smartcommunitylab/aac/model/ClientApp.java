@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
 /*
  * ClientApp describes clients as configuration properties
  */
-
+@Deprecated
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
 public class ClientApp {

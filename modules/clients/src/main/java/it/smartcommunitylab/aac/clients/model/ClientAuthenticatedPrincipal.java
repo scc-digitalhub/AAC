@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.clients.model;
 
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.ClientResource;
 import org.springframework.security.core.AuthenticatedPrincipal;
 
 /*

@@ -30,7 +30,14 @@
         <module>modules/core</module>
         <module>modules/auth</module>
         <module>modules/attributes</module>
+        <module>modules/credentials</module>
+
         <module>modules/users</module>
+        <module>modules/clients</module>
+
+        <module>modules/scopes</module>
+        <module>modules/groups</module>
+        <!-- <module>modules/roles</module> -->
         <!-- <module>application</module> -->
     </modules>
 

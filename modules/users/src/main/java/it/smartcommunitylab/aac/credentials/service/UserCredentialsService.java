@@ -24,8 +24,8 @@ import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.credentials.model.EditableUserCredentials;
 import it.smartcommunitylab.aac.credentials.model.UserCredentials;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsService;
-import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceConfig;
+import it.smartcommunitylab.aac.credentials.provider.UserCredentialsProvider;
+import it.smartcommunitylab.aac.credentials.provider.UserCredentialsProviderConfig;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import it.smartcommunitylab.aac.model.Resource;
 import it.smartcommunitylab.aac.model.ResourceContext;
@@ -52,7 +52,7 @@ public class UserCredentialsService {
     private UserEntityService userService;
 
     @Autowired
-    private CredentialsProviderService credentialsProviderService;
+    private UserCredentialsProviderService credentialsProviderService;
 
     /*
      * User credentials via key
@@ -72,7 +72,7 @@ public class UserCredentialsService {
         }
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(provider);
+        UserCredentialsProvider<?, ?, ?, ?> service = credentialsProviderService.getCredentialsProvider(provider);
         if (!service.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm-mismatch");
         }
@@ -98,7 +98,7 @@ public class UserCredentialsService {
         logger.debug("get user credentials {} via provider {}:{}", id, authority, provider);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(provider);
+        UserCredentialsProvider<?, ?, ?, ?> service = credentialsProviderService.getCredentialsProvider(provider);
         if (!service.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm-mismatch");
         }
@@ -204,13 +204,13 @@ public class UserCredentialsService {
 
         // collect from all providers for the same realm
         Collection<
-            CredentialsService<
+            UserCredentialsProvider<
                 ? extends UserCredentials,
                 ? extends EditableUserCredentials,
                 ConfigMap,
-                CredentialsServiceConfig<ConfigMap>
+                UserCredentialsProviderConfig<ConfigMap>
             >
-        > services = credentialsProviderService.listCredentialsServicesByRealm(realm);
+        > services = credentialsProviderService.listCredentialsProvidersByRealm(realm);
 
         List<UserCredentials> creds = services
             .stream()
@@ -293,7 +293,7 @@ public class UserCredentialsService {
         }
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        UserCredentialsProvider<?, ?, ?, ?> service = credentialsProviderService.getCredentialsProvider(providerId);
         if (!service.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm-mismatch");
         }
@@ -325,7 +325,7 @@ public class UserCredentialsService {
         logger.debug("update user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        UserCredentialsProvider<?, ?, ?, ?> service = credentialsProviderService.getCredentialsProvider(providerId);
         if (!service.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm-mismatch");
         }
@@ -353,7 +353,7 @@ public class UserCredentialsService {
         logger.debug("revoke user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        UserCredentialsProvider<?, ?, ?, ?> service = credentialsProviderService.getCredentialsProvider(providerId);
         if (!service.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm-mismatch");
         }
@@ -381,7 +381,7 @@ public class UserCredentialsService {
         logger.debug("delete user credentials {} via provider {}:{}", credentialId, authorityId, providerId);
 
         // fetch service
-        CredentialsService<?, ?, ?, ?> service = credentialsProviderService.getCredentialsService(providerId);
+        UserCredentialsProvider<?, ?, ?, ?> service = credentialsProviderService.getCredentialsProvider(providerId);
         if (!service.getRealm().equals(realm)) {
             throw new IllegalArgumentException("realm-mismatch");
         }
@@ -403,13 +403,13 @@ public class UserCredentialsService {
         // collect from all providers for the same realm
         // collect from all providers for the same realm
         Collection<
-            CredentialsService<
+            UserCredentialsProvider<
                 ? extends UserCredentials,
                 ? extends EditableUserCredentials,
                 ConfigMap,
-                CredentialsServiceConfig<ConfigMap>
+                UserCredentialsProviderConfig<ConfigMap>
             >
-        > services = credentialsProviderService.listCredentialsServicesByRealm(realm);
+        > services = credentialsProviderService.listCredentialsProvidersByRealm(realm);
 
         services.forEach(s -> s.deleteCredentials(userId));
     }

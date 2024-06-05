@@ -19,16 +19,21 @@ package it.smartcommunitylab.aac.jackson;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.accounts.provider.AccountProviderSettingsMap;
+import it.smartcommunitylab.aac.attributes.model.DefaultUserAttributesImpl;
+import it.smartcommunitylab.aac.attributes.model.UserAttributes;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.model.AbstractSettingsMap;
 import it.smartcommunitylab.aac.base.model.ConfigurableProviderImpl;
@@ -44,9 +49,11 @@ import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.model.ConfigMap;
+import it.smartcommunitylab.aac.model.User;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +86,9 @@ public class JacksonTests {
     private ResourceLoader resourceLoader = new DefaultResourceLoader();
     private ObjectMapper yamlMapper = yamlObjectMapper();
 
-    private ObjectMapper jsonMapper = new ObjectMapper();
+    private ObjectMapper jsonMapper = new ObjectMapper()
+        .enable(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)
+        .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
     private AnnotationConfigApplicationContext context;
 
@@ -421,6 +430,62 @@ public class JacksonTests {
 
         ProviderProperties properties = yamlMapper.readValue(content, ProviderProperties.class);
         log.debug(String.valueOf(properties));
+    }
+
+    @Test
+    public void serializeUser() throws Exception {
+        UserAttributes a = new DefaultUserAttributesImpl("authority", "test", "test", "u123", "au123");
+        User u = new User("u123", "test");
+        u.setResources("attribute", Collections.singletonList(a));
+
+        System.out.println("user: \n" + u);
+
+        String value = jsonMapper.writeValueAsString(u);
+        System.out.println("json: \n" + value);
+    }
+
+    @Test
+    public void deserializeUserWrapped() throws Exception {
+        // String value =
+        // "{\"userId\":\"u123\",\"realm\":\"test\",\"emailVerified\":false,\"lang\":\"en\",\"authorities\":[],\"id\":\"u123\",\"type\":\"user\"}";
+        String value =
+            "{\"userId\":\"u123\",\"realm\":\"test\",\"emailVerified\":false,\"lang\":\"en\",\"authorities\":[],\"attribute\":[{\"authority\":\"authority\",\"provider\":\"test\",\"realm\":\"test\",\"id\":\"u123/au123\",\"userId\":\"u123\",\"identifier\":\"au123\",\"attributes\":[],\"uuid\":null,\"name\":null,\"description\":null,\"keys\":[],\"attributesId\":\"au123\",\"type\":\"attributes\",\"key\":\"attributes://authority/test:u123/au123\"}]}";
+
+        SubtypeModule module = new SubtypeModule(
+            new AnnotationConfigApplicationContext(),
+            "it.smartcommunitylab.aac.attributes"
+        );
+        //important: do before adding to jackson
+        module.afterPropertiesSet();
+
+        jsonMapper.registerModule(module);
+
+        User u = jsonMapper.readValue(value, User.class);
+        System.out.println("user: \n" + u);
+
+        String res = jsonMapper.writeValueAsString(u);
+        System.out.println("json: \n" + res);
+    }
+
+    @Test
+    public void deserializeUserUnwrapped() throws Exception {
+        String value =
+            "{\"userId\":\"u123\",\"realm\":\"test\",\"emailVerified\":false,\"lang\":\"en\",\"authorities\":[],\"attribute\":{\"authority\":\"authority\",\"provider\":\"test\",\"realm\":\"test\",\"id\":\"u123/au123\",\"userId\":\"u123\",\"identifier\":\"au123\",\"attributes\":[],\"uuid\":null,\"name\":null,\"description\":null,\"keys\":[],\"attributesId\":\"au123\",\"type\":\"attributes\",\"key\":\"attributes://authority/test:u123/au123\"}}";
+
+        SubtypeModule module = new SubtypeModule(
+            new AnnotationConfigApplicationContext(),
+            "it.smartcommunitylab.aac.attributes"
+        );
+        //important: do before adding to jackson
+        module.afterPropertiesSet();
+
+        jsonMapper.registerModule(module);
+
+        User u = jsonMapper.readValue(value, User.class);
+        System.out.println("user: \n" + u);
+
+        String res = jsonMapper.writeValueAsString(u);
+        System.out.println("json: \n" + res);
     }
 
     private void load(Class<?>... basePackageClasses) {

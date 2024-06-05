@@ -16,10 +16,12 @@
 
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /*
  * A realm scoped user resource, provided by an authority via a specific provider
  */
-
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 public interface UserResource extends Resource {
     //owner
     public String getUserId();

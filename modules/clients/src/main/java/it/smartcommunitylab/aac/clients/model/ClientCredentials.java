@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.clients.model;
 
-import it.smartcommunitylab.aac.model.Credentials;
+import it.smartcommunitylab.aac.credentials.model.Credentials;
 import org.springframework.security.core.CredentialsContainer;
 
 public interface ClientCredentials extends Credentials, CredentialsContainer {

@@ -16,7 +16,7 @@
 
 package it.smartcommunitylab.aac.core.store;
 
-import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.util.Collection;
 import java.util.Map;
@@ -24,23 +24,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 
-public class InMemoryProviderConfigRepository<U extends AbstractProviderConfig<?, ?>>
-    implements ProviderConfigRepository<U> {
+public class InMemoryProviderConfigRepository<C extends ProviderConfig<?, ?>> implements ProviderConfigRepository<C> {
 
-    private final Map<String, U> registrations;
+    private final Map<String, C> registrations;
 
     public InMemoryProviderConfigRepository() {
         this.registrations = new ConcurrentHashMap<>();
     }
 
     @Override
-    public U findByProviderId(String providerId) {
+    public C findByProviderId(String providerId) {
         Assert.hasText(providerId, "providerId cannot be empty");
         return registrations.get(providerId);
     }
 
     @Override
-    public void addRegistration(U registration) {
+    public void addRegistration(C registration) {
         registrations.put(registration.getProvider(), registration);
     }
 
@@ -50,17 +49,17 @@ public class InMemoryProviderConfigRepository<U extends AbstractProviderConfig<?
     }
 
     @Override
-    public void removeRegistration(U registration) {
+    public void removeRegistration(C registration) {
         registrations.remove(registration.getProvider());
     }
 
     @Override
-    public Collection<U> findAll() {
+    public Collection<C> findAll() {
         return registrations.values();
     }
 
     @Override
-    public Collection<U> findByRealm(String realm) {
+    public Collection<C> findByRealm(String realm) {
         return registrations.values().stream().filter(p -> p.getRealm().equals(realm)).collect(Collectors.toList());
     }
 }

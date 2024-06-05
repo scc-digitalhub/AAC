@@ -26,6 +26,7 @@ import it.smartcommunitylab.aac.accounts.provider.AccountService;
 import it.smartcommunitylab.aac.base.service.AbstractConfigurableProviderService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
+import it.smartcommunitylab.aac.core.authorities.ConfigurableProviderAuthority;
 import it.smartcommunitylab.aac.model.ConfigMap;
 import java.util.Collection;
 import java.util.stream.Collectors;

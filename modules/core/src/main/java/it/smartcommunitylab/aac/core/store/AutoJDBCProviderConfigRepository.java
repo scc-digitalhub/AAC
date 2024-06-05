@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import it.smartcommunitylab.aac.base.provider.config.AbstractProviderConfig;
+import it.smartcommunitylab.aac.core.model.ProviderConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -45,8 +45,7 @@ import org.springframework.util.StringUtils;
 //should execute in Propagation.REQUIRES_NEW but breaks transaction manager
 //TODO resolve, we create this bean manually thus no proxy for transactions
 // @Transactional(propagation = Propagation.REQUIRED)
-public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?, ?>>
-    implements ProviderConfigRepository<U> {
+public class AutoJDBCProviderConfigRepository<C extends ProviderConfig<?, ?>> implements ProviderConfigRepository<C> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -73,11 +72,11 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
     private String clearSql = DEFAULT_CLEAR_STATEMENT;
 
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<U> rowMapper;
+    private final RowMapper<C> rowMapper;
     private final ObjectMapper mapper;
     private final String type;
 
-    public AutoJDBCProviderConfigRepository(DataSource dataSource, Class<U> className, @Nullable String key) {
+    public AutoJDBCProviderConfigRepository(DataSource dataSource, Class<C> className, @Nullable String key) {
         Assert.notNull(className, "please provide a valid class for serializer");
         Assert.notNull(dataSource, "DataSource required");
 
@@ -105,7 +104,7 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
     }
 
     @Override
-    public U findByProviderId(String providerId) {
+    public C findByProviderId(String providerId) {
         logger.trace("find registration for provider {} with id {}", type, providerId);
         try {
             return jdbcTemplate.queryForObject(selectSql, rowMapper, providerId, type);
@@ -115,28 +114,28 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
     }
 
     @Override
-    public Collection<U> findAll() {
-        List<U> list = jdbcTemplate.query(findAllSql, rowMapper, type);
+    public Collection<C> findAll() {
+        List<C> list = jdbcTemplate.query(findAllSql, rowMapper, type);
 
         return list.stream().filter(p -> p != null).collect(Collectors.toList());
     }
 
     @Override
-    public Collection<U> findByRealm(String realm) {
-        List<U> list = jdbcTemplate.query(findByRealmSql, rowMapper, type, realm);
+    public Collection<C> findByRealm(String realm) {
+        List<C> list = jdbcTemplate.query(findByRealmSql, rowMapper, type, realm);
 
         return list.stream().filter(p -> p != null).collect(Collectors.toList());
     }
 
     @Override
-    public void addRegistration(U registration) {
+    public void addRegistration(C registration) {
         if (registration != null) {
             String providerId = registration.getProvider();
             if (StringUtils.hasText(providerId)) {
                 logger.trace("add registration for provider {} with id {}", type, providerId);
                 try {
                     // either insert or update
-                    U c = findByProviderId(providerId);
+                    C c = findByProviderId(providerId);
 
                     if (c == null) {
                         logger.trace("insert registration for provider {} with id {}", type, providerId);
@@ -176,7 +175,7 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
     }
 
     @Override
-    public void removeRegistration(U registration) {
+    public void removeRegistration(C registration) {
         if (registration != null) {
             String providerId = registration.getProvider();
             if (StringUtils.hasText(providerId)) {
@@ -185,26 +184,26 @@ public class AutoJDBCProviderConfigRepository<U extends AbstractProviderConfig<?
         }
     }
 
-    private class CBORConfigRowMapper implements RowMapper<U> {
+    private class CBORConfigRowMapper implements RowMapper<C> {
 
         private final CBORMapper mapper;
-        private final Class<U> type;
+        private final Class<C> type;
 
-        public CBORConfigRowMapper(CBORMapper mapper, Class<U> type) {
+        public CBORConfigRowMapper(CBORMapper mapper, Class<C> type) {
             Assert.notNull(mapper, "mapper required");
             this.mapper = mapper;
             this.type = type;
         }
 
         @Override
-        public U mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public C mapRow(ResultSet rs, int rowNum) throws SQLException {
             byte[] bytes = rs.getBytes("config");
             if (bytes == null || bytes.length == 0) {
                 return null;
             }
 
             try {
-                U u = mapper.readValue(bytes, type);
+                C u = mapper.readValue(bytes, type);
                 return u;
             } catch (IOException e) {
                 logger.error("error reading config for {}: {}", type, e.getMessage());

@@ -16,10 +16,14 @@
 
 package it.smartcommunitylab.aac.base.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.model.Resource;
 import javax.persistence.Transient;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 public abstract class AbstractBaseResource implements Resource {
 
     @JsonInclude

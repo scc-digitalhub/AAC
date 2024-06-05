@@ -28,15 +28,15 @@ import org.springframework.util.Assert;
 public class DefaultResourceContext<R extends Resource> implements ResourceContext<R> {
 
     // resources stored as map context and read via accessors
-    private final Map<String, List<? extends R>> resources;
+    private final Map<String, List<R>> resources;
 
-    public DefaultResourceContext(Map<String, List<? extends R>> resources) {
+    public DefaultResourceContext(Map<String, List<R>> resources) {
         Assert.notNull(resources, "resources map can not be null");
         this.resources = resources;
     }
 
     @Override
-    public Map<String, List<? extends R>> getResources() {
+    public Map<String, List<R>> getResources() {
         return resources;
     }
 }

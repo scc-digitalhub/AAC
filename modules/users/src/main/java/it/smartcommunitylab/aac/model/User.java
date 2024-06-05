@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,6 +37,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
 
@@ -44,14 +48,18 @@ import org.springframework.util.Assert;
  *
  * In addition to core properties, user resources can be included.
  */
+@ToString
+@Getter
+@Setter
 @JsonInclude(Include.NON_NULL)
-public class User implements UserResource, UserResourceContext {
+@JsonIgnoreProperties(value = { "id", "type" }, ignoreUnknown = true)
+public class User implements UserResourceContext {
 
     @NotBlank
     private final String userId;
 
     @NotBlank
-    private String realm;
+    private final String realm;
 
     // basic profile
     private String username;
@@ -115,7 +123,7 @@ public class User implements UserResource, UserResourceContext {
     // private Boolean tosAccepted;
 
     // resources stored as map context and read via accessors
-    @JsonIgnore
+
     private Map<String, List<UserResource>> resources = new HashMap<>();
 
     public User(@JsonProperty("userId") String userId, @JsonProperty("realm") String realm) {
@@ -125,114 +133,6 @@ public class User implements UserResource, UserResourceContext {
         this.userId = userId;
         this.realm = realm;
         this.authorities = Collections.emptySet();
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public void setRealm(String realm) {
-        this.realm = realm;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
-    public String getLang() {
-        return lang;
-    }
-
-    public void setLang(String lang) {
-        this.lang = lang;
-    }
-
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
-
-    public Date getExpirationDate() {
-        return expirationDate;
-    }
-
-    public void setExpirationDate(Date expirationDate) {
-        this.expirationDate = expirationDate;
-    }
-
-    public Date getCreateDate() {
-        return createDate;
-    }
-
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
-    }
-
-    public Date getModifiedDate() {
-        return modifiedDate;
-    }
-
-    public void setModifiedDate(Date modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
-
-    public Date getLoginDate() {
-        return loginDate;
-    }
-
-    public void setLoginDate(Date loginDate) {
-        this.loginDate = loginDate;
-    }
-
-    public String getLoginIp() {
-        return loginIp;
-    }
-
-    public void setLoginIp(String loginIp) {
-        this.loginIp = loginIp;
-    }
-
-    public String getLoginProvider() {
-        return loginProvider;
-    }
-
-    public void setLoginProvider(String loginProvider) {
-        this.loginProvider = loginProvider;
-    }
-
-    public Boolean getTosAccepted() {
-        return tosAccepted;
-    }
-
-    public void setTosAccepted(Boolean tosAccepted) {
-        this.tosAccepted = tosAccepted;
     }
 
     /*
@@ -260,10 +160,6 @@ public class User implements UserResource, UserResourceContext {
      *
      */
 
-    public Set<GrantedAuthority> getAuthorities() {
-        return authorities;
-    }
-
     public void setAuthorities(Collection<GrantedAuthority> authorities) {
         this.authorities = new HashSet<>();
         if (authorities != null) {
@@ -271,22 +167,13 @@ public class User implements UserResource, UserResourceContext {
         }
     }
 
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_AAC;
-    }
-
-    @Override
-    public String getProvider() {
-        return SystemKeys.AUTHORITY_AAC;
-    }
-
-    @Override
+    /*
+     * Resource
+     */
     public String getId() {
         return userId;
     }
 
-    @Override
     public String getType() {
         return SystemKeys.RESOURCE_USER;
     }
@@ -305,9 +192,16 @@ public class User implements UserResource, UserResourceContext {
         return resources;
     }
 
-    @JsonAnySetter
     public void setResources(Map<String, List<UserResource>> resources) {
         this.resources = resources;
+    }
+
+    @JsonAnySetter
+    public void setResourcesWithType(String type, List<UserResource> resources) {
+        if (this.resources == null) {
+            this.resources = new HashMap<>();
+        }
+        this.resources.put(type, resources);
     }
 
     public static User from(UserDetails details) {

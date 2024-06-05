@@ -35,6 +35,11 @@
         </dependency>
         <dependency>
             <groupId>it.smartcommunitylab</groupId>
+            <artifactId>aac-credentials</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>it.smartcommunitylab</groupId>
             <artifactId>aac-auth</artifactId>
             <version>${revision}</version>
         </dependency>

@@ -44,9 +44,6 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    public static final String RESOURCE_TYPE =
-        SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_IDENTITY_PROVIDER;
-
     private Boolean linkable;
     private String events;
     private Integer position;
