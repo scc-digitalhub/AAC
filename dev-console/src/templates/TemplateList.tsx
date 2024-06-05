@@ -27,21 +27,23 @@ export const TemplateList = () => {
         <>
             <br />
             <Typography variant="h5" sx={{ mt: 1 }}>
-                Client applications
+                Templates
             </Typography>
             <Typography variant="h6">
-                Manage web, mobile, server and IoT applications
+                Customize appearance and messages
             </Typography>
             <List
                 exporter={YamlExporter}
                 empty={<Empty />}
                 actions={<AppListActions />}
                 queryOptions={options}
-                filters={RealmFilters}
-                sort={{ field: 'name', order: 'DESC' }}
+                // filters={RealmFilters}
+                // sort={{ field: 'name', order: 'DESC' }}
             >
                 <Datagrid bulkActionButtons={false}>
-                    <TextField source="name" />
+                    <TextField source="template" />
+                    <TextField source="language" />
+                    <TextField source="authority" />
                     <IdField source="id" />
                     <ShowAppButton />
                     <EditAppButton />
