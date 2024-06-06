@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import it.smartcommunitylab.aac.repository.ArrayOrStringDeserializer;
 import it.smartcommunitylab.aac.repository.StringArraySerializer;
 import java.util.Set;
-import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
-
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientRegistration {
@@ -46,11 +46,10 @@ public class ClientRegistration {
     private String name;
 
     @JsonProperty("redirect_uris")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
     private Set<String> redirectUris;
 
     @JsonProperty("scope")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
+    @JsonDeserialize(using = ArrayOrStringDeserializer.class)
     @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope;
 

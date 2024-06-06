@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.repository.ArrayOrStringDeserializer;
 import it.smartcommunitylab.aac.repository.StringArraySerializer;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.client.Jackson2ArrayOrStringDeserializer;
 
 @JsonInclude(Include.NON_NULL)
 public class OAuth2ClientDetails implements ClientDetails {
@@ -48,12 +48,12 @@ public class OAuth2ClientDetails implements ClientDetails {
     private String name;
 
     @JsonProperty("scope")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
+    @JsonDeserialize(using = ArrayOrStringDeserializer.class)
     @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> scope = Collections.emptySet();
 
     @JsonProperty("resource_ids")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
+    @JsonDeserialize(using = ArrayOrStringDeserializer.class)
     @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> resourceIds = Collections.emptySet();
 
@@ -61,7 +61,7 @@ public class OAuth2ClientDetails implements ClientDetails {
     private Set<String> authorizedGrantTypes = Collections.emptySet();
 
     @JsonProperty("token_endpoint_auth_method")
-    @JsonDeserialize(using = Jackson2ArrayOrStringDeserializer.class)
+    @JsonDeserialize(using = ArrayOrStringDeserializer.class)
     @JsonSerialize(using = StringArraySerializer.class)
     private Set<String> authenticationMethods = Collections.emptySet();
 
