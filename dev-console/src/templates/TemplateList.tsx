@@ -35,7 +35,7 @@ export const TemplateList = () => {
             <List
                 exporter={YamlExporter}
                 empty={<Empty />}
-                actions={<AppListActions />}
+                actions={<TemplateListActions />}
                 queryOptions={options}
                 filters={RealmFilters}
                 sort={{ field: 'template', order: 'DESC' }}
@@ -49,8 +49,8 @@ export const TemplateList = () => {
                     <EditAppButton />
                     <DeleteButtonDialog
                         mutationOptions={options}
-                        confirmTitle="Client App Deletion"
-                        redirect={`/apps/r/${params.realmId}`}
+                        confirmTitle="Template Deletion"
+                        redirect={`/templates/r/${params.realmId}`}
                     />
                     <ExportAppButton />
                 </Datagrid>
@@ -61,10 +61,10 @@ export const TemplateList = () => {
 
 const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
-const AppListActions = () => {
+const TemplateListActions = () => {
     const params = useParams();
     const options = { realmId: params.realmId };
-    const to = `/apps/r/${params.realmId}/create`;
+    const to = `/templates/r/${params.realmId}/create`;
     return (
         <TopToolbar>
             <CreateButton
@@ -80,7 +80,7 @@ const AppListActions = () => {
 
 const Empty = () => {
     const params = useParams();
-    const to = `/apps/r/${params.realmId}/create`;
+    const to = `/templates/r/${params.realmId}/create`;
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
@@ -96,7 +96,7 @@ const ShowAppButton = () => {
     const params = useParams();
     const redirect = useRedirect();
     const realmId = params.realmId;
-    const to = '/apps/r/' + realmId + '/' + record.id;
+    const to = '/templates/r/' + realmId + '/' + record.id;
     const handleClick = () => {
         redirect(to);
     };
@@ -112,7 +112,7 @@ const EditAppButton = () => {
     const record = useRecordContext();
     const params = useParams();
     const realmId = params.realmId;
-    const to = `/apps/r/${realmId}/${record.id}/edit`;
+    const to = `/templates/r/${realmId}/${record.id}/edit`;
     if (!record) return null;
     return (
         <>
@@ -127,7 +127,7 @@ const ExportAppButton = () => {
     const realmId = params.realmId;
     const to =
         process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/apps/${realmId}/${record.id}/export`;
+        `/templates/${realmId}/${record.id}/export`;
     const handleExport = (data: any) => {
         window.open(to, '_blank');
     };
