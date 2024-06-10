@@ -37,8 +37,8 @@ export const TemplateList = () => {
                 empty={<Empty />}
                 actions={<AppListActions />}
                 queryOptions={options}
-                // filters={RealmFilters}
-                // sort={{ field: 'name', order: 'DESC' }}
+                filters={RealmFilters}
+                sort={{ field: 'template', order: 'DESC' }}
             >
                 <Datagrid bulkActionButtons={false}>
                     <TextField source="template" />
@@ -69,7 +69,7 @@ const AppListActions = () => {
         <TopToolbar>
             <CreateButton
                 variant="contained"
-                label="New App"
+                label="New Template"
                 sx={{ marginLeft: 2 }}
                 to={to}
             />
@@ -84,7 +84,7 @@ const Empty = () => {
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
-                No app available, create one
+                No template available, create one
             </Typography>
             <CreateButton variant="contained" label="New App" to={to} />
         </Box>
