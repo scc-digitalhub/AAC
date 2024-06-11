@@ -22,8 +22,8 @@ export const TemplateCreate = () => {
     };
 
     const onSuccess = (data: any) => {
-        notify(`App created successfully`);
-        redirect(`/apps/r/${params.realmId}`);
+        notify(`Template created successfully`);
+        redirect(`/templates/r/${params.realmId}`);
     };
     return (
         <CreateBase
