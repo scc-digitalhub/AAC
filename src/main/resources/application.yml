@@ -291,11 +291,6 @@ spid:
         entityLabel: timid
         metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp
         iconUrl: /spid/img/spid-idp-timid.svg
-      - entityName: Spid Validator
-        entityId: https://localhost:8443
-        entityLabel: spidvalidator
-        metadataUrl: https://localhost:8443/metadata.xml
-        iconUrl: /spid/img/spid-ico-circle-bb.svg
 
 attributesets:
   sets:
