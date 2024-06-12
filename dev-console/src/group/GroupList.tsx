@@ -6,20 +6,27 @@ import {
     TextField,
     TopToolbar,
     CreateButton,
-    ShowButton,
-    useRecordContext,
     Button,
-    EditButton,
-    ExportButton,
-    useRedirect,
-    ArrayField,
-    ChipField,
+    useNotify,
+    useTranslate,
+    BooleanInput,
+    Create,
+    SimpleForm,
+    SaveButton,
+    Toolbar,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
-import { Box, IconButton, Typography } from '@mui/material';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
+import {
+    Box,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    Typography,
+} from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { AceEditorInput } from '@dslab/ra-ace-editor';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import React from 'react';
 
 export const GroupList = () => {
     const params = useParams();
@@ -30,7 +37,6 @@ export const GroupList = () => {
             <br />
             <Typography variant="h5" sx={{ mt: 1 }}>
                 Realm groups
-
             </Typography>
             <Typography variant="h6">
                 Register and manage realm groups.
@@ -38,13 +44,13 @@ export const GroupList = () => {
             <List
                 exporter={YamlExporter}
                 empty={<Empty />}
+                actions={<GroupListActions />}
                 queryOptions={options}
                 filters={RealmFilters}
                 sort={{ field: 'name', order: 'DESC' }}
             >
                 <Datagrid bulkActionButtons={false}>
                     <TextField source="name" />
-
                 </Datagrid>
             </List>
         </>
@@ -55,79 +61,108 @@ const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
 const Empty = () => {
     const params = useParams();
-    const to = `/templates/r/${params.realmId}/create`;
+    const to = `/groups/r/${params.realmId}/create`;
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
-                No template available, create one
+                No groups registered. Create a realm group to manage users and
+                memberships.
             </Typography>
-            <CreateButton variant="contained" label="New App" to={to} />
+            <CreateButton variant="contained" label="New Group" to={to} />
         </Box>
     );
 };
 
-const ShowAppButton = () => {
-    const record = useRecordContext();
+const GroupListActions = () => {
     const params = useParams();
-    const redirect = useRedirect();
-    const realmId = params.realmId;
-    const to = '/templates/r/' + realmId + '/' + record.id;
+    const notify = useNotify();
+    const translate = useTranslate();
+    const options = {
+        meta: { realmId: params.realmId, import: false, resetId: false },
+    };
+    const [open, setOpen] = React.useState(false);
+    const to = `/groups/r/${params.realmId}/create`;
+    const importTo = `/groups/r/${params.realmId}/import`;
     const handleClick = () => {
-        redirect(to);
+        setOpen(true);
     };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleClick} label="Show"></Button>
-        </>
-    );
-};
-
-const EditAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to = `/templates/r/${realmId}/${record.id}/edit`;
-    if (!record) return null;
-    return (
-        <>
-            <EditButton to={to}></EditButton>
-        </>
-    );
-};
-
-const ExportAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/templates/${realmId}/${record.id}/export`;
-    const handleExport = (data: any) => {
-        window.open(to, '_blank');
+    const handleClose = () => {
+        setOpen(false);
     };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleExport} label="Export"></Button>
-        </>
-    );
-};
+    const transform = (data: any) => {
+        options.meta.import = true;
+        options.meta.resetId = data.resetId;
+        data = data.yamlInput;
+        return data;
+    };
 
-const IdField = (props: any) => {
-    let s = props.source;
-    const record = useRecordContext();
-    if (!record) return null;
+    const onSuccess = (data: any) => {
+        notify(`Group imported successfully`);
+    };
+
     return (
-        <span>
-            {record[s]}
-            <IconButton
-                onClick={() => {
-                    navigator.clipboard.writeText(record[s]);
+        <TopToolbar>
+            <CreateButton
+                variant="contained"
+                label="Add Provider"
+                sx={{ marginLeft: 2 }}
+                to={to}
+            />
+            <Button
+                variant="contained"
+                label="Import"
+                onClick={handleClick}
+                to={importTo}
+            >
+                {<ImportExportIcon />}
+            </Button>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                fullWidth
+                maxWidth="md"
+                sx={{
+                    '.MuiDialog-paper': {
+                        position: 'absolute',
+                        top: 50,
+                    },
                 }}
             >
-                <ContentCopyIcon />
-            </IconButton>
-        </span>
+                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
+                    Import Provider
+                </DialogTitle>
+                <DialogContent>
+                    <Create
+                        transform={transform}
+                        mutationOptions={{ ...options, onSuccess }}
+                    >
+                        <SimpleForm toolbar={<ImportToolbar />}>
+                            <Typography>
+                                {translate('page.idp.import.description')}
+                            </Typography>
+                            <Box>
+                                <AceEditorInput
+                                    source="yamlInput"
+                                    mode="yaml"
+                                    theme="github"
+                                ></AceEditorInput>
+                            </Box>
+                            <Box>
+                                <BooleanInput
+                                    label="Reset ID(s)"
+                                    source="resetId"
+                                />
+                            </Box>
+                        </SimpleForm>
+                    </Create>
+                </DialogContent>
+            </Dialog>
+        </TopToolbar>
     );
 };
+
+const ImportToolbar = () => (
+    <Toolbar>
+        <SaveButton label="Import" />
+    </Toolbar>
+);
