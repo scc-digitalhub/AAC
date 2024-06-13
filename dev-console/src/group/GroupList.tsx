@@ -50,7 +50,7 @@ export const GroupList = () => {
                 empty={<Empty />}
                 actions={<GroupListActions />}
                 queryOptions={options}
-                filters={RealmFilters}
+                filters={GroupFilters}
                 sort={{ field: 'name', order: 'DESC' }}
             >
                 <Datagrid bulkActionButtons={false}>
@@ -70,7 +70,7 @@ export const GroupList = () => {
     );
 };
 
-const RealmFilters = [<SearchInput source="q" alwaysOn />];
+const GroupFilters = [<SearchInput source="q" alwaysOn />];
 
 const Empty = () => {
     const params = useParams();
