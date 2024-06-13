@@ -29,6 +29,7 @@ import { YamlExporter } from '../components/YamlExporter';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import React from 'react';
 
 export const GroupList = () => {
@@ -56,6 +57,13 @@ export const GroupList = () => {
                     <TextField source="name" />
                     <IdField source="id" />
                     <TextField source="group" />
+                    <DeleteButtonDialog
+                        mutationOptions={options}
+                        confirmTitle="Group Deletion"
+                        redirect={`/groups/r/${params.realmId}`}
+                    />
+                    {/* Edit. */}
+                    {/* Export */}
                 </Datagrid>
             </List>
         </>
