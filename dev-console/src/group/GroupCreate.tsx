@@ -66,6 +66,6 @@ export const GroupCreate = () => {
 function createIdp(data: any, realmId: any): any {
     let body: any = {};
     body['name'] = data.name;
-    body['key'] = 'identity';
+    body['group'] = data.key;
     return body;
 }

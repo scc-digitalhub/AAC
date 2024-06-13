@@ -14,6 +14,7 @@ import {
     SimpleForm,
     SaveButton,
     Toolbar,
+    useRecordContext,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import {
@@ -21,11 +22,13 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
+    IconButton,
     Typography,
 } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import React from 'react';
 
 export const GroupList = () => {
@@ -51,6 +54,8 @@ export const GroupList = () => {
             >
                 <Datagrid bulkActionButtons={false}>
                     <TextField source="name" />
+                    <IdField source="id" />
+                    <TextField source="group" />
                 </Datagrid>
             </List>
         </>
@@ -166,3 +171,21 @@ const ImportToolbar = () => (
         <SaveButton label="Import" />
     </Toolbar>
 );
+
+const IdField = (props: any) => {
+    let s = props.source;
+    const record = useRecordContext();
+    if (!record) return null;
+    return (
+        <span>
+            {record[s]}
+            <IconButton
+                onClick={() => {
+                    navigator.clipboard.writeText(record[s]);
+                }}
+            >
+                <ContentCopyIcon />
+            </IconButton>
+        </span>
+    );
+};
