@@ -37,7 +37,7 @@ export const TemplateList = () => {
                 empty={<Empty />}
                 actions={<TemplateListActions />}
                 queryOptions={options}
-                filters={RealmFilters}
+                filters={TemplateFilters}
                 sort={{ field: 'template', order: 'DESC' }}
             >
                 <Datagrid bulkActionButtons={false}>
@@ -59,7 +59,7 @@ export const TemplateList = () => {
     );
 };
 
-const RealmFilters = [<SearchInput source="q" alwaysOn />];
+const TemplateFilters = [<SearchInput source="q" alwaysOn />];
 
 const TemplateListActions = () => {
     const params = useParams();
