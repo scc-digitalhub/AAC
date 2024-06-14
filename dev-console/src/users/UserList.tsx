@@ -10,6 +10,7 @@ import {
     ChipField,
     WrapperField,
     useRecordContext,
+    SearchInput,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -24,6 +25,8 @@ export const UserList = () => {
             queryOptions={options}
             empty={<Empty />}
             actions={<UserListActions />}
+            filters={UserFilters}
+            sort={{ field: 'username', order: 'DESC' }}
         >
             <Datagrid>
                 <WrapperField>
@@ -52,6 +55,8 @@ export const UserList = () => {
         </List>
     );
 };
+
+const UserFilters = [<SearchInput source="q" alwaysOn />];
 
 const UserListActions = () => {
     const params = useParams();
