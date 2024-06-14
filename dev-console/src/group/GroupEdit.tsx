@@ -6,21 +6,15 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
+    IconButton,
     Typography,
 } from '@mui/material';
 import {
-    ArrayInput,
-    BooleanInput,
     Button,
     Edit,
     EditBase,
     Form,
-    NumberInput,
     SaveButton,
-    SelectArrayInput,
-    SelectInput,
-    SimpleForm,
-    SimpleFormIterator,
     SimpleShowLayout,
     TabbedShowLayout,
     TextField,
@@ -41,9 +35,9 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-// import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
-import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 
 export const GroupEdit = () => {
     const params = useParams();
@@ -188,7 +182,7 @@ const GroupTabComponent = () => {
                 <StarBorderIcon color="primary" /> {record.name}
             </Typography>
             <Typography variant="h6" sx={{ ml: 2 }}>
-                {record.id}
+                <IdField source="id" />
             </Typography>
             <br />
             <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
@@ -362,8 +356,20 @@ const ShowAppButton = () => {
     );
 };
 
-const MyToolbar = () => (
-    <Toolbar>
-        <SaveButton />
-    </Toolbar>
-);
+const IdField = (props: any) => {
+    let s = props.source;
+    const record = useRecordContext();
+    if (!record) return null;
+    return (
+        <span>
+            {record[s]}
+            <IconButton
+                onClick={() => {
+                    navigator.clipboard.writeText(record[s]);
+                }}
+            >
+                <ContentCopyIcon />
+            </IconButton>
+        </span>
+    );
+};
