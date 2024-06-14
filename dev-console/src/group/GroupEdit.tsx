@@ -203,16 +203,10 @@ const GroupTabComponent = () => {
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label="Roles">
                     <TextField source="id" />
-                    {/* <Typography variant="h5" sx={{ mr: 2 }}>
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
-                    <EditOAuthJsonSchemaForm /> */}
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label="Members">
                     <TextField source="id" />
+                    <TextField source="members" />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
@@ -227,7 +221,7 @@ const EditSetting = () => {
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
     const onSuccess = (data: any) => {
-        notify(`Grupd updated successfully`);
+        notify(`Group updated successfully`);
         refresh();
     };
     return (
@@ -365,35 +359,6 @@ const ShowAppButton = () => {
         <>
             <Button onClick={handleClick} label="Show"></Button>
         </>
-    );
-};
-
-const EditOAuthJsonSchemaForm = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const notify = useNotify();
-    const refresh = useRefresh();
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
-        notify(`App updated successfully`);
-        refresh();
-    };
-
-    return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
-        >
-            <SimpleForm toolbar={<MyToolbar />}>
-                <JsonSchemaInput
-                    source="configuration"
-                    schema={schemaOAuthClient}
-                    uiSchema={uiSchemaOAuthClient}
-                />
-            </SimpleForm>
-        </EditBase>
     );
 };
 
