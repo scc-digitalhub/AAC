@@ -15,6 +15,7 @@ import {
     SaveButton,
     Toolbar,
     useRecordContext,
+    EditButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import {
@@ -57,6 +58,7 @@ export const GroupList = () => {
                     <TextField source="name" />
                     <IdField source="id" />
                     <TextField source="group" />
+                    <EditGroupButton />
                     <DeleteButtonDialog
                         mutationOptions={options}
                         confirmTitle="Group Deletion"
@@ -66,6 +68,19 @@ export const GroupList = () => {
                     {/* Export */}
                 </Datagrid>
             </List>
+        </>
+    );
+};
+
+const EditGroupButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to = `/groups/r/${realmId}/${record.id}/edit`;
+    if (!record) return null;
+    return (
+        <>
+            <EditButton to={to}></EditButton>
         </>
     );
 };
