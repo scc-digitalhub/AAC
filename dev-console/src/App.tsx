@@ -34,6 +34,7 @@ import { ScopeList } from './scopes/ScopeList';
 import { GroupList } from './group/GroupList';
 import { GroupCreate } from './group/GroupCreate';
 import { GroupEdit } from './group/GroupEdit';
+import { UserShow } from './users/UserShow';
 
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
@@ -145,6 +146,7 @@ const App = () => (
         </Resource>
         <Resource name="users">
             <Route path="/r/:realmId/*" element={<UserList />} />
+            <Route path="/r/:realmId/:id" element={<UserShow />} />
             <Route path="/r/:realmId/create/*" element={<UserCreate />} />
         </Resource>
         <Resource name="groups">

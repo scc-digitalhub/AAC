@@ -11,6 +11,8 @@ import {
     WrapperField,
     useRecordContext,
     SearchInput,
+    useRedirect,
+    Button,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -51,6 +53,7 @@ export const UserList = () => {
                         <ChipField source="role" size="small" />
                     </Datagrid>
                 </ArrayField>
+                <ShowUserButton />
             </Datagrid>
         </List>
     );
@@ -107,5 +110,22 @@ const EmailVerified = (props: any) => {
                 </IconButton>
             )}
         </span>
+    );
+};
+
+const ShowUserButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const redirect = useRedirect();
+    const realmId = params.realmId;
+    const to = '/users/r/' + realmId + '/' + record.id;
+    const handleClick = () => {
+        redirect(to);
+    };
+    if (!record) return null;
+    return (
+        <>
+            <Button onClick={handleClick} label="Show"></Button>
+        </>
     );
 };
