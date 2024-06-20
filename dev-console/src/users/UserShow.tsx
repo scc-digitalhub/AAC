@@ -1,7 +1,16 @@
-import { IconButton, Typography } from '@mui/material';
 import {
-    EditButton,
+    Box,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    Typography,
+} from '@mui/material';
+import {
+    Button,
+    EditBase,
     Show,
+    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TopToolbar,
@@ -10,6 +19,11 @@ import {
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-github';
+import React from 'react';
 
 export const UserShow = () => {
     const params = useParams();
@@ -72,15 +86,59 @@ const UserTabComponent = () => {
 
 const ShowToolBarActions = () => {
     const params = useParams();
-    const realmId = params.realmId;
+    const options = { meta: { realmId: params.realmId } };
+    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
-    const to = `/users/r/${realmId}/${record.id}/edit`;
+    let body = JSON.stringify(record, null, '\t');
+    const handleClick = () => {
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+    };
     return (
         <TopToolbar>
-            <>
-                <EditButton to={to}></EditButton>
-            </>
+            <Button label="Inspect" onClick={handleClick}>
+                {<VisibilityIcon />}
+            </Button>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                fullWidth
+                maxWidth="md"
+                sx={{
+                    '.MuiDialog-paper': {
+                        position: 'absolute',
+                        top: 50,
+                    },
+                }}
+            >
+                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
+                    Inpsect Json
+                </DialogTitle>
+                <DialogContent>
+                    <EditBase queryOptions={options} id={params.id}>
+                        <SimpleShowLayout>
+                            <Typography>Raw JSON</Typography>
+                            <Box>
+                                <AceEditor
+                                    setOptions={{
+                                        useWorker: false,
+                                    }}
+                                    mode="json"
+                                    value={body}
+                                    width="100%"
+                                    maxLines={20}
+                                    wrapEnabled
+                                    theme="github"
+                                    showPrintMargin={false}
+                                ></AceEditor>
+                            </Box>
+                        </SimpleShowLayout>
+                    </EditBase>
+                </DialogContent>
+            </Dialog>
         </TopToolbar>
     );
 };
