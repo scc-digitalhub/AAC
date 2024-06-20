@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { IconButton, Typography } from '@mui/material';
 import {
     EditButton,
     Show,
@@ -9,6 +9,7 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export const UserShow = () => {
     const params = useParams();
@@ -31,7 +32,7 @@ const UserTabComponent = () => {
                 <StarBorderIcon color="primary" /> {record.username}
             </Typography>
             <Typography variant="h6" sx={{ ml: 2 }}>
-                {record.id}
+                <IdField source="id" />
             </Typography>
             <br />
             <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
@@ -81,5 +82,23 @@ const ShowToolBarActions = () => {
                 <EditButton to={to}></EditButton>
             </>
         </TopToolbar>
+    );
+};
+
+const IdField = (props: any) => {
+    let s = props.source;
+    const record = useRecordContext();
+    if (!record) return null;
+    return (
+        <span>
+            {record[s]}
+            <IconButton
+                onClick={() => {
+                    navigator.clipboard.writeText(record[s]);
+                }}
+            >
+                <ContentCopyIcon />
+            </IconButton>
+        </span>
     );
 };

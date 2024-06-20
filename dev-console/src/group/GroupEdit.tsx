@@ -36,7 +36,6 @@ import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 
 export const GroupEdit = () => {
