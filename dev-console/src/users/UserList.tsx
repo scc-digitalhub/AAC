@@ -1,4 +1,12 @@
-import { IconButton, Stack } from '@mui/material';
+import {
+    IconButton,
+    Stack,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    Box,
+    Typography,
+} from '@mui/material';
 import {
     List,
     Datagrid,
@@ -13,10 +21,16 @@ import {
     SearchInput,
     useRedirect,
     Button,
+    SimpleShowLayout,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import React from 'react';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-json';
+import 'ace-builds/src-noconflict/theme-github';
 
 export const UserList = () => {
     const params = useParams();
@@ -54,6 +68,9 @@ export const UserList = () => {
                     </Datagrid>
                 </ArrayField>
                 <ShowUserButton />
+                <InspectUserButton />
+                {/* Delete */}
+                {/* Block */}
             </Datagrid>
         </List>
     );
@@ -126,6 +143,63 @@ const ShowUserButton = () => {
     return (
         <>
             <Button onClick={handleClick} label="Show"></Button>
+        </>
+    );
+};
+
+const InspectUserButton = () => {
+    const record = useRecordContext();
+    const [open, setOpen] = React.useState(false);
+    if (!record) return null;
+    let body = JSON.stringify(record, null, '\t');
+    const handleClick = () => {
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+    };
+    return (
+        <>
+            <>
+                <Button onClick={handleClick} label="Inspect">
+                    {<VisibilityIcon />}
+                </Button>
+            </>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                fullWidth
+                maxWidth="md"
+                sx={{
+                    '.MuiDialog-paper': {
+                        position: 'absolute',
+                        top: 50,
+                    },
+                }}
+            >
+                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
+                    Inpsect Json
+                </DialogTitle>
+                <DialogContent>
+                    <SimpleShowLayout>
+                        <Typography>Raw JSON</Typography>
+                        <Box>
+                            <AceEditor
+                                setOptions={{
+                                    useWorker: false,
+                                }}
+                                mode="json"
+                                value={body}
+                                width="100%"
+                                maxLines={20}
+                                wrapEnabled
+                                theme="github"
+                                showPrintMargin={false}
+                            ></AceEditor>
+                        </Box>
+                    </SimpleShowLayout>
+                </DialogContent>
+            </Dialog>
         </>
     );
 };
