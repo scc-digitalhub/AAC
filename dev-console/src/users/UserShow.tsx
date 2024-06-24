@@ -24,6 +24,7 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import React from 'react';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 
 export const UserShow = () => {
     const params = useParams();
@@ -139,6 +140,11 @@ const ShowToolBarActions = () => {
                     </EditBase>
                 </DialogContent>
             </Dialog>
+            <DeleteButtonDialog
+                confirmTitle="User Deletion"
+                mutationOptions={options}
+                redirect={`/users/r/${params.realmId}`}
+            />
         </TopToolbar>
     );
 };
