@@ -65,6 +65,6 @@ export const UserCreate = () => {
 
 function createService(data: any, realmId: any): any {
     let body: any = {};
-    body['email'] = data.name;
+    body['email'] = data.email;
     return body;
 }

@@ -13,7 +13,6 @@ import {
     TextField,
     TopToolbar,
     CreateButton,
-    Empty,
     ArrayField,
     ChipField,
     WrapperField,
@@ -201,5 +200,18 @@ const InspectUserButton = () => {
                 </DialogContent>
             </Dialog>
         </>
+    );
+};
+
+const Empty = () => {
+    const params = useParams();
+    const to = `/users/r/${params.realmId}/create`;
+    return (
+        <Box textAlign="center" mt={30} ml={70}>
+            <Typography variant="h6" paragraph>
+                No user, create one
+            </Typography>
+            <CreateButton variant="contained" label="New User" to={to} />
+        </Box>
     );
 };
