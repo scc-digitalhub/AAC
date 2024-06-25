@@ -21,6 +21,10 @@ import {
     useRedirect,
     Button,
     SimpleShowLayout,
+    useNotify,
+    useDelete,
+    useUpdate,
+    useRefresh,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -31,6 +35,9 @@ import React from 'react';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
+import BlockIcon from '@mui/icons-material/Block';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 
 export const UserList = () => {
     const params = useParams();
@@ -74,7 +81,7 @@ export const UserList = () => {
                     mutationOptions={options}
                     redirect={`/users/r/${params.realmId}`}
                 />
-                {/* Block */}
+                <ActiveButton />
             </Datagrid>
         </List>
     );
@@ -218,5 +225,93 @@ const Empty = () => {
             </Typography>
             <CreateButton variant="contained" label="New User" to={to} />
         </Box>
+    );
+};
+
+const ActiveButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const notify = useNotify();
+    const refresh = useRefresh();
+    const realmId = params.realmId;
+    const [inactive] = useUpdate(
+        'users',
+        {
+            id: record.id + '/status',
+            data: record,
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(`user ` + record.id + ` disabled successfully`);
+                refresh();
+            },
+        }
+    );
+    const [active] = useUpdate(
+        'users',
+        {
+            id: record.id + '/status',
+            data: record,
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(`user ` + record.id + ` enabled successfully`);
+                refresh();
+            },
+        }
+    );
+
+    // const [block] = useUpdate(
+    //     'users',
+    //     {
+    //         id: record.id + '/status',
+    //         data: record,
+    //         meta: { realmId: realmId },
+    //     },
+    //     {
+    //         onSuccess: () => {
+    //             notify(`user ` + record.id + ` blocked successfully`);
+    //             refresh();
+    //         },
+    //     }
+    // );
+
+    if (!record) return null;
+    return (
+        <>
+            {record.status !== 'inactive' && (
+                <Button
+                    onClick={() => {
+                        record.status = 'inactive';
+                        inactive();
+                    }}
+                    label="Deactivate"
+                    startIcon={<BlockIcon />}
+                ></Button>
+            )}
+            {record.status === 'inactive' && (
+                <Button
+                    onClick={() => {
+                        record.status = 'active';
+                        active();
+                    }}
+                    label="Activate"
+                    startIcon={<PlayArrowIcon />}
+                ></Button>
+            )}
+            {/* &nbsp;
+            {record.status === 'active' && (
+                <Button
+                    onClick={() => {
+                        record.status = 'blocked';
+                        block();
+                    }}
+                    label="Block"
+                    startIcon={<RemoveCircleIcon />}
+                ></Button>
+            )} */}
+        </>
     );
 };
