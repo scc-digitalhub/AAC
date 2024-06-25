@@ -40,8 +40,6 @@ import org.opensaml.security.credential.BasicCredential;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.CredentialSupport;
 import org.opensaml.security.credential.UsageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.saml2.Saml2Exception;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
@@ -55,8 +53,6 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     public static final long serialVersionUID = SystemKeys.AAC_SPID_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + SpidIdentityProviderConfigMap.RESOURCE_TYPE;
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     //    public static final String DEFAULT_METADATA_URL =
     //        "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
@@ -162,7 +158,6 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
                     registrations.add(toRelyingPartyRegistration(idpMetadataUrl));
                 } catch (Saml2Exception | ConnectException e) {
                     // skip that registration if that idp is offline
-                    logger.warn("error building registration for {} due to error {} ", idpMetadataUrl, e.getMessage());
                 }
             }
         } catch (URISyntaxException e) {
