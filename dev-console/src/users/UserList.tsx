@@ -26,6 +26,7 @@ import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import React from 'react';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
@@ -68,7 +69,11 @@ export const UserList = () => {
                 </ArrayField>
                 <ShowUserButton />
                 <InspectUserButton />
-                {/* Delete */}
+                <DeleteButtonDialog
+                    confirmTitle="User Deletion"
+                    mutationOptions={options}
+                    redirect={`/users/r/${params.realmId}`}
+                />
                 {/* Block */}
             </Datagrid>
         </List>
