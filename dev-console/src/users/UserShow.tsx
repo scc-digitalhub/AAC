@@ -14,7 +14,10 @@ import {
     TabbedShowLayout,
     TextField,
     TopToolbar,
+    useNotify,
     useRecordContext,
+    useRefresh,
+    useUpdate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -25,6 +28,8 @@ import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-github';
 import React from 'react';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
+import BlockIcon from '@mui/icons-material/Block';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 export const UserShow = () => {
     const params = useParams();
@@ -140,6 +145,7 @@ const ShowToolBarActions = () => {
                     </EditBase>
                 </DialogContent>
             </Dialog>
+            <ActiveButton />
             <DeleteButtonDialog
                 confirmTitle="User Deletion"
                 mutationOptions={options}
@@ -164,5 +170,93 @@ const IdField = (props: any) => {
                 <ContentCopyIcon />
             </IconButton>
         </span>
+    );
+};
+
+const ActiveButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const notify = useNotify();
+    const refresh = useRefresh();
+    const realmId = params.realmId;
+    const [inactive] = useUpdate(
+        'users',
+        {
+            id: record.id + '/status',
+            data: record,
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(`user ` + record.id + ` disabled successfully`);
+                refresh();
+            },
+        }
+    );
+    const [active] = useUpdate(
+        'users',
+        {
+            id: record.id + '/status',
+            data: record,
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(`user ` + record.id + ` enabled successfully`);
+                refresh();
+            },
+        }
+    );
+
+    // const [block] = useUpdate(
+    //     'users',
+    //     {
+    //         id: record.id + '/status',
+    //         data: record,
+    //         meta: { realmId: realmId },
+    //     },
+    //     {
+    //         onSuccess: () => {
+    //             notify(`user ` + record.id + ` blocked successfully`);
+    //             refresh();
+    //         },
+    //     }
+    // );
+
+    if (!record) return null;
+    return (
+        <>
+            {record.status !== 'inactive' && (
+                <Button
+                    onClick={() => {
+                        record.status = 'inactive';
+                        inactive();
+                    }}
+                    label="Deactivate"
+                    startIcon={<BlockIcon />}
+                ></Button>
+            )}
+            {record.status === 'inactive' && (
+                <Button
+                    onClick={() => {
+                        record.status = 'active';
+                        active();
+                    }}
+                    label="Activate"
+                    startIcon={<PlayArrowIcon />}
+                ></Button>
+            )}
+            {/* &nbsp;
+            {record.status === 'active' && (
+                <Button
+                    onClick={() => {
+                        record.status = 'blocked';
+                        block();
+                    }}
+                    label="Block"
+                    startIcon={<RemoveCircleIcon />}
+                ></Button>
+            )} */}
+        </>
     );
 };
