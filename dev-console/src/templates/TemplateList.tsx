@@ -6,7 +6,6 @@ import {
     TextField,
     TopToolbar,
     CreateButton,
-    ShowButton,
     useRecordContext,
     Button,
     EditButton,

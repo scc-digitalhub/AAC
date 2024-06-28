@@ -4,20 +4,16 @@ import {
     SearchInput,
     Datagrid,
     TextField,
-    TopToolbar,
     CreateButton,
-    ShowButton,
     useRecordContext,
     Button,
     EditButton,
-    ExportButton,
     useRedirect,
     ArrayField,
     ChipField,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { YamlExporter } from '../components/YamlExporter';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
