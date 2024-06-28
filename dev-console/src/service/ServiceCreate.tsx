@@ -1,7 +1,6 @@
 import {
     CreateBase,
     Form,
-    SelectInput,
     TextInput,
     Toolbar,
     useNotify,
