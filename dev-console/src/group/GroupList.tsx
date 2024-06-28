@@ -65,7 +65,7 @@ export const GroupList = () => {
                         redirect={`/groups/r/${params.realmId}`}
                     />
                     {/* Edit. */}
-                    {/* Export */}
+                    <ExportGroupButton />
                 </Datagrid>
             </List>
         </>
@@ -210,5 +210,23 @@ const IdField = (props: any) => {
                 <ContentCopyIcon />
             </IconButton>
         </span>
+    );
+};
+
+const ExportGroupButton = () => {
+    const record = useRecordContext();
+    const params = useParams();
+    const realmId = params.realmId;
+    const to =
+        process.env.REACT_APP_DEVELOPER_CONSOLE +
+        `/groups/${realmId}/${record.id}/export`;
+    const handleExport = (data: any) => {
+        window.open(to, '_blank');
+    };
+    if (!record) return null;
+    return (
+        <>
+            <Button onClick={handleExport} label="Export"></Button>
+        </>
     );
 };
