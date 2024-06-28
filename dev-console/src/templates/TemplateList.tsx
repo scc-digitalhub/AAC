@@ -52,7 +52,7 @@ export const TemplateList = () => {
                         confirmTitle="Template Deletion"
                         redirect={`/templates/r/${params.realmId}`}
                     />
-                    <ExportAppButton />
+                    <ExportTemplateButton />
                 </Datagrid>
             </List>
         </>
@@ -121,13 +121,13 @@ const EditAppButton = () => {
     );
 };
 
-const ExportAppButton = () => {
+const ExportTemplateButton = () => {
     const record = useRecordContext();
     const params = useParams();
     const realmId = params.realmId;
     const to =
         process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/templates/${realmId}/${record.id}/export`;
+        `/templates/${realmId}/models/${record.id}/export`;
     const handleExport = (data: any) => {
         window.open(to, '_blank');
     };
