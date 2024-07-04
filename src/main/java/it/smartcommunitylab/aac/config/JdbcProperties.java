@@ -17,6 +17,8 @@
 package it.smartcommunitylab.aac.config;
 
 import java.util.Map;
+import java.util.Objects;
+
 import org.springframework.boot.sql.init.DatabaseInitializationMode;
 
 public class JdbcProperties {
@@ -27,6 +29,7 @@ public class JdbcProperties {
     private String platform;
     private String schema = DEFAULT_SCHEMA_LOCATION;
 
+    // TODO to implement EQUALS with differ from ALL fields FROM here
     private String driver;
     private String dialect;
     private String url;
@@ -167,5 +170,32 @@ public class JdbcProperties {
 
     public void setDataSourceProperties(Map<String, Object> dataSourceProperties) {
         this.dataSourceProperties = dataSourceProperties;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        JdbcProperties that = (JdbcProperties) obj;
+        return showSql == that.showSql &&
+                maxPoolSize == that.maxPoolSize &&
+                minPoolSize == that.minPoolSize &&
+                idleTimeout == that.idleTimeout &&
+                keepAliveTimeout == that.keepAliveTimeout &&
+                connectionTimeout == that.connectionTimeout &&
+                Objects.equals(driver, that.driver) &&
+                Objects.equals(dialect, that.dialect) &&
+                Objects.equals(url, that.url) &&
+                Objects.equals(user, that.user) &&
+                Objects.equals(password, that.password);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(driver, dialect, url, user, password, showSql, maxPoolSize, minPoolSize, idleTimeout, keepAliveTimeout, connectionTimeout);
     }
 }
