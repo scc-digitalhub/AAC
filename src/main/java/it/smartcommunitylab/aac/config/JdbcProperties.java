@@ -29,7 +29,6 @@ public class JdbcProperties {
     private String platform;
     private String schema = DEFAULT_SCHEMA_LOCATION;
 
-    // TODO to implement EQUALS with differ from ALL fields FROM here
     private String driver;
     private String dialect;
     private String url;
