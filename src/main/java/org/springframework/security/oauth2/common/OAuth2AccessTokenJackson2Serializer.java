@@ -13,6 +13,7 @@
 package org.springframework.security.oauth2.common;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +67,7 @@ public final class OAuth2AccessTokenJackson2Serializer extends StdSerializer<OAu
 			}
 			jgen.writeStringField(OAuth2AccessToken.SCOPE, scopes.substring(0, scopes.length() - 1));
 		}
-		Map<String, Object> additionalInformation = token.getAdditionalInformation();
+		Map<String, Serializable> additionalInformation = token.getAdditionalInformation();
 		for (String key : additionalInformation.keySet()) {
 			jgen.writeObjectField(key, additionalInformation.get(key));
 		}

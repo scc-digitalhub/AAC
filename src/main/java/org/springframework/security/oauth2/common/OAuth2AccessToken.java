@@ -12,6 +12,7 @@
  */
 package org.springframework.security.oauth2.common;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +67,7 @@ public interface OAuth2AccessToken {
 	 * make use of Jackson's automatic JSON mapping for Java objects (for the Token Endpoint flows) or implicitly call 
 	 * .toString() on the "value" object (for the implicit flow) as part of the serialization process.
 	 */
-	Map<String, Object> getAdditionalInformation();
+	Map<String, Serializable> getAdditionalInformation();
 
 	Set<String> getScope();
 
