@@ -46,8 +46,11 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
 
     private static final String DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN =
         "select token_id, token from oauth_access_token where refresh_token = ?";
+    private static final String DEFAULT_REFRESH_TOKEN_SELECT_STATEMENT = "select token_id, token from oauth_refresh_token where token_id = ? FOR UPDATE";
+
 
     private String selectAccessTokenFromRefreshTokenSql = DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN;
+	private String selectRefreshTokenSql = DEFAULT_REFRESH_TOKEN_SELECT_STATEMENT;
 
     /**
      * @param dataSource
@@ -117,4 +120,21 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
 
         return accessToken.getRefreshToken();
     }
+
+    public OAuth2RefreshToken readRefreshTokenForUpdate(String token) {
+		OAuth2RefreshToken refreshToken = null;
+
+		try {
+            refreshToken = jdbcTemplate.queryForObject(selectRefreshTokenSql, new RowMapper<OAuth2RefreshToken>() {
+				public OAuth2RefreshToken mapRow(ResultSet rs, int rowNum) throws SQLException {
+					return deserializeRefreshToken(rs.getBytes(2));
+				}
+			}, extractTokenKey(token));
+		} catch (EmptyResultDataAccessException e) {			
+		} catch (IllegalArgumentException e) {
+			removeRefreshToken(token);
+		}
+
+		return refreshToken;
+	}
 }
