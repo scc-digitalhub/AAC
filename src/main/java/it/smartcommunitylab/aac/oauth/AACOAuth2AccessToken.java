@@ -62,7 +62,7 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
 
     private Set<String> scope;
 
-    private Map<String, Object> additionalInformation = Collections.emptyMap();
+    private Map<String, Serializable> additionalInformation = Collections.emptyMap();
 
     private Date issuedAt;
 
@@ -260,11 +260,11 @@ public class AACOAuth2AccessToken implements OAuth2AccessToken, Serializable {
         this.scope = scope;
     }
 
-    public Map<String, Object> getAdditionalInformation() {
+    public Map<String, Serializable> getAdditionalInformation() {
         return additionalInformation;
     }
 
-    public void setAdditionalInformation(Map<String, Object> additionalInformation) {
+    public void setAdditionalInformation(Map<String, Serializable> additionalInformation) {
         this.additionalInformation = additionalInformation;
     }
 

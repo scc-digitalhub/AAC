@@ -14,6 +14,7 @@ package org.springframework.security.oauth2.common;
 
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -61,7 +62,7 @@ public final class OAuth2AccessTokenJackson2Deserializer extends StdDeserializer
 		String refreshToken = null;
 		Long expiresIn = null;
 		Set<String> scope = null;
-		Map<String, Object> additionalInformation = new LinkedHashMap<String, Object>();
+		Map<String, Serializable> additionalInformation = new LinkedHashMap<String, Serializable>();
 
 		// TODO What should occur if a parameter exists twice
 		while (jp.nextToken() != JsonToken.END_OBJECT) {
@@ -86,7 +87,7 @@ public final class OAuth2AccessTokenJackson2Deserializer extends StdDeserializer
 			else if (OAuth2AccessToken.SCOPE.equals(name)) {
 				scope = parseScope(jp);
 			} else {
-				additionalInformation.put(name, jp.readValueAs(Object.class));
+				additionalInformation.put(name, jp.readValueAs(Serializable.class));
 			}
 		}
 

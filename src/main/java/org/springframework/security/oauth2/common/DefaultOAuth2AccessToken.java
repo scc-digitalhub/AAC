@@ -32,7 +32,7 @@ public class DefaultOAuth2AccessToken implements Serializable, OAuth2AccessToken
 
 	private Set<String> scope;
 
-	private Map<String, Object> additionalInformation = Collections.emptyMap();
+	private Map<String, Serializable> additionalInformation = Collections.emptyMap();
 
 	/**
 	 * Create an access token from the value provided.
@@ -223,7 +223,7 @@ public class DefaultOAuth2AccessToken implements Serializable, OAuth2AccessToken
 	 * 
 	 * @return the additional information (default empty)
 	 */
-	public Map<String, Object> getAdditionalInformation() {
+	public Map<String, Serializable> getAdditionalInformation() {
 		return additionalInformation;
 	}
 
@@ -234,8 +234,8 @@ public class DefaultOAuth2AccessToken implements Serializable, OAuth2AccessToken
 	 * 
 	 * @param additionalInformation the additional information to set
 	 */
-	public void setAdditionalInformation(Map<String, Object> additionalInformation) {
-		this.additionalInformation = new LinkedHashMap<String, Object>(additionalInformation);
+	public void setAdditionalInformation(Map<String, Serializable> additionalInformation) {
+		this.additionalInformation = new LinkedHashMap<String, Serializable>(additionalInformation);
 	}
 
 }
