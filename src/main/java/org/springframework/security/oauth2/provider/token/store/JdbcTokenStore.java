@@ -145,9 +145,10 @@ public class JdbcTokenStore implements TokenStore {
 			refreshToken = token.getRefreshToken().getValue();
 		}
 		
-		if (readAccessToken(token.getValue())!=null) {
-			removeAccessToken(token.getValue());
-		}
+		//DISABLED: store should store *new* tokens, not update!
+		// if (readAccessToken(token.getValue())!=null) {
+		// 	removeAccessToken(token.getValue());
+		// }
 
 		jdbcTemplate.update(insertAccessTokenSql, new Object[] { extractTokenKey(token.getValue()),
 				new SqlLobValue(serializeAccessToken(token)), authenticationKeyGenerator.extractKey(authentication),
