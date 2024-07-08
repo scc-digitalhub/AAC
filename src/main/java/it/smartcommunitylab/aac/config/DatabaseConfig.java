@@ -107,17 +107,17 @@ public class DatabaseConfig {
 
     @Bean(name = "jdbcAuditDataSource")
     public DataSource jdbcAuditDataSource(
-        @Qualifier("auditJdbcProperties") JdbcProperties properties,
-        @Qualifier("jdbcDataSource") DataSource jdbcDataSource,
-        @Qualifier("jdbcProperties") JdbcProperties jdbcProperties
+        @Qualifier("auditJdbcProperties") JdbcProperties auditJdbcProperties,
+        @Qualifier("jdbcProperties") JdbcProperties jdbcProperties,
+        @Qualifier("jdbcDataSource") DataSource jdbcDataSource
     ) throws PropertyVetoException {
-        if (!properties.equals(jdbcProperties)) {
-            HikariConfig config = buildDataSourceConfig(properties);
-            config.setPoolName("jdbcAuditConnectionPool");
-            return new HikariDataSource(config);
+        if (auditJdbcProperties.equals(jdbcProperties)) {
+            return jdbcDataSource;
         }
 
-        return jdbcDataSource;
+        HikariConfig config = buildDataSourceConfig(auditJdbcProperties);
+        config.setPoolName("jdbcAuditConnectionPool");
+        return new HikariDataSource(config);
     }
 
     @Primary
