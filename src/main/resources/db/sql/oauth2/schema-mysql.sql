@@ -31,6 +31,9 @@ CREATE TABLE
     IF NOT EXISTS oauth_refresh_token (
         token_id VARCHAR(64) NOT NULL PRIMARY KEY,
         token BLOB NOT NULL,
+        authentication_id VARCHAR(256),
+        user_name VARCHAR(256),
+        client_id VARCHAR(256),        
         authentication BLOB NOT NULL
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC;
 
@@ -40,3 +43,5 @@ CREATE INDEX oauth_access_token_token_client_index ON oauth_access_token (client
 CREATE INDEX oauth_access_token_token_refresh_token_index ON oauth_access_token (refresh_token);
 
 CREATE INDEX oauth_refresh_token_token_id_index ON oauth_refresh_token (token_id);
+CREATE INDEX oauth_refresh_token_token_user_index ON oauth_refresh_token (user_name);
+CREATE INDEX oauth_refresh_token_token_client_index ON oauth_refresh_token (client_id);
