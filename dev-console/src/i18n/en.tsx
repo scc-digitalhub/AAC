@@ -3,7 +3,6 @@ import englishMessages from 'ra-language-english';
 import utils from '../utils';
 
 const raMessages = utils.deepCopy(englishMessages);
-raMessages.ra.page.dashboard = 'Home';
 
 const enMessages: TranslationMessages = {
     ...raMessages,

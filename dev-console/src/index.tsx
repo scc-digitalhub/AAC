@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import { App } from './App';
 import { Spacer } from './components/spacer';
 
 const root = ReactDOM.createRoot(

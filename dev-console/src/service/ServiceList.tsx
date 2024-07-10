@@ -14,7 +14,7 @@ export const ServiceList = () => {
 
     return (
         <List
-            // queryOptions={options}
+            queryOptions={options}
             empty={<Empty />}
             actions={<ServiceListActions />}
         >

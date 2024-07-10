@@ -10,9 +10,11 @@ import {
     useStore,
     Menu,
     Button,
+    useBasename,
+    MenuItemLink,
 } from 'react-admin';
 import { useLocation } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { FunctionComponent } from 'react';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { Logout, UserMenu } from 'react-admin';
@@ -33,6 +35,14 @@ import DatasetIcon from '@mui/icons-material/Dataset';
 import PasswordIcon from '@mui/icons-material/Password';
 import React from 'react';
 import { RealmListMenu } from './realmListMenu';
+import { Divider } from '@mui/material';
+
+import {
+    RootResourceSelectorMenu,
+    useRootSelector,
+} from '@dslab/ra-root-selector';
+import { DashboardRounded } from '@mui/icons-material';
+import { RealmIcon } from '../myrealms/RealmIcon';
 
 const DEV_URL: string = process.env.REACT_APP_DEVELOPER_CONSOLE as string;
 const ADMIN_URL: string = process.env.REACT_APP_ADMIN_CONSOLE as string;
@@ -106,49 +116,60 @@ const MyUserMenu = () => {
 };
 
 const MyAppBar = (props: AppBarProps) => {
-    let title = 'AAC';
-    let url = useLocation();
-    const regDomain = new RegExp('(?<=(/r/|/domains/))([^/]+)');
-    const realmId = regDomain.test(url?.pathname)
-        ? url?.pathname?.match(regDomain)![0] !== 'create'
-            ? url?.pathname?.match(regDomain)![0]
-            : ''
-        : '';
-    if (realmId) {
-        title = realmId;
-    }
-
     return (
-        <>
-            <AppBar {...props} color="primary" userMenu={<MyUserMenu />}>
-                <Box flex="1">
-                    {/* <Button
-                        variant="h6"
-                        noWrap
-                        component="a"
-                        href="/"
-                        sx={{
-                            mr: 2,
-                            flexGrow: 1,
-                            display: { xs: 'none', sm: 'block' },
-                            fontFamily: 'monospace',
-                            fontWeight: 500,
-                            // letterSpacing: '.3rem',
-                            color: 'inherit',
-                            textDecoration: 'none',
-                            textTransform: 'uppercase',
-                        }}
-                    >
-                        {title} */}
-                    <RealmListMenu realm={title}></RealmListMenu>
-                    {/* </Typography> */}
-                </Box>
-            </AppBar>
-        </>
+        <AppBar {...props} color="primary" userMenu={<MyUserMenu />}>
+            <Typography
+                flex="1"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+                overflow="hidden"
+                variant="h6"
+                color="inherit"
+            >
+                <RootResourceSelectorMenu
+                    source="name"
+                    showSelected={true}
+                    icon={false}
+                />
+            </Typography>
+        </AppBar>
     );
 };
 
-const MyMenu = (props: any) => {
+export const MyMenu = () => {
+    const basename = useBasename();
+    const getResourceLabel = useGetResourceLabel();
+    const { base, root } = useRootSelector();
+    console.log('base', base);
+    return (
+        <Menu
+            sx={{
+                height: '100%',
+                pt: '18px',
+            }}
+        >
+            <Box flex={1}>
+                <Menu.DashboardItem />
+                <Menu.ResourceItem name="apps" />
+
+                <Divider />
+                <MenuItemLink
+                    leftIcon={<SettingsIcon />}
+                    to={`${basename}/config`}
+                    primaryText={'menu.configuration'}
+                />
+                <MenuItemLink
+                    leftIcon={<RealmIcon />}
+                    to={base || '/'}
+                    primaryText={<>{getResourceLabel('myrealms', 2)}</>}
+                    selected={false}
+                />
+            </Box>
+        </Menu>
+    );
+};
+
+const MyMenu2 = (props: any) => {
     let url = useLocation();
     const regDomain = new RegExp('(?<=(/r/|/domains/))([^/]+)');
     const realmId = regDomain.test(url?.pathname)
@@ -267,42 +288,32 @@ const MyMenu = (props: any) => {
 
             {realmId === 'system' && (
                 <Menu>
-                    {realmId && <Menu.DashboardItem />}
-                    {realmId && (
-                        <Menu.Item
-                            to={`/apps/r/${realmId}`}
-                            primaryText="Apps"
-                            leftIcon={<AppsIcon />}
-                        />
-                    )}
-                    {realmId && (
-                        <Menu.Item
-                            to={`/services/r/${realmId}`}
-                            primaryText="Services"
-                            leftIcon={<MiscellaneousServicesIcon />}
-                        />
-                    )}
-                    {realmId && (
-                        <Menu.Item
-                            to={`/users/r/${realmId}`}
-                            primaryText="Users"
-                            leftIcon={<GroupIcon />}
-                        />
-                    )}
-                    {realmId && (
-                        <Menu.Item
-                            to={`/groups/r/${realmId}`}
-                            primaryText="Groups"
-                            leftIcon={<GroupsIcon />}
-                        />
-                    )}
-                    {realmId && (
-                        <Menu.Item
-                            to={`/audit/r/${realmId}`}
-                            primaryText="Audit"
-                            leftIcon={<GradingIcon />}
-                        />
-                    )}
+                    <Menu.DashboardItem />
+                    <Menu.Item
+                        to={`/apps/r/${realmId}`}
+                        primaryText="Apps"
+                        leftIcon={<AppsIcon />}
+                    />
+                    <Menu.Item
+                        to={`/services/r/${realmId}`}
+                        primaryText="Services"
+                        leftIcon={<MiscellaneousServicesIcon />}
+                    />
+                    <Menu.Item
+                        to={`/users/r/${realmId}`}
+                        primaryText="Users"
+                        leftIcon={<GroupIcon />}
+                    />
+                    <Menu.Item
+                        to={`/groups/r/${realmId}`}
+                        primaryText="Groups"
+                        leftIcon={<GroupsIcon />}
+                    />
+                    <Menu.Item
+                        to={`/audit/r/${realmId}`}
+                        primaryText="Audit"
+                        leftIcon={<GradingIcon />}
+                    />
                 </Menu>
             )}
         </>

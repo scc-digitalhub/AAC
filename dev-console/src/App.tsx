@@ -1,6 +1,6 @@
 import './App.css';
 import { Admin, Resource, defaultTheme, CustomRoutes } from 'react-admin';
-import { Route } from 'react-router-dom';
+import { BrowserRouter, Route } from 'react-router-dom';
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
 import MyLayout from './components/layout';
@@ -8,9 +8,17 @@ import MyLayout from './components/layout';
 import 'typeface-titillium-web';
 import 'typeface-roboto-mono';
 
-import UserDashboard from './pages/dashboard';
+import {
+    RootSelectorContextProvider,
+    RootSelectorInitialWrapper,
+} from '@dslab/ra-root-selector';
+
+import DevDashboard from './pages/dashboard';
 
 import { LoginPage } from './pages/login';
+
+import apps from './apps';
+
 import { AuditList } from './audit/AuditList';
 import { DebugList } from './components/DebugList';
 import { AppList } from './apps/AppList';
@@ -35,7 +43,13 @@ import { GroupList } from './group/GroupList';
 import { GroupCreate } from './group/GroupCreate';
 import { GroupEdit } from './group/GroupEdit';
 import { UserShow } from './users/UserShow';
+import { RealmIcon } from './myrealms/RealmIcon';
 
+//config
+const CONTEXT_PATH: string =
+    import.meta.env.BASE_URL ||
+    (globalThis as any).REACT_APP_CONTEXT_PATH ||
+    (process.env.REACT_APP_CONTEXT_PATH as string);
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
 const authProvider = appAuthProvider(API_URL);
@@ -106,33 +120,40 @@ const myTheme = {
     },
 };
 
-const App = () => (
-    <Admin
-        dataProvider={dataProvider}
-        authProvider={authProvider}
-        i18nProvider={i18nProvider}
-        // dashboard={UserDashboard}
-        layout={MyLayout}
-        theme={myTheme}
-        loginPage={<LoginPage />}
-        authCallbackPage={false}
-        requireAuth
-        disableTelemetry
-    >
-        {/* <Resource name="myrealms" {...myrealms} /> */}
+const DevApp = () => {
+    return (
+        <RootSelectorContextProvider
+            resource="myrealms"
+            // initialApp={<InitialWrapper />}
+        >
+            <Admin
+                dataProvider={dataProvider}
+                authProvider={authProvider}
+                i18nProvider={i18nProvider}
+                dashboard={DevDashboard}
+                layout={MyLayout}
+                theme={myTheme}
+                loginPage={<LoginPage />}
+                authCallbackPage={false}
+                requireAuth
+                disableTelemetry
+            >
+                {/* <Resource name="myrealms" {...myrealms} /> */}
 
-        <Resource name="myrealms">
-            <Route path="*" element={<RealmList />} />
-            <Route path="create/*" element={<RealmCreate />} />
-            <Route path=":id/edit/*" element={<RealmEdit />} />
-        </Resource>
-        <Resource name="apps">
+                <Resource name="apps" {...apps} />
+                <Resource name="myrealms" icon={RealmIcon} />
+                {/* <Resource name="myrealms">
+                    <Route path="*" element={<RealmList />} />
+                    <Route path="create/*" element={<RealmCreate />} />
+                    <Route path=":id/edit/*" element={<RealmEdit />} />
+                </Resource> */}
+                {/* <Resource name="apps">
             <Route path="/r/:realmId/*" element={<AppList />} />
             <Route path="/r/:realmId/:id" element={<AppShow />} />
             <Route path="/r/:realmId/:id/edit/*" element={<AppEdit />} />
             <Route path="/r/:realmId/create/*" element={<AppCreate />} />
-        </Resource>
-        <Resource name="idps">
+        </Resource> */}
+                {/* <Resource name="idps">
             <Route path="/r/:realmId/*" element={<IdpList />} />
             <Route path="/r/:realmId/create/*" element={<IdpCreate />} />
             <Route path="/r/:realmId/:id/edit/*" element={<IdpEdit />} />
@@ -171,10 +192,18 @@ const App = () => (
         </Resource>
         <CustomRoutes>
             <Route path="/dashboard/r/:realmId/*" element={<UserDashboard />} />
-        </CustomRoutes>
+        </CustomRoutes> */}
 
-        {/* list={ListGuesser} */}
-    </Admin>
-);
+                {/* list={ListGuesser} */}
+            </Admin>
+        </RootSelectorContextProvider>
+    );
+};
 
-export default App;
+export const App = () => {
+    return (
+        <BrowserRouter basename={CONTEXT_PATH}>
+            <DevApp />
+        </BrowserRouter>
+    );
+};

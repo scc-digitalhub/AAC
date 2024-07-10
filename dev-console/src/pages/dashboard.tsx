@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { useGetIdentity, useTranslate } from 'react-admin';
+import {
+    LoadingIndicator,
+    useGetIdentity,
+    useGetOne,
+    useTranslate,
+} from 'react-admin';
 import LinearProgress from '@mui/material/LinearProgress';
 import { Card, CardContent, CardActions, CardHeader } from '@mui/material';
 import { Container, Grid, Button, Avatar } from '@mui/material';
@@ -9,31 +14,28 @@ import AppsIcon from '@mui/icons-material/Apps';
 import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { PageTitle } from '../components/pageTitle';
+import { useRootSelector } from '@dslab/ra-root-selector';
 
-const UserDashboard = () => {
-    const { data, isLoading } = useGetIdentity();
-    let url = useLocation();
+const DevDashboard = () => {
+    const { data: user, isLoading } = useGetIdentity();
+    const { root: realmId } = useRootSelector();
     const translate = useTranslate();
-    if (isLoading === true || !data) {
+
+    const { data: realm, error } = useGetOne('myrealms', { id: realmId });
+    if (isLoading === true || !user || !realm) {
         return <LinearProgress />;
     }
-
-    const regDomain = new RegExp('(?<=(/r/|/domains/))([^/]+)');
-    const realmId = regDomain.test(url?.pathname)
-        ? url?.pathname?.match(regDomain)![0] !== 'create'
-            ? url?.pathname?.match(regDomain)![0]
-            : ''
-        : '';
+    if (error) {
+        return <p>ERROR</p>;
+    }
 
     return (
         <Container maxWidth="lg">
             <PageTitle
-                text={translate('page.dashboard.welcome', {
-                    name: data.fullName,
-                })}
+                text={realm.name}
                 secondaryText={translate('page.dashboard.description')}
                 icon={
-                    data.username && (
+                    realm.name && (
                         <Avatar
                             sx={{
                                 width: 72,
@@ -47,7 +49,7 @@ const UserDashboard = () => {
                                 backgroundColor: '#0066cc',
                             }}
                         >
-                            {data.username.substring(0, 2)}
+                            {realm.name.substring(0, 2)}
                         </Avatar>
                     )
                 }
@@ -125,4 +127,4 @@ const UserDashboard = () => {
     );
 };
 
-export default UserDashboard;
+export default DevDashboard;
