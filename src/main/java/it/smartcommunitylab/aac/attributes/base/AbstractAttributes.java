@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.attributes.base;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -29,7 +30,8 @@ import it.smartcommunitylab.aac.base.model.AbstractBaseUserResource;
  *
  * all implementations should derive from this
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", defaultImpl = DefaultAttributesImpl.class)
 @JsonSubTypes({ @Type(value = DefaultAttributesImpl.class, name = SystemKeys.RESOURCE_ATTRIBUTES) })
 public abstract class AbstractAttributes extends AbstractBaseUserResource implements UserAttributes {
 

@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.attributes;
 
+import it.smartcommunitylab.aac.attributes.base.BaseAttributeSet;
 import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
@@ -31,7 +32,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OpenIdAttributesSet implements AttributeSet {
+public class OpenIdAttributesSet extends BaseAttributeSet {
 
     public static final String IDENTIFIER = "aac.openid";
     private static final List<String> keys;

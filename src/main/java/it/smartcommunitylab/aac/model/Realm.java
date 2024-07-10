@@ -75,6 +75,10 @@ public class Realm {
         this.email = email;
     }
 
+    public String getId() {
+        return getSlug();
+    }
+
     public String getSlug() {
         return slug;
     }

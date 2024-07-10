@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.attributes;
 
+import it.smartcommunitylab.aac.attributes.base.BaseAttributeSet;
 import it.smartcommunitylab.aac.attributes.model.Attribute;
 import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
@@ -28,7 +29,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BasicAttributesSet implements AttributeSet {
+public class BasicAttributesSet extends BaseAttributeSet {
 
     public static final String IDENTIFIER = "aac.basic";
     private static final List<String> keys;
