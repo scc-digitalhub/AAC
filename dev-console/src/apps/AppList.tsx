@@ -19,16 +19,23 @@ import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { YamlExporter } from '../components/YamlExporter';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { RowButtonGroup } from '../components/RowButtonGroup';
+import { IdField } from '../components/IdField';
+import { PageTitle } from '../components/pageTitle';
+import { DropDownButton } from '../components/DropdownButton';
 
 export const AppList = () => {
     return (
         <>
-            <Typography variant="h5" sx={{ mt: 1 }}>
+            {/* <Typography variant="h5" sx={{ mt: 1 }}>
                 Client applications
             </Typography>
             <Typography variant="h6">
                 Manage web, mobile, server and IoT applications
-            </Typography>
+            </Typography> */}
+            <PageTitle
+                text="Client applications"
+                secondaryText="Manage web, mobile, server and IoT applications"
+            />
             <List
                 exporter={YamlExporter}
                 actions={<AppListActions />}
@@ -39,13 +46,12 @@ export const AppList = () => {
                     <TextField source="name" />
                     <IdField source="id" />
                     <RowButtonGroup label="⋮">
-                        <ShowButton />
-                        <EditButton />
-                        <DeleteWithConfirmButton />
+                        <DropDownButton>
+                            <ShowButton />
+                            <EditButton />
+                            <DeleteWithConfirmButton />
+                        </DropDownButton>
                     </RowButtonGroup>
-                    {/* <ShowAppButton />
-                    <EditAppButton />
-                    <ExportAppButton /> */}
                 </Datagrid>
             </List>
         </>
@@ -98,7 +104,7 @@ const AppListActions = () => {
 //     );
 // };
 
-const IdField = (props: any) => {
+const IdField2 = (props: any) => {
     let s = props.source;
     const record = useRecordContext();
     if (!record) return null;
