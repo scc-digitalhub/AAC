@@ -21,14 +21,15 @@ export const AppCreate = () => {
         return body;
     };
 
-    const onSuccess = (data: any) => {
-        notify(`App created successfully`);
-        redirect(`/apps/r/${params.realmId}`);
-    };
+    // const onSuccess = (data: any) => {
+    //     notify(`App created successfully`);
+    //     redirect(`/apps/r/${params.realmId}`);
+    // };
     return (
         <CreateBase
             transform={transform}
-            mutationOptions={{ ...options, onSuccess }}
+            mutationOptions={{ ...options }}
+            redirect={'list'}
         >
             <Box mt={2} display="flex">
                 <Box flex="1">

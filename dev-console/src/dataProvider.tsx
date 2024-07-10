@@ -61,7 +61,8 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             if (resource !== 'myrealms' && params.meta?.root) {
                 suffix = '/' + params.meta.root;
             }
-            const url = `${apiUrl}/${resource}${suffix}`+ `?${stringify(query)}`;
+            const url =
+                `${apiUrl}/${resource}${suffix}` + `?${stringify(query)}`;
             return httpClient(url).then(({ headers, json }) => {
                 if (json && Array.isArray(json)) {
                     return { data: json, total: json.length };
@@ -80,7 +81,7 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             if (resource !== 'myrealms' && params.meta?.root) {
                 suffix = '/' + params.meta.root;
             }
-            const url = `${apiUrl}/${resource}${suffix}`+ `/${params.id}`;            
+            const url = `${apiUrl}/${resource}${suffix}` + `/${params.id}`;
             return httpClient(url).then(({ status, json }) => {
                 if (status !== 200) {
                     throw new Error('Invalid response status ' + status);
@@ -113,12 +114,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             });
         },
         update: (resource, params) => {
-            let url = `${apiUrl}/${resource}`;
-            if (resource !== 'myrealms') {
-                const realmId = params.meta.realmId;
-                url = url + '/' + realmId;
+            let suffix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                suffix = '/' + params.meta.root;
             }
-            url = url + `/${params.id}`;
+            const url = `${apiUrl}/${resource}${suffix}` + `/${params.id}`;
             return httpClient(url, {
                 method: 'PUT',
                 body:
@@ -130,15 +130,17 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         updateMany: (resource, params) => provider.updateMany(resource, params),
         create: (resource, params) => {
             let method = `POST`;
-            let url = `${apiUrl}/${resource}`;
             let headers = {
                 'Access-Control-Allow-Origin': '*',
             };
             let body: any;
-            if (resource !== 'myrealms') {
-                const realmId = params.meta.realmId;
-                url = url + '/' + realmId;
+
+            let suffix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                suffix = '/' + params.meta.root;
             }
+            let url = `${apiUrl}/${resource}${suffix}`;
+
             if (params.meta.import) {
                 method = `PUT`;
                 let formData = new FormData();
@@ -157,14 +159,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             }));
         },
         delete: (resource, params) => {
-            let url = `${apiUrl}/${resource}`;
-
-            if (resource !== 'myrealms') {
-                const realmId = params.meta.realmId;
-                url = url + '/' + realmId;
+            let suffix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                suffix = '/' + params.meta.root;
             }
-
-            url = url + `/${params.id}`;
+            const url = `${apiUrl}/${resource}${suffix}` + `/${params.id}`;
 
             return httpClient(url, {
                 method: 'DELETE',
