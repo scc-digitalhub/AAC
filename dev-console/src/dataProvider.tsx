@@ -1,4 +1,4 @@
-import { stringify } from 'querystring';
+import { stringify } from 'query-string';
 import { fetchUtils, DataProvider } from 'ra-core';
 import jsonServerProvider from 'ra-data-json-server';
 import { Options } from 'react-admin';
@@ -49,7 +49,6 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             });
         },
         getList: (resource, params) => {
-            let url = `${apiUrl}/${resource}`;
             const { page, perPage } = params.pagination;
             const { field, order } = params.sort;
             const query = {
@@ -58,11 +57,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 page: page - 1,
                 size: perPage,
             };
-            if (resource !== 'myrealms') {
-                const realmId = params.meta.realmId;
-                url = url + '/' + realmId;
+            let suffix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                suffix = '/' + params.meta.root;
             }
-            url = url + `?${stringify(query)}`;
+            const url = `${apiUrl}/${resource}${suffix}`+ `?${stringify(query)}`;
             return httpClient(url).then(({ headers, json }) => {
                 if (json && Array.isArray(json)) {
                     return { data: json, total: json.length };
@@ -77,12 +76,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             });
         },
         getOne: (resource, params) => {
-            let url = `${apiUrl}/${resource}`;
-            if (resource !== 'myrealms') {
-                const realmId = params.meta.realmId;
-                url = url + '/' + realmId;
+            let suffix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                suffix = '/' + params.meta.root;
             }
-            url = url + `/${params.id}`;
+            const url = `${apiUrl}/${resource}${suffix}`+ `/${params.id}`;            
             return httpClient(url).then(({ status, json }) => {
                 if (status !== 200) {
                     throw new Error('Invalid response status ' + status);
