@@ -151,7 +151,14 @@ export const MyMenu = () => {
             <Box flex={1}>
                 <Menu.DashboardItem />
                 <Menu.ResourceItem name="apps" />
-
+                <Menu.ResourceItem name="idps" />
+                <Menu.ResourceItem name="audit" />
+                <Menu.ResourceItem name="sevices" />
+                <Menu.ResourceItem name="users" />
+                <Menu.ResourceItem name="groups" />
+                <Menu.ResourceItem name="resources" />
+                <Menu.ResourceItem name="templates" />
+                <Menu.ResourceItem name="attributeset" />
                 <Divider />
                 <MenuItemLink
                     leftIcon={<SettingsIcon />}

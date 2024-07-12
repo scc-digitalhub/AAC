@@ -1,6 +1,6 @@
 import './App.css';
-import { Admin, Resource, defaultTheme, CustomRoutes } from 'react-admin';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { Admin, Resource, defaultTheme } from 'react-admin';
+import { BrowserRouter } from 'react-router-dom';
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
 import MyLayout from './components/layout';
@@ -10,7 +10,6 @@ import 'typeface-roboto-mono';
 
 import {
     RootSelectorContextProvider,
-    RootSelectorInitialWrapper,
 } from '@dslab/ra-root-selector';
 
 import DevDashboard from './pages/dashboard';
@@ -20,15 +19,7 @@ import { LoginPage } from './pages/login';
 import apps from './apps';
 
 import { AuditList } from './audit/AuditList';
-import { DebugList } from './components/DebugList';
-import { AppList } from './apps/AppList';
-import { RealmList } from './myrealms/RealmList';
-import { RealmEdit } from './myrealms/RealmEdit';
-import { RealmCreate } from './myrealms/RealmCreate';
 import { AttributeSetList } from './attributeset/AttributeSetList';
-import { AppShow } from './apps/AppShow';
-import { AppCreate } from './apps/AppCreate';
-import { AppEdit } from './apps/AppEdit';
 import { IdpList } from './idps/IdpList';
 import { IdpCreate } from './idps/IdpCreate';
 import i18nProvider from './i18nProvider';
@@ -44,6 +35,12 @@ import { GroupCreate } from './group/GroupCreate';
 import { GroupEdit } from './group/GroupEdit';
 import { UserShow } from './users/UserShow';
 import { RealmIcon } from './myrealms/RealmIcon';
+import audit from './audit';
+import service from './service';
+import users from './users';
+import { group } from 'console';
+import scopes from './scopes';
+import templates from './templates';
 
 //config
 const CONTEXT_PATH: string =
@@ -138,63 +135,16 @@ const DevApp = () => {
                 requireAuth
                 disableTelemetry
             >
-                {/* <Resource name="myrealms" {...myrealms} /> */}
-
                 <Resource name="apps" {...apps} />
+                <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>} />
                 <Resource name="myrealms" icon={RealmIcon} />
-                {/* <Resource name="myrealms">
-                    <Route path="*" element={<RealmList />} />
-                    <Route path="create/*" element={<RealmCreate />} />
-                    <Route path=":id/edit/*" element={<RealmEdit />} />
-                </Resource> */}
-                {/* <Resource name="apps">
-            <Route path="/r/:realmId/*" element={<AppList />} />
-            <Route path="/r/:realmId/:id" element={<AppShow />} />
-            <Route path="/r/:realmId/:id/edit/*" element={<AppEdit />} />
-            <Route path="/r/:realmId/create/*" element={<AppCreate />} />
-        </Resource> */}
-                {/* <Resource name="idps">
-            <Route path="/r/:realmId/*" element={<IdpList />} />
-            <Route path="/r/:realmId/create/*" element={<IdpCreate />} />
-            <Route path="/r/:realmId/:id/edit/*" element={<IdpEdit />} />
-        </Resource>
-        <Resource name="audit">
-            <Route path="/r/:realmId/*" element={<AuditList />} />
-        </Resource>
-        <Resource name="services">
-            <Route path="/r/:realmId/*" element={<ServiceList />} />
-            <Route path="/r/:realmId/create/*" element={<ServiceCreate />} />
-        </Resource>
-        <Resource name="users">
-            <Route path="/r/:realmId/*" element={<UserList />} />
-            <Route path="/r/:realmId/:id" element={<UserShow />} />
-            <Route path="/r/:realmId/create/*" element={<UserCreate />} />
-        </Resource>
-        <Resource name="groups">
-            <Route path="/r/:realmId/*" element={<GroupList />} />
-            <Route path="/r/:realmId/:id/edit/*" element={<GroupEdit />} />
-            <Route path="/r/:realmId/create/*" element={<GroupCreate />} />
-        </Resource>
-        <Resource name="roles">
-            <Route path="/r/:realmId/*" element={<DebugList />} />
-        </Resource>
-        <Resource name="resources">
-            <Route path="/r/:realmId/*" element={<ScopeList />} />
-        </Resource>
-        <Resource name="aps">
-            <Route path="/r/:realmId/*" element={<DebugList />} />
-        </Resource>
-        <Resource name="attributeset">
-            <Route path="/r/:realmId/*" element={<AttributeSetList />} />
-        </Resource>
-        <Resource name="templates">
-            <Route path="/r/:realmId/*" element={<TemplateList />} />
-        </Resource>
-        <CustomRoutes>
-            <Route path="/dashboard/r/:realmId/*" element={<UserDashboard />} />
-        </CustomRoutes> */}
-
-                {/* list={ListGuesser} */}
+                <Resource name="audit" list={<AuditList/>}  />
+                <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} />
+                <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} />
+                <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />}/>
+                <Resource name="resources" list={<ScopeList/>}  />
+                <Resource name="attributeset" list={<AttributeSetList/>}  />
+                <Resource name="templates" list={<TemplateList/>}  />             
             </Admin>
         </RootSelectorContextProvider>
     );
