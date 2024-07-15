@@ -89,15 +89,10 @@ const AppTabComponent = () => {
 };
 
 const ShowToolBarActions = () => {
-    const params = useParams();
-    const realmId = params.realmId;
-    const record = useRecordContext();
-    if (!record) return null;
-    const to = `/apps/r/${realmId}/${record.id}/edit`;
     return (
         <TopToolbar>
             <>
-                <EditButton to={to}></EditButton>
+                <EditButton></EditButton>
                 {/* <CustomDeleteButtonDialog
                     realmId={params.realmId}
                     title="Client App Deletion"
