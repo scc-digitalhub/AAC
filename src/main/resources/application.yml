@@ -108,6 +108,20 @@ audit:
    kid:
       sig: ${AUDIT_KID_SIG:}         
       enc: ${AUDIT_KID_ENC:}
+   jdbc:
+     dialect: ${AUDIT_JDBC_DIALECT:${jdbc.dialect}}
+     driver: ${AUDIT_JDBC_DRIVER:${jdbc.driver}}
+     url: ${AUDIT_JDBC_URL:${jdbc.url}}
+     user: ${AUDIT_JDBC_USER:${jdbc.user}}
+     password: ${AUDIT_JDBC_PASS:${jdbc.password}}
+     show-sql: false
+     initialize-schema: always
+     max-pool-size: ${AUDIT_JDBC_MAX_POOL_SIZE:${jdbc.maxpoolsize}}
+     min-pool-size: ${AUDIT_JDBC_MIN_POOL_SIZE:${jdbc.minpoolsize}}
+     idle-timeout: ${AUDIT_JDBC_IDLE_TIMEOUT:${jdbc.idletimeout}}
+     keep-alive-timeout: ${AUDIT_JDBC_KEEP_ALIVE_TIMEOUT:${jdbc.keepalivetimeout}}
+     connection-timeout: ${AUDIT_JDBC_CONNECTION_TIMEOUT:${jdbc.connectiontimeout}}
+     data-source-properties: {}
 
 #EXTERNAL PROVIDERS
 authorities:
