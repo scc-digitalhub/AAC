@@ -15,6 +15,7 @@ import {
 import DevDashboard from './pages/dashboard';
 
 import { LoginPage } from './pages/login';
+import 'ace-builds/src-noconflict/ace';
 
 import apps from './apps';
 
@@ -41,6 +42,8 @@ import users from './users';
 import { group } from 'console';
 import scopes from './scopes';
 import templates from './templates';
+import { IdpIcon } from './idps/IdpIcon';
+import { UserIcon } from './users/UserIcon';
 
 //config
 const CONTEXT_PATH: string =
@@ -136,11 +139,11 @@ const DevApp = () => {
                 disableTelemetry
             >
                 <Resource name="apps" {...apps} />
-                <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>} />
+                <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>}  icon={IdpIcon}/>
                 <Resource name="myrealms" icon={RealmIcon} />
                 <Resource name="audit" list={<AuditList/>}  />
                 <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} />
-                <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} />
+                <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} icon={UserIcon}/>
                 <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />}/>
                 <Resource name="resources" list={<ScopeList/>}  />
                 <Resource name="attributeset" list={<AttributeSetList/>}  />

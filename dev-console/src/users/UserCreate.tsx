@@ -1,38 +1,19 @@
-import {
-    CreateBase,
-    Form,
-    SaveButton,
-    TextInput,
-    Toolbar,
-    useNotify,
-    useRedirect,
-} from 'react-admin';
+import { CreateBase, Form, SaveButton, TextInput, Toolbar } from 'react-admin';
 import { Card, CardContent, Box, Divider, Typography } from '@mui/material';
-import { useParams } from 'react-router-dom';
 
 export const UserCreate = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const notify = useNotify();
-    const redirect = useRedirect();
-
     const transform = (data: any) => {
-        let body = createService(data, params.realmId);
-        return body;
+        return {
+            ...data,
+        };
     };
 
-    const onSuccess = (data: any) => {
-        notify(`User invited successfully`);
-        redirect(`/users/r/${params.realmId}`);
-    };
+    return <CreateBase transform={transform}><UserCreateForm/></CreateBase>;
+};
+export const UserCreateForm = () => {
     return (
-        <CreateBase
-            transform={transform}
-            mutationOptions={{ ...options, onSuccess }}
-        >
-            <Typography sx={{ 'font-weight': 400, mt: 2 }}>
-                Invite user
-            </Typography>
+        <>
+            <Typography>Invite user</Typography>
             <Box mt={2} display="flex">
                 <Box flex="1">
                     <Form>
@@ -40,8 +21,8 @@ export const UserCreate = () => {
                             <CardContent>
                                 <Box>
                                     <Box display="flex">
-                                        <Box flex="1" mt={-1}>
-                                            <Box display="flex" width={430}>
+                                        <Box flex="1">
+                                            <Box display="flex">
                                                 <TextInput
                                                     source="email"
                                                     fullWidth
@@ -53,18 +34,12 @@ export const UserCreate = () => {
                                 </Box>
                             </CardContent>
                             <Toolbar>
-                                <SaveButton icon={<></>} label="Invite" />
+                                <SaveButton />
                             </Toolbar>
                         </Card>
                     </Form>
                 </Box>
             </Box>
-        </CreateBase>
+        </>
     );
 };
-
-function createService(data: any, realmId: any): any {
-    let body: any = {};
-    body['email'] = data.email;
-    return body;
-}

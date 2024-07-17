@@ -2,27 +2,16 @@ import {
     Box,
     Card,
     CardContent,
-    Dialog,
-    DialogContent,
-    DialogTitle,
     Divider,
     Typography,
 } from '@mui/material';
 import {
-    ArrayInput,
-    BooleanInput,
-    Button,
     Edit,
     EditBase,
     Form,
-    NumberInput,
     SaveButton,
-    SelectArrayInput,
-    SelectInput,
     ShowButton,
     SimpleForm,
-    SimpleFormIterator,
-    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TextInput,
@@ -31,22 +20,16 @@ import {
     useEditContext,
     useNotify,
     useRecordContext,
-    useRedirect,
     useRefresh,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-// import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
-
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const AppEdit = () => {
     return (
@@ -208,35 +191,25 @@ const AppTabComponent = () => {
     return (
         <>
             <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
+            <Typography variant="h5" >
                 <StarBorderIcon color="primary" /> {record.name}
             </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
+            <Typography variant="h6" >
                 {record.id}
             </Typography>
             <br />
-            <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
+            <TabbedShowLayout  syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Settings">
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
                     <EditSetting />
                 </TabbedShowLayout.Tab>
-                {/* <TabbedShowLayout.Tab label="OAuth2">
-                    <Typography variant="h5" sx={{ mr: 2 }}>
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
-                    <TextField source="clientId" />
-                    <EditOAuthSetting />
-                </TabbedShowLayout.Tab> */}
                 <TabbedShowLayout.Tab label="OAuth2">
-                    <Typography variant="h5" sx={{ mr: 2 }}>
+                    <Typography variant="h5">
                         OAuth2.0 Configuration
                     </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
+                    <Typography variant="h6" >
                         Basic client configuration for OAuth2/OpenId Connect
                     </Typography>
                     <EditOAuthJsonSchemaForm />
@@ -252,7 +225,7 @@ const EditSetting = () => {
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
+    const onSuccess = () => {
         notify(`App updated successfully`);
         refresh();
     };
@@ -295,63 +268,14 @@ const EditSettingToolbar = (props: any) => (
 );
 
 const EditToolBarActions = () => {
-    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
-    let body = JSON.stringify(record, null, '\t');
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
+
     return (
         <TopToolbar>
             <ShowButton />
-            <Button label="Inspect" onClick={handleClick}>
-                {<VisibilityIcon />}
-            </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <EditBase>
-                        {/* <RichTextField source={body} /> */}
-                        <SimpleShowLayout>
-                            <Typography>Raw JSON</Typography>
-                            <Box>
-                                <AceEditor
-                                    setOptions={{
-                                        useWorker: false,
-                                    }}
-                                    mode="json"
-                                    value={body}
-                                    width="100%"
-                                    maxLines={20}
-                                    wrapEnabled
-                                    theme="github"
-                                    showPrintMargin={false}
-                                ></AceEditor>
-                            </Box>
-                        </SimpleShowLayout>
-                    </EditBase>
-                </DialogContent>
-            </Dialog>
-            <DeleteButtonDialog
-                confirmTitle="Client App"
-            />
+            <InspectButton />
+             <DeleteWithDialogButton/>
         <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
     );
@@ -359,13 +283,11 @@ const EditToolBarActions = () => {
 
 
 const EditOAuthJsonSchemaForm = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     const notify = useNotify();
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
+    const onSuccess = () => {
         notify(`App updated successfully`);
         refresh();
     };
@@ -373,8 +295,7 @@ const EditOAuthJsonSchemaForm = () => {
     return (
         <EditBase
             mutationMode="pessimistic"
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
+            mutationOptions={{ onSuccess }}
         >
             <SimpleForm toolbar={<MyToolbar />}>
                 <JsonSchemaInput

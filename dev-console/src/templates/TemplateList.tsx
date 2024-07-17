@@ -11,16 +11,18 @@ import {
     EditButton,
     ExportButton,
     useRedirect,
+    ShowButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { YamlExporter } from '../components/YamlExporter';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { useRootSelector } from '@dslab/ra-root-selector';
 
 export const TemplateList = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
+    const { root: realmId } = useRootSelector();
+    const options = { meta: { realmId:realmId } };
     useListContext<any>();
     return (
         <>
@@ -44,12 +46,12 @@ export const TemplateList = () => {
                     <TextField source="language" />
                     <TextField source="authority" />
                     <IdField source="id" />
-                    <ShowAppButton />
+                    <ShowButton />
                     <EditAppButton />
                     <DeleteButtonDialog
                         mutationOptions={options}
                         confirmTitle="Template Deletion"
-                        redirect={`/templates/r/${params.realmId}`}
+                        redirect={`/templates/r/${realmId}`}
                     />
                     <ExportTemplateButton />
                 </Datagrid>
@@ -61,16 +63,14 @@ export const TemplateList = () => {
 const TemplateFilters = [<SearchInput source="q" alwaysOn />];
 
 const TemplateListActions = () => {
-    const params = useParams();
-    const options = { realmId: params.realmId };
-    const to = `/templates/r/${params.realmId}/create`;
+    const { root: realmId } = useRootSelector();
+    const options = { realmId: realmId };
     return (
         <TopToolbar>
             <CreateButton
                 variant="contained"
                 label="New Template"
                 sx={{ marginLeft: 2 }}
-                to={to}
             />
             <ExportButton variant="contained" meta={options} />
         </TopToolbar>
@@ -78,34 +78,32 @@ const TemplateListActions = () => {
 };
 
 const Empty = () => {
-    const params = useParams();
-    const to = `/templates/r/${params.realmId}/create`;
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
                 No template available, create one
             </Typography>
-            <CreateButton variant="contained" label="New App" to={to} />
+            <CreateButton variant="contained" label="New App" />
         </Box>
     );
 };
 
-const ShowAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const redirect = useRedirect();
-    const realmId = params.realmId;
-    const to = '/templates/r/' + realmId + '/' + record.id;
-    const handleClick = () => {
-        redirect(to);
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleClick} label="Show"></Button>
-        </>
-    );
-};
+// const ShowAppButton = () => {
+//     const record = useRecordContext();
+//     const params = useParams();
+//     const redirect = useRedirect();
+//     const realmId = params.realmId;
+//     const to = '/templates/r/' + realmId + '/' + record.id;
+//     const handleClick = () => {
+//         redirect(to);
+//     };
+//     if (!record) return null;
+//     return (
+//         <>
+//             <Button onClick={handleClick} label="Show"></Button>
+//         </>
+//     );
+// };
 
 const EditAppButton = () => {
     const record = useRecordContext();

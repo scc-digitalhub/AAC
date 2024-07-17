@@ -271,7 +271,7 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     }
     
     public String getId() {
-    	return this.name;
+    	return this.provider;
     }
 
     @Override

@@ -1,16 +1,10 @@
 import {
-    Box,
-    Dialog,
-    DialogContent,
-    DialogTitle,
     IconButton,
     Typography,
 } from '@mui/material';
 import {
     Button,
-    EditBase,
     Show,
-    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TopToolbar,
@@ -22,14 +16,12 @@ import {
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
 import React from 'react';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import BlockIcon from '@mui/icons-material/Block';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 
 export const UserShow = () => {
     const params = useParams();
@@ -105,7 +97,7 @@ const ShowToolBarActions = () => {
     };
     return (
         <TopToolbar>
-            <Button label="Inspect" onClick={handleClick}>
+            {/* <Button label="Inspect" onClick={handleClick}>
                 {<VisibilityIcon />}
             </Button>
             <Dialog
@@ -144,13 +136,10 @@ const ShowToolBarActions = () => {
                         </SimpleShowLayout>
                     </EditBase>
                 </DialogContent>
-            </Dialog>
+            </Dialog> */}
+            <InspectButton />
             <ActiveButton />
-            <DeleteButtonDialog
-                confirmTitle="User Deletion"
-                mutationOptions={options}
-                redirect={`/users/r/${params.realmId}`}
-            />
+            <DeleteWithDialogButton/>
         </TopToolbar>
     );
 };

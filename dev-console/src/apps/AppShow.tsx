@@ -10,7 +10,6 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 
 export const AppShow = () => {
     const params = useParams();
@@ -29,14 +28,14 @@ const AppTabComponent = () => {
     return (
         <>
             <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
+            <Typography variant="h5" >
                 <StarBorderIcon color="primary" /> {record.name}
             </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
+            <Typography variant="h6" >
                 {record.id}
             </Typography>
             <br />
-            <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
+            <TabbedShowLayout  syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="name" />
                     <TextField source="type" />
@@ -47,10 +46,10 @@ const AppTabComponent = () => {
                     <RichTextField source="body" label={false} />
                 </TabbedShowLayout.Tab> */}
                 <TabbedShowLayout.Tab label="Credentials">
-                    <Typography variant="h6" sx={{ mr: 2 }}>
+                    <Typography variant="h6" >
                         OAuth2 Credentials
                     </Typography>
-                    <Typography sx={{ mr: 2 }}>
+                    <Typography >
                         Client credentials to authenticate with AAC.
                     </Typography>
                     <TextField label="Client ID" source="clientId" />
@@ -93,11 +92,6 @@ const ShowToolBarActions = () => {
         <TopToolbar>
             <>
                 <EditButton></EditButton>
-                {/* <CustomDeleteButtonDialog
-                    realmId={params.realmId}
-                    title="Client App Deletion"
-                    resourceName="Client Application"
-                /> */}
             </>
         </TopToolbar>
     );

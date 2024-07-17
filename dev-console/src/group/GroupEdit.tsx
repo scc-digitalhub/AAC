@@ -2,9 +2,6 @@ import {
     Box,
     Card,
     CardContent,
-    Dialog,
-    DialogContent,
-    DialogTitle,
     Divider,
     IconButton,
     Typography,
@@ -15,7 +12,6 @@ import {
     EditBase,
     Form,
     SaveButton,
-    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TextInput,
@@ -29,14 +25,11 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const GroupEdit = () => {
     const params = useParams();
@@ -269,7 +262,9 @@ const GroupToolBarActions = () => {
     return (
         <TopToolbar>
             <ShowAppButton />
-            <Button label="Inspect" onClick={handleClick}>
+            <InspectButton />
+
+            {/* <Button label="Inspect" onClick={handleClick}>
                 {<VisibilityIcon />}
             </Button>
             <Dialog
@@ -289,7 +284,6 @@ const GroupToolBarActions = () => {
                 </DialogTitle>
                 <DialogContent>
                     <EditBase queryOptions={options} id={params.id}>
-                        {/* <RichTextField source={body} /> */}
                         <SimpleShowLayout>
                             <Typography>Raw JSON</Typography>
                             <Box>
@@ -309,7 +303,7 @@ const GroupToolBarActions = () => {
                         </SimpleShowLayout>
                     </EditBase>
                 </DialogContent>
-            </Dialog>
+            </Dialog> */}
             <DeleteButtonDialog
                 mutationOptions={options}
                 confirmTitle="Client App"
