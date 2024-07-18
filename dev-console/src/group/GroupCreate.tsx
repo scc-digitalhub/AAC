@@ -10,24 +10,16 @@ import { Card, CardContent, Box, Divider } from '@mui/material';
 import { useParams } from 'react-router-dom';
 
 export const GroupCreate = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const notify = useNotify();
-    const redirect = useRedirect();
-
     const transform = (data: any) => {
-        let body = createIdp(data, params.realmId);
-        return body;
-    };
-
-    const onSuccess = (data: any) => {
-        notify(`Group created successfully`);
-        redirect(`/groups/r/${params.realmId}`);
+        return {
+            ...data,
+            group: data.key
+        }
     };
     return (
         <CreateBase
             transform={transform}
-            mutationOptions={{ ...options, onSuccess }}
+            redirect="list"
         >
             <Box mt={2} display="flex">
                 <Box flex="1">
@@ -62,10 +54,3 @@ export const GroupCreate = () => {
         </CreateBase>
     );
 };
-
-function createIdp(data: any, realmId: any): any {
-    let body: any = {};
-    body['name'] = data.name;
-    body['group'] = data.key;
-    return body;
-}

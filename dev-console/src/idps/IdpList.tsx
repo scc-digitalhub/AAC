@@ -130,7 +130,7 @@ const IdpListActions = () => {
                 >
                     <IdpCreateForm />
                 </CreateInDialogButton>
-            <ExportButton meta={options.meta} variant="contained" />
+            <ExportButton variant="contained" />
             <Button
                 variant="contained"
                 label="Import"

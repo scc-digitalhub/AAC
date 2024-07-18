@@ -12,10 +12,8 @@ import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 export const AppShow = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     return (
-        <Show queryOptions={options} actions={<ShowToolBarActions />}>
+        <Show actions={<ShowToolBarActions />}>
             <AppTabComponent />
         </Show>
     );
