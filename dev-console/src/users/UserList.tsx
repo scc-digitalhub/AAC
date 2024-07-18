@@ -1,9 +1,4 @@
-import {
-    IconButton,
-    Stack,
-    Box,
-    Typography,
-} from '@mui/material';
+import { IconButton, Stack, Box, Typography } from '@mui/material';
 import {
     List,
     Datagrid,
@@ -19,6 +14,7 @@ import {
     useUpdate,
     useRefresh,
     ShowButton,
+    EditButton,
 } from 'react-admin';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
@@ -29,6 +25,8 @@ import { useRootSelector } from '@dslab/ra-root-selector';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { UserCreateForm } from './UserCreate';
+import { DropDownButton } from '../components/DropdownButton';
+import { RowButtonGroup } from '../components/RowButtonGroup';
 
 export const UserList = () => {
     const { root: realmId } = useRootSelector();
@@ -59,14 +57,17 @@ export const UserList = () => {
                     source="authorities"
                     emptyText=""
                 >
-                    {record?.role && 
-                        <ChipField source="role" size="small" />
-                    }
+                    {record?.role && <ChipField source="role" size="small" />}
                 </ArrayField>
-                <ShowButton />
-                <InspectButton />
-                <DeleteWithDialogButton confirmTitle="User Deletion"/>
-                <ActiveButton />
+                <RowButtonGroup label="⋮">
+                    <DropDownButton>
+                        <ShowButton />
+                        <EditButton />
+                        <InspectButton />
+                        <ActiveButton />
+                        <DeleteWithDialogButton />
+                    </DropDownButton>
+                </RowButtonGroup>
             </Datagrid>
         </List>
     );
@@ -78,13 +79,13 @@ const UserListActions = () => {
     return (
         <TopToolbar>
             <CreateInDialogButton
-                    fullWidth
-                    maxWidth={'md'}
-                    variant="contained"
-                    transform={transform}
-                >
-                    <UserCreateForm />
-                </CreateInDialogButton>
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={transform}
+            >
+                <UserCreateForm />
+            </CreateInDialogButton>
         </TopToolbar>
     );
 };
@@ -138,13 +139,13 @@ const Empty = () => {
                 No user, create one
             </Typography>
             <CreateInDialogButton
-                    fullWidth
-                    maxWidth={'md'}
-                    variant="contained"
-                    transform={transform}
-                >
-                    <UserCreateForm />
-                </CreateInDialogButton>
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={transform}
+            >
+                <UserCreateForm />
+            </CreateInDialogButton>
         </Box>
     );
 };
@@ -157,7 +158,7 @@ const ActiveButton = () => {
         'users',
         {
             id: record.id + '/status',
-            data: record
+            data: record,
         },
         {
             onSuccess: () => {
@@ -170,7 +171,7 @@ const ActiveButton = () => {
         'users',
         {
             id: record.id + '/status',
-            data: record
+            data: record,
         },
         {
             onSuccess: () => {

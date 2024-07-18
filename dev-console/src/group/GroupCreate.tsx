@@ -21,6 +21,13 @@ export const GroupCreate = () => {
             transform={transform}
             redirect="list"
         >
+            <GroupCreateForm />
+        </CreateBase>
+    );
+};
+export const GroupCreateForm = () => {
+    return (
+        <>
             <Box mt={2} display="flex">
                 <Box flex="1">
                     <Form>
@@ -51,6 +58,6 @@ export const GroupCreate = () => {
                     </Form>
                 </Box>
             </Box>
-        </CreateBase>
+            </>
     );
 };

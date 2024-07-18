@@ -43,6 +43,9 @@ import { useRootSelector } from '@dslab/ra-root-selector';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { IdpCreateForm } from './IdpCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
+import { DropDownButton } from '../components/DropdownButton';
+import { RowButtonGroup } from '../components/RowButtonGroup';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
 
 export const IdpList = () => {
     useListContext<any>();
@@ -66,19 +69,16 @@ export const IdpList = () => {
                     <TextField source="name" />
                     <TextField source="authority" />
                     <IdField source="provider" />
-                    <EnableIdpButton />
-                    <EditButton />
-                    <DeleteWithDialogButton/>
 
-                    {/* <DeleteWithDialogButton
-                        // rootId={params.realmId}
-                        // property="provider"
-                        title="IDP Deletion"
-                        // resourceName="Identity Provider"
-                        // registeredResource="idps"
-                        // redirectUrl={`/idps/r/${params.realmId}`}
-                    /> */}
-                    <ExportIdpButton />
+                    <RowButtonGroup label="⋮">
+                        <DropDownButton>
+                            <EnableIdpButton />
+                            <ShowButton />
+                            <EditButton />
+                            <ExportRecordButton />
+                            <DeleteWithDialogButton />
+                        </DropDownButton>
+                    </RowButtonGroup>
                 </Datagrid>
             </List>
         </>
@@ -116,20 +116,19 @@ const IdpListActions = () => {
 
     return (
         <TopToolbar>
-               <CreateButton
+            <CreateButton
                 variant="contained"
                 label="Add Provider"
                 sx={{ marginLeft: 2 }}
-            />  
+            />
             <CreateInDialogButton
-                    fullWidth
-                    maxWidth={'md'}
-                    variant="contained"
-                    transform={createTransform}
-
-                >
-                    <IdpCreateForm />
-                </CreateInDialogButton>
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={createTransform}
+            >
+                <IdpCreateForm />
+            </CreateInDialogButton>
             <ExportButton variant="contained" />
             <Button
                 variant="contained"
@@ -191,21 +190,19 @@ const createTransform = (data: any) => {
     };
 };
 const Empty = () => {
-
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
                 No provider available, create one
             </Typography>
             <CreateInDialogButton
-                    fullWidth
-                    maxWidth={'md'}
-                    variant="contained"
-                    transform={createTransform}
-
-                >
-                    <IdpCreateForm />
-                </CreateInDialogButton>
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={createTransform}
+            >
+                <IdpCreateForm />
+            </CreateInDialogButton>
         </Box>
     );
 };
@@ -268,32 +265,22 @@ export const EnableIdpButton = () => {
     );
 };
 
-const EditIdpButton = () => {
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <>
-            <EditButton></EditButton>
-        </>
-    );
-};
-
-const ExportIdpButton = () => {
-    const record = useRecordContext();
-    const { root: realmId } = useRootSelector();
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/idps/${realmId}/${record.provider}/export`;
-    const handleExport = (data: any) => {
-        window.open(to, '_blank');
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleExport} label="Export"></Button>
-        </>
-    );
-};
+// const ExportIdpButton = () => {
+//     const record = useRecordContext();
+//     const { root: realmId } = useRootSelector();
+//     const to =
+//         process.env.REACT_APP_DEVELOPER_CONSOLE +
+//         `/idps/${realmId}/${record.provider}/export`;
+//     const handleExport = (data: any) => {
+//         window.open(to, '_blank');
+//     };
+//     if (!record) return null;
+//     return (
+//         <>
+//             <Button onClick={handleExport} label="Export"></Button>
+//         </>
+//     );
+// };
 
 const ImportToolbar = () => (
     <Toolbar>
