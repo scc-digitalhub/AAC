@@ -24,10 +24,8 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 
 export const UserShow = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     return (
-        <Show queryOptions={options} actions={<ShowToolBarActions />}>
+        <Show actions={<ShowToolBarActions />}>
             <UserTabComponent />
         </Show>
     );
@@ -83,60 +81,11 @@ const UserTabComponent = () => {
 };
 
 const ShowToolBarActions = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
     let body = JSON.stringify(record, null, '\t');
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
     return (
         <TopToolbar>
-            {/* <Button label="Inspect" onClick={handleClick}>
-                {<VisibilityIcon />}
-            </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <EditBase queryOptions={options} id={params.id}>
-                        <SimpleShowLayout>
-                            <Typography>Raw JSON</Typography>
-                            <Box>
-                                <AceEditor
-                                    setOptions={{
-                                        useWorker: false,
-                                    }}
-                                    mode="json"
-                                    value={body}
-                                    width="100%"
-                                    maxLines={20}
-                                    wrapEnabled
-                                    theme="github"
-                                    showPrintMargin={false}
-                                ></AceEditor>
-                            </Box>
-                        </SimpleShowLayout>
-                    </EditBase>
-                </DialogContent>
-            </Dialog> */}
             <InspectButton />
             <ActiveButton />
             <DeleteWithDialogButton/>
@@ -164,16 +113,13 @@ const IdField = (props: any) => {
 
 const ActiveButton = () => {
     const record = useRecordContext();
-    const params = useParams();
     const notify = useNotify();
     const refresh = useRefresh();
-    const realmId = params.realmId;
     const [inactive] = useUpdate(
         'users',
         {
             id: record.id + '/status',
             data: record,
-            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
@@ -187,7 +133,6 @@ const ActiveButton = () => {
         {
             id: record.id + '/status',
             data: record,
-            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
@@ -196,21 +141,6 @@ const ActiveButton = () => {
             },
         }
     );
-
-    // const [block] = useUpdate(
-    //     'users',
-    //     {
-    //         id: record.id + '/status',
-    //         data: record,
-    //         meta: { realmId: realmId },
-    //     },
-    //     {
-    //         onSuccess: () => {
-    //             notify(`user ` + record.id + ` blocked successfully`);
-    //             refresh();
-    //         },
-    //     }
-    // );
 
     if (!record) return null;
     return (
@@ -235,17 +165,6 @@ const ActiveButton = () => {
                     startIcon={<PlayArrowIcon />}
                 ></Button>
             )}
-            {/* &nbsp;
-            {record.status === 'active' && (
-                <Button
-                    onClick={() => {
-                        record.status = 'blocked';
-                        block();
-                    }}
-                    label="Block"
-                    startIcon={<RemoveCircleIcon />}
-                ></Button>
-            )} */}
         </>
     );
 };
