@@ -12,7 +12,6 @@ import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
-
 import GridList from '../components/gridList';
 
 const getIcon = (record: any) => {

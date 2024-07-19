@@ -46,6 +46,7 @@ import { IdpIcon } from './idps/IdpIcon';
 import { UserIcon } from './users/UserIcon';
 import { GroupShow } from './group/GroupShow';
 import { GroupIcon } from './group/GroupIcon';
+import { RecourceIcon } from './resources/ResourceIcon';
 
 //config
 const CONTEXT_PATH: string =
@@ -147,7 +148,7 @@ const DevApp = () => {
                 <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} />
                 <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} icon={UserIcon}/>
                 <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />} show={<GroupShow />} icon={GroupIcon}/>
-                <Resource name="resources" list={<ScopeList/>}  />
+                <Resource name="resources" list={<ScopeList/>}  icon={RecourceIcon} />
                 <Resource name="attributeset" list={<AttributeSetList/>}  />
                 <Resource name="templates" list={<TemplateList/>}  />             
             </Admin>
