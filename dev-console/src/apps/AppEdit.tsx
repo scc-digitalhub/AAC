@@ -1,10 +1,4 @@
-import {
-    Box,
-    Card,
-    CardContent,
-    Divider,
-    Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, Divider, Typography } from '@mui/material';
 import {
     Edit,
     EditBase,
@@ -21,6 +15,7 @@ import {
     useNotify,
     useRecordContext,
     useRefresh,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -31,13 +26,11 @@ import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { PageTitle } from '../components/pageTitle';
+import { TabTitle } from '../components/tabTitle';
 
 export const AppEdit = () => {
     return (
-        <Edit
-            actions={<EditToolBarActions />}
-            mutationMode="pessimistic"
-        >
+        <Edit actions={<EditToolBarActions />} mutationMode="pessimistic">
             <AppTabComponent />
         </Edit>
     );
@@ -187,33 +180,36 @@ const uiSchemaOAuthClient: UiSchema = {
 
 const AppTabComponent = () => {
     const record = useRecordContext();
+    const translate = useTranslate();
     if (!record) return null;
 
     return (
         <>
-
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedShowLayout  syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Settings">
+            <TabbedShowLayout syncWithLocation={false}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.settings.title')}
+                >
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
                     <EditSetting />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="OAuth2">
-                    <Typography variant="h5">
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" >
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.configuration.title')}
+                >
+                    <TabTitle
+                        text={translate('page.app.configuration.header.title')}
+                        secondaryText={translate(
+                            'page.app.configuration.header.subtitle'
+                        )}
+                    />
                     <EditOAuthJsonSchemaForm />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
     );
 };
-
 
 const EditSetting = () => {
     const notify = useNotify();
@@ -225,10 +221,7 @@ const EditSetting = () => {
         refresh();
     };
     return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{  onSuccess }}
-        >
+        <EditBase mutationMode="pessimistic" mutationOptions={{ onSuccess }}>
             <Form>
                 <Card>
                     <CardContent>
@@ -270,12 +263,11 @@ const EditToolBarActions = () => {
         <TopToolbar>
             <ShowButton />
             <InspectButton />
-             <DeleteWithDialogButton/>
-        <ExportRecordButton language="yaml" color="info" />
+            <DeleteWithDialogButton />
+            <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
     );
 };
-
 
 const EditOAuthJsonSchemaForm = () => {
     const notify = useNotify();
@@ -288,10 +280,7 @@ const EditOAuthJsonSchemaForm = () => {
     };
 
     return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{ onSuccess }}
-        >
+        <EditBase mutationMode="pessimistic" mutationOptions={{ onSuccess }}>
             <SimpleForm toolbar={<MyToolbar />}>
                 <JsonSchemaInput
                     source="configuration"

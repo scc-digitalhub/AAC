@@ -86,6 +86,35 @@ const enMessages: TranslationMessages = {
                 manage: 'Manage authentications',
             },
         },
+        app:{
+            overview: {
+                title: 'Overview',
+
+            },
+            list:{
+                title: 'Client applications',
+                subtitle: 'Manage web, mobile, server and IoT applications'
+            },
+            credentials:{
+                title: 'Credentials',
+                header: {
+                    title:'OAuth2 Credentials',
+                    subtitle:'Client credentials to authenticate with AAC.'
+                }
+            },
+            settings: {
+                title:'Settings',
+
+            },
+            configuration: {
+                title:'OAuth2',
+                header: {
+                    title:'OAuth2.0 Configuration',
+                    subtitle:'Basic client configuration for OAuth2/OpenId Connect'
+                }
+            }
+
+        },
         accounts: {
             header: 'Accounts',
             description:

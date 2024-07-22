@@ -8,6 +8,7 @@ import {
     ShowButton,
     EditButton,
     ExportButton,
+    useTranslate,
 } from 'react-admin';
 import { YamlExporter } from '../components/YamlExporter';
 import { RowButtonGroup } from '../components/RowButtonGroup';
@@ -19,11 +20,12 @@ import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 
 export const AppList = () => {
+    const translate = useTranslate();
     return (
         <>
             <PageTitle
-                text="Client applications"
-                secondaryText="Manage web, mobile, server and IoT applications"
+                text={translate('page.app.list.title')}
+                secondaryText={translate('page.app.list.subtitle')}
             />
             <List
                 exporter={YamlExporter}
@@ -51,22 +53,21 @@ const RealmFilters = [<SearchInput source="q" alwaysOn />];
 const transform = (data: any) => {
     return {
         ...data,
-        configuration:{ applicationType: data.type },
+        configuration: { applicationType: data.type },
         type: 'oauth2',
-    }
+    };
 };
 const AppListActions = () => {
     return (
         <TopToolbar>
             <CreateInDialogButton
-                    fullWidth
-                    maxWidth={'md'}
-                    variant="contained"
-                    transform={transform}
-
-                >
-                    <AppCreateForm />
-                </CreateInDialogButton>
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={transform}
+            >
+                <AppCreateForm />
+            </CreateInDialogButton>
             <ExportButton variant="contained" />
         </TopToolbar>
     );

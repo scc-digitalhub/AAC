@@ -7,10 +7,12 @@ import {
     TextField,
     TopToolbar,
     useRecordContext,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { PageTitle } from '../components/pageTitle';
+import { TabTitle } from '../components/tabTitle';
 
 export const AppShow = () => {
     return (
@@ -22,31 +24,30 @@ export const AppShow = () => {
 
 const AppTabComponent = () => {
     const record = useRecordContext();
+    const translate = useTranslate();
     if (!record) return null;
 
     return (
         <>
-                    <PageTitle
-                text={record.name}
-                secondaryText={record?.id}
-            />
-            <TabbedShowLayout  syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Overview">
+            <PageTitle text={record.name} secondaryText={record?.id} />
+            <TabbedShowLayout syncWithLocation={false}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.overview.title')}
+                >
                     <TextField source="name" />
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
                 </TabbedShowLayout.Tab>
-                {/* <TabbedShowLayout.Tab label="Quickstart">
-                    <RichTextField source="body" label={false} />
-                </TabbedShowLayout.Tab> */}
-                <TabbedShowLayout.Tab label="Credentials">
-                    <Typography variant="h6" >
-                        OAuth2 Credentials
-                    </Typography>
-                    <Typography >
-                        Client credentials to authenticate with AAC.
-                    </Typography>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.credentials.title')}
+                >
+                    <TabTitle
+                        text={translate('page.app.credentials.header.title')}
+                        secondaryText={translate(
+                            'page.app.credentials.header.subtitle'
+                        )}
+                    />
                     <TextField label="Client ID" source="clientId" />
                     {record.configuration.clientSecret && (
                         <TextField

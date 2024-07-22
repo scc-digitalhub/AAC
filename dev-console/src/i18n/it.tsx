@@ -149,6 +149,29 @@ const messages: TranslationMessages = {
                 manage: 'Gestisci le autenticazioni',
             },
         },
+        app:{
+            overview: {
+                title: 'Informazioni',
+
+            },
+            credentials:{
+                title: 'Credenziali',
+                header: {
+                    title:'Credenziali OAuth2',
+                    subtitle:'Gestisci le credenziali client per AAC',
+                }
+            },
+            settings: {
+                title:'Impostazioni',
+            },
+            configuration: {
+                title:'OAuth2',
+                header: {
+                    title:'Configurazione OAuth2.0',
+                    subtitle:'Configurazione base per client OAuth2/OpenId '
+                }
+            }
+        },
         accounts: {
             header: 'Account',
             description:
