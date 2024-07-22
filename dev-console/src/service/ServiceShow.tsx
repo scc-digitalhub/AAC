@@ -10,6 +10,7 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import { PageTitle } from '../components/pageTitle';
 
 export const ServiceShow = () => {
     return (
@@ -25,14 +26,10 @@ const AppTabComponent = () => {
 
     return (
         <>
-            <br />
-            <Typography variant="h5" >
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" >
-                {record.id}
-            </Typography>
-            <br />
+            <PageTitle
+                text={record.name}
+                secondaryText={record?.id}
+            />
             <TabbedShowLayout  syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="id" />

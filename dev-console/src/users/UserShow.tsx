@@ -1,7 +1,4 @@
-import {
-    IconButton,
-    Typography,
-} from '@mui/material';
+import { IconButton, Typography } from '@mui/material';
 import {
     Button,
     Show,
@@ -22,6 +19,7 @@ import BlockIcon from '@mui/icons-material/Block';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { PageTitle } from '../components/pageTitle';
 
 export const UserShow = () => {
     return (
@@ -37,14 +35,7 @@ const UserTabComponent = () => {
 
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.username}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                <IdField source="id" />
-            </Typography>
-            <br />
+            <PageTitle text={record.username} secondaryText={record?.id} />
             <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="username" />
@@ -88,7 +79,7 @@ const ShowToolBarActions = () => {
         <TopToolbar>
             <InspectButton />
             <ActiveButton />
-            <DeleteWithDialogButton/>
+            <DeleteWithDialogButton />
         </TopToolbar>
     );
 };

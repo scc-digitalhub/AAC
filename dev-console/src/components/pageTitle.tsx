@@ -29,6 +29,6 @@ export const PageTitle = (props: PageTitleProps) => {
 
 export interface PageTitleProps {
     text: string;
-    secondaryText?: string;
+    secondaryText?: string|number|undefined;
     icon?: ReactElement;
 }

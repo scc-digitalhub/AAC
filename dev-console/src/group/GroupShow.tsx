@@ -11,6 +11,7 @@ import {
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { IdField } from '../components/IdField';
+import { PageTitle } from '../components/pageTitle';
 
 export const GroupShow = () => {
     return (
@@ -26,14 +27,7 @@ const GroupTabComponent = () => {
 
     return (
         <>
-            <br />
-            <Typography variant="h5" >
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                <IdField source="id" />
-            </Typography>
-            <br />
+            <PageTitle text={record.name} secondaryText={record?.id} />
             <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="id" />
