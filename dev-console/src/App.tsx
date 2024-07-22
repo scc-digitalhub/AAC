@@ -3,7 +3,7 @@ import { Admin, Resource, defaultTheme } from 'react-admin';
 import { BrowserRouter } from 'react-router-dom';
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
-import MyLayout from './components/layout';
+import MyLayout from './components/MyLayout';
 
 import 'typeface-titillium-web';
 import 'typeface-roboto-mono';
