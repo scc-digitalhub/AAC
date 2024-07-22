@@ -30,6 +30,7 @@ import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
+import { PageTitle } from '../components/pageTitle';
 
 export const AppEdit = () => {
     return (
@@ -190,14 +191,8 @@ const AppTabComponent = () => {
 
     return (
         <>
-            <br />
-            <Typography variant="h5" >
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" >
-                {record.id}
-            </Typography>
-            <br />
+
+            <PageTitle text={record.name} secondaryText={record?.id} />
             <TabbedShowLayout  syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Settings">
                     <TextField source="type" />
