@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 export const DropDownButton = (props: DrodownButtonProps) => {
     const {
         icon,
-        label = 'ra.action.actions',
+        label = 'action.actions',
         record: recordProp,
         resource: resourceProp,
         children,
