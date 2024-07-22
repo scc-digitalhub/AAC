@@ -21,6 +21,9 @@ const enMessages: TranslationMessages = {
         spanish: 'Spanish',
         latvian: 'Latvian',
     },
+    menu: {
+        configuration: 'Configuration',
+    },
     resources: {
         accounts: {
             name: 'Account |||| Accounts',
@@ -137,6 +140,7 @@ const enMessages: TranslationMessages = {
     },
     action: {
         register: 'Register',
+        actions: 'Actions',
     },
     field: {
         username: 'Username',
