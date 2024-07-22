@@ -47,6 +47,10 @@ import { UserIcon } from './users/UserIcon';
 import { GroupShow } from './group/GroupShow';
 import { GroupIcon } from './group/GroupIcon';
 import { RecourceIcon } from './resources/ResourceIcon';
+import { ServiceShow } from './service/ServiceShow';
+import { ServiceEdit } from './service/ServiceEdit';
+import { ServiceIcon } from './service/ServiceIcon';
+import { AttributeIcon } from './attributeset/AttributeIcon';
 
 //config
 const CONTEXT_PATH: string =
@@ -145,12 +149,12 @@ const DevApp = () => {
                 <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>}  icon={IdpIcon}/>
                 <Resource name="myrealms" icon={RealmIcon} />
                 <Resource name="audit" list={<AuditList/>}  />
-                <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} />
+                <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} show={<ServiceShow/>} edit={<ServiceEdit/>} icon={ServiceIcon}/>
                 <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} icon={UserIcon}/>
                 <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />} show={<GroupShow />} icon={GroupIcon}/>
                 <Resource name="resources" list={<ScopeList/>}  icon={RecourceIcon} />
-                <Resource name="attributeset" list={<AttributeSetList/>}  />
-                <Resource name="templates" list={<TemplateList/>}  />             
+                {/* <Resource name="roles" list={<RolesList/>}  icon={RecourceIcon} /> */}
+                <Resource name="attributeset" list={<AttributeSetList/>} icon={AttributeIcon} />
             </Admin>
         </RootSelectorContextProvider>
     );

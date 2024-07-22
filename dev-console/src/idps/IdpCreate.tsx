@@ -23,13 +23,6 @@ export const IdpCreate = () => {
             realm: realmId,
             configuration: { applicationType: data.type },
         };
-        // let body = {};
-        // body['name'] = data.name;
-        // body['type'] = 'identity';
-        //  body['realm'] =realmId;
-        // body['authority'] = data.authority;
-        // body['configuration'] = { applicationType: data.type };
-        // return body;
     };
 
     return (

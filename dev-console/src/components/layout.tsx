@@ -158,6 +158,8 @@ export const MyMenu = () => {
                 <Menu.ResourceItem name="groups" />
                 <Menu.ResourceItem name="resources" />
                 <Menu.ResourceItem name="templates" />
+                <Menu.ResourceItem name="services" />
+                <Menu.ResourceItem name="roles" />
                 <Menu.ResourceItem name="attributeset" />
                 <Divider />
                 <MenuItemLink
