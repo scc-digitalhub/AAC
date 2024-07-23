@@ -12,7 +12,7 @@ import {
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { PageTitle } from '../components/pageTitle';
-import { TabTitle } from '../components/tabTitle';
+import { SectionTitle } from '../components/sectionTitle';
 
 export const AppShow = () => {
     return (
@@ -42,7 +42,7 @@ const AppTabComponent = () => {
                 <TabbedShowLayout.Tab
                     label={translate('page.app.credentials.title')}
                 >
-                    <TabTitle
+                    <SectionTitle
                         text={translate('page.app.credentials.header.title')}
                         secondaryText={translate(
                             'page.app.credentials.header.subtitle'

@@ -8,6 +8,7 @@ import {
     TopToolbar,
     DateInput,
     SelectInput,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentFilter from '@mui/icons-material/FilterList';
@@ -15,9 +16,12 @@ import { Typography } from '@mui/material';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Box } from '@mui/material';
 import React from 'react';
+import { PageTitle } from '../components/pageTitle';
+import { SectionTitle } from '../components/sectionTitle';
 
 export const AttributeSetList = () => {
     const params = useParams();
+    const translate = useTranslate();
     const options = {
         meta: { realmId: params.realmId },
         filter: { system: true },
@@ -25,16 +29,7 @@ export const AttributeSetList = () => {
     useListContext<any>();
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ mt: 1 }}>
-                Attribute sets
-            </Typography>
-            <Typography variant="h6">
-                Register and manage custom attribute sets for users. Each custom
-                attribute set will be available as custom profile for
-                consumption both via profiles api and via token claims, with an
-                associated scope profile.setidentifier.me
-            </Typography>
+        <SectionTitle text={translate("page.attributeset.list.title")}  secondaryText={translate("page.attributeset.list.subtitle")} />
             <List
                 actions={<ListActions />}
                 queryOptions={options}

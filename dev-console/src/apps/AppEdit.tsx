@@ -26,7 +26,7 @@ import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { PageTitle } from '../components/pageTitle';
-import { TabTitle } from '../components/tabTitle';
+import { SectionTitle } from '../components/sectionTitle';
 
 export const AppEdit = () => {
     return (
@@ -198,7 +198,7 @@ const AppTabComponent = () => {
                 <TabbedShowLayout.Tab
                     label={translate('page.app.configuration.title')}
                 >
-                    <TabTitle
+                    <SectionTitle
                         text={translate('page.app.configuration.header.title')}
                         secondaryText={translate(
                             'page.app.configuration.header.subtitle'

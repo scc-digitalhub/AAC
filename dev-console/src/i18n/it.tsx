@@ -172,6 +172,12 @@ const messages: TranslationMessages = {
                 }
             }
         },
+        attributeset: {
+            list: {
+                title: 'Set di attributi',
+                subtitle: 'Registra e gestisci i set di attributi personalizzati. Ogni attributo personalizzato sarà disponibile come profilo personalizzato per essere utilizzato sia via profili API che via token, con uno scope associato profile.setidentifier.me',
+            },
+        },
         accounts: {
             header: 'Account',
             description:

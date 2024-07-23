@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material';
 import { ReactElement } from 'react';
 
-export const TabTitle = (props: TabTitleProps) => {
+export const SectionTitle = (props: TabTitleProps) => {
     const { text, secondaryText, icon } = props;
 
     return (

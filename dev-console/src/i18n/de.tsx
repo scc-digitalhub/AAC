@@ -132,6 +132,12 @@ const messages: TranslationMessages = {
                 }
             }
         },
+        attributeset: {
+            list: {
+                title: 'Set Attribute',
+                subtitle: 'Registrieren und verwalten Sie benutzerdefinierte Attributsätze. Jedes benutzerdefinierte Attribut ist als benutzerdefiniertes Profil verfügbar, das entweder über die Profil-API oder ein Token mit einem zugeordneten Bereich „profile.setidentifier.me“ verwendet werden kann',
+            },
+        },
         accounts: {
             header: 'Konto',
             description:

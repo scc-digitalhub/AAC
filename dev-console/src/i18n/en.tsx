@@ -115,6 +115,12 @@ const enMessages: TranslationMessages = {
             }
 
         },
+        attributeset: {
+            list: {
+                title: 'Attribute sets',
+                subtitle: 'Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope profile.setidentifier.me',
+            },
+        },
         accounts: {
             header: 'Accounts',
             description:
