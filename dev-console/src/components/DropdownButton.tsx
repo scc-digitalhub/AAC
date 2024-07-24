@@ -25,6 +25,7 @@ export const DropDownButton = (props: DrodownButtonProps) => {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const handleOpen = (event: MouseEvent<HTMLElement>): void => {
+        event.stopPropagation();
         setAnchorEl(event.currentTarget);
     };
     const handleClose = (): void => {
