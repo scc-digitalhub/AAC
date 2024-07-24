@@ -4,21 +4,23 @@ import {
     Datagrid,
     TextField,
     TopToolbar,
-    CreateButton,
-    ShowButton,
-    EditButton,
     ExportButton,
     useTranslate,
+    BulkDeleteButton
 } from 'react-admin';
 import { YamlExporter } from '../components/YamlExporter';
-import { RowButtonGroup } from '../components/RowButtonGroup';
 import { IdField } from '../components/IdField';
 import { PageTitle } from '../components/pageTitle';
-import { DropDownButton } from '../components/DropdownButton';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { Box } from '@mui/material';
 
+const PostBulkActionButtons = () => (
+    <>
+        <BulkDeleteButton />
+    </>
+);
 export const AppList = () => {
     const translate = useTranslate();
     return (
@@ -32,17 +34,12 @@ export const AppList = () => {
                 actions={<AppListActions />}
                 filters={RealmFilters}
                 sort={{ field: 'name', order: 'DESC' }}
+                component={Box}
             >
-                <Datagrid bulkActionButtons={false}>
+                <Datagrid bulkActionButtons={<PostBulkActionButtons />} rowClick="show">
                     <TextField source="name" />
                     <IdField source="id" />
-                    <RowButtonGroup label="⋮">
-                        <DropDownButton>
-                            <ShowButton />
-                            <EditButton />
-                            <DeleteWithDialogButton />
-                        </DropDownButton>
-                    </RowButtonGroup>
+                    <ActionsButtons />
                 </Datagrid>
             </List>
         </>

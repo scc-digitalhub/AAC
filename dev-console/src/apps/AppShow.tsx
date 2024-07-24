@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
     EditButton,
     RichTextField,
@@ -9,15 +9,16 @@ import {
     useRecordContext,
     useTranslate,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { PageTitle } from '../components/pageTitle';
 import { SectionTitle } from '../components/sectionTitle';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const AppShow = () => {
     return (
-        <Show actions={<ShowToolBarActions />}>
-            <AppTabComponent />
+        <Show actions={<ShowToolBarActions />}  component={Box}>
+            <AppTabComponent  />
         </Show>
     );
 };
@@ -30,7 +31,7 @@ const AppTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedShowLayout syncWithLocation={false}>
+            <TabbedShowLayout syncWithLocation={false} >
                 <TabbedShowLayout.Tab
                     label={translate('page.app.overview.title')}
                 >
@@ -38,6 +39,12 @@ const AppTabComponent = () => {
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.settings.title')}
+                >
+                    <TextField source="name" />
+                    <TextField source="description" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.app.credentials.title')}
@@ -62,33 +69,21 @@ const AppTabComponent = () => {
                         />
                     )}
                 </TabbedShowLayout.Tab>
-                {/* <TabbedShowLayout.Tab label="Test">
-                    <ReferenceManyField
-                        reference="comments"
-                        target="post_id"
-                        label={false}
-                    >
-                        <Datagrid>
-                            <TextField source="body" />
-                            <DateField source="created_at" />
-                            <EditButton />
-                        </Datagrid>
-                    </ReferenceManyField>
-                </TabbedShowLayout.Tab> */}
-                {/* <TabbedShowLayout.Tab label="Endpoint">
-                    <RichTextField source="body" label={false} />
-                </TabbedShowLayout.Tab> */}
+
             </TabbedShowLayout>
         </>
     );
 };
 
 const ShowToolBarActions = () => {
+    const record = useRecordContext();
+    if (!record) return null;
     return (
         <TopToolbar>
-            <>
-                <EditButton></EditButton>
-            </>
+            <EditButton />
+            <InspectButton />
+            <DeleteWithDialogButton />
+            <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
     );
 };

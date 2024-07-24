@@ -30,7 +30,7 @@ import { SectionTitle } from '../components/sectionTitle';
 
 export const AppEdit = () => {
     return (
-        <Edit actions={<EditToolBarActions />} mutationMode="pessimistic">
+        <Edit actions={<EditToolBarActions />} mutationMode="pessimistic" component={Box}>
             <AppTabComponent />
         </Edit>
     );
@@ -179,20 +179,33 @@ const uiSchemaOAuthClient: UiSchema = {
 };
 
 const AppTabComponent = () => {
-    const record = useRecordContext();
     const translate = useTranslate();
+    const notify = useNotify();
+    const refresh = useRefresh();
+    const { isLoading, record } = useEditContext<any>();
+    if (isLoading || !record) return null;
+    const onSuccess = () => {
+        notify(`App updated successfully`);
+        refresh();
+    };
     if (!record) return null;
-
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
+            <EditBase mutationMode="pessimistic" mutationOptions={{ onSuccess }}>
+            <Form>
             <TabbedShowLayout syncWithLocation={false}>
-                <TabbedShowLayout.Tab
-                    label={translate('page.app.settings.title')}
+            <TabbedShowLayout.Tab
+                    label={translate('page.app.overview.title')}
                 >
+                    <TextField source="name" />
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.settings.title')}
+                >
                     <EditSetting />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
@@ -207,6 +220,8 @@ const AppTabComponent = () => {
                     <EditOAuthJsonSchemaForm />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
+            </Form>
+        </EditBase>
         </>
     );
 };
