@@ -22,12 +22,19 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { PageTitle } from '../components/pageTitle';
 import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
+import { Page } from '../components/page';
 
 export const AppEdit = () => {
     return (
-        <Edit actions={<EditToolBarActions />} mutationMode="pessimistic" component={Box}>
-            <AppTabComponent />
-        </Edit>
+        <Page>
+            <Edit
+                actions={<EditToolBarActions />}
+                mutationMode="pessimistic"
+                component={Box}
+            >
+                <AppTabComponent />
+            </Edit>
+        </Page>
     );
 };
 
@@ -36,7 +43,6 @@ const MyToolbar = () => (
         <SaveButton />
     </Toolbar>
 );
-
 
 const AppTabComponent = () => {
     const translate = useTranslate();
@@ -48,18 +54,14 @@ const AppTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedForm  toolbar={<MyToolbar />}>
-            <TabbedForm.Tab
-                    label={translate('page.app.overview.title')}
-                >
+            <TabbedForm toolbar={<MyToolbar />}>
+                <TabbedForm.Tab label={translate('page.app.overview.title')}>
                     <TextField source="name" />
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
                 </TabbedForm.Tab>
-                <TabbedForm.Tab
-                    label={translate('page.app.settings.title')}
-                >
+                <TabbedForm.Tab label={translate('page.app.settings.title')}>
                     <EditSetting />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab
@@ -73,16 +75,13 @@ const AppTabComponent = () => {
                     />
                     <EditOAuthJsonSchemaForm />
                 </TabbedForm.Tab>
-                <TabbedForm.Tab
-                label="Providers">
+                <TabbedForm.Tab label="Providers">
                     <ReferenceArrayInput source="providers" reference="idps" />
                 </TabbedForm.Tab>
-                <TabbedForm.Tab
-                label="Scopes">
-                    <ReferenceArrayInput source="scopes" reference="scopes"  />
+                <TabbedForm.Tab label="Scopes">
+                    <ReferenceArrayInput source="scopes" reference="scopes" />
                 </TabbedForm.Tab>
             </TabbedForm>
-
         </>
     );
 };
@@ -93,23 +92,19 @@ const EditSetting = () => {
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
     return (
-                        <Box>
-                            <Box display="flex">
-                                <Box flex="1" mt={-1}>
-                                    <Box display="flex" width={430}>
-                                        <TextInput source="name" fullWidth />
-                                    </Box>
-                                    <Box display="flex" width={430}>
-                                        <TextInput
-                                            source="description"
-                                            fullWidth
-                                        />
-                                    </Box>
-                                    <Divider />
-                                </Box>
-                            </Box>
-                        </Box>
-                    
+        <Box>
+            <Box display="flex">
+                <Box flex="1" mt={-1}>
+                    <Box display="flex" width={430}>
+                        <TextInput source="name" fullWidth />
+                    </Box>
+                    <Box display="flex" width={430}>
+                        <TextInput source="description" fullWidth />
+                    </Box>
+                    <Divider />
+                </Box>
+            </Box>
+        </Box>
     );
 };
 
@@ -132,10 +127,10 @@ const EditOAuthJsonSchemaForm = () => {
     if (isLoading || !record) return null;
 
     return (
-                <JsonSchemaInput
-                    source="configuration"
-                    schema={schemaOAuthClient}
-                    uiSchema={uiSchemaOAuthClient}
-                />
+        <JsonSchemaInput
+            source="configuration"
+            schema={schemaOAuthClient}
+            uiSchema={uiSchemaOAuthClient}
+        />
     );
 };

@@ -22,12 +22,15 @@ import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
+import { Page } from '../components/page';
 
 export const AppShow = () => {
     return (
+        <Page>
         <Show actions={<ShowToolBarActions />} component={Box}>
             <AppTabComponent />
         </Show>
+        </Page>
     );
 };
 

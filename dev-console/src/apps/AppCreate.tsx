@@ -6,6 +6,7 @@ import {
     Toolbar,
 } from 'react-admin';
 import { Card, CardContent, Box, Divider } from '@mui/material';
+import { Page } from '../components/page';
 
 export const AppCreate = () => {
 
@@ -17,12 +18,14 @@ export const AppCreate = () => {
         };
     };
     return (
+        <Page>
         <CreateBase
             transform={transform}
             redirect={'list'}
         >
             <AppCreateForm />
         </CreateBase>
+        </Page>
     );
 };
 export const AppCreateForm = () => {

@@ -24,7 +24,6 @@ const PostBulkActionButtons = () => (
 export const AppList = () => {
     const translate = useTranslate();
     return (
-        // <Paper elevation={1}>
         <Page>
             <PageTitle
                 text={translate('page.app.list.title')}
