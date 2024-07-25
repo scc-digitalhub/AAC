@@ -108,6 +108,20 @@ audit:
    kid:
       sig: ${AUDIT_KID_SIG:}         
       enc: ${AUDIT_KID_ENC:}
+   jdbc:
+     dialect: ${AUDIT_JDBC_DIALECT:${jdbc.dialect}}
+     driver: ${AUDIT_JDBC_DRIVER:${jdbc.driver}}
+     url: ${AUDIT_JDBC_URL:${jdbc.url}}
+     user: ${AUDIT_JDBC_USER:${jdbc.user}}
+     password: ${AUDIT_JDBC_PASS:${jdbc.password}}
+     show-sql: false
+     initialize-schema: always
+     max-pool-size: ${AUDIT_JDBC_MAX_POOL_SIZE:${jdbc.maxpoolsize}}
+     min-pool-size: ${AUDIT_JDBC_MIN_POOL_SIZE:${jdbc.minpoolsize}}
+     idle-timeout: ${AUDIT_JDBC_IDLE_TIMEOUT:${jdbc.idletimeout}}
+     keep-alive-timeout: ${AUDIT_JDBC_KEEP_ALIVE_TIMEOUT:${jdbc.keepalivetimeout}}
+     connection-timeout: ${AUDIT_JDBC_CONNECTION_TIMEOUT:${jdbc.connectiontimeout}}
+     data-source-properties: {}
 
 #EXTERNAL PROVIDERS
 authorities:
@@ -167,6 +181,13 @@ authorities:
      saml:
         signAuthNRequest: true
         ssoServiceBinding: HTTP-POST
+#     spid:
+#        userNameAttributeName: SPID_CODE
+#        idAttribute: SPID_CODE
+#        useSpidCodeAsNameId: true
+#        spidAttributes: SPID_CODE
+#        ssoServiceBinding: HTTP-POST
+#        authnContext: SPID_L2
      webauthn:
         allowUntrustedAttestation: true
         loginTimeout: 10
@@ -221,7 +242,69 @@ providers:
           clientId: ${IDP_GOOGLE_CLIENT_ID}
           clientSecret: ${IDP_GOOGLE_CLIENT_SECRET}
   attributes:
-    
+
+spid:
+   identityProviders:
+      - entityName: Aruba ID
+        entityId: https://loginspid.aruba.it
+        entityLabel: arubaid
+        metadataUrl: https://loginspid.aruba.it/metadata
+        iconUrl: /spid/img/spid-idp-arubaid.svg
+      - entityName: EtnaHitech S.C.p.A.
+        entityId: https://id.eht.eu
+        entityLabel: ethnahitech
+        metadataUrl: https://id.eht.eu/metadata.xml
+        iconUrl: /spid/img/spid-idp-etnaid.svg
+      - entityName: InfoCamere S.C.p.A.
+        entityId: https://loginspid.infocamere.it
+        entityLabel: infocamere
+        metadataUrl: https://loginspid.infocamere.it/metadata
+        iconUrl: /spid/img/spid-idp-infocamereid.svg
+      - entityName: Infocert ID
+        entityId: https://identity.infocert.it
+        entityLabel: infocertid
+        metadataUrl: https://identity.infocert.it/metadata/metadata.xml
+        iconUrl: /spid/img/spid-idp-infocertid.svg
+      - entityName: Intesi Group S.p.A.
+        entityId: https://idp.intesigroup.com
+        entityLabel: intesigroup
+        metadataUrl: https://spid.intesigroup.com/metadata/metadata.xml
+        iconUrl: /spid/img/spid-idp-intesigroupspid.svg
+      - entityName: Lepida ID
+        entityId: https://id.lepida.it/idp/shibboleth
+        entityLabel: lepidaid
+        metadataUrl: https://id.lepida.it/idp/shibboleth
+        iconUrl: /spid/img/spid-idp-lepidaid.svg
+      - entityName: Namirial ID
+        entityId: https://idp.namirialtsp.com/idp
+        entityLabel: namirialid
+        metadataUrl: https://idp.namirialtsp.com/idp/metadata
+        iconUrl: /spid/img/spid-idp-namirialid.svg
+      - entityName: Poste ID
+        entityId: https://posteid.poste.it
+        entityLabel: posteid
+        metadataUrl: https://posteid.poste.it/jod-fs/metadata/metadata.xml
+        iconUrl: /spid/img/spid-idp-posteid.svg
+      - entityName: Sielte ID
+        entityId: https://identity.sieltecloud.it
+        entityLabel: sielteid
+        metadataUrl: https://identity.sieltecloud.it/simplesaml/metadata.xml
+        iconUrl: /spid/img/spid-idp-sielteid.svg
+      - entityName: SPIDItalia Register.it
+        entityId: https://spid.register.it
+        entityLabel: spiditalia
+        metadataUrl: https://spid.register.it/login/metadata
+        iconUrl: /spid/img/spid-idp-spiditalia.svg
+      - entityName: TeamSystem ID
+        entityId: https://spid.teamsystem.com/idp
+        entityLabel: teamsystem
+        metadataUrl: https://spid.teamsystem.com/idp
+        iconUrl: /spid/img/spid-idp-teamsystemid.svg
+      - entityName: Tim ID
+        entityId: https://login.id.tim.it/affwebservices/public/saml2sso
+        entityLabel: timid
+        metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp
+        iconUrl: /spid/img/spid-idp-timid.svg
 
 attributesets:
   sets:

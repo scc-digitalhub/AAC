@@ -85,6 +85,9 @@ const messages: TranslationMessages = {
         spanish: 'Spagnolo',
         latvian: 'Lettone',
     },
+    menu: {
+        configuration: 'Configurazione',
+    },
     resources: {
         accounts: {
             name: 'Account |||| Account',
@@ -146,6 +149,35 @@ const messages: TranslationMessages = {
                 manage: 'Gestisci le autenticazioni',
             },
         },
+        app:{
+            overview: {
+                title: 'Informazioni',
+
+            },
+            credentials:{
+                title: 'Credenziali',
+                header: {
+                    title:'Credenziali OAuth2',
+                    subtitle:'Gestisci le credenziali client per AAC',
+                }
+            },
+            settings: {
+                title:'Impostazioni',
+            },
+            configuration: {
+                title:'OAuth2',
+                header: {
+                    title:'Configurazione OAuth2.0',
+                    subtitle:'Configurazione base per client OAuth2/OpenId '
+                }
+            }
+        },
+        attributeset: {
+            list: {
+                title: 'Set di attributi',
+                subtitle: 'Registra e gestisci i set di attributi personalizzati. Ogni attributo personalizzato sarà disponibile come profilo personalizzato per essere utilizzato sia via profili API che via token, con uno scope associato profile.setidentifier.me',
+            },
+        },
         accounts: {
             header: 'Account',
             description:
@@ -201,6 +233,7 @@ const messages: TranslationMessages = {
     },
     action: {
         register: 'Registra',
+        actions: 'Azioni',
     },
     field: {
         username: 'Nome utente',

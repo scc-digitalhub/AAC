@@ -9,13 +9,11 @@ import {
     IconButton,
     Typography,
 } from '@mui/material';
-import 'ace-builds/src-noconflict/mode-yaml';
-import 'ace-builds/src-noconflict/theme-github';
+
 import React from 'react';
 import {
     Button,
     Create,
-    CreateButton,
     Datagrid,
     EditButton,
     Toolbar,
@@ -34,16 +32,22 @@ import {
     useRefresh,
     ExportButton,
     useTranslate,
+    ShowButton,
+    CreateButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import { YamlExporter } from '../components/YamlExporter';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { useRootSelector } from '@dslab/ra-root-selector';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { IdpCreateForm } from './IdpCreate';
+import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
+import { DropDownButton } from '../components/DropdownButton';
+import { RowButtonGroup } from '../components/RowButtonGroup';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
 
 export const IdpList = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     useListContext<any>();
     return (
         <>
@@ -58,7 +62,6 @@ export const IdpList = () => {
                 empty={<Empty />}
                 exporter={YamlExporter}
                 actions={<IdpListActions />}
-                queryOptions={options}
                 filters={RealmFilters}
                 sort={{ field: 'name', order: 'DESC' }}
             >
@@ -66,17 +69,16 @@ export const IdpList = () => {
                     <TextField source="name" />
                     <TextField source="authority" />
                     <IdField source="provider" />
-                    {<EnableIdpButton />}
-                    <EditIdpButton />
-                    <DeleteButtonDialog
-                        // rootId={params.realmId}
-                        // property="provider"
-                        title="IDP Deletion"
-                        // resourceName="Identity Provider"
-                        // registeredResource="idps"
-                        // redirectUrl={`/idps/r/${params.realmId}`}
-                    />
-                    <ExportIdpButton />
+
+                    <RowButtonGroup label="⋮">
+                        <DropDownButton>
+                            <EnableIdpButton />
+                            <ShowButton />
+                            <EditButton />
+                            <ExportRecordButton />
+                            <DeleteWithDialogButton />
+                        </DropDownButton>
+                    </RowButtonGroup>
                 </Datagrid>
             </List>
         </>
@@ -86,22 +88,22 @@ export const IdpList = () => {
 const RealmFilters = [<SearchInput source="q" alwaysOn />];
 
 const IdpListActions = () => {
-    const params = useParams();
     const notify = useNotify();
     const translate = useTranslate();
+    const { root: realmId } = useRootSelector();
+
     const options = {
-        meta: { realmId: params.realmId, import: false, resetId: false },
+        meta: { realmId: realmId, import: false, resetId: false },
     };
     const [open, setOpen] = React.useState(false);
-    const to = `/idps/r/${params.realmId}/create`;
-    const importTo = `/idps/r/${params.realmId}/import`;
+    const importTo = `/idps/r/${realmId}/import`;
     const handleClick = () => {
         setOpen(true);
     };
     const handleClose = () => {
         setOpen(false);
     };
-    const transform = (data: any) => {
+    const importTransform = (data: any) => {
         options.meta.import = true;
         options.meta.resetId = data.resetId;
         data = data.yamlInput;
@@ -118,9 +120,16 @@ const IdpListActions = () => {
                 variant="contained"
                 label="Add Provider"
                 sx={{ marginLeft: 2 }}
-                to={to}
             />
-            <ExportButton meta={options.meta} variant="contained" />
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={createTransform}
+            >
+                <IdpCreateForm />
+            </CreateInDialogButton>
+            <ExportButton variant="contained" />
             <Button
                 variant="contained"
                 label="Import"
@@ -146,7 +155,7 @@ const IdpListActions = () => {
                 </DialogTitle>
                 <DialogContent>
                     <Create
-                        transform={transform}
+                        transform={importTransform}
                         mutationOptions={{ ...options, onSuccess }}
                     >
                         <SimpleForm toolbar={<ImportToolbar />}>
@@ -173,26 +182,36 @@ const IdpListActions = () => {
         </TopToolbar>
     );
 };
-
+const createTransform = (data: any) => {
+    return {
+        ...data,
+        type: 'identity',
+        configuration: { applicationType: data.type },
+    };
+};
 const Empty = () => {
-    const params = useParams();
-    const to = `/idps/r/${params.realmId}/create`;
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
                 No provider available, create one
             </Typography>
-            <CreateButton variant="contained" label="New App" to={to} />
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={createTransform}
+            >
+                <IdpCreateForm />
+            </CreateInDialogButton>
         </Box>
     );
 };
 
-const EnableIdpButton = () => {
+export const EnableIdpButton = () => {
     const record = useRecordContext();
-    const params = useParams();
+    const { root: realmId } = useRootSelector();
     const notify = useNotify();
     const refresh = useRefresh();
-    const realmId = params.realmId;
     const [disable] = useDelete(
         'idps',
         {
@@ -246,36 +265,22 @@ const EnableIdpButton = () => {
     );
 };
 
-const EditIdpButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to = `/idps/r/${realmId}/${record.id}/edit`;
-    if (!record) return null;
-    return (
-        <>
-            <EditButton to={to}></EditButton>
-        </>
-    );
-};
-
-const ExportIdpButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/idps/${realmId}/${record.provider}/export`;
-    const handleExport = (data: any) => {
-        window.open(to, '_blank');
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleExport} label="Export"></Button>
-        </>
-    );
-};
+// const ExportIdpButton = () => {
+//     const record = useRecordContext();
+//     const { root: realmId } = useRootSelector();
+//     const to =
+//         process.env.REACT_APP_DEVELOPER_CONSOLE +
+//         `/idps/${realmId}/${record.provider}/export`;
+//     const handleExport = (data: any) => {
+//         window.open(to, '_blank');
+//     };
+//     if (!record) return null;
+//     return (
+//         <>
+//             <Button onClick={handleExport} label="Export"></Button>
+//         </>
+//     );
+// };
 
 const ImportToolbar = () => (
     <Toolbar>

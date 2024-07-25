@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import {
+    ListButton,
+    ListView,
     LoadingIndicator,
     useGetIdentity,
     useGetOne,
@@ -67,9 +69,8 @@ const DevDashboard = () => {
                             {translate('page.dashboard.apps.description')}
                         </CardContent>
                         <CardActions>
-                            <Button component={Link} to={`/apps/r/${realmId}`}>
-                                {translate('page.dashboard.apps.manage')}
-                            </Button>
+                        <ListButton resource='apps'  label={translate('page.dashboard.apps.manage')}/>
+
                         </CardActions>
                     </Card>
                 </Grid>
@@ -85,12 +86,7 @@ const DevDashboard = () => {
                             {translate('page.dashboard.services.description')}
                         </CardContent>
                         <CardActions>
-                            <Button
-                                component={Link}
-                                to={`/services/r/${realmId}`}
-                            >
-                                {translate('page.dashboard.services.manage')}
-                            </Button>
+                            <ListButton resource='services'  label={translate('page.dashboard.services.manage')}/>
                         </CardActions>
                     </Card>
                 </Grid>
@@ -110,15 +106,7 @@ const DevDashboard = () => {
                             )}
                         </CardContent>
                         <CardActions>
-                            <Button
-                                component={Link}
-                                to={`/idps/r/${realmId}`}
-                                size="small"
-                            >
-                                {translate(
-                                    'page.dashboard.authentications.manage'
-                                )}
-                            </Button>
+                        <ListButton resource='idps'  label={translate('page.dashboard.authentications.manage')}/>
                         </CardActions>
                     </Card>
                 </Grid>

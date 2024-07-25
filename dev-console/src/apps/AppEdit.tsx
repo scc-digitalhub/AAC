@@ -1,28 +1,11 @@
+import { Box, Card, CardContent, Divider, Typography } from '@mui/material';
 import {
-    Box,
-    Card,
-    CardContent,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    Divider,
-    Typography,
-} from '@mui/material';
-import {
-    ArrayInput,
-    BooleanInput,
-    Button,
     Edit,
     EditBase,
     Form,
-    NumberInput,
     SaveButton,
-    SelectArrayInput,
-    SelectInput,
     ShowButton,
     SimpleForm,
-    SimpleFormIterator,
-    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TextInput,
@@ -31,29 +14,23 @@ import {
     useEditContext,
     useNotify,
     useRecordContext,
-    useRedirect,
     useRefresh,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-// import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
-
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { PageTitle } from '../components/pageTitle';
+import { SectionTitle } from '../components/sectionTitle';
 
 export const AppEdit = () => {
     return (
-        <Edit
-            actions={<EditToolBarActions />}
-            mutationMode="pessimistic"
-        >
+        <Edit actions={<EditToolBarActions />} mutationMode="pessimistic" component={Box}>
             <AppTabComponent />
         </Edit>
     );
@@ -202,65 +179,64 @@ const uiSchemaOAuthClient: UiSchema = {
 };
 
 const AppTabComponent = () => {
-    const record = useRecordContext();
+    const translate = useTranslate();
+    const notify = useNotify();
+    const refresh = useRefresh();
+    const { isLoading, record } = useEditContext<any>();
+    if (isLoading || !record) return null;
+    const onSuccess = () => {
+        notify(`App updated successfully`);
+        refresh();
+    };
     if (!record) return null;
-
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                {record.id}
-            </Typography>
-            <br />
-            <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Settings">
+            <PageTitle text={record.name} secondaryText={record?.id} />
+            <EditBase mutationMode="pessimistic" mutationOptions={{ onSuccess }}>
+            <Form>
+            <TabbedShowLayout syncWithLocation={false}>
+            <TabbedShowLayout.Tab
+                    label={translate('page.app.overview.title')}
+                >
+                    <TextField source="name" />
                     <TextField source="type" />
                     <TextField source="clientId" />
                     <TextField source="scopes" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.settings.title')}
+                >
                     <EditSetting />
                 </TabbedShowLayout.Tab>
-                {/* <TabbedShowLayout.Tab label="OAuth2">
-                    <Typography variant="h5" sx={{ mr: 2 }}>
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
-                    <TextField source="clientId" />
-                    <EditOAuthSetting />
-                </TabbedShowLayout.Tab> */}
-                <TabbedShowLayout.Tab label="OAuth2">
-                    <Typography variant="h5" sx={{ mr: 2 }}>
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.configuration.title')}
+                >
+                    <SectionTitle
+                        text={translate('page.app.configuration.header.title')}
+                        secondaryText={translate(
+                            'page.app.configuration.header.subtitle'
+                        )}
+                    />
                     <EditOAuthJsonSchemaForm />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
+            </Form>
+        </EditBase>
         </>
     );
 };
-
 
 const EditSetting = () => {
     const notify = useNotify();
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
+    const onSuccess = () => {
         notify(`App updated successfully`);
         refresh();
     };
     return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{  onSuccess }}
-        >
+        <EditBase mutationMode="pessimistic" mutationOptions={{ onSuccess }}>
             <Form>
                 <Card>
                     <CardContent>
@@ -295,87 +271,31 @@ const EditSettingToolbar = (props: any) => (
 );
 
 const EditToolBarActions = () => {
-    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
-    let body = JSON.stringify(record, null, '\t');
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
+
     return (
         <TopToolbar>
             <ShowButton />
-            <Button label="Inspect" onClick={handleClick}>
-                {<VisibilityIcon />}
-            </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <EditBase>
-                        {/* <RichTextField source={body} /> */}
-                        <SimpleShowLayout>
-                            <Typography>Raw JSON</Typography>
-                            <Box>
-                                <AceEditor
-                                    setOptions={{
-                                        useWorker: false,
-                                    }}
-                                    mode="json"
-                                    value={body}
-                                    width="100%"
-                                    maxLines={20}
-                                    wrapEnabled
-                                    theme="github"
-                                    showPrintMargin={false}
-                                ></AceEditor>
-                            </Box>
-                        </SimpleShowLayout>
-                    </EditBase>
-                </DialogContent>
-            </Dialog>
-            <DeleteButtonDialog
-                confirmTitle="Client App"
-            />
-        <ExportRecordButton language="yaml" color="info" />
+            <InspectButton />
+            <DeleteWithDialogButton />
+            <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
     );
 };
 
-
 const EditOAuthJsonSchemaForm = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     const notify = useNotify();
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
+    const onSuccess = () => {
         notify(`App updated successfully`);
         refresh();
     };
 
     return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
-        >
+        <EditBase mutationMode="pessimistic" mutationOptions={{ onSuccess }}>
             <SimpleForm toolbar={<MyToolbar />}>
                 <JsonSchemaInput
                     source="configuration"

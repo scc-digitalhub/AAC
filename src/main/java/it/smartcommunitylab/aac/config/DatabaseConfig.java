@@ -62,6 +62,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "it.smartcommunitylab.aac.realms.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.saml.persistence",
+        "it.smartcommunitylab.aac.spid.persistence",
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.templates.persistence",
         "it.smartcommunitylab.aac.users.persistence",
@@ -83,6 +84,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         "it.smartcommunitylab.aac.realms.persistence",
         "it.smartcommunitylab.aac.roles.persistence",
         "it.smartcommunitylab.aac.saml.persistence",
+        "it.smartcommunitylab.aac.spid.persistence",
         "it.smartcommunitylab.aac.services.persistence",
         "it.smartcommunitylab.aac.templates.persistence",
         "it.smartcommunitylab.aac.users.persistence",
@@ -100,6 +102,21 @@ public class DatabaseConfig {
         HikariConfig config = buildDataSourceConfig(properties);
         config.setPoolName("jdbcConnectionPool");
 
+        return new HikariDataSource(config);
+    }
+
+    @Bean(name = "jdbcAuditDataSource")
+    public DataSource jdbcAuditDataSource(
+        @Qualifier("auditJdbcProperties") JdbcProperties auditJdbcProperties,
+        @Qualifier("jdbcProperties") JdbcProperties jdbcProperties,
+        @Qualifier("jdbcDataSource") DataSource jdbcDataSource
+    ) throws PropertyVetoException {
+        if (auditJdbcProperties.equals(jdbcProperties)) {
+            return jdbcDataSource;
+        }
+
+        HikariConfig config = buildDataSourceConfig(auditJdbcProperties);
+        config.setPoolName("jdbcAuditConnectionPool");
         return new HikariDataSource(config);
     }
 
@@ -153,6 +170,7 @@ public class DatabaseConfig {
             "it.smartcommunitylab.aac.realms.persistence",
             "it.smartcommunitylab.aac.roles.persistence",
             "it.smartcommunitylab.aac.saml.persistence",
+            "it.smartcommunitylab.aac.spid.persistence",
             "it.smartcommunitylab.aac.services.persistence",
             "it.smartcommunitylab.aac.templates.persistence",
             "it.smartcommunitylab.aac.users.persistence",
@@ -174,7 +192,7 @@ public class DatabaseConfig {
     @Bean(name = "coreJdbcDataSourceInitializer")
     public JdbcDataSourceInitializer jdbcDataSourceInitializer(
         @Qualifier("jdbcDataSource") DataSource dataSource,
-        JdbcProperties properties
+        @Qualifier("jdbcProperties") JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties);
     }
@@ -182,7 +200,7 @@ public class DatabaseConfig {
     @Bean(name = "oauth2JdbcDataSourceInitializer")
     public JdbcDataSourceInitializer oauth2DataSourceInitializer(
         @Qualifier("jdbcDataSource") DataSource dataSource,
-        JdbcProperties properties
+        @Qualifier("jdbcProperties") JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/oauth2/schema-@@platform@@.sql");
     }
@@ -190,8 +208,8 @@ public class DatabaseConfig {
     //TODO add optional ObjectProvider<DataSource> to support separated dataSource for audit
     @Bean(name = "auditJdbcDataSourceInitializer")
     public JdbcDataSourceInitializer auditDataSourceInitializer(
-        @Qualifier("jdbcDataSource") DataSource dataSource,
-        JdbcProperties properties
+        @Qualifier("jdbcAuditDataSource") DataSource dataSource,
+        @Qualifier("auditJdbcProperties") JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/audit/schema-@@platform@@.sql");
     }

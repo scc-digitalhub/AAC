@@ -31,6 +31,7 @@ public class SystemKeys {
     public static final long AAC_WEBAUTHN_SERIAL_VERSION = 420L;
     public static final long AAC_INTERNAL_SERIAL_VERSION = 420L;
     public static final long AAC_OPENIDFED_SERIAL_VERSION = 500L;
+    public static final long AAC_SPID_SERIAL_VERSION = 510L;
 
     public static final String REALM_GLOBAL = "";
     public static final String REALM_INTERNAL = "internal";
@@ -40,7 +41,7 @@ public class SystemKeys {
     public static final String AUTHORITY_INTERNAL = "internal";
     public static final String AUTHORITY_OIDC = "oidc";
     public static final String AUTHORITY_SAML = "saml";
-    //    public static final String AUTHORITY_SPID = "spid";
+    public static final String AUTHORITY_SPID = "spid";
     public static final String AUTHORITY_CIE = "cie";
     public static final String AUTHORITY_MAPPER = "mapper";
     public static final String AUTHORITY_SCRIPT = "script";

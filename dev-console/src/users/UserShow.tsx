@@ -1,16 +1,7 @@
-import {
-    Box,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    Typography,
-} from '@mui/material';
+import { IconButton, Typography } from '@mui/material';
 import {
     Button,
-    EditBase,
     Show,
-    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TopToolbar,
@@ -22,20 +13,17 @@ import {
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
 import React from 'react';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import BlockIcon from '@mui/icons-material/Block';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { PageTitle } from '../components/pageTitle';
 
 export const UserShow = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     return (
-        <Show queryOptions={options} actions={<ShowToolBarActions />}>
+        <Show actions={<ShowToolBarActions />}>
             <UserTabComponent />
         </Show>
     );
@@ -47,14 +35,7 @@ const UserTabComponent = () => {
 
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.username}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                <IdField source="id" />
-            </Typography>
-            <br />
+            <PageTitle text={record.username} secondaryText={record?.id} />
             <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="username" />
@@ -91,66 +72,14 @@ const UserTabComponent = () => {
 };
 
 const ShowToolBarActions = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
     let body = JSON.stringify(record, null, '\t');
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
     return (
         <TopToolbar>
-            <Button label="Inspect" onClick={handleClick}>
-                {<VisibilityIcon />}
-            </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <EditBase queryOptions={options} id={params.id}>
-                        <SimpleShowLayout>
-                            <Typography>Raw JSON</Typography>
-                            <Box>
-                                <AceEditor
-                                    setOptions={{
-                                        useWorker: false,
-                                    }}
-                                    mode="json"
-                                    value={body}
-                                    width="100%"
-                                    maxLines={20}
-                                    wrapEnabled
-                                    theme="github"
-                                    showPrintMargin={false}
-                                ></AceEditor>
-                            </Box>
-                        </SimpleShowLayout>
-                    </EditBase>
-                </DialogContent>
-            </Dialog>
+            <InspectButton />
             <ActiveButton />
-            <DeleteButtonDialog
-                confirmTitle="User Deletion"
-                mutationOptions={options}
-                redirect={`/users/r/${params.realmId}`}
-            />
+            <DeleteWithDialogButton />
         </TopToolbar>
     );
 };
@@ -175,16 +104,13 @@ const IdField = (props: any) => {
 
 const ActiveButton = () => {
     const record = useRecordContext();
-    const params = useParams();
     const notify = useNotify();
     const refresh = useRefresh();
-    const realmId = params.realmId;
     const [inactive] = useUpdate(
         'users',
         {
             id: record.id + '/status',
             data: record,
-            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
@@ -198,7 +124,6 @@ const ActiveButton = () => {
         {
             id: record.id + '/status',
             data: record,
-            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
@@ -207,21 +132,6 @@ const ActiveButton = () => {
             },
         }
     );
-
-    // const [block] = useUpdate(
-    //     'users',
-    //     {
-    //         id: record.id + '/status',
-    //         data: record,
-    //         meta: { realmId: realmId },
-    //     },
-    //     {
-    //         onSuccess: () => {
-    //             notify(`user ` + record.id + ` blocked successfully`);
-    //             refresh();
-    //         },
-    //     }
-    // );
 
     if (!record) return null;
     return (
@@ -246,17 +156,6 @@ const ActiveButton = () => {
                     startIcon={<PlayArrowIcon />}
                 ></Button>
             )}
-            {/* &nbsp;
-            {record.status === 'active' && (
-                <Button
-                    onClick={() => {
-                        record.status = 'blocked';
-                        block();
-                    }}
-                    label="Block"
-                    startIcon={<RemoveCircleIcon />}
-                ></Button>
-            )} */}
         </>
     );
 };

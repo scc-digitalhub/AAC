@@ -148,14 +148,14 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 body = formData;
                 url = url + '?reset=' + params.meta.resetId;
             } else {
-                body = JSON.stringify(params.data);
+                body = JSON.stringify(params?.data);
             }
             return httpClient(url, {
                 method: method,
                 headers: new Headers(headers),
                 body: body,
             }).then(({ json }) => ({
-                data: { ...params.data, id: json.id } as any,
+                data: { ...params.data, id: json?.id } as any,
             }));
         },
         delete: (resource, params) => {

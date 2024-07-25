@@ -1,41 +1,75 @@
+import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import {
     List,
     Datagrid,
     TextField,
     TopToolbar,
     CreateButton,
-    Empty,
+    EditButton,
+    ShowButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
+import { ServiceCreateForm } from './ServiceCreate';
+import { Box, Typography } from '@mui/material';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { DropDownButton } from '../components/DropdownButton';
+import { IdField } from '../components/IdField';
+import { RowButtonGroup } from '../components/RowButtonGroup';
+import { EnableIdpButton } from '../idps/IdpList';
 
 export const ServiceList = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-
     return (
-        <List
-            queryOptions={options}
-            empty={<Empty />}
-            actions={<ServiceListActions />}
-        >
+        <List empty={<Empty />} actions={<ServiceListActions />}>
             <Datagrid>
-                <TextField source="id" />
+            <TextField source="id" />
+            <TextField source="name" />
+            <TextField source="namespace" />
+                    <RowButtonGroup label="⋮">
+                        <DropDownButton>
+                            <ShowButton />
+                            <EditButton />
+                            <ExportRecordButton />
+                            <DeleteWithDialogButton />
+                        </DropDownButton>
+                    </RowButtonGroup>
             </Datagrid>
         </List>
     );
 };
-
+const Empty = () => {
+    return (
+        <Box textAlign="center" mt={30} ml={70}>
+            <Typography variant="h6" paragraph>
+                No Service available, create one
+            </Typography>
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={createTransform}
+            >
+                <ServiceCreateForm />
+            </CreateInDialogButton>
+        </Box>
+    );
+};
+const createTransform = (data: any) => {
+    return {
+        ...data,
+    };
+};
 const ServiceListActions = () => {
-    const params = useParams();
-    const to = `/services/r/${params.realmId}/create`;
     return (
         <TopToolbar>
-            <CreateButton
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
                 variant="contained"
-                label="New Service"
-                sx={{ marginLeft: 2 }}
-                to={to}
-            />
+                transform={createTransform}
+            >
+                <ServiceCreateForm />
+            </CreateInDialogButton>
         </TopToolbar>
     );
 };

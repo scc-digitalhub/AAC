@@ -2,9 +2,6 @@ import {
     Box,
     Card,
     CardContent,
-    Dialog,
-    DialogContent,
-    DialogTitle,
     Divider,
     IconButton,
     Typography,
@@ -15,7 +12,7 @@ import {
     EditBase,
     Form,
     SaveButton,
-    SimpleShowLayout,
+    ShowButton,
     TabbedShowLayout,
     TextField,
     TextInput,
@@ -29,14 +26,13 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { IdField } from '../components/IdField';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
 
 export const GroupEdit = () => {
     const params = useParams();
@@ -254,121 +250,14 @@ const GroupSettingToolbar = (props: any) => (
 );
 
 const GroupToolBarActions = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
-    let body = JSON.stringify(record, null, '\t');
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
     return (
         <TopToolbar>
-            <ShowAppButton />
-            <Button label="Inspect" onClick={handleClick}>
-                {<VisibilityIcon />}
-            </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <EditBase queryOptions={options} id={params.id}>
-                        {/* <RichTextField source={body} /> */}
-                        <SimpleShowLayout>
-                            <Typography>Raw JSON</Typography>
-                            <Box>
-                                <AceEditor
-                                    setOptions={{
-                                        useWorker: false,
-                                    }}
-                                    mode="json"
-                                    value={body}
-                                    width="100%"
-                                    maxLines={20}
-                                    wrapEnabled
-                                    theme="github"
-                                    showPrintMargin={false}
-                                ></AceEditor>
-                            </Box>
-                        </SimpleShowLayout>
-                    </EditBase>
-                </DialogContent>
-            </Dialog>
-            <DeleteButtonDialog
-                mutationOptions={options}
-                confirmTitle="Client App"
-                redirect={`/apps/r/${params.realmId}`}
-            />
-            <ExportAppButton />
+            <ShowButton />
+            <InspectButton />
+            <DeleteWithDialogButton />
+            <ExportRecordButton />
         </TopToolbar>
-    );
-};
-
-const ExportAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/apps/${realmId}/${record.id}/export`;
-    const handleExport = (data: any) => {
-        window.open(to, '_blank');
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleExport} label="Export"></Button>
-        </>
-    );
-};
-
-const ShowAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const redirect = useRedirect();
-    const realmId = params.realmId;
-    const to = `/apps/r/${realmId}/${record.id}`;
-    const handleClick = () => {
-        redirect(to);
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleClick} label="Show"></Button>
-        </>
-    );
-};
-
-const IdField = (props: any) => {
-    let s = props.source;
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <span>
-            {record[s]}
-            <IconButton
-                onClick={() => {
-                    navigator.clipboard.writeText(record[s]);
-                }}
-            >
-                <ContentCopyIcon />
-            </IconButton>
-        </span>
     );
 };

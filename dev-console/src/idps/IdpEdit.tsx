@@ -1,53 +1,27 @@
 import {
-    Box,
-    Card,
-    CardContent,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    Divider,
     Typography,
 } from '@mui/material';
 import {
-    Button,
     Edit,
-    EditBase,
-    Form,
-    Loading,
-    SaveButton,
-    ShowBase,
     ShowButton,
-    SimpleForm,
-    SimpleShowLayout,
-    TextInput,
-    Toolbar,
     TopToolbar,
-    useEditContext,
-    useGetOne,
-    useNotify,
     useRecordContext,
-    useRedirect,
-    useRefresh,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { EnableIdpButton } from './IdpList';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 
 export const IdpEdit = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
     return (
         <Edit
             actions={<EditToolBarActions />}
             mutationMode="pessimistic"
-            queryOptions={options}
         >
             <IdpTabComponent />
         </Edit>
@@ -212,105 +186,7 @@ const IdpTabComponent = () => {
     );
 };
 
-const IdpTabs = (recordParams: any) => {
-    const params = useParams();
-    const {
-        data: record,
-        isLoading,
-        error,
-    } = useGetOne('idps', {
-        id: recordParams.id,
-        meta: { realmId: params.realmId },
-    });
-    if (isLoading) {
-        return <Loading />;
-    }
-    if (error) {
-        return <p>ERROR</p>;
-    }
 
-    return (
-        <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                {record.provider}
-            </Typography>
-            <br />
-            {/* <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Internal Configuration">
-                    <TextField source="name" />
-                    <TextField source="type" />
-                    <TextField source="authority" />
-                    <TextField source="provider" />
-                    <TextField source="enabled" />
-                    <TextField source="registered" />
-                    <InternalConfiguration />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Settings">
-                    <Typography variant="h5" sx={{ mr: 2 }}>
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
-                    <EditOAuthJsonSchemaForm />
-                </TabbedShowLayout.Tab>
-            </TabbedShowLayout> */}
-        </>
-    );
-};
-const InternalConfiguration = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const notify = useNotify();
-    const refresh = useRefresh();
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
-        notify(`Provider updated successfully`);
-        refresh();
-    };
-    return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
-        >
-            <Form>
-                <Card>
-                    <CardContent>
-                        <Box>
-                            <Box display="flex">
-                                <Box flex="1" mt={-1}>
-                                    <Box display="flex" width={430}>
-                                        <TextInput source="name" fullWidth />
-                                    </Box>
-                                    <Box display="flex" width={430}>
-                                        <TextInput
-                                            source="description"
-                                            fullWidth
-                                        />
-                                    </Box>
-                                    <Divider />
-                                </Box>
-                            </Box>
-                        </Box>
-                    </CardContent>
-                    <EditSettingToolbar />
-                </Card>
-            </Form>
-        </EditBase>
-    );
-};
-
-const EditSettingToolbar = (props: any) => (
-    <Toolbar {...props}>
-        <SaveButton />
-    </Toolbar>
-);
 
 const EditToolBarActions = () => {
     const params = useParams();
@@ -327,8 +203,10 @@ const EditToolBarActions = () => {
     };
     return (
         <TopToolbar>
-            <ShowAppButton />
-            <Button label="Inspect" onClick={handleClick}>
+            <EnableIdpButton />
+            <InspectButton />
+
+            {/* <Button label="Inspect" onClick={handleClick}>
                 {<VisibilityIcon />}
             </Button>
             <Dialog
@@ -348,7 +226,6 @@ const EditToolBarActions = () => {
                 </DialogTitle>
                 <DialogContent>
                     <ShowBase queryOptions={options} id={params.id}>
-                        {/* <RichTextField source={body} /> */}
                         <SimpleShowLayout>
                             <Typography>Raw JSON</Typography>
                             <Box>
@@ -368,85 +245,11 @@ const EditToolBarActions = () => {
                         </SimpleShowLayout>
                     </ShowBase>
                 </DialogContent>
-            </Dialog>
-            <DeleteButtonDialog
-                // realmId={params.realmId}
-                title="Client App Deletion"
-                // resourceName="Client Application"
-                // registeredResource="apps"
-                // redirectUrl={`/apps/r/${params.realmId}`}
-            />
-            <ExportAppButton />
+            </Dialog> */}
+             <DeleteWithDialogButton/>
+            <ExportRecordButton />
         </TopToolbar>
     );
 };
 
-const ExportAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/apps/${realmId}/${record.id}/export`;
-    const handleExport = (data: any) => {
-        window.open(to, '_blank');
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleExport} label="Export"></Button>
-        </>
-    );
-};
 
-const ShowAppButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const redirect = useRedirect();
-    const realmId = params.realmId;
-    const to = `/apps/r/${realmId}/${record.id}`;
-    const handleClick = () => {
-        redirect(to);
-    };
-    if (!record) return null;
-    return (
-        <>
-            <ShowButton onClick={handleClick}></ShowButton>
-        </>
-    );
-};
-
-const EditOAuthJsonSchemaForm = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const notify = useNotify();
-    const refresh = useRefresh();
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
-        notify(`App updated successfully`);
-        refresh();
-    };
-
-    return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
-        >
-            <SimpleForm toolbar={<MyToolbar />}>
-                <JsonSchemaFormInput
-                    source="configuration"
-                    schema={schemaOAuthClient}
-                    uiSchema={uiSchemaOAuthClient}
-                />
-            </SimpleForm>
-        </EditBase>
-    );
-};
-
-const MyToolbar = () => (
-    <Toolbar>
-        <SaveButton />
-    </Toolbar>
-);

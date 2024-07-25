@@ -21,6 +21,9 @@ const enMessages: TranslationMessages = {
         spanish: 'Spanish',
         latvian: 'Latvian',
     },
+    menu: {
+        configuration: 'Configuration',
+    },
     resources: {
         accounts: {
             name: 'Account |||| Accounts',
@@ -83,6 +86,41 @@ const enMessages: TranslationMessages = {
                 manage: 'Manage authentications',
             },
         },
+        app:{
+            overview: {
+                title: 'Overview',
+
+            },
+            list:{
+                title: 'Client applications',
+                subtitle: 'Manage web, mobile, server and IoT applications'
+            },
+            credentials:{
+                title: 'Credentials',
+                header: {
+                    title:'OAuth2 Credentials',
+                    subtitle:'Client credentials to authenticate with AAC.'
+                }
+            },
+            settings: {
+                title:'Settings',
+
+            },
+            configuration: {
+                title:'OAuth2',
+                header: {
+                    title:'OAuth2.0 Configuration',
+                    subtitle:'Basic client configuration for OAuth2/OpenId Connect'
+                }
+            }
+
+        },
+        attributeset: {
+            list: {
+                title: 'Attribute sets',
+                subtitle: 'Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope profile.setidentifier.me',
+            },
+        },
         accounts: {
             header: 'Accounts',
             description:
@@ -137,6 +175,7 @@ const enMessages: TranslationMessages = {
     },
     action: {
         register: 'Register',
+        actions: 'Actions',
     },
     field: {
         username: 'Username',

@@ -119,14 +119,14 @@ angular.module('aac.controllers.realmproviders', [])
             return $http.post('console/dev/idps/' + slug + '/' + providerId + "/claims", functionCode).then(function (data) {
                 return data.data;
             });
-        }       
-        
+        }
+
         service.testIdentityProviderAuthFunction = function (slug, providerId, functionCode) {
             return $http.post('console/dev/idps/' + slug + '/' + providerId + "/authz", functionCode).then(function (data) {
                 return data.data;
             });
-        }        
-        
+        }
+
 
         //aps
         service.getAttributeProvider = function (slug, providerId) {
@@ -460,7 +460,7 @@ angular.module('aac.controllers.realmproviders', [])
         //
         //        }
 
-        //        $scope.toggleProviderState = function (provider) {  
+        //        $scope.toggleProviderState = function (provider) {
         //            RealmProviders.changeIdentityProviderState($scope.realm.slug, provider.provider, provider)
         //                .then(function (res) {
         //                    provider.enabled = res.enabled;
@@ -674,24 +674,24 @@ angular.module('aac.controllers.realmproviders', [])
                         authorityHints.push({ 'text': t });
                     });
                 }
-                $scope.openidfedAuthorityHints = authorityHints;   
-                
+                $scope.openidfedAuthorityHints = authorityHints;
+
                 var contacts = [];
                 if(config.contacts) {
                     config.contacts.forEach(function (t) {
                         contacts.push({ 'text': t });
                     });
                 }
-                $scope.openidfedContacts = contacts;                   
-                
+                $scope.openidfedContacts = contacts;
+
                 var acrValues = [];
                 if(config.acrValues) {
                     config.acrValues.forEach(function (t) {
                         acrValues.push({ 'text': t });
                     });
                 }
-                $scope.openidfedAcrValues = acrValues;                 
-            }            
+                $scope.openidfedAcrValues = acrValues;
+            }
 
             if (authority == 'saml') {
                 var authnContextClasses = [];
@@ -702,6 +702,17 @@ angular.module('aac.controllers.realmproviders', [])
                 }
 
                 $scope.samlAuthnContextClasses = authnContextClasses;
+            }
+
+            if (authority == 'spid') {
+                var idps = [];
+                if (config.idps) {
+                    config.idps.forEach(function (s) {
+                        idps.push({ 'text': s });
+                    });
+                }
+
+                $scope.spidIdps = idps;
             }
 
         }
@@ -732,7 +743,7 @@ angular.module('aac.controllers.realmproviders', [])
                     }
                     return c;
                 });
-                config.claims = claims;               
+                config.claims = claims;
 
                 var authorityHints = $scope.openidfedAuthorityHints.map(function (t) {
                     if ('text' in t) {
@@ -740,24 +751,24 @@ angular.module('aac.controllers.realmproviders', [])
                     }
                     return t;
                 });
-                config.authorityHints = authorityHints;        
-                
+                config.authorityHints = authorityHints;
+
                 var contacts = $scope.openidfedContacts.map(function (t) {
                     if ('text' in t) {
                         return t.text;
                     }
                     return t;
                 });
-                config.contacts = contacts;        
-                                
+                config.contacts = contacts;
+
                 var acrValues = $scope.openidfedAcrValues.map(function (t) {
                     if ('text' in t) {
                         return t.text;
                     }
                     return t;
                 });
-                config.acrValues = acrValues;           
-            }            
+                config.acrValues = acrValues;
+            }
             if (authority == 'saml') {
                 var authnContextClasses = $scope.samlAuthnContextClasses.map(function (s) {
                     if ('text' in s) {
@@ -769,6 +780,21 @@ angular.module('aac.controllers.realmproviders', [])
                     config.authnContextClasses = authnContextClasses;
                 } else {
                     config.authnContextClasses = null;
+                }
+
+            }
+
+            if (authority == 'spid') {
+                var idps = $scope.spidIdps.map(function (s) {
+                    if ('text' in s) {
+                        return s.text;
+                    }
+                    return s;
+                });
+                if (idps && idps.length) {
+                    config.idps = idps;
+                } else {
+                    config.idps = null;
                 }
 
             }
@@ -811,10 +837,16 @@ angular.module('aac.controllers.realmproviders', [])
                 authFunction.code = atob(data.settings.hookFunctions["authorize"]);
             }
 
-            $scope.authFunction = authFunction;            
+            $scope.authFunction = authFunction;
 
             if (data.authority == 'saml') {
                 var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
+                $scope.samlMetadataUrl = metadataUrl;
+            }
+            if (data.authority == 'spid') {
+                // var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + data.provider;
+                const regId = btoa(data.provider).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+                var metadataUrl = $scope.realmUrls.applicationUrl + "/auth/" + data.authority + "/metadata/" + regId;
                 $scope.samlMetadataUrl = metadataUrl;
             }
             if (data.authority == 'oidc' || data.authority == 'apple' || data.schema.id == 'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap') {

@@ -43,6 +43,9 @@ const messages: TranslationMessages = {
         spanish: 'Spanisch',
         latvian: 'Lettisch',
     },
+    menu: {
+        configuration: 'Konfiguration',
+    },
     resources: {
         accounts: {
             name: 'Konto |||| Konto',
@@ -106,6 +109,35 @@ const messages: TranslationMessages = {
                 manage: 'Verwalten Sie Ihre Authentifizierungen',
             },
         },
+        app:{
+            overview: {
+                title: 'Übersicht',
+
+            },
+            credentials:{
+                title: 'Kredenzialen',
+                header: {
+                    title:'Kredenzialen Oauth2',
+                    subtitle:'Kredenzialen überprüfen und verwalten',
+                }
+            },
+            settings: {
+                title:'Einstellungen',
+            },
+            configuration: {
+                title:'OAuth2',
+                header: {
+                    title:'OAuth2.0 Konfiguration',
+                    subtitle:'Konfiguration für Client OAuth2/OpenId '
+                }
+            }
+        },
+        attributeset: {
+            list: {
+                title: 'Set Attribute',
+                subtitle: 'Registrieren und verwalten Sie benutzerdefinierte Attributsätze. Jedes benutzerdefinierte Attribut ist als benutzerdefiniertes Profil verfügbar, das entweder über die Profil-API oder ein Token mit einem zugeordneten Bereich „profile.setidentifier.me“ verwendet werden kann',
+            },
+        },
         accounts: {
             header: 'Konto',
             description:
@@ -164,6 +196,7 @@ const messages: TranslationMessages = {
     },
     action: {
         register: 'Registrieren',
+        actions: 'Aktionen',
     },
     field: {
         username: 'Nutzername',

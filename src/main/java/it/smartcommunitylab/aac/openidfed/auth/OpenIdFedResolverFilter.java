@@ -135,7 +135,7 @@ public class OpenIdFedResolverFilter extends OncePerRequestFilter {
             if (!StringUtils.hasText(anchor) || !StringUtils.hasText(sub)) {
                 OAuth2Error oauth2Error = new OAuth2Error(
                     OAuth2ErrorCodes.INVALID_REQUEST,
-                    "Missing required parameters [sub] or [trust_anchor]",
+                    "Missing required parameters [sub] or [anchor]",
                     null
                 );
                 throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
@@ -258,7 +258,7 @@ public class OpenIdFedResolverFilter extends OncePerRequestFilter {
                     trustMarks.stream().map(t -> t.toJSONObject()).collect(Collectors.toList())
                 );
             }
-            
+
             //add trust chain
             if (trustChain != null) {
                 claims.claim("trust_chain", trustChain.toSerializedJWTs());

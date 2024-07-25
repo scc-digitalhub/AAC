@@ -2,9 +2,6 @@ import {
     Box,
     Card,
     CardContent,
-    Dialog,
-    DialogContent,
-    DialogTitle,
     Divider,
     Typography,
 } from '@mui/material';
@@ -21,7 +18,6 @@ import {
     SelectInput,
     SimpleForm,
     SimpleFormIterator,
-    SimpleShowLayout,
     TabbedShowLayout,
     TextField,
     TextInput,
@@ -35,15 +31,11 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
 import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-// import { JsonSchemaFormInput } from '../components/JsonSchemaFormInput';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const TemplateEdit = () => {
     const params = useParams();
@@ -492,7 +484,9 @@ const EditToolBarActions = () => {
     return (
         <TopToolbar>
             <ShowAppButton />
-            <Button label="Inspect" onClick={handleClick}>
+            <InspectButton />
+
+            {/* <Button label="Inspect" onClick={handleClick}>
                 {<VisibilityIcon />}
             </Button>
             <Dialog
@@ -512,7 +506,6 @@ const EditToolBarActions = () => {
                 </DialogTitle>
                 <DialogContent>
                     <EditBase queryOptions={options} id={params.id}>
-                        {/* <RichTextField source={body} /> */}
                         <SimpleShowLayout>
                             <Typography>Raw JSON</Typography>
                             <Box>
@@ -532,7 +525,7 @@ const EditToolBarActions = () => {
                         </SimpleShowLayout>
                     </EditBase>
                 </DialogContent>
-            </Dialog>
+            </Dialog> */}
             <DeleteButtonDialog
                 mutationOptions={options}
                 confirmTitle="Client App"

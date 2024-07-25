@@ -16,6 +16,7 @@ import {
     Toolbar,
     useRecordContext,
     EditButton,
+    ShowButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import {
@@ -28,10 +29,17 @@ import {
 } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
+
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
 import React from 'react';
+import { useRootSelector } from '@dslab/ra-root-selector';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { DropDownButton } from '../components/DropdownButton';
+import { RowButtonGroup } from '../components/RowButtonGroup';
+import { GroupCreateForm } from './GroupCreate';
+import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 
 export const GroupList = () => {
     const params = useParams();
@@ -58,14 +66,14 @@ export const GroupList = () => {
                     <TextField source="name" />
                     <IdField source="id" />
                     <TextField source="group" />
-                    <EditGroupButton />
-                    <DeleteButtonDialog
-                        mutationOptions={options}
-                        confirmTitle="Group Deletion"
-                        redirect={`/groups/r/${params.realmId}`}
-                    />
-                    {/* Edit. */}
-                    <ExportGroupButton />
+                    <RowButtonGroup label="⋮">
+                        <DropDownButton>
+                            <ShowButton />
+                            <EditButton />
+                            <ExportRecordButton />
+                            <DeleteWithDialogButton />
+                        </DropDownButton>
+                    </RowButtonGroup>
                 </Datagrid>
             </List>
         </>
@@ -74,43 +82,51 @@ export const GroupList = () => {
 
 const EditGroupButton = () => {
     const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to = `/groups/r/${realmId}/${record.id}/edit`;
+
     if (!record) return null;
     return (
         <>
-            <EditButton to={to}></EditButton>
+            <EditButton></EditButton>
         </>
     );
 };
 
 const GroupFilters = [<SearchInput source="q" alwaysOn />];
-
+const transformCrate = (data: any) => {
+    return {
+        ...data,
+        group: data.key
+    }
+};
 const Empty = () => {
-    const params = useParams();
-    const to = `/groups/r/${params.realmId}/create`;
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
                 No groups registered. Create a realm group to manage users and
                 memberships.
             </Typography>
-            <CreateButton variant="contained" label="New Group" to={to} />
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={transformCrate}
+            >
+                <GroupCreateForm />
+            </CreateInDialogButton>
         </Box>
     );
 };
 
 const GroupListActions = () => {
-    const params = useParams();
+    const { root: realmId } = useRootSelector();
+
     const notify = useNotify();
     const translate = useTranslate();
     const options = {
-        meta: { realmId: params.realmId, import: false, resetId: false },
+        meta: { import: false, resetId: false },
     };
     const [open, setOpen] = React.useState(false);
-    const to = `/groups/r/${params.realmId}/create`;
-    const importTo = `/groups/r/${params.realmId}/import`;
+    const importTo = `/groups/r/${realmId}/import`;
     const handleClick = () => {
         setOpen(true);
     };
@@ -130,13 +146,14 @@ const GroupListActions = () => {
 
     return (
         <TopToolbar>
-            <CreateButton
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
                 variant="contained"
-                label="Add Provider"
-                sx={{ marginLeft: 2 }}
-                to={to}
-            />
-            <Button
+                transform={transformCrate}
+            >
+                <GroupCreateForm />
+            </CreateInDialogButton>            <Button
                 variant="contained"
                 label="Import"
                 onClick={handleClick}
@@ -144,21 +161,8 @@ const GroupListActions = () => {
             >
                 {<ImportExportIcon />}
             </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Import Provider
-                </DialogTitle>
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+                <DialogTitle>Import Provider</DialogTitle>
                 <DialogContent>
                     <Create
                         transform={transform}
@@ -191,7 +195,7 @@ const GroupListActions = () => {
 
 const ImportToolbar = () => (
     <Toolbar>
-        <SaveButton label="Import" />
+        <SaveButton />
     </Toolbar>
 );
 
@@ -210,23 +214,5 @@ const IdField = (props: any) => {
                 <ContentCopyIcon />
             </IconButton>
         </span>
-    );
-};
-
-const ExportGroupButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const realmId = params.realmId;
-    const to =
-        process.env.REACT_APP_DEVELOPER_CONSOLE +
-        `/groups/${realmId}/${record.id}/export`;
-    const handleExport = (data: any) => {
-        window.open(to, '_blank');
-    };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleExport} label="Export"></Button>
-        </>
     );
 };

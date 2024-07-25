@@ -3,7 +3,7 @@ import { Admin, Resource, defaultTheme } from 'react-admin';
 import { BrowserRouter } from 'react-router-dom';
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
-import MyLayout from './components/layout';
+import MyLayout from './components/MyLayout';
 
 import 'typeface-titillium-web';
 import 'typeface-roboto-mono';
@@ -15,6 +15,7 @@ import {
 import DevDashboard from './pages/dashboard';
 
 import { LoginPage } from './pages/login';
+import 'ace-builds/src-noconflict/ace';
 
 import apps from './apps';
 
@@ -28,19 +29,26 @@ import { ServiceList } from './service/ServiceList';
 import { ServiceCreate } from './service/ServiceCreate';
 import { UserList } from './users/UserList';
 import { UserCreate } from './users/UserCreate';
-import { TemplateList } from './templates/TemplateList';
 import { ScopeList } from './scopes/ScopeList';
 import { GroupList } from './group/GroupList';
 import { GroupCreate } from './group/GroupCreate';
 import { GroupEdit } from './group/GroupEdit';
 import { UserShow } from './users/UserShow';
 import { RealmIcon } from './myrealms/RealmIcon';
-import audit from './audit';
-import service from './service';
-import users from './users';
-import { group } from 'console';
-import scopes from './scopes';
-import templates from './templates';
+import { IdpIcon } from './idps/IdpIcon';
+import { UserIcon } from './users/UserIcon';
+import { GroupShow } from './group/GroupShow';
+import { GroupIcon } from './group/GroupIcon';
+import { RecourceIcon } from './resources/ResourceIcon';
+import { ServiceShow } from './service/ServiceShow';
+import { ServiceEdit } from './service/ServiceEdit';
+import { ServiceIcon } from './service/ServiceIcon';
+import { AttributeIcon } from './attributeset/AttributeIcon';
+import { RoleCreate } from './roles/RoleCreate';
+import { RoleEdit } from './roles/RoleEdit';
+import { RoleIcon } from './roles/RoleIcon';
+import { RoleList } from './roles/RoleList';
+import { RoleShow } from './roles/RoleShow';
 
 //config
 const CONTEXT_PATH: string =
@@ -136,15 +144,15 @@ const DevApp = () => {
                 disableTelemetry
             >
                 <Resource name="apps" {...apps} />
-                <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>} />
+                <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>}  icon={IdpIcon}/>
                 <Resource name="myrealms" icon={RealmIcon} />
                 <Resource name="audit" list={<AuditList/>}  />
-                <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} />
-                <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} />
-                <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />}/>
-                <Resource name="resources" list={<ScopeList/>}  />
-                <Resource name="attributeset" list={<AttributeSetList/>}  />
-                <Resource name="templates" list={<TemplateList/>}  />             
+                <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} show={<ServiceShow/>} edit={<ServiceEdit/>} icon={ServiceIcon}/>
+                <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} icon={UserIcon}/>
+                <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />} show={<GroupShow />} icon={GroupIcon}/>
+                <Resource name="resources" list={<ScopeList/>}  icon={RecourceIcon} />
+                <Resource name="roles" list={<RoleList/>}  create={<RoleCreate/>} show={<RoleShow/>} edit={<RoleEdit/>} icon={RoleIcon}/>
+                <Resource name="attributeset" list={<AttributeSetList/>} icon={AttributeIcon} />
             </Admin>
         </RootSelectorContextProvider>
     );

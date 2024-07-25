@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigM
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.saml.provider.SamlIdentityProviderConfigMap;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.webauthn.provider.WebAuthnIdentityProviderConfigMap;
 import java.util.List;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -47,6 +48,9 @@ public class IdentityAuthoritiesProperties {
 
     @NestedConfigurationProperty
     private SamlIdentityProviderConfigMap saml;
+
+    @NestedConfigurationProperty
+    private SpidIdentityProviderConfigMap spid;
 
     @NestedConfigurationProperty
     private AppleIdentityProviderConfigMap apple;
@@ -100,6 +104,14 @@ public class IdentityAuthoritiesProperties {
 
     public void setSaml(SamlIdentityProviderConfigMap saml) {
         this.saml = saml;
+    }
+
+    public SpidIdentityProviderConfigMap getSpid() {
+        return spid;
+    }
+
+    public void setSpid(SpidIdentityProviderConfigMap spid) {
+        this.spid = spid;
     }
 
     public AppleIdentityProviderConfigMap getApple() {

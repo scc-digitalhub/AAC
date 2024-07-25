@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 export const DropDownButton = (props: DrodownButtonProps) => {
     const {
         icon,
-        label = 'ra.action.actions',
+        label = 'action.actions',
         record: recordProp,
         resource: resourceProp,
         children,
@@ -25,6 +25,7 @@ export const DropDownButton = (props: DrodownButtonProps) => {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const handleOpen = (event: MouseEvent<HTMLElement>): void => {
+        event.stopPropagation();
         setAnchorEl(event.currentTarget);
     };
     const handleClose = (): void => {

@@ -37,6 +37,12 @@ public class PropertiesConfig {
         return new JdbcProperties();
     }
 
+    @Bean(name = "auditJdbcProperties")
+    @ConfigurationProperties(prefix = "audit.jdbc")
+    public JdbcProperties jdbcAuditProps() {
+        return new JdbcProperties();
+    }
+
     @Bean
     @ConfigurationProperties(prefix = "authorities.identity")
     public IdentityAuthoritiesProperties identityAuthoritiesProps() {
@@ -65,5 +71,11 @@ public class PropertiesConfig {
     @ConfigurationProperties(prefix = "attributesets")
     public AttributeSetsProperties systemAttributeSets() {
         return new AttributeSetsProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spid")
+    public SpidProperties spidProperties() {
+        return new SpidProperties();
     }
 }

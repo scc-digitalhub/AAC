@@ -1,51 +1,38 @@
-import {
-    IconButton,
-    Stack,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    Box,
-    Typography,
-} from '@mui/material';
+import { IconButton, Stack, Box, Typography } from '@mui/material';
 import {
     List,
     Datagrid,
     TextField,
     TopToolbar,
-    CreateButton,
     ArrayField,
     ChipField,
     WrapperField,
     useRecordContext,
     SearchInput,
-    useRedirect,
     Button,
-    SimpleShowLayout,
     useNotify,
-    useDelete,
     useUpdate,
     useRefresh,
+    ShowButton,
+    EditButton,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-import React from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-json';
-import 'ace-builds/src-noconflict/theme-github';
 import BlockIcon from '@mui/icons-material/Block';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { useRootSelector } from '@dslab/ra-root-selector';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
+import { UserCreateForm } from './UserCreate';
+import { DropDownButton } from '../components/DropdownButton';
+import { RowButtonGroup } from '../components/RowButtonGroup';
 
 export const UserList = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-
+    const { root: realmId } = useRootSelector();
+    const record = useRecordContext();
     return (
         <List
-            queryOptions={options}
             empty={<Empty />}
             actions={<UserListActions />}
             filters={UserFilters}
@@ -55,7 +42,7 @@ export const UserList = () => {
                 <WrapperField>
                     <Stack>
                         <TextField source="username" />
-                        {`${params.realmId}` !== 'system' && (
+                        {`${realmId}` !== 'system' && (
                             <span>
                                 <TextField source="email" />
                                 &nbsp;
@@ -66,22 +53,21 @@ export const UserList = () => {
                 </WrapperField>
                 <IdField source="id" />
                 <ArrayField
-                    filter={{ realm: params.realmId }}
+                    filter={{ realm: realmId }}
                     source="authorities"
                     emptyText=""
                 >
-                    <Datagrid bulkActionButtons={false} empty={<></>}>
-                        <ChipField source="role" size="small" />
-                    </Datagrid>
+                    {record?.role && <ChipField source="role" size="small" />}
                 </ArrayField>
-                <ShowUserButton />
-                <InspectUserButton />
-                <DeleteButtonDialog
-                    confirmTitle="User Deletion"
-                    mutationOptions={options}
-                    redirect={`/users/r/${params.realmId}`}
-                />
-                <ActiveButton />
+                <RowButtonGroup label="⋮">
+                    <DropDownButton>
+                        <ShowButton />
+                        <EditButton />
+                        <InspectButton />
+                        <ActiveButton />
+                        <DeleteWithDialogButton />
+                    </DropDownButton>
+                </RowButtonGroup>
             </Datagrid>
         </List>
     );
@@ -90,16 +76,16 @@ export const UserList = () => {
 const UserFilters = [<SearchInput source="q" alwaysOn />];
 
 const UserListActions = () => {
-    const params = useParams();
-    const to = `/users/r/${params.realmId}/create`;
     return (
         <TopToolbar>
-            <CreateButton
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
                 variant="contained"
-                label="Add/Invite User"
-                sx={{ marginLeft: 2 }}
-                to={to}
-            />
+                transform={transform}
+            >
+                <UserCreateForm />
+            </CreateInDialogButton>
         </TopToolbar>
     );
 };
@@ -141,105 +127,38 @@ const EmailVerified = (props: any) => {
     );
 };
 
-const ShowUserButton = () => {
-    const record = useRecordContext();
-    const params = useParams();
-    const redirect = useRedirect();
-    const realmId = params.realmId;
-    const to = '/users/r/' + realmId + '/' + record.id;
-    const handleClick = () => {
-        redirect(to);
+const transform = (data: any) => {
+    return {
+        ...data,
     };
-    if (!record) return null;
-    return (
-        <>
-            <Button onClick={handleClick} label="Show"></Button>
-        </>
-    );
 };
-
-const InspectUserButton = () => {
-    const record = useRecordContext();
-    const [open, setOpen] = React.useState(false);
-    if (!record) return null;
-    let body = JSON.stringify(record, null, '\t');
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
-    return (
-        <>
-            <>
-                <Button onClick={handleClick} label="Inspect">
-                    {<VisibilityIcon />}
-                </Button>
-            </>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <SimpleShowLayout>
-                        <Typography>Raw JSON</Typography>
-                        <Box>
-                            <AceEditor
-                                setOptions={{
-                                    useWorker: false,
-                                }}
-                                mode="json"
-                                value={body}
-                                width="100%"
-                                maxLines={20}
-                                wrapEnabled
-                                theme="github"
-                                showPrintMargin={false}
-                            ></AceEditor>
-                        </Box>
-                    </SimpleShowLayout>
-                </DialogContent>
-            </Dialog>
-        </>
-    );
-};
-
 const Empty = () => {
-    const params = useParams();
-    const to = `/users/r/${params.realmId}/create`;
     return (
         <Box textAlign="center" mt={30} ml={70}>
             <Typography variant="h6" paragraph>
                 No user, create one
             </Typography>
-            <CreateButton variant="contained" label="New User" to={to} />
+            <CreateInDialogButton
+                fullWidth
+                maxWidth={'md'}
+                variant="contained"
+                transform={transform}
+            >
+                <UserCreateForm />
+            </CreateInDialogButton>
         </Box>
     );
 };
 
 const ActiveButton = () => {
     const record = useRecordContext();
-    const params = useParams();
     const notify = useNotify();
     const refresh = useRefresh();
-    const realmId = params.realmId;
     const [inactive] = useUpdate(
         'users',
         {
             id: record.id + '/status',
             data: record,
-            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
@@ -253,7 +172,6 @@ const ActiveButton = () => {
         {
             id: record.id + '/status',
             data: record,
-            meta: { realmId: realmId },
         },
         {
             onSuccess: () => {
@@ -262,21 +180,6 @@ const ActiveButton = () => {
             },
         }
     );
-
-    // const [block] = useUpdate(
-    //     'users',
-    //     {
-    //         id: record.id + '/status',
-    //         data: record,
-    //         meta: { realmId: realmId },
-    //     },
-    //     {
-    //         onSuccess: () => {
-    //             notify(`user ` + record.id + ` blocked successfully`);
-    //             refresh();
-    //         },
-    //     }
-    // );
 
     if (!record) return null;
     return (
@@ -301,17 +204,6 @@ const ActiveButton = () => {
                     startIcon={<PlayArrowIcon />}
                 ></Button>
             )}
-            {/* &nbsp;
-            {record.status === 'active' && (
-                <Button
-                    onClick={() => {
-                        record.status = 'blocked';
-                        block();
-                    }}
-                    label="Block"
-                    startIcon={<RemoveCircleIcon />}
-                ></Button>
-            )} */}
         </>
     );
 };
