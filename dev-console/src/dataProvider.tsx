@@ -169,6 +169,21 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 method: 'DELETE',
             }).then(({ json }) => ({ data: json }));
         },
-        deleteMany: (resource, params) => provider.deleteMany(resource, params),
-    };
+        deleteMany: (resource, params) => {
+            let prefix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                prefix = '/' + params.meta.root;
+            }
+            const url = `${apiUrl}${prefix}/${resource}`;
+
+            //make a distinct call for every entry
+            return Promise.all(
+                params.ids.map(id =>
+                    httpClient(`${url}/${id}`, {
+                        method: 'DELETE',
+                    })
+                )
+            ).then(responses => ({ data: responses.map(({ json }) => json) }));
+        },
+    }
 };
