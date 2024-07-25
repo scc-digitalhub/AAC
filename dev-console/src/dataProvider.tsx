@@ -91,7 +91,32 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 };
             });
         },
-        getMany: (resource, params) => provider.getMany(resource, params),
+        getMany: (resource, params) => {
+            //no pagination!
+            const query = {
+                id: params.ids ? params.ids.join(',') : '',
+            };
+            let prefix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                prefix = '/' + params.meta.root;
+            }
+            const url = `${apiUrl}${prefix}/${resource}?${stringify(query)}`;
+            return httpClient(url).then(({ status, json }) => {
+                if (status !== 200) {
+                    throw new Error('Invalid response status ' + status);
+                }
+                if (!json.content) {
+                    throw new Error('the response must match page<> model');
+                }
+
+                return {
+                    data: json.content,
+                    total: json.totalElements
+                        ? parseInt(json.totalElements)
+                        : json.content.length,
+                };
+            });
+        },
         getManyReference: (resource, params) => {
             const { page, perPage } = params.pagination;
             const { field, order } = params.sort;
@@ -127,7 +152,25 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                         : JSON.stringify(params.data),
             }).then(({ json }) => ({ data: json }));
         },
-        updateMany: (resource, params) => provider.updateMany(resource, params),
+        updateMany: (resource, params) => {
+            let prefix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                prefix = '/' + params.meta.root;
+            }
+            const url = `${apiUrl}${prefix}/${resource}`;
+
+            //make a distinct call for every entry
+            return Promise.all(
+                params.ids.map(id =>
+                    httpClient(`${url}/${id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(params.data),
+                    })
+                )
+            ).then(responses => ({
+                data: responses.map(({ json }) => json.id),
+            }));
+        },
         create: (resource, params) => {
             let method = `POST`;
             let headers = {
