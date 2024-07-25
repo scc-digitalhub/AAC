@@ -215,6 +215,10 @@ const messages: TranslationMessages = {
             description: 'Per accedere alla console è richiesto il login',
         },
         idp: {
+            list: {
+                title: 'Identity Providers',
+                subtitle: 'Gestisci gli identity providers',
+            },
             import: {
                 title: 'Import Provider',
                 description:

@@ -115,6 +115,7 @@ const enMessages: TranslationMessages = {
             }
 
         },
+
         attributeset: {
             list: {
                 title: 'Attribute sets',
@@ -158,6 +159,10 @@ const enMessages: TranslationMessages = {
             description: 'Login is required to access the console',
         },
         idp: {
+            list: {
+                title: 'Identity providers',
+                subtitle: 'Manage identity providers',
+            },
             import: {
                 title: 'Import Provider',
                 description:

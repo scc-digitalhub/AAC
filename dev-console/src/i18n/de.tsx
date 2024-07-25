@@ -177,6 +177,10 @@ const messages: TranslationMessages = {
                 'Für den Zugriff auf die Konsole ist eine Anmeldung erforderlich',
         },
         idp: {
+            list: {
+                title: 'Identity providers',
+                subtitle: 'Manage identity providers',
+            },
             import: {
                 title: 'Import Provider',
                 description:
