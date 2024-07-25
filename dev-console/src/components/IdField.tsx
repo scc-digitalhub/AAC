@@ -1,5 +1,6 @@
 import { IconButton, Typography } from '@mui/material';
 import get from 'lodash/get';
+import {  MouseEvent } from 'react';
 
 import {
     TextFieldProps,
@@ -31,7 +32,8 @@ export const IdField = <
                 {value}
             </Typography>
             <IconButton
-                onClick={() => {
+                onClick={(event: MouseEvent<HTMLElement>) => {
+                    event.stopPropagation();
                     if (value) {
                         navigator.clipboard.writeText(value);
                         notify('content-copied');
