@@ -1,6 +1,7 @@
 import { Box, Divider } from '@mui/material';
 import {
     Edit,
+    ReferenceArrayInput,
     SaveButton,
     ShowButton,
     TabbedForm,
@@ -71,6 +72,14 @@ const AppTabComponent = () => {
                         )}
                     />
                     <EditOAuthJsonSchemaForm />
+                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                label="Providers">
+                    <ReferenceArrayInput source="providers" reference="idps" />
+                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                label="Scopes">
+                    <ReferenceArrayInput source="scopes" reference="scopes"  />
                 </TabbedForm.Tab>
             </TabbedForm>
 

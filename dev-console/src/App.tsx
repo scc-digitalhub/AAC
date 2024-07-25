@@ -8,9 +8,7 @@ import MyLayout from './components/MyLayout';
 import 'typeface-titillium-web';
 import 'typeface-roboto-mono';
 
-import {
-    RootSelectorContextProvider,
-} from '@dslab/ra-root-selector';
+import { RootSelectorContextProvider } from '@dslab/ra-root-selector';
 
 import DevDashboard from './pages/dashboard';
 
@@ -144,15 +142,59 @@ const DevApp = () => {
                 disableTelemetry
             >
                 <Resource name="apps" {...apps} />
-                <Resource name="idps" list={<IdpList/>} create={<IdpCreate/>} edit={<IdpEdit/>}  icon={IdpIcon}/>
+                <Resource
+                    name="idps"
+                    list={<IdpList />}
+                    create={<IdpCreate />}
+                    edit={<IdpEdit />}
+                    icon={IdpIcon}
+                />
                 <Resource name="myrealms" icon={RealmIcon} />
-                <Resource name="audit" list={<AuditList/>}  />
-                <Resource name="services" list={<ServiceList/>}  create={<ServiceCreate/>} show={<ServiceShow/>} edit={<ServiceEdit/>} icon={ServiceIcon}/>
-                <Resource name="users" list={<UserList/>}  create={<UserCreate/>} show={<UserShow />} icon={UserIcon}/>
-                <Resource name="groups" list={<GroupList/>}  create={<GroupCreate/>} edit={ <GroupEdit />} show={<GroupShow />} icon={GroupIcon}/>
-                <Resource name="resources" list={<ScopeList/>}  icon={RecourceIcon} />
-                <Resource name="roles" list={<RoleList/>}  create={<RoleCreate/>} show={<RoleShow/>} edit={<RoleEdit/>} icon={RoleIcon}/>
-                <Resource name="attributeset" list={<AttributeSetList/>} icon={AttributeIcon} />
+                <Resource name="audit" list={<AuditList />} />
+                <Resource
+                    name="services"
+                    list={<ServiceList />}
+                    create={<ServiceCreate />}
+                    show={<ServiceShow />}
+                    edit={<ServiceEdit />}
+                    icon={ServiceIcon}
+                />
+                <Resource
+                    name="users"
+                    list={<UserList />}
+                    create={<UserCreate />}
+                    show={<UserShow />}
+                    icon={UserIcon}
+                />
+                <Resource
+                    name="groups"
+                    list={<GroupList />}
+                    create={<GroupCreate />}
+                    edit={<GroupEdit />}
+                    show={<GroupShow />}
+                    icon={GroupIcon}
+                />
+                <Resource
+                    name="resources"
+                    list={<ScopeList />}
+                    icon={RecourceIcon}
+                />
+                 <Resource
+                    name="scopes"
+                />
+                <Resource
+                    name="roles"
+                    list={<RoleList />}
+                    create={<RoleCreate />}
+                    show={<RoleShow />}
+                    edit={<RoleEdit />}
+                    icon={RoleIcon}
+                />
+                <Resource
+                    name="attributeset"
+                    list={<AttributeSetList />}
+                    icon={AttributeIcon}
+                />
             </Admin>
         </RootSelectorContextProvider>
     );

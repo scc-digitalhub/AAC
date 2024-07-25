@@ -14,8 +14,8 @@ import { PageTitle } from '../components/pageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
-import { Box } from '@mui/material';
-
+import { Box, Paper } from '@mui/material';
+import { Page } from "../components/page";
 const PostBulkActionButtons = () => (
     <>
         <BulkDeleteButton />
@@ -24,7 +24,8 @@ const PostBulkActionButtons = () => (
 export const AppList = () => {
     const translate = useTranslate();
     return (
-        <>
+        // <Paper elevation={1}>
+        <Page>
             <PageTitle
                 text={translate('page.app.list.title')}
                 secondaryText={translate('page.app.list.subtitle')}
@@ -42,7 +43,8 @@ export const AppList = () => {
                     <ActionsButtons />
                 </Datagrid>
             </List>
-        </>
+            </Page>
+        // </Paper>
     );
 };
 

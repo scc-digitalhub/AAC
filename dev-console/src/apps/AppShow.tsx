@@ -1,6 +1,8 @@
 import { Box } from '@mui/material';
 import {
     EditButton,
+    ReferenceArrayField,
+    ReferenceArrayInput,
     RichTextField,
     Show,
     SimpleForm,
@@ -85,6 +87,17 @@ const AppTabComponent = () => {
                             source="configuration.jwks"
                         />
                     )}
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                label="Providers">
+                    <ReferenceArrayField source="providers" reference="idps" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                label="Scopes">
+                    {record.configuration.scopes && (
+                      <ReferenceArrayField source="scopes" reference="scopes" />
+                    )
+                      }
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
