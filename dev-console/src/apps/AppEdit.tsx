@@ -1,13 +1,9 @@
-import { Box, Card, CardContent, Divider, Typography } from '@mui/material';
+import { Box, Divider } from '@mui/material';
 import {
     Edit,
-    EditBase,
-    Form,
     SaveButton,
     ShowButton,
-    SimpleForm,
     TabbedForm,
-    TabbedShowLayout,
     TextField,
     TextInput,
     Toolbar,
@@ -18,9 +14,6 @@ import {
     useRefresh,
     useTranslate,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import React from 'react';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
@@ -37,6 +30,11 @@ export const AppEdit = () => {
     );
 };
 
+const MyToolbar = () => (
+    <Toolbar>
+        <SaveButton />
+    </Toolbar>
+);
 
 
 const AppTabComponent = () => {
@@ -45,15 +43,11 @@ const AppTabComponent = () => {
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-    const onSuccess = () => {
-        notify(`App updated successfully`);
-        refresh();
-    };
     if (!record) return null;
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedForm  >
+            <TabbedForm  toolbar={<MyToolbar />}>
             <TabbedForm.Tab
                     label={translate('page.app.overview.title')}
                 >
@@ -89,10 +83,6 @@ const EditSetting = () => {
     const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
-    const onSuccess = () => {
-        notify(`App updated successfully`);
-        refresh();
-    };
     return (
                         <Box>
                             <Box display="flex">
@@ -129,8 +119,6 @@ const EditToolBarActions = () => {
 };
 
 const EditOAuthJsonSchemaForm = () => {
-    const notify = useNotify();
-    const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
 
