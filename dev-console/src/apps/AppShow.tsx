@@ -3,10 +3,14 @@ import {
     EditButton,
     RichTextField,
     Show,
+    SimpleForm,
     TabbedShowLayout,
     TextField,
     TopToolbar,
+    useEditContext,
+    useNotify,
     useRecordContext,
+    useRefresh,
     useTranslate,
 } from 'react-admin';
 import { PageTitle } from '../components/pageTitle';
@@ -14,11 +18,13 @@ import { SectionTitle } from '../components/sectionTitle';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
+import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
+import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 
 export const AppShow = () => {
     return (
-        <Show actions={<ShowToolBarActions />}  component={Box}>
-            <AppTabComponent  />
+        <Show actions={<ShowToolBarActions />} component={Box}>
+            <AppTabComponent />
         </Show>
     );
 };
@@ -31,7 +37,7 @@ const AppTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedShowLayout syncWithLocation={false} >
+            <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab
                     label={translate('page.app.overview.title')}
                 >
@@ -45,6 +51,17 @@ const AppTabComponent = () => {
                 >
                     <TextField source="name" />
                     <TextField source="description" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                    label={translate('page.app.configuration.title')}
+                >
+                    <SectionTitle
+                        text={translate('page.app.configuration.header.title')}
+                        secondaryText={translate(
+                            'page.app.configuration.header.subtitle'
+                        )}
+                    />
+                    <OAuthJsonSchemaForm />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.app.credentials.title')}
@@ -69,12 +86,22 @@ const AppTabComponent = () => {
                         />
                     )}
                 </TabbedShowLayout.Tab>
-
             </TabbedShowLayout>
         </>
     );
 };
+const OAuthJsonSchemaForm = () => {
+    const record = useRecordContext();
+    if ( !record) return null;
 
+    return (
+        <JsonSchemaField
+            source="configuration"
+            schema={schemaOAuthClient}
+            uiSchema={uiSchemaOAuthClient}
+        />
+    );
+};
 const ShowToolBarActions = () => {
     const record = useRecordContext();
     if (!record) return null;
