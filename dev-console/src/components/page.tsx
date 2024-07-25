@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import { Toolbar, Container, Paper, PaperProps } from '@mui/material';
+import { Container, Paper, PaperProps } from '@mui/material';
 
 export const Page = (props: PaperProps) => {
     const { children, className, ...rest } = props;
@@ -22,4 +22,3 @@ const StyledPaper = styled(Paper, {
     // backgroundColor: theme.palette.grey[100],
 }));
 
-export default Page;
