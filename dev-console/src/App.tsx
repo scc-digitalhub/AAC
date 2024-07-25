@@ -47,6 +47,7 @@ import { RoleEdit } from './roles/RoleEdit';
 import { RoleIcon } from './roles/RoleIcon';
 import { RoleList } from './roles/RoleList';
 import { RoleShow } from './roles/RoleShow';
+import { IdpShow } from './idps/IdpShow';
 
 //config
 const CONTEXT_PATH: string =
@@ -147,6 +148,7 @@ const DevApp = () => {
                     list={<IdpList />}
                     create={<IdpCreate />}
                     edit={<IdpEdit />}
+                    show={<IdpShow />}
                     icon={IdpIcon}
                 />
                 <Resource name="myrealms" icon={RealmIcon} />
