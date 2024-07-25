@@ -6,7 +6,6 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
-    IconButton,
     Typography,
 } from '@mui/material';
 
@@ -15,7 +14,6 @@ import {
     Button,
     Create,
     Datagrid,
-    EditButton,
     Toolbar,
     List,
     SearchInput,
@@ -32,56 +30,51 @@ import {
     useRefresh,
     ExportButton,
     useTranslate,
-    ShowButton,
-    CreateButton,
+    BulkDeleteButton
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import { YamlExporter } from '../components/YamlExporter';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useRootSelector } from '@dslab/ra-root-selector';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { IdpCreateForm } from './IdpCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
-import { DropDownButton } from '../components/DropdownButton';
-import { RowButtonGroup } from '../components/RowButtonGroup';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { IdField } from '../components/IdField';
+import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/page';
 
+
+const PostBulkActionButtons = () => (
+    <>
+        <BulkDeleteButton />
+    </>
+);
 export const IdpList = () => {
+    const translate = useTranslate();
     useListContext<any>();
     return (
-        <>
-            <br />
-            <Typography variant="h5" sx={{ mt: 1 }}>
-                Identity Providers
-            </Typography>
-            <Typography variant="h6">
-                Register and manage identity providers
-            </Typography>
+        <Page>
+          <PageTitle
+                text={translate('page.idp.list.title')}
+                secondaryText={translate('page.idp.list.subtitle')}
+            />
+            
             <List
-                empty={<Empty />}
+                // empty={<Empty />}
                 exporter={YamlExporter}
                 actions={<IdpListActions />}
                 filters={RealmFilters}
                 sort={{ field: 'name', order: 'DESC' }}
-            >
-                <Datagrid bulkActionButtons={false}>
-                    <TextField source="name" />
-                    <TextField source="authority" />
-                    <IdField source="provider" />
+                component={Box}
 
-                    <RowButtonGroup label="⋮">
-                        <DropDownButton>
-                            <EnableIdpButton />
-                            <ShowButton />
-                            <EditButton />
-                            <ExportRecordButton />
-                            <DeleteWithDialogButton />
-                        </DropDownButton>
-                    </RowButtonGroup>
+            >
+                <Datagrid bulkActionButtons={<PostBulkActionButtons />} rowClick="show">
+                    <TextField source="name" />
+                    <IdField source="provider" />
+                    <TextField source="authority" />
+                    <ActionsButtons />
                 </Datagrid>
             </List>
-        </>
+        </Page>
     );
 };
 
@@ -116,11 +109,6 @@ const IdpListActions = () => {
 
     return (
         <TopToolbar>
-            <CreateButton
-                variant="contained"
-                label="Add Provider"
-                sx={{ marginLeft: 2 }}
-            />
             <CreateInDialogButton
                 fullWidth
                 maxWidth={'md'}
@@ -189,23 +177,23 @@ const createTransform = (data: any) => {
         configuration: { applicationType: data.type },
     };
 };
-const Empty = () => {
-    return (
-        <Box textAlign="center" mt={30} ml={70}>
-            <Typography variant="h6" paragraph>
-                No provider available, create one
-            </Typography>
-            <CreateInDialogButton
-                fullWidth
-                maxWidth={'md'}
-                variant="contained"
-                transform={createTransform}
-            >
-                <IdpCreateForm />
-            </CreateInDialogButton>
-        </Box>
-    );
-};
+// const Empty = () => {
+//     return (
+//         <Box textAlign="center" mt={30} ml={70}>
+//             <Typography variant="h6" paragraph>
+//                 No provider available, create one
+//             </Typography>
+//             <CreateInDialogButton
+//                 fullWidth
+//                 maxWidth={'md'}
+//                 variant="contained"
+//                 transform={createTransform}
+//             >
+//                 <IdpCreateForm />
+//             </CreateInDialogButton>
+//         </Box>
+//     );
+// };
 
 export const EnableIdpButton = () => {
     const record = useRecordContext();
@@ -287,21 +275,3 @@ const ImportToolbar = () => (
         <SaveButton label="Import" />
     </Toolbar>
 );
-
-const IdField = (props: any) => {
-    let s = props.source;
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <span>
-            {record[s]}
-            <IconButton
-                onClick={() => {
-                    navigator.clipboard.writeText(record[s]);
-                }}
-            >
-                <ContentCopyIcon />
-            </IconButton>
-        </span>
-    );
-};
