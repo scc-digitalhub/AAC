@@ -54,8 +54,9 @@ export const DropDownButton = (props: DrodownButtonProps) => {
                 keepMounted
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
+                
             >
-                <Stack direction={'column'}>{children}</Stack>
+                <Stack direction={'column'} sx={{minWidth:'80px', marginLeft: '10px',alignItems: 'flex-start'}}>{children}</Stack>
             </Menu>
         </Box>
     );
