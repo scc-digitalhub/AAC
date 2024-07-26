@@ -36,6 +36,7 @@ import { IdField } from '../components/IdField';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { Page } from '../components/page';
 import { PageTitle } from '../components/pageTitle';
+import { TabToolbar } from '../components/TabToolbar';
 
 export const GroupEdit = () => {
     const params = useParams();
@@ -179,7 +180,7 @@ const GroupTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedForm sx={{ mr: 1 }} syncWithLocation={false}>
+            <TabbedForm  toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label="Overview">
                     <TextField source="id" />
                     <TextField source="name" />

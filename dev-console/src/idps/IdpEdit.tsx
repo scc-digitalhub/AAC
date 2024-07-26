@@ -10,6 +10,7 @@ import { PageTitle } from '../components/pageTitle';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Box } from '@mui/material';
+import { TabToolbar } from '../components/TabToolbar';
 
 export const IdpEdit = () => {
     return (
@@ -20,11 +21,7 @@ export const IdpEdit = () => {
         </Page>
     );
 };
-const MyToolbar = () => (
-    <Toolbar>
-        <SaveButton />
-    </Toolbar>
-);
+
 const IdpTabComponent = () => {
     const record = useRecordContext();
     const translate = useTranslate();
@@ -32,7 +29,7 @@ const IdpTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedForm toolbar={<MyToolbar />}>
+            <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab  label={translate('page.idp.overview.title')}>
                     <TextField source="name" />
                     <TextField source="type" />

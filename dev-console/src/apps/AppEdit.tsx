@@ -23,6 +23,7 @@ import { PageTitle } from '../components/pageTitle';
 import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Page } from '../components/page';
+import { TabToolbar } from '../components/TabToolbar';
 
 export const AppEdit = () => {
     return (
@@ -38,11 +39,6 @@ export const AppEdit = () => {
     );
 };
 
-const MyToolbar = () => (
-    <Toolbar>
-        <SaveButton />
-    </Toolbar>
-);
 
 const AppTabComponent = () => {
     const translate = useTranslate();
@@ -54,7 +50,7 @@ const AppTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedForm toolbar={<MyToolbar />}>
+            <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label={translate('page.app.overview.title')}>
                     <TextField source="name" />
                     <TextField source="type" />

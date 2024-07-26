@@ -6,6 +6,7 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/page';
 import { PageTitle } from '../components/pageTitle';
+import { TabToolbar } from '../components/TabToolbar';
 
 export const ServiceEdit = () => {
     return (
@@ -28,7 +29,7 @@ const ServiceTabComponent = () => {
     return (
         <>
         <PageTitle text={record.name} secondaryText={record?.id} />
-        <TabbedForm sx={{ mr: 1 }} syncWithLocation={false}>
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="Overview">
             <TextField source="id" />
                     <TextField source="name" />

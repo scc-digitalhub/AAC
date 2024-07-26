@@ -24,6 +24,7 @@ import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Page } from '../components/page';
 import { ActiveButton } from './activeButton';
+import { TabToolbar } from '../components/TabToolbar';
 
 export const UserEdit = () => {
     return (
@@ -48,7 +49,7 @@ const UserTabComponent = () => {
     return (
         <>
             <PageTitle text={record.username} secondaryText={record?.id} />
-            <TabbedForm  syncWithLocation={false}>
+            <TabbedForm  toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label={translate('page.user.overview.title')}>
                 <TextField source="username" />
                     <TextField source="email" />
