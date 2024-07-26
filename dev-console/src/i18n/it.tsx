@@ -240,6 +240,39 @@ const messages: TranslationMessages = {
                 title: 'Applicazioni',
             }
         },
+        user:{
+            list: {
+                title: 'Utenti',
+                subtitle: 'Gestisci gli utenti',
+            },
+            overview: {
+                title: 'Informazioni',
+            },
+            account: {
+                title: 'Account',
+            },
+            audit: {
+                title: 'Audit',
+            },
+            apps: {
+                title: 'Applicazioni',
+            },
+            groups: {
+                title: 'Gruppi',
+            },
+            roles: {
+                title: 'Ruoli',
+            },
+            attributes: {  
+                title: 'Attributi',
+            },
+            spaceRoles: {
+                title: 'Spazio dei ruoli',
+            },
+            tos: {
+                title: 'Termini di servizio',
+            },
+        }
     },
     alert: {
         authorization_expired: "L'autorizzazione è scaduta",

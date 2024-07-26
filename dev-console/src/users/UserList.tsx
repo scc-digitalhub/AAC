@@ -15,6 +15,8 @@ import {
     useRefresh,
     ShowButton,
     EditButton,
+    useTranslate,
+    BulkDeleteButton,
 } from 'react-admin';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
@@ -27,49 +29,63 @@ import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { UserCreateForm } from './UserCreate';
 import { DropDownButton } from '../components/DropdownButton';
 import { RowButtonGroup } from '../components/RowButtonGroup';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { Page } from '../components/page';
+import { PageTitle } from '../components/pageTitle';
+import { YamlExporter } from '../components/YamlExporter';
+import { IdField } from '../components/IdField';
 
+const PostBulkActionButtons = () => (
+    <>
+        <BulkDeleteButton />
+    </>
+);
 export const UserList = () => {
     const { root: realmId } = useRootSelector();
     const record = useRecordContext();
+    const translate = useTranslate();
     return (
-        <List
-            empty={<Empty />}
-            actions={<UserListActions />}
-            filters={UserFilters}
-            sort={{ field: 'username', order: 'DESC' }}
-        >
-            <Datagrid>
-                <WrapperField>
-                    <Stack>
-                        <TextField source="username" />
-                        {`${realmId}` !== 'system' && (
-                            <span>
-                                <TextField source="email" />
-                                &nbsp;
-                                <EmailVerified source="emailVerified" />
-                            </span>
-                        )}
-                    </Stack>
-                </WrapperField>
-                <IdField source="id" />
-                <ArrayField
-                    filter={{ realm: realmId }}
-                    source="authorities"
-                    emptyText=""
+        <Page>
+            <PageTitle
+                text={translate('page.user.list.title')}
+                secondaryText={translate('page.user.list.subtitle')}
+            />
+            <List
+                exporter={YamlExporter}
+                actions={<UserListActions />}
+                filters={UserFilters}
+                sort={{ field: 'username', order: 'DESC' }}
+                component={Box}
+            >
+                <Datagrid
+                    bulkActionButtons={<PostBulkActionButtons />}
+                    rowClick="show"
                 >
-                    {record?.role && <ChipField source="role" size="small" />}
-                </ArrayField>
-                <RowButtonGroup label="⋮">
-                    <DropDownButton>
-                        <ShowButton />
-                        <EditButton />
-                        <InspectButton />
-                        <ActiveButton />
-                        <DeleteWithDialogButton />
-                    </DropDownButton>
-                </RowButtonGroup>
-            </Datagrid>
-        </List>
+                    <WrapperField>
+                        <Stack>
+                            <TextField source="username" />
+                            {`${realmId}` !== 'system' && (
+                                <span>
+                                    <TextField source="email" />
+                                    <EmailVerified source="emailVerified" />
+                                </span>
+                            )}
+                        </Stack>
+                    </WrapperField>
+                    <IdField source="id" />
+                    <ArrayField
+                        filter={{ realm: realmId }}
+                        source="authorities"
+                        emptyText=""
+                    >
+                        {record?.role && (
+                            <ChipField source="role" size="small" />
+                        )}
+                    </ArrayField>
+                    <ActionsButtons />
+                </Datagrid>
+            </List>
+        </Page>
     );
 };
 
@@ -90,23 +106,6 @@ const UserListActions = () => {
     );
 };
 
-const IdField = (props: any) => {
-    let s = props.source;
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <span>
-            {record[s]}
-            <IconButton
-                onClick={() => {
-                    navigator.clipboard.writeText(record[s]);
-                }}
-            >
-                <ContentCopyIcon />
-            </IconButton>
-        </span>
-    );
-};
 
 const EmailVerified = (props: any) => {
     let s = props.source;

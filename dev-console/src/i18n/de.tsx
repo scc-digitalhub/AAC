@@ -201,8 +201,41 @@ const messages: TranslationMessages = {
             },
             app:{
                 title: 'Anwendungen',
-            }
+            },
         },
+        user:{
+            list: {
+                title: 'Benutzer',
+                subtitle: 'Verwalten Sie Benutzer',
+            },
+            overview: {
+                title: 'Übersicht',
+            },
+            account: {
+                title: 'Konto',
+            },
+            audit: {
+                title: 'Betriebsprotokoll',
+            },
+            apps: {
+                title: 'Apps',
+            },
+            groups: {
+                title: 'Gruppen',
+            },
+            roles: {
+                title: 'Rollen',
+            },
+            attributes: {  
+                title: 'Attribute',
+            },
+            spaceRoles: {
+                title: 'Space-Rollen',
+            },
+            tos: {
+                title: 'Nutzungsbedingungen',
+            },
+        }
     },
     alert: {
         authorization_expired: 'Ihre Autorisierung ist abgelaufen',

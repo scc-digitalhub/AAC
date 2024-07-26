@@ -1,69 +1,69 @@
-import { IconButton, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
-    Button,
+    EditButton,
     Show,
     TabbedShowLayout,
     TextField,
     TopToolbar,
-    useNotify,
     useRecordContext,
-    useRefresh,
-    useUpdate,
+    useTranslate,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import React from 'react';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-import BlockIcon from '@mui/icons-material/Block';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/page';
+import { ActiveButton } from './activeButton';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
 
 export const UserShow = () => {
     return (
-        <Show actions={<ShowToolBarActions />}>
-            <UserTabComponent />
-        </Show>
+        <Page>
+            <Show actions={<ShowToolBarActions />} component={Box}>
+                <UserTabComponent />
+            </Show>
+        </Page>
     );
 };
 
 const UserTabComponent = () => {
     const record = useRecordContext();
+    const translate = useTranslate();
     if (!record) return null;
 
     return (
         <>
             <PageTitle text={record.username} secondaryText={record?.id} />
-            <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Overview">
+            <TabbedShowLayout  syncWithLocation={false}>
+                <TabbedShowLayout.Tab label={translate('page.user.overview.title')}>
                     <TextField source="username" />
                     <TextField source="email" />
+                    <TextField source="subjectId" />
+                    <TextField source="roles" />
+                    <TextField source="permissions" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Acccount">
+                <TabbedShowLayout.Tab label={translate('page.user.account.title')}>
                     <TextField source="id" />
                     <TextField source="email" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Audit">
+                <TabbedShowLayout.Tab label={translate('page.user.audit.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Apps">
+                <TabbedShowLayout.Tab label={translate('page.user.apps.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Groups">
+                <TabbedShowLayout.Tab label={translate('page.user.groups.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Roles">
+                <TabbedShowLayout.Tab label={translate('page.user.roles.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Attributes">
+                <TabbedShowLayout.Tab label={translate('page.user.attributes.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Space Roles">
+                <TabbedShowLayout.Tab label={translate('page.user.spaceRoles.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Tos">
+                <TabbedShowLayout.Tab label={translate('page.user.tos.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
@@ -77,85 +77,11 @@ const ShowToolBarActions = () => {
     let body = JSON.stringify(record, null, '\t');
     return (
         <TopToolbar>
-            <InspectButton />
             <ActiveButton />
+            <EditButton />
+            <InspectButton />
             <DeleteWithDialogButton />
+            <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
-    );
-};
-
-const IdField = (props: any) => {
-    let s = props.source;
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <span>
-            {record[s]}
-            <IconButton
-                onClick={() => {
-                    navigator.clipboard.writeText(record[s]);
-                }}
-            >
-                <ContentCopyIcon />
-            </IconButton>
-        </span>
-    );
-};
-
-const ActiveButton = () => {
-    const record = useRecordContext();
-    const notify = useNotify();
-    const refresh = useRefresh();
-    const [inactive] = useUpdate(
-        'users',
-        {
-            id: record.id + '/status',
-            data: record,
-        },
-        {
-            onSuccess: () => {
-                notify(`user ` + record.id + ` disabled successfully`);
-                refresh();
-            },
-        }
-    );
-    const [active] = useUpdate(
-        'users',
-        {
-            id: record.id + '/status',
-            data: record,
-        },
-        {
-            onSuccess: () => {
-                notify(`user ` + record.id + ` enabled successfully`);
-                refresh();
-            },
-        }
-    );
-
-    if (!record) return null;
-    return (
-        <>
-            {record.status !== 'inactive' && (
-                <Button
-                    onClick={() => {
-                        record.status = 'inactive';
-                        inactive();
-                    }}
-                    label="Deactivate"
-                    startIcon={<BlockIcon />}
-                ></Button>
-            )}
-            {record.status === 'inactive' && (
-                <Button
-                    onClick={() => {
-                        record.status = 'active';
-                        active();
-                    }}
-                    label="Activate"
-                    startIcon={<PlayArrowIcon />}
-                ></Button>
-            )}
-        </>
     );
 };

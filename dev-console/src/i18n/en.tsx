@@ -184,6 +184,39 @@ const enMessages: TranslationMessages = {
                 title: 'Applications',
             }
         },
+        user: {
+            list: {
+                title: 'Users',
+                subtitle: 'Manage users',
+            },
+            overview: {
+                title: 'Overview',
+            },
+            account: {
+                title: 'Account',
+            },
+            audit: {
+                title: 'Audit',
+            },
+            apps: {
+                title: 'Apps',
+            },
+            groups: {
+                title: 'Groups',
+            },
+            roles: {
+                title: 'Roles',
+            },
+            attributes: {  
+                title: 'Attributes',
+            },
+            spaceRoles: {
+                title: 'Space Roles',
+            },
+            tos: {
+                title: 'Terms of service',
+            },
+        },
     },
     alert: {
         authorization_expired: 'The authorization is expired',

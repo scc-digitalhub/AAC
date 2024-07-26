@@ -48,6 +48,7 @@ import { RoleIcon } from './roles/RoleIcon';
 import { RoleList } from './roles/RoleList';
 import { RoleShow } from './roles/RoleShow';
 import { IdpShow } from './idps/IdpShow';
+import { UserEdit } from './users/UserEdit';
 
 //config
 const CONTEXT_PATH: string =
@@ -166,6 +167,7 @@ const DevApp = () => {
                     list={<UserList />}
                     create={<UserCreate />}
                     show={<UserShow />}
+                    edit={<UserEdit />}
                     icon={UserIcon}
                 />
                 <Resource
