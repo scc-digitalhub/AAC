@@ -6,7 +6,7 @@ import {
     TopToolbar,
     ExportButton,
     useTranslate,
-    BulkDeleteButton
+    BulkDeleteButton,
 } from 'react-admin';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
@@ -15,7 +15,7 @@ import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { Box, Paper } from '@mui/material';
-import { Page } from "../components/page";
+import { Page } from '../components/page';
 const PostBulkActionButtons = () => (
     <>
         <BulkDeleteButton />
@@ -36,14 +36,16 @@ export const AppList = () => {
                 sort={{ field: 'name', order: 'DESC' }}
                 component={Box}
             >
-                <Datagrid bulkActionButtons={<PostBulkActionButtons />} rowClick="show">
+                <Datagrid
+                    bulkActionButtons={<PostBulkActionButtons />}
+                    rowClick="show"
+                >
                     <TextField source="name" />
                     <IdField source="id" />
                     <ActionsButtons />
                 </Datagrid>
             </List>
-            </Page>
-        // </Paper>
+        </Page>
     );
 };
 
