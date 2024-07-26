@@ -7,6 +7,8 @@ import {
     CreateButton,
     EditButton,
     ShowButton,
+    useTranslate,
+    SearchInput,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { RoleCreateForm } from './RoleCreate';
@@ -17,26 +19,35 @@ import { DropDownButton } from '../components/DropdownButton';
 import { IdField } from '../components/IdField';
 import { RowButtonGroup } from '../components/RowButtonGroup';
 import { EnableIdpButton } from '../idps/IdpList';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { PageTitle } from '../components/pageTitle';
+import { YamlExporter } from '../components/YamlExporter';
 
 export const RoleList = () => {
+    const translate = useTranslate();
     return (
-        <List empty={<Empty />} actions={<RoleListActions />}>
-            <Datagrid>
-            <TextField source="id" />
+        <>
+        <PageTitle
+            text={translate('page.group.list.title')}
+            secondaryText={translate('page.group.list.subtitle')}
+        />
+        <List
+            exporter={YamlExporter}
+            actions={<RoleListActions />}
+            filters={RoleFilters}
+            sort={{ field: 'name', order: 'DESC' }}
+        >
+            <Datagrid bulkActionButtons={false} rowClick="show">
             <TextField source="name" />
+            <IdField source="id" />
             <TextField source="authority" />
-                    <RowButtonGroup label="⋮">
-                        <DropDownButton>
-                            <ShowButton />
-                            <EditButton />
-                            <ExportRecordButton />
-                            <DeleteWithDialogButton />
-                        </DropDownButton>
-                    </RowButtonGroup>
+                <ActionsButtons />
             </Datagrid>
         </List>
+        </>
     );
 };
+const RoleFilters = [<SearchInput source="q" alwaysOn />]; 
 const Empty = () => {
     return (
         <Box textAlign="center" mt={30} ml={70}>

@@ -1,22 +1,26 @@
-import { Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
     EditButton,
-    RichTextField,
     Show,
+    ShowButton,
     TabbedShowLayout,
     TextField,
     TopToolbar,
     useRecordContext,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/page';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const RoleShow = () => {
     return (
-        <Show actions={<ShowToolBarActions />}>
-            <AppTabComponent />
-        </Show>
+        <Page>
+            <Show actions={<ShowToolBarActions />} component={Box}>
+                <AppTabComponent />
+            </Show>
+        </Page>
     );
 };
 
@@ -46,9 +50,10 @@ const AppTabComponent = () => {
 const ShowToolBarActions = () => {
     return (
         <TopToolbar>
-            <>
-                <EditButton></EditButton>
-            </>
+            <EditButton />
+            <InspectButton />
+             <DeleteWithDialogButton/>
+            <ExportRecordButton />
         </TopToolbar>
     );
 };
