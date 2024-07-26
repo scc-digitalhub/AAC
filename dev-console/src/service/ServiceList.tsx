@@ -4,56 +4,35 @@ import {
     Datagrid,
     TextField,
     TopToolbar,
-    CreateButton,
-    EditButton,
-    ShowButton,
+    SearchInput,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
 import { ServiceCreateForm } from './ServiceCreate';
-import { Box, Typography } from '@mui/material';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { DropDownButton } from '../components/DropdownButton';
+import { Box } from '@mui/material';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { Page } from '../components/page';
+import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
-import { RowButtonGroup } from '../components/RowButtonGroup';
-import { EnableIdpButton } from '../idps/IdpList';
 
 export const ServiceList = () => {
     return (
-        <List empty={<Empty />} actions={<ServiceListActions />}>
-            <Datagrid>
-            <TextField source="id" />
-            <TextField source="name" />
-            <TextField source="namespace" />
-                    <RowButtonGroup label="⋮">
-                        <DropDownButton>
-                            <ShowButton />
-                            <EditButton />
-                            <ExportRecordButton />
-                            <DeleteWithDialogButton />
-                        </DropDownButton>
-                    </RowButtonGroup>
-            </Datagrid>
-        </List>
-    );
-};
-const Empty = () => {
-    return (
-        <Box textAlign="center" mt={30} ml={70}>
-            <Typography variant="h6" paragraph>
-                No Service available, create one
-            </Typography>
-            <CreateInDialogButton
-                fullWidth
-                maxWidth={'md'}
-                variant="contained"
-                transform={createTransform}
+        <Page>
+            <List
+                actions={<ServiceListActions />}
+                component={Box}
+                exporter={YamlExporter}
+                filters={ServiceFilters}
+                sort={{ field: 'name', order: 'DESC' }}
             >
-                <ServiceCreateForm />
-            </CreateInDialogButton>
-        </Box>
+                <Datagrid bulkActionButtons={false} rowClick="show">
+                    <TextField source="name" />
+                    <IdField source="id" />
+                    <ActionsButtons />
+                </Datagrid>
+            </List>
+        </Page>
     );
 };
+const ServiceFilters = [<SearchInput source="q" alwaysOn />];
 const createTransform = (data: any) => {
     return {
         ...data,

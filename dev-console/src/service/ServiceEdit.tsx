@@ -1,48 +1,51 @@
-import {
-    Typography,
-} from '@mui/material';
-import {
-    Edit,
-    TopToolbar,
-    useRecordContext,
-} from 'react-admin';
+import { Box, Typography } from '@mui/material';
+import { Edit, ShowButton, TabbedForm, TextField, TextInput, TopToolbar, useRecordContext } from 'react-admin';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { Page } from '../components/page';
+import { PageTitle } from '../components/pageTitle';
 
 export const ServiceEdit = () => {
     return (
-        <Edit
-            actions={<EditToolBarActions />}
-            mutationMode="pessimistic"
-        >
-            <ServiceTabComponent />
-        </Edit>
+        <Page>
+            <Edit
+                actions={<EditToolBarActions />}
+                mutationMode="pessimistic"
+                component={Box}
+            >
+                <ServiceTabComponent />
+            </Edit>
+        </Page>
     );
 };
-
 
 const ServiceTabComponent = () => {
     const record = useRecordContext();
     if (!record) return null;
 
-
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                {record.provider}
-            </Typography>
-            <br />
-        </>
+        <PageTitle text={record.name} secondaryText={record?.id} />
+        <TabbedForm sx={{ mr: 1 }} syncWithLocation={false}>
+            <TabbedForm.Tab label="Overview">
+            <TextField source="id" />
+                    <TextField source="name" />
+                    <TextField source="namespace" />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="Settings">
+                    <TextInput source="name" />
+                    <TextInput source="description" />
+                    <TextInput source="namespace" />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="Scopes">
+                </TabbedForm.Tab>
+                <TabbedForm.Tab label="Claims"></TabbedForm.Tab>
+        </TabbedForm>
+    </>
     );
 };
-
-
 
 const EditToolBarActions = () => {
     const record = useRecordContext();
@@ -50,11 +53,10 @@ const EditToolBarActions = () => {
 
     return (
         <TopToolbar>
+            <ShowButton />
             <InspectButton />
-             <DeleteWithDialogButton/>
+            <DeleteWithDialogButton />
             <ExportRecordButton />
         </TopToolbar>
     );
 };
-
-

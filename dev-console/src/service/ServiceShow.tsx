@@ -1,6 +1,7 @@
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import {
     EditButton,
+    ReferenceArrayField,
     RichTextField,
     Show,
     TabbedShowLayout,
@@ -11,12 +12,18 @@ import {
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/page';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const ServiceShow = () => {
     return (
-        <Show actions={<ShowToolBarActions />}>
-            <AppTabComponent />
-        </Show>
+        <Page>
+            <Show actions={<ShowToolBarActions />} component={Box}>
+                <AppTabComponent />
+            </Show>
+        </Page>
     );
 };
 
@@ -26,23 +33,22 @@ const AppTabComponent = () => {
 
     return (
         <>
-            <PageTitle
-                text={record.name}
-                secondaryText={record?.id}
-            />
-            <TabbedShowLayout  syncWithLocation={false}>
+            <PageTitle text={record.name} secondaryText={record?.id} />
+            <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="id" />
+                    <TextField source="name" />
+                    <TextField source="namespace" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab label="Settings">
                     <TextField source="name" />
                     <TextField source="description" />
                     <TextField source="namespace" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Settings">
-                </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label="Scopes">
-                </TabbedShowLayout.Tab> 
-                <TabbedShowLayout.Tab label="Claims">
+                    <ReferenceArrayField source="scopes" reference="scopes" />
                 </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab label="Claims"><></></TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
     );
@@ -51,9 +57,10 @@ const AppTabComponent = () => {
 const ShowToolBarActions = () => {
     return (
         <TopToolbar>
-            <>
-                <EditButton></EditButton>
-            </>
+            <EditButton />
+            <InspectButton />
+            <DeleteWithDialogButton />
+            <ExportRecordButton />
         </TopToolbar>
     );
 };
