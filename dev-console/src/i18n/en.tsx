@@ -168,6 +168,21 @@ const enMessages: TranslationMessages = {
                 description:
                     'Provide a valid YAML file with the full provider definition, or with a list of valid providers nested under key providers.',
             },
+            overview: {
+                title: 'Overview',
+            },
+            settings: {
+                title: 'Settings',
+            },
+            configuration: {
+                title: 'Configuration',
+            },
+            hooks: {
+                title: 'Hooks',
+            },
+            app:{
+                title: 'Applications',
+            }
         },
     },
     alert: {

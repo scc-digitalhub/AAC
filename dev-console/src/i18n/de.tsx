@@ -181,11 +181,27 @@ const messages: TranslationMessages = {
                 title: 'Identity providers',
                 subtitle: 'Manage identity providers',
             },
+            
             import: {
                 title: 'Import Provider',
                 description:
                     'Stellen Sie eine gültige YAML-Datei mit der vollständigen Anbieterdefinition oder mit einer Liste gültiger Anbieter bereit, die unter Schlüsselanbietern verschachtelt ist.',
             },
+            overview: {
+                title: 'Übersicht',
+            },
+            settings: {
+                title: 'Einstellungen',
+            },
+            configuration: {
+                title: 'Konfiguration',
+            },
+            hooks: {
+                title: 'Hooks',
+            },
+            app:{
+                title: 'Anwendungen',
+            }
         },
     },
     alert: {

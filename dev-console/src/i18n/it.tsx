@@ -224,6 +224,21 @@ const messages: TranslationMessages = {
                 description:
                     'Fornisci un file YAML valido con la definizione completa del provider o con un elenco di provider validi nidificati sotto i provider.',
             },
+            overview: {
+                title: 'Informazioni',
+            },
+            settings: {
+                title: 'Impostazioni',
+            },
+            configuration: {
+                title: 'Configurazione',
+            },
+            hooks: {
+                title: 'Hook',
+            },
+            app:{
+                title: 'Applicazioni',
+            }
         },
     },
     alert: {

@@ -1,116 +1,93 @@
-import { Typography } from '@mui/material';
-import { Edit, ShowButton, TopToolbar, useRecordContext } from 'react-admin';
+import { Edit, SaveButton, ShowButton, TabbedForm, TextField, Toolbar, TopToolbar, useRecordContext, useTranslate } from 'react-admin';
 import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
 import React from 'react';
-import { DeleteButtonDialog } from '../components/DeleteButtonDialog';
-import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { EnableIdpButton } from './IdpList';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/page';
+import { PageTitle } from '../components/pageTitle';
+import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
+import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
+import { Box } from '@mui/material';
 
 export const IdpEdit = () => {
     return (
         <Page>
-            <Edit actions={<EditToolBarActions />} mutationMode="pessimistic">
+            <Edit actions={<EditToolBarActions />} mutationMode="pessimistic" component={Box}>
                 <IdpTabComponent />
             </Edit>
         </Page>
     );
 };
-
+const MyToolbar = () => (
+    <Toolbar>
+        <SaveButton />
+    </Toolbar>
+);
 const IdpTabComponent = () => {
     const record = useRecordContext();
+    const translate = useTranslate();
     if (!record) return null;
-
-    // return <IdpTabs id={record.provider}></IdpTabs>;
-
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                {record.provider}
-            </Typography>
-            <br />
-            {/* <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Internal Configuration">
+            <PageTitle text={record.name} secondaryText={record?.id} />
+            <TabbedForm toolbar={<MyToolbar />}>
+                <TabbedForm.Tab  label={translate('page.idp.overview.title')}>
                     <TextField source="name" />
                     <TextField source="type" />
                     <TextField source="authority" />
                     <TextField source="provider" />
                     <TextField source="enabled" />
                     <TextField source="registered" />
-                    <InternalConfiguration />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Settings">
-                    <Typography variant="h5" sx={{ mr: 2 }}>
-                        OAuth2.0 Configuration
-                    </Typography>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                        Basic client configuration for OAuth2/OpenId Connect
-                    </Typography>
-                    <EditOAuthJsonSchemaForm />
-                </TabbedShowLayout.Tab>
-            </TabbedShowLayout> */}
+                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                    label={translate('page.idp.settings.title')}
+                >
+                    <OAuthJsonSchemaForm />
+                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                    label={translate('page.idp.configuration.title')}
+                >
+                   
+                    <OAuthJsonSchemaForm />
+                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                    label={translate('page.idp.hooks.title')}
+                >
+                    
+                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                    label={translate('page.idp.app.title')}
+                >
+                    
+                </TabbedForm.Tab>
+            </TabbedForm>
         </>
     );
 };
+const OAuthJsonSchemaForm = () => {
+    const record = useRecordContext();
+    if (!record) return null;
 
+    return (
+        <JsonSchemaInput
+            source="configuration"
+            schema={schemaOAuthClient}
+            uiSchema={uiSchemaOAuthClient}
+        />
+    );
+};
 const EditToolBarActions = () => {
-    const params = useParams();
     const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
     return (
         <TopToolbar>
             <EnableIdpButton />
-            <InspectButton />
+            <ShowButton />
 
-            {/* <Button label="Inspect" onClick={handleClick}>
-                {<VisibilityIcon />}
-            </Button>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                fullWidth
-                maxWidth="md"
-                sx={{
-                    '.MuiDialog-paper': {
-                        position: 'absolute',
-                        top: 50,
-                    },
-                }}
-            >
-                <DialogTitle bgcolor={'#0066cc'} color={'white'}>
-                    Inpsect Json
-                </DialogTitle>
-                <DialogContent>
-                    <ShowBase queryOptions={options} id={params.id}>
-                        <SimpleShowLayout>
-                            <Typography>Raw JSON</Typography>
-                            <Box>
-                                <AceEditor
-                                    setOptions={{
-                                        useWorker: false,
-                                    }}
-                                    mode="json"
-                                    value={body}
-                                    width="100%"
-                                    maxLines={20}
-                                    wrapEnabled
-                                    theme="github"
-                                    showPrintMargin={false}
-                                ></AceEditor>
-                            </Box>
-                        </SimpleShowLayout>
-                    </ShowBase>
-                </DialogContent>
-            </Dialog> */}
+            <InspectButton />
             <DeleteWithDialogButton />
             <ExportRecordButton />
         </TopToolbar>
