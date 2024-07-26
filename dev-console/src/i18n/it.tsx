@@ -272,7 +272,13 @@ const messages: TranslationMessages = {
             tos: {
                 title: 'Termini di servizio',
             },
-        }
+        },
+        group:{
+            list: {
+                title: 'Gruppi',
+                subtitle: 'Gestisci i gruppi',
+            },
+        },
     },
     alert: {
         authorization_expired: "L'autorizzazione è scaduta",

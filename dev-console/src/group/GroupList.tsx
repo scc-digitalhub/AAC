@@ -5,7 +5,6 @@ import {
     Datagrid,
     TextField,
     TopToolbar,
-    CreateButton,
     Button,
     useNotify,
     useTranslate,
@@ -14,9 +13,6 @@ import {
     SimpleForm,
     SaveButton,
     Toolbar,
-    useRecordContext,
-    EditButton,
-    ShowButton,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import {
@@ -24,69 +20,45 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
-    IconButton,
     Typography,
 } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 
 import ImportExportIcon from '@mui/icons-material/ImportExport';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import React from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { DropDownButton } from '../components/DropdownButton';
-import { RowButtonGroup } from '../components/RowButtonGroup';
 import { GroupCreateForm } from './GroupCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
+import { PageTitle } from '../components/pageTitle';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { IdField } from '../components/IdField';
 
 export const GroupList = () => {
     const params = useParams();
+    const translate = useTranslate();
     const options = { meta: { realmId: params.realmId } };
     useListContext<any>();
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ mt: 1 }}>
-                Realm groups
-            </Typography>
-            <Typography variant="h6">
-                Register and manage realm groups.
-            </Typography>
+            <PageTitle
+                text={translate('page.group.list.title')}
+                secondaryText={translate('page.group.list.subtitle')}
+            />
             <List
                 exporter={YamlExporter}
-                empty={<Empty />}
                 actions={<GroupListActions />}
                 queryOptions={options}
                 filters={GroupFilters}
                 sort={{ field: 'name', order: 'DESC' }}
             >
-                <Datagrid bulkActionButtons={false}>
+                <Datagrid bulkActionButtons={false} rowClick="show">
                     <TextField source="name" />
                     <IdField source="id" />
                     <TextField source="group" />
-                    <RowButtonGroup label="⋮">
-                        <DropDownButton>
-                            <ShowButton />
-                            <EditButton />
-                            <ExportRecordButton />
-                            <DeleteWithDialogButton />
-                        </DropDownButton>
-                    </RowButtonGroup>
+                    <ActionsButtons />
                 </Datagrid>
             </List>
-        </>
-    );
-};
-
-const EditGroupButton = () => {
-    const record = useRecordContext();
-
-    if (!record) return null;
-    return (
-        <>
-            <EditButton></EditButton>
         </>
     );
 };
@@ -95,26 +67,8 @@ const GroupFilters = [<SearchInput source="q" alwaysOn />];
 const transformCrate = (data: any) => {
     return {
         ...data,
-        group: data.key
-    }
-};
-const Empty = () => {
-    return (
-        <Box textAlign="center" mt={30} ml={70}>
-            <Typography variant="h6" paragraph>
-                No groups registered. Create a realm group to manage users and
-                memberships.
-            </Typography>
-            <CreateInDialogButton
-                fullWidth
-                maxWidth={'md'}
-                variant="contained"
-                transform={transformCrate}
-            >
-                <GroupCreateForm />
-            </CreateInDialogButton>
-        </Box>
-    );
+        group: data.key,
+    };
 };
 
 const GroupListActions = () => {
@@ -153,7 +107,8 @@ const GroupListActions = () => {
                 transform={transformCrate}
             >
                 <GroupCreateForm />
-            </CreateInDialogButton>            <Button
+            </CreateInDialogButton>
+            <Button
                 variant="contained"
                 label="Import"
                 onClick={handleClick}
@@ -198,21 +153,3 @@ const ImportToolbar = () => (
         <SaveButton />
     </Toolbar>
 );
-
-const IdField = (props: any) => {
-    let s = props.source;
-    const record = useRecordContext();
-    if (!record) return null;
-    return (
-        <span>
-            {record[s]}
-            <IconButton
-                onClick={() => {
-                    navigator.clipboard.writeText(record[s]);
-                }}
-            >
-                <ContentCopyIcon />
-            </IconButton>
-        </span>
-    );
-};

@@ -13,6 +13,7 @@ import {
     Form,
     SaveButton,
     ShowButton,
+    TabbedForm,
     TabbedShowLayout,
     TextField,
     TextInput,
@@ -33,18 +34,23 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { IdField } from '../components/IdField';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { Page } from '../components/page';
+import { PageTitle } from '../components/pageTitle';
 
 export const GroupEdit = () => {
     const params = useParams();
     const options = { meta: { realmId: params.realmId } };
     return (
-        <Edit
-            actions={<GroupToolBarActions />}
-            mutationMode="pessimistic"
-            queryOptions={options}
-        >
-            <GroupTabComponent />
-        </Edit>
+        <Page>
+            <Edit
+                actions={<GroupToolBarActions />}
+                mutationMode="pessimistic"
+                queryOptions={options}
+                component={Box}
+            >
+                <GroupTabComponent />
+            </Edit>
+        </Page>
     );
 };
 
@@ -172,82 +178,29 @@ const GroupTabComponent = () => {
 
     return (
         <>
-            <br />
-            <Typography variant="h5" sx={{ ml: 2, mt: 1 }}>
-                <StarBorderIcon color="primary" /> {record.name}
-            </Typography>
-            <Typography variant="h6" sx={{ ml: 2 }}>
-                <IdField source="id" />
-            </Typography>
-            <br />
-            <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Overview">
+            <PageTitle text={record.name} secondaryText={record?.id} />
+            <TabbedForm sx={{ mr: 1 }} syncWithLocation={false}>
+                <TabbedForm.Tab label="Overview">
                     <TextField source="id" />
                     <TextField source="name" />
                     <TextField source="group" />
                     <TextField source="members" />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Settings">
-                    <EditSetting />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Roles">
+                </TabbedForm.Tab>
+                <TabbedForm.Tab label="Settings">
+                    <TextInput source="name" fullWidth />
+                    <TextInput source="group" fullWidth />
+                </TabbedForm.Tab>
+                <TabbedForm.Tab label="Roles">
                     <TextField source="id" />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Members">
+                </TabbedForm.Tab>
+                <TabbedForm.Tab label="Members">
                     <TextField source="id" />
                     <TextField source="members" />
-                </TabbedShowLayout.Tab>
-            </TabbedShowLayout>
+                </TabbedForm.Tab>
+            </TabbedForm>
         </>
     );
 };
-
-const EditSetting = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
-    const notify = useNotify();
-    const refresh = useRefresh();
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
-    const onSuccess = (data: any) => {
-        notify(`Group updated successfully`);
-        refresh();
-    };
-    return (
-        <EditBase
-            mutationMode="pessimistic"
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
-        >
-            <Form>
-                <Card>
-                    <CardContent>
-                        <Box>
-                            <Box display="flex">
-                                <Box flex="1" mt={-1}>
-                                    <Box display="flex" width={430}>
-                                        <TextInput source="name" fullWidth />
-                                    </Box>
-                                    <Box display="flex" width={430}>
-                                        <TextInput source="group" fullWidth />
-                                    </Box>
-                                    <Divider />
-                                </Box>
-                            </Box>
-                        </Box>
-                    </CardContent>
-                    <GroupSettingToolbar />
-                </Card>
-            </Form>
-        </EditBase>
-    );
-};
-
-const GroupSettingToolbar = (props: any) => (
-    <Toolbar {...props}>
-        <SaveButton />
-    </Toolbar>
-);
 
 const GroupToolBarActions = () => {
     const record = useRecordContext();

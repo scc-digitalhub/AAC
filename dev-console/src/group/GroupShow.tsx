@@ -1,23 +1,25 @@
-import { Typography } from '@mui/material';
 import {
     EditButton,
-    RichTextField,
     Show,
     TabbedShowLayout,
     TextField,
     TopToolbar,
     useRecordContext,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { IdField } from '../components/IdField';
 import { PageTitle } from '../components/pageTitle';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { Page } from '../components/page';
+import { Box } from '@mui/material';
 
 export const GroupShow = () => {
     return (
-        <Show actions={<ShowToolBarActions />}>
-            <GroupTabComponent />
-        </Show>
+        <Page>
+            <Show actions={<ShowToolBarActions />} component={Box}>
+                <GroupTabComponent />
+            </Show>
+        </Page>
     );
 };
 
@@ -28,12 +30,16 @@ const GroupTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedShowLayout sx={{ mr: 1 }} syncWithLocation={false}>
+            <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="id" />
                     <TextField source="name" />
                     <TextField source="group" />
                     <TextField source="members" />
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab label="Settings">
+                    <TextField source="name" />
+                    <TextField source="group" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label="Roles">
                     <TextField source="id" />
@@ -46,13 +52,15 @@ const GroupTabComponent = () => {
         </>
     );
 };
-
 const ShowToolBarActions = () => {
+    const record = useRecordContext();
+    if (!record) return null;
     return (
         <TopToolbar>
-            <>
-                <EditButton></EditButton>
-            </>
+            <EditButton />
+            <InspectButton />
+            <DeleteWithDialogButton />
+            <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
     );
 };

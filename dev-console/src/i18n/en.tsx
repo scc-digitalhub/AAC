@@ -217,6 +217,12 @@ const enMessages: TranslationMessages = {
                 title: 'Terms of service',
             },
         },
+        group: {
+            list: {
+                title: 'Realm groups',
+                subtitle: 'Register and manage realm groups.',
+            },
+        },
     },
     alert: {
         authorization_expired: 'The authorization is expired',

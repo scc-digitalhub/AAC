@@ -235,7 +235,13 @@ const messages: TranslationMessages = {
             tos: {
                 title: 'Nutzungsbedingungen',
             },
-        }
+        },
+        group: {
+            list: {
+                title: 'Gruppen',
+                subtitle: 'Verwalten Sie Gruppen',
+            },
+        },
     },
     alert: {
         authorization_expired: 'Ihre Autorisierung ist abgelaufen',

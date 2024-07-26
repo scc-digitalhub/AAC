@@ -253,22 +253,9 @@ export const EnableIdpButton = () => {
     );
 };
 
-// const ExportIdpButton = () => {
-//     const record = useRecordContext();
-//     const { root: realmId } = useRootSelector();
-//     const to =
-//         process.env.REACT_APP_DEVELOPER_CONSOLE +
-//         `/idps/${realmId}/${record.provider}/export`;
-//     const handleExport = (data: any) => {
-//         window.open(to, '_blank');
-//     };
-//     if (!record) return null;
-//     return (
-//         <>
-//             <Button onClick={handleExport} label="Export"></Button>
-//         </>
-//     );
-// };
+
+
+
 
 const ImportToolbar = () => (
     <Toolbar>
