@@ -278,6 +278,18 @@ const messages: TranslationMessages = {
                 title: 'Gruppi',
                 subtitle: 'Gestisci i gruppi',
             },
+            overview: {
+                title: 'Informazioni',
+            },
+            members: {
+                title: 'Membri',
+            },
+            settings: {
+                title: 'Impostazioni',
+            },
+            roles: {
+                title: 'Ruoli',
+            },
         },
     },
     alert: {

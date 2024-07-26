@@ -222,6 +222,18 @@ const enMessages: TranslationMessages = {
                 title: 'Realm groups',
                 subtitle: 'Register and manage realm groups.',
             },
+            overview: {
+                title: 'Overview',
+            },
+            settings: {
+                title: 'Settings',
+            },
+            members: {
+                title: 'Members',
+            },
+            roles: {
+                title: 'Roles',
+            },
         },
     },
     alert: {

@@ -241,6 +241,18 @@ const messages: TranslationMessages = {
                 title: 'Gruppen',
                 subtitle: 'Verwalten Sie Gruppen',
             },
+            overview: {
+                title: 'Übersicht',
+            },
+            settings: {
+                title: 'Einstellungen',
+            },
+            members: {
+                title: 'Mitglieder',
+            },
+            roles: {
+                title: 'Rollen',
+            },
         },
     },
     alert: {

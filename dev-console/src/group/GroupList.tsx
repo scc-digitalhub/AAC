@@ -35,9 +35,7 @@ import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
 
 export const GroupList = () => {
-    const params = useParams();
     const translate = useTranslate();
-    const options = { meta: { realmId: params.realmId } };
     useListContext<any>();
     return (
         <>
@@ -48,7 +46,6 @@ export const GroupList = () => {
             <List
                 exporter={YamlExporter}
                 actions={<GroupListActions />}
-                queryOptions={options}
                 filters={GroupFilters}
                 sort={{ field: 'name', order: 'DESC' }}
             >

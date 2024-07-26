@@ -5,6 +5,7 @@ import {
     TextField,
     TopToolbar,
     useRecordContext,
+    useTranslate,
 } from 'react-admin';
 import { PageTitle } from '../components/pageTitle';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
@@ -25,26 +26,27 @@ export const GroupShow = () => {
 
 const GroupTabComponent = () => {
     const record = useRecordContext();
+    const translate = useTranslate();
     if (!record) return null;
 
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
             <TabbedShowLayout syncWithLocation={false}>
-                <TabbedShowLayout.Tab label="Overview">
+                <TabbedShowLayout.Tab label={translate('page.group.overview.title')}>
                     <TextField source="id" />
                     <TextField source="name" />
                     <TextField source="group" />
                     <TextField source="members" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Settings">
+                <TabbedShowLayout.Tab label={translate('page.group.settings.title')}>
                     <TextField source="name" />
                     <TextField source="group" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Roles">
+                <TabbedShowLayout.Tab label={translate('page.group.roles.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Members">
+                <TabbedShowLayout.Tab label={translate('page.group.members.title')}>
                     <TextField source="id" />
                     <TextField source="members" />
                 </TabbedShowLayout.Tab>
