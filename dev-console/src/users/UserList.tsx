@@ -51,6 +51,7 @@ export const UserList = () => {
                 secondaryText={translate('page.user.list.subtitle')}
             />
             <List
+                empty={false}
                 exporter={YamlExporter}
                 actions={<UserListActions />}
                 filters={UserFilters}

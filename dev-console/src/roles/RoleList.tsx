@@ -4,21 +4,12 @@ import {
     Datagrid,
     TextField,
     TopToolbar,
-    CreateButton,
-    EditButton,
-    ShowButton,
     useTranslate,
     SearchInput,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
 import { RoleCreateForm } from './RoleCreate';
 import { Box, Typography } from '@mui/material';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { DropDownButton } from '../components/DropdownButton';
 import { IdField } from '../components/IdField';
-import { RowButtonGroup } from '../components/RowButtonGroup';
-import { EnableIdpButton } from '../idps/IdpList';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { PageTitle } from '../components/pageTitle';
 import { YamlExporter } from '../components/YamlExporter';
@@ -32,6 +23,7 @@ export const RoleList = () => {
             secondaryText={translate('page.group.list.subtitle')}
         />
         <List
+            empty={false}
             exporter={YamlExporter}
             actions={<RoleListActions />}
             filters={RoleFilters}

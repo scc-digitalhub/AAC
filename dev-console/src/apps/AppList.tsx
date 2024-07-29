@@ -14,7 +14,7 @@ import { PageTitle } from '../components/pageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
-import { Box, Paper } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { Page } from '../components/page';
 const PostBulkActionButtons = () => (
     <>
@@ -35,6 +35,7 @@ export const AppList = () => {
                 filters={RealmFilters}
                 sort={{ field: 'name', order: 'DESC' }}
                 component={Box}
+                empty={false}
             >
                 <Datagrid
                     bulkActionButtons={<PostBulkActionButtons />}

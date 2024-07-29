@@ -59,7 +59,7 @@ export const IdpList = () => {
             />
             
             <List
-                // empty={<Empty />}
+                empty={false}
                 exporter={YamlExporter}
                 actions={<IdpListActions />}
                 filters={RealmFilters}
@@ -177,23 +177,6 @@ const createTransform = (data: any) => {
         configuration: { applicationType: data.type },
     };
 };
-// const Empty = () => {
-//     return (
-//         <Box textAlign="center" mt={30} ml={70}>
-//             <Typography variant="h6" paragraph>
-//                 No provider available, create one
-//             </Typography>
-//             <CreateInDialogButton
-//                 fullWidth
-//                 maxWidth={'md'}
-//                 variant="contained"
-//                 transform={createTransform}
-//             >
-//                 <IdpCreateForm />
-//             </CreateInDialogButton>
-//         </Box>
-//     );
-// };
 
 export const EnableIdpButton = () => {
     const record = useRecordContext();

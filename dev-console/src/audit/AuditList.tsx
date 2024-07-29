@@ -8,6 +8,7 @@ import {
     TopToolbar,
     DateInput,
     SelectInput,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import ContentFilter from '@mui/icons-material/FilterList';
@@ -16,19 +17,27 @@ import { Typography } from '@mui/material';
 
 import { useForm, FormProvider } from 'react-hook-form';
 import { Box, Button } from '@mui/material';
+import { Page } from '../components/page';
+import { PageTitle } from '../components/pageTitle';
+import { YamlExporter } from '../components/YamlExporter';
 
 export const AuditList = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
+    const translate = useTranslate();
     useListContext<any>();
     return (
-        <>
-            <br />
-            <Typography variant="h5" sx={{ mt: 1 }}>
-                Audit events
-            </Typography>
-            <Typography variant="h6">Review and inspect events</Typography>
-            <List actions={<ListActions />} queryOptions={options}>
+        <Page>
+            <PageTitle
+                text={translate('page.audit.list.title')}
+                secondaryText={translate('page.audit.list.subtitle')}
+            />
+            <List
+                actions={<ListActions />}
+                empty={false}
+                exporter={YamlExporter}
+                filters={AuditFilters}
+                sort={{ field: 'time', order: 'DESC' }}
+                component={Box}
+            >
                 <Datagrid
                     rowClick="expand"
                     expand={<AuditDetails />}
@@ -39,9 +48,10 @@ export const AuditList = () => {
                     <TextField source="principal" />
                 </Datagrid>
             </List>
-        </>
+        </Page>
     );
 };
+const AuditFilters = [<SearchInput source="q" alwaysOn />];
 
 // https://marmelab.com/react-admin/FilteringTutorial.html#building-a-custom-filter
 const PostFilterButton = () => {

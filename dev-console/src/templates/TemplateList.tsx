@@ -12,6 +12,7 @@ import {
     ExportButton,
     useRedirect,
     ShowButton,
+    useTranslate,
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
@@ -21,21 +22,21 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { Page } from '../components/page';
+import { PageTitle } from '../components/pageTitle';
 
 export const TemplateList = () => {
     useListContext<any>();
+    const translate = useTranslate();
     return (
-        <>
-            <br />
-            <Typography variant="h5" >
-                Templates
-            </Typography>
-            <Typography variant="h6">
-                Customize appearance and messages
-            </Typography>
+        <Page>
+            <PageTitle
+                text={translate('page.template.list.title')}
+                secondaryText={translate('page.template.list.subtitle')}
+            />
             <List
+                empty={false}
                 exporter={YamlExporter}
-                empty={<Empty />}
                 actions={<TemplateListActions />}
                 filters={TemplateFilters}
                 sort={{ field: 'template', order: 'DESC' }}
@@ -51,7 +52,7 @@ export const TemplateList = () => {
                     <ExportRecordButton />
                 </Datagrid>
             </List>
-        </>
+        </Page>
     );
 };
 
@@ -60,10 +61,8 @@ const TemplateFilters = [<SearchInput source="q" alwaysOn />];
 const TemplateListActions = () => {
     return (
         <TopToolbar>
-            <CreateButton
-                variant="contained"
-            />
-            <ExportRecordButton/>
+            <CreateButton variant="contained" />
+            <ExportRecordButton />
         </TopToolbar>
     );
 };
@@ -74,11 +73,10 @@ const Empty = () => {
             <Typography variant="h6" paragraph>
                 No template available, create one
             </Typography>
-            <CreateButton variant="contained"  />
+            <CreateButton variant="contained" />
         </Box>
     );
 };
-
 
 const IdField = (props: any) => {
     let s = props.source;

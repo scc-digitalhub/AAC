@@ -87,12 +87,12 @@ const RealmListActions = () => (
 export const RealmList = () => {
     return (
         <List
-            empty={<Empty />}
             actions={<RealmListActions />}
             perPage={25}
             pagination={<Pagination rowsPerPageOptions={[10, 25, 50, 100]} />}
             sort={{ field: 'last_seen', order: 'DESC' }}
             filters={RealmFilters}
+            empty={false}
         >
             <RealmListContent />
         </List>

@@ -209,6 +209,18 @@ const messages: TranslationMessages = {
         audit: {
             title: 'Registro operazioni',
             description: 'Attività recenti del tuo account',
+            list: {
+                title: 'Eventi di audit',
+                subtitle: 'Controlla eventi',
+            },
+        },
+        template: {
+            title: 'Template',
+            description: 'Templates',
+            list: {
+                title: 'Templates',
+                subtitle: 'Personalizza stile e messaggi',
+            },
         },
         login: {
             header: 'Login',

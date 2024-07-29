@@ -48,6 +48,7 @@ export const GroupList = () => {
                 actions={<GroupListActions />}
                 filters={GroupFilters}
                 sort={{ field: 'name', order: 'DESC' }}
+                empty={false}
             >
                 <Datagrid bulkActionButtons={false} rowClick="show">
                     <TextField source="name" />
