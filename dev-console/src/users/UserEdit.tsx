@@ -58,8 +58,11 @@ const UserTabComponent = () => {
                     <TextField source="permissions" />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label={translate('page.user.account.title')}>
-                    <TextField source="id" />
-                    <TextField source="email" />
+                <JsonSchemaInput
+                        source="account"
+                        schema={schemaOAuthClient}
+                        uiSchema={uiSchemaOAuthClient}
+                    />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label={translate('page.user.audit.title')}>
                     <TextField source="id" />

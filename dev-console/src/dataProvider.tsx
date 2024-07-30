@@ -100,23 +100,19 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             if (resource !== 'myrealms' && params.meta?.root) {
                 prefix = '/' + params.meta.root;
             }
-            const url = `${apiUrl}${prefix}/${resource}?${stringify(query)}`;
-            return httpClient(url).then(({ status, json }) => {
-                if (status !== 200) {
-                    throw new Error('Invalid response status ' + status);
-                }
-                if (!json.content) {
-                    throw new Error('the response must match page<> model');
-                }
+            const url = `${apiUrl}/${resource}${prefix}`;
 
-                return {
-                    data: json.content,
-                    total: json.totalElements
-                        ? parseInt(json.totalElements)
-                        : json.content.length,
-                };
-            });
+            return Promise.all(
+                params.ids.map(id =>
+                    httpClient(`${url}/${id}`)
+                )
+            ).then(responses => ({
+                data: responses.map(({ json }) => json),
+            }));
+    
         },
+
+        //TODO anche qui da fixare con param
         getManyReference: (resource, params) => {
             const { page, perPage } = params.pagination;
             const { field, order } = params.sort;
@@ -127,13 +123,18 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 page: page - 1,
                 size: perPage,
             };
-            const url = `${apiUrl}/${resource}?${stringify(query)}`;
+            let prefix = '';
+            if (resource !== 'myrealms' && params.meta?.root) {
+                prefix = '/' + params.meta.root;
+            }
+            const url =
+                `${apiUrl}/${resource}${prefix}` + `?${stringify(query)}`;
             return httpClient(url).then(({ headers, json }) => {
-                if (!json.content) {
+                if (!json) {
                     throw new Error('the response must match page<> model');
                 }
                 return {
-                    data: json.content,
+                    data: json,
                     total: parseInt(json.totalElements, 10),
                 };
             });

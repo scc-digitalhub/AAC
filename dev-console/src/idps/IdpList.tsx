@@ -107,6 +107,14 @@ const IdpListActions = () => {
         notify(`Provider imported successfully`);
     };
 
+    const createTransform = (data: any) => {
+        return {
+            ...data,
+            type: 'identity',
+            realm: realmId,
+            configuration: { applicationType: data.type },
+        };
+    };
     return (
         <TopToolbar>
             <CreateInDialogButton
@@ -170,13 +178,7 @@ const IdpListActions = () => {
         </TopToolbar>
     );
 };
-const createTransform = (data: any) => {
-    return {
-        ...data,
-        type: 'identity',
-        configuration: { applicationType: data.type },
-    };
-};
+
 
 export const EnableIdpButton = () => {
     const record = useRecordContext();

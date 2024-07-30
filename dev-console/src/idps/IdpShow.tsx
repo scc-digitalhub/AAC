@@ -1,6 +1,9 @@
 import { Box } from '@mui/material';
 import {
+    Datagrid,
+    DateField,
     EditButton,
+    ReferenceManyField,
     RichTextField,
     Show,
     SimpleForm,
@@ -71,7 +74,12 @@ const IdpTabComponent = () => {
                 <TabbedShowLayout.Tab
                     label={translate('page.idp.app.title')}
                 >
-                    
+                    <ReferenceManyField reference="apps" target="providers" label="app">
+              <Datagrid >
+                <TextField source="id" />
+                <TextField source="name" />
+              </Datagrid>
+            </ReferenceManyField>
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>

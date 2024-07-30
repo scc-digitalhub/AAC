@@ -41,13 +41,17 @@ const IdpTabComponent = () => {
                 <TabbedForm.Tab
                     label={translate('page.idp.settings.title')}
                 >
-                    <OAuthJsonSchemaForm />
+                    {/* TODO a mano con translatableinput da react admin su title and description */}
                 </TabbedForm.Tab>
                 <TabbedForm.Tab
                     label={translate('page.idp.configuration.title')}
                 >
                    
-                    <OAuthJsonSchemaForm />
+                   <JsonSchemaInput
+                source="configuration"
+                 schema={record.schema}
+                uiSchema={uiSchemaOAuthClient}
+        />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab
                     label={translate('page.idp.hooks.title')}

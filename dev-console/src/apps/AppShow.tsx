@@ -27,9 +27,9 @@ import { Page } from '../components/page';
 export const AppShow = () => {
     return (
         <Page>
-            <Show actions={<ShowToolBarActions />} component={Box}>
-                <AppTabComponent />
-            </Show>
+        <Show actions={<ShowToolBarActions />} component={Box}>
+            <AppTabComponent />
+        </Show>
         </Page>
     );
 };
@@ -91,16 +91,16 @@ const AppTabComponent = () => {
                         />
                     )}
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Providers">
+                <TabbedShowLayout.Tab
+                label="Providers">
                     <ReferenceArrayField source="providers" reference="idps" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Scopes">
+                <TabbedShowLayout.Tab
+                label="Scopes">
                     {record.configuration.scopes && (
-                        <ReferenceArrayField
-                            source="scopes"
-                            reference="scopes"
-                        />
-                    )}
+                      <ReferenceArrayField source="scopes" reference="scopes" />
+                    )
+                      }
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
@@ -108,7 +108,7 @@ const AppTabComponent = () => {
 };
 const OAuthJsonSchemaForm = () => {
     const record = useRecordContext();
-    if (!record) return null;
+    if ( !record) return null;
 
     return (
         <JsonSchemaField

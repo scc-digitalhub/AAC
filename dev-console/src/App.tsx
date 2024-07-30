@@ -143,7 +143,8 @@ const DevApp = () => {
                 requireAuth
                 disableTelemetry
             >
-                <Resource name="apps" {...apps} />
+                <Resource name="apps" {...apps}
+                 />
                 <Resource
                     name="idps"
                     list={<IdpList />}
@@ -185,7 +186,10 @@ const DevApp = () => {
                 />
                  <Resource
                     name="scopes"
-                />
+                    list={<ScopeList />}
+                    recordRepresentation={(record) => `${record.id} ${record.name}`}
+
+/>
                 <Resource
                     name="roles"
                     list={<RoleList />}

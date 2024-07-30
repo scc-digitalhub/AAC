@@ -1,6 +1,8 @@
 import { Box } from '@mui/material';
 import {
+    ArrayField,
     EditButton,
+    ReferenceField,
     Show,
     TabbedShowLayout,
     TextField,
@@ -14,6 +16,8 @@ import { PageTitle } from '../components/pageTitle';
 import { Page } from '../components/page';
 import { ActiveButton } from './activeButton';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
+import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
+import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 
 export const UserShow = () => {
     return (
@@ -33,34 +37,49 @@ const UserTabComponent = () => {
     return (
         <>
             <PageTitle text={record.username} secondaryText={record?.id} />
-            <TabbedShowLayout  syncWithLocation={false}>
-                <TabbedShowLayout.Tab label={translate('page.user.overview.title')}>
+            <TabbedShowLayout syncWithLocation={false}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.user.overview.title')}
+                >
                     <TextField source="username" />
                     <TextField source="email" />
                     <TextField source="subjectId" />
                     <TextField source="roles" />
                     <TextField source="permissions" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.user.account.title')}>
-                    <TextField source="id" />
-                    <TextField source="email" />
+                <TabbedShowLayout.Tab
+                    label={translate('page.user.account.title')}
+                >
+                    <JsonSchemaField
+                        source="account"
+                        schema={schemaOAuthClient}
+                        uiSchema={uiSchemaOAuthClient}
+                    />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.user.audit.title')}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.user.audit.title')}
+                >
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.user.apps.title')}>
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.user.groups.title')}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.user.groups.title')}
+                >
+                    <ArrayField source="groups" >
+                        {/* <ReferenceField source="groupId" reference="groups" label="Group" /> */}
+                        <TextField source="name" />
+                     </ArrayField>
+                </TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab
+                    label={translate('page.user.roles.title')}
+                >
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.user.roles.title')}>
-                    <TextField source="id" />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.user.attributes.title')}>
-                    <TextField source="id" />
-                </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.user.spaceRoles.title')}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.user.attributes.title')}
+                >
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.user.tos.title')}>

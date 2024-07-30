@@ -114,29 +114,31 @@ export const schemaOAuthClient: RJSFSchema = {
         },
     },
 };
+export const schemaConfIdp: UiSchema = {
+    // embedded nel componente
+};
 
 export const uiSchemaOAuthClient: UiSchema = {
-    // 'ui:submitButtonOptions': {
-    //     submitText: 'Confirm Details',
-    //     norender: false,
-    //     props: {
-    //         disabled: false,
-    //         className: 'btn btn-info',
-    //     },
-    // },
-    // firstName: {
-    //     'ui:autofocus': true,
-    //     'ui:emptyValue': '',
-    //     'ui:autocomplete': 'family-name',
-    // },
-    // lastName: {
-    //     'ui:title': 'Surname',
-    //     'ui:emptyValue': '',
-    //     'ui:autocomplete': 'given-name',
-    // },
-    // telephone: {
-    //     'ui:options': {
-    //         inputType: 'tel',
-    //     },
-    // },
+    'ui:layout':[4,4,4]
+};
+export const uiSchemaSettingIdp: UiSchema = {
+    // 'ui:layout':[4,4,4] da fare a mano
+};
+export const uiSchemaConfigIdp: UiSchema = {
+    // 'ui:layout':[4,4,4] da fare a mano
+};
+export const uiSchemaPasswordIdp: UiSchema = {
+    // 'ui:layout':[4,4,4] da fare a mano
+};
+export const uiSchemaConfIdp: UiSchema = {
+    // 'ui:layout':[4,4,4] da fare a mano
+};
+
+export const uiIdpSchema = {
+    'urn:jsonschema:it:smartcommunitylab:aac:internal:provider:InternalIdentityProviderConfigMap':uiSchemaSettingIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap':uiSchemaSettingIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:password:provider:PasswordIdentityProviderConfigMap':uiSchemaSettingIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:saml:provider:SamlIdentityProviderConfigMap':uiSchemaSettingIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:spid:provider:SpidIdentityProviderConfigMap':uiSchemaSettingIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:webauthn:provider:WebAuthnIdentityProviderConfigMap':uiSchemaSettingIdp,
 };
