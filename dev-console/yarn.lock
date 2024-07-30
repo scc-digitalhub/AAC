@@ -239,6 +239,13 @@
     ace-builds "^1.14.0"
     react-ace "^10.1.0"
 
+"@dslab/ra-datagrid-input@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@dslab/ra-datagrid-input/-/ra-datagrid-input-1.0.0.tgz#0a60c60952ee3c77d3cbac66df76ccebd67925e5"
+  integrity sha512-SYhaHkDnigOCYdkbr19Ri0o+MEF2kefLGM2sX1p4L6ePgD6j/7PoT/xzzk4BYkwOB1knb3fnsRqUzw1Q8a7IVw==
+  dependencies:
+    ra-core "^4.11.0"
+
 "@dslab/ra-delete-dialog-button@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@dslab/ra-delete-dialog-button/-/ra-delete-dialog-button-1.0.0.tgz#ddb3c71d0ae1dc30259d4a45d7117259c33546ee"

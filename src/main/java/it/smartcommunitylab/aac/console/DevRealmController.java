@@ -34,16 +34,20 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.dto.UserSubject;
+import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.identity.IdentityProviderManager;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.realms.RealmManager;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
 import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
+import it.smartcommunitylab.aac.users.UserManager;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -104,6 +108,15 @@ public class DevRealmController {
 
     @Autowired
     private TemplatesManager templatesManager;
+
+    @Autowired
+    private UserManager userManager;
+
+    @Autowired
+    private GroupManager groupManager;
+    
+    @Autowired
+    private RealmRoleManager roleManager;
 
     //    @Autowired
     //    private AuditManager auditManager;
@@ -253,7 +266,9 @@ public class DevRealmController {
     public Collection<Subject> getRealmSubjects(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false) String q,
-        @RequestParam(required = false) String t
+        @RequestParam(required = false) String t,
+        @RequestParam(required = false) String group,
+        @RequestParam(required = false) String role
     ) throws NoSuchRealmException {
         Set<String> types = StringUtils.hasText(t) ? StringUtils.commaDelimitedListToSet(t) : null;
         return subjectManager.searchSubjects(realm, q, types);

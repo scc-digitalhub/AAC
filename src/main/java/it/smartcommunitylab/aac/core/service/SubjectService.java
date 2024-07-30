@@ -188,7 +188,7 @@ public class SubjectService {
                 realm,
                 q
             )
-            : Collections.emptyList();
+            : subjectRepository.findByRealm(realm);
 
         return subjects.stream().map(s -> toSubject(s)).collect(Collectors.toList());
     }

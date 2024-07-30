@@ -203,6 +203,7 @@ const DevApp = () => {
                     list={<AttributeSetList />}
                     icon={AttributeIcon}
                 />
+                <Resource name="subjects"/> 
             </Admin>
         </RootSelectorContextProvider>
     );

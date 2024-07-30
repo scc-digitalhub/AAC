@@ -1,5 +1,7 @@
 import {
+    Datagrid,
     EditButton,
+    ReferenceArrayField,
     Show,
     TabbedShowLayout,
     TextField,
@@ -13,6 +15,7 @@ import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { Page } from '../components/page';
 import { Box } from '@mui/material';
+import { IdField } from '../components/IdField';
 
 export const GroupShow = () => {
     return (
@@ -33,22 +36,39 @@ const GroupTabComponent = () => {
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
             <TabbedShowLayout syncWithLocation={false}>
-                <TabbedShowLayout.Tab label={translate('page.group.overview.title')}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.group.overview.title')}
+                >
                     <TextField source="id" />
                     <TextField source="name" />
                     <TextField source="group" />
                     <TextField source="members" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.group.settings.title')}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.group.settings.title')}
+                >
                     <TextField source="name" />
                     <TextField source="group" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.group.roles.title')}>
+                <TabbedShowLayout.Tab
+                    label={translate('page.group.roles.title')}
+                >
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label={translate('page.group.members.title')}>
-                    <TextField source="id" />
-                    <TextField source="members" />
+                <TabbedShowLayout.Tab
+                    label={translate('page.group.members.title')}
+                >
+                    <ReferenceArrayField
+                        source="members"
+                        reference="subjects"
+                        label={false}
+                    >
+                        <Datagrid bulkActionButtons={false}>
+                            <TextField source="name" />
+                            <TextField source="type" />
+                            <IdField source="id" />
+                        </Datagrid>
+                    </ReferenceArrayField>
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>

@@ -11,6 +11,7 @@ import {
     Edit,
     EditBase,
     Form,
+    ReferenceArrayInput,
     SaveButton,
     ShowButton,
     TabbedForm,
@@ -37,6 +38,7 @@ import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { Page } from '../components/page';
 import { PageTitle } from '../components/pageTitle';
 import { TabToolbar } from '../components/TabToolbar';
+import { DatagridArrayInput } from '@dslab/ra-datagrid-input';
 
 export const GroupEdit = () => {
     const params = useParams();
@@ -180,7 +182,7 @@ const GroupTabComponent = () => {
     return (
         <>
             <PageTitle text={record.name} secondaryText={record?.id} />
-            <TabbedForm  toolbar={<TabToolbar />}>
+            <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label="Overview">
                     <TextField source="id" />
                     <TextField source="name" />
@@ -195,8 +197,18 @@ const GroupTabComponent = () => {
                     <TextField source="id" />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label="Members">
-                    <TextField source="id" />
-                    <TextField source="members" />
+                    <ReferenceArrayInput source="members" reference="subjects">
+                        <DatagridArrayInput
+                            dialogFilters={[
+                                <TextInput label="query" source="q" />,
+                            ]}
+                            dialogFilterDefaultValues={{ q: '' }}
+                        >
+                            <TextField source="name" />
+                            <TextField source="type" />
+                            <IdField source="id" />
+                        </DatagridArrayInput>
+                    </ReferenceArrayInput>
                 </TabbedForm.Tab>
             </TabbedForm>
         </>

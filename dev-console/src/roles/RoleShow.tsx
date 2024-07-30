@@ -1,6 +1,8 @@
 import { Box } from '@mui/material';
 import {
+    Datagrid,
     EditButton,
+    ReferenceArrayField,
     Show,
     ShowButton,
     TabbedShowLayout,
@@ -13,6 +15,7 @@ import { Page } from '../components/page';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
+import { IdField } from '../components/IdField';
 
 export const RoleShow = () => {
     return (
@@ -41,7 +44,16 @@ const AppTabComponent = () => {
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label="Settings"></TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label="Permission"></TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab label="Subjects"></TabbedShowLayout.Tab>
+                <TabbedShowLayout.Tab label="Subjects">
+             
+                    <ReferenceArrayField source="subjects" reference="subjects" label={false}>
+                        <Datagrid bulkActionButtons={false}>
+                            <TextField source="name" />
+                            <TextField source="type" />
+                            <IdField source="id" />
+                        </Datagrid>
+                    </ReferenceArrayField>
+                </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
     );
@@ -52,7 +64,7 @@ const ShowToolBarActions = () => {
         <TopToolbar>
             <EditButton />
             <InspectButton />
-             <DeleteWithDialogButton/>
+            <DeleteWithDialogButton />
             <ExportRecordButton />
         </TopToolbar>
     );
