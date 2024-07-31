@@ -246,12 +246,18 @@ const messages: TranslationMessages = {
             },
             attributes: {  
                 title: 'Attribute',
+                identityPrimaryTitle:'Identitätsattribute',
+                identitySubTitle:'Attribute für den aktuellen Benutzer prüfen, wie sie von Identitätsanbietern empfangen wurden.',
+                additionalPrimaryTitle:'Zusätzliche Attribute',
+                additionalsubTitle:'Zusätzliche Attribute für den aktuellen Benutzer prüfen und verwalten.'
             },
             spaceRoles: {
                 title: 'Space-Rollen',
             },
             tos: {
                 title: 'Nutzungsbedingungen',
+                primaryTitle:'Nutzungsbedingungen',
+                subTitle:'Nutzungsbedingungen überprüfen und verwalten',
             },
         },
         group: {

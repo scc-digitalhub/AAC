@@ -1,18 +1,12 @@
-import { Box, Divider } from '@mui/material';
+import { Box } from '@mui/material';
 import {
     Edit,
-    ReferenceArrayInput,
-    SaveButton,
     ShowButton,
     TabbedForm,
     TextField,
-    TextInput,
-    Toolbar,
     TopToolbar,
     useEditContext,
-    useNotify,
     useRecordContext,
-    useRefresh,
     useTranslate,
 } from 'react-admin';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
@@ -20,7 +14,6 @@ import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { PageTitle } from '../components/pageTitle';
-import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Page } from '../components/page';
 import { ActiveButton } from './activeButton';

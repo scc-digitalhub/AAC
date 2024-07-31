@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import {
     ArrayField,
+    Datagrid,
     EditButton,
     ReferenceField,
     Show,
@@ -18,6 +19,8 @@ import { ActiveButton } from './activeButton';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
+import { IdField } from '../components/IdField';
+import { SectionTitle } from '../components/sectionTitle';
 
 export const UserShow = () => {
     return (
@@ -50,40 +53,92 @@ const UserTabComponent = () => {
                 <TabbedShowLayout.Tab
                     label={translate('page.user.account.title')}
                 >
-                    <JsonSchemaField
-                        source="account"
-                        schema={schemaOAuthClient}
-                        uiSchema={uiSchemaOAuthClient}
+                    <SectionTitle
+                        text={translate('page.user.account.title')}
+                        secondaryText={translate('page.user.account.subTitle')}
                     />
+                    <ArrayField source="identities">
+                        <Datagrid bulkActionButtons={false}>
+                            <TextField source="username" />
+                            <TextField source="emailAddress" />
+                            <TextField source="provider" />
+                        </Datagrid>
+                    </ArrayField>
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.user.audit.title')}
                 >
-                    <TextField source="id" />
+                    <SectionTitle
+                        text={translate('page.user.audit.title')}
+                        secondaryText={translate('page.user.audit.subTitle')}
+                    />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.user.apps.title')}>
-                    <TextField source="id" />
+                    <SectionTitle
+                        text={translate('page.user.apps.title')}
+                        secondaryText={translate('page.user.apps.subTitle')}
+                    />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.user.groups.title')}
                 >
-                    <ArrayField source="groups" >
-                        {/* <ReferenceField source="groupId" reference="groups" label="Group" /> */}
+                    <SectionTitle
+                        text={translate('page.user.groups.title')}
+                        secondaryText={translate('page.user.groups.subTitle')}
+                    />
+                    <ArrayField source="groups">
                         <TextField source="name" />
-                     </ArrayField>
+                        <IdField source="id" />
+                    </ArrayField>
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.user.roles.title')}
                 >
+                    <SectionTitle
+                        text={translate('page.user.roles.primaryTitle')}
+                        secondaryText={translate('page.user.roles.subTitle')}
+                    />
+                    <ArrayField source="roles">
+                        <Datagrid bulkActionButtons={false}>
+                            <TextField source="name" />
+                            <IdField source="authority" />
+                            <TextField source="provider" />
+                        </Datagrid>
+                    </ArrayField>
+                    <SectionTitle
+                        text={translate('page.user.roles.permissionTitle')}
+                        secondaryText={translate(
+                            'page.user.roles.permissionSubTitle'
+                        )}
+                    />
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.user.attributes.title')}
                 >
+                    <SectionTitle
+                        text={translate(
+                            'page.user.attributes.identityPrimaryTitle'
+                        )}
+                        secondaryText={translate(
+                            'page.user.attributes.identitySubTitle'
+                        )}
+                    />
+                    <SectionTitle
+                        text={translate(
+                            'page.user.attributes.additionalPrimaryTitle'
+                        )}
+                        secondaryText={translate(
+                            'page.user.attributes.additionalsubTitle'
+                        )}
+                    />
                     <TextField source="id" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.user.tos.title')}>
-                    <TextField source="id" />
+                    <SectionTitle
+                        text={translate('page.user.tos.primaryTitle')}
+                        secondaryText={translate('page.user.tos.subTitle')}
+                    />
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>

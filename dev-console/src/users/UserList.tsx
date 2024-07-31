@@ -16,6 +16,7 @@ import {
     ShowButton,
     useTranslate,
     BulkDeleteButton,
+    SingleFieldList,
 } from 'react-admin';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import BlockIcon from '@mui/icons-material/Block';
@@ -72,13 +73,11 @@ export const UserList = () => {
                     </WrapperField>
                     <IdField source="id" />
                     <ArrayField
-                        filter={{ realm: realmId }}
                         source="authorities"
-                        emptyText=""
                     >
-                        {record?.role && (
-                            <ChipField source="role" size="small" />
-                        )}
+                            <SingleFieldList>
+                                <ChipField source="authority" size='small'/>
+                            </SingleFieldList>
                     </ArrayField>
                     <RowButtonGroup label="⋮">
                         <DropDownButton>

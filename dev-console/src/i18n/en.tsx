@@ -86,40 +86,39 @@ const enMessages: TranslationMessages = {
                 manage: 'Manage authentications',
             },
         },
-        app:{
+        app: {
             overview: {
                 title: 'Overview',
-
             },
-            list:{
+            list: {
                 title: 'Client applications',
-                subtitle: 'Manage web, mobile, server and IoT applications'
+                subtitle: 'Manage web, mobile, server and IoT applications',
             },
-            credentials:{
+            credentials: {
                 title: 'Credentials',
                 header: {
-                    title:'OAuth2 Credentials',
-                    subtitle:'Client credentials to authenticate with AAC.'
-                }
+                    title: 'OAuth2 Credentials',
+                    subtitle: 'Client credentials to authenticate with AAC.',
+                },
             },
             settings: {
-                title:'Settings',
-
+                title: 'Settings',
             },
             configuration: {
-                title:'OAuth2',
+                title: 'OAuth2',
                 header: {
-                    title:'OAuth2.0 Configuration',
-                    subtitle:'Basic client configuration for OAuth2/OpenId Connect'
-                }
-            }
-
+                    title: 'OAuth2.0 Configuration',
+                    subtitle:
+                        'Basic client configuration for OAuth2/OpenId Connect',
+                },
+            },
         },
 
         attributeset: {
             list: {
                 title: 'Attribute sets',
-                subtitle: 'Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope profile.setidentifier.me',
+                subtitle:
+                    'Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope profile.setidentifier.me',
             },
         },
         accounts: {
@@ -195,13 +194,15 @@ const enMessages: TranslationMessages = {
             hooks: {
                 title: 'Hooks',
                 attribute: 'Attribute mapping',
-                attributeDesc:'Provide a function to transform principal attributes during login. Return a valid map with all the attributes.',
+                attributeDesc:
+                    'Provide a function to transform principal attributes during login. Return a valid map with all the attributes.',
                 authFunction: 'Authentication function',
-                authFunctionDesc:'Provide a function to evaluate an authorization policy during the login flow. Return a boolean true/false to represent a decision.'
+                authFunctionDesc:
+                    'Provide a function to evaluate an authorization policy during the login flow. Return a boolean true/false to represent a decision.',
             },
-            app:{
+            app: {
                 title: 'Applications',
-            }
+            },
         },
         user: {
             list: {
@@ -213,27 +214,41 @@ const enMessages: TranslationMessages = {
             },
             account: {
                 title: 'Account',
+                subTitle:'Manage accounts for the current user'
             },
             audit: {
                 title: 'Audit',
+                subTitle:'Review audit log for the current user'
             },
             apps: {
                 title: 'Apps',
+                subTitle:'Manage connected apps for the current user'
             },
             groups: {
                 title: 'Groups',
+                subTitle:'Manage groups for the current user'
             },
             roles: {
                 title: 'Roles',
+                primaryTitle:'Roles',
+                subTitle:'Manage roles for the current user',
+                permissionTitle:'Permissions',
+                permissionSubTitle:'Manage API permissions for the current user',
             },
-            attributes: {  
+            attributes: {
                 title: 'Attributes',
+                identityPrimaryTitle: 'Attributi di identità',
+                identitySubTitle:'Esamina gli attributi per l\'utente corrente, come ricevuti dai provider di identità.',
+                additionalPrimaryTitle: 'Attributi aggiuntivi',
+                additionalsubTitle:'samina e gestisci gli attributi aggiuntivi per l\'utente corrente.',
             },
             spaceRoles: {
                 title: 'Space Roles',
             },
             tos: {
                 title: 'Terms of service',
+                primaryTitle: 'Terms of service',
+                subTitle: 'Manage terms of service flag for the current user',
             },
         },
         group: {

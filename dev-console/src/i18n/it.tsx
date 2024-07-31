@@ -269,18 +269,26 @@ const messages: TranslationMessages = {
             },
             account: {
                 title: 'Account',
+                subTitle: 'Gestisci gli account per l\'utente corrente',
             },
             audit: {
                 title: 'Audit',
+                subTitle: 'Gestisci l\'audit per l\'utente corrente',
             },
             apps: {
                 title: 'Applicazioni',
+                subTitle: 'Gestisci le applicazioni connesse per l\'utente corrente',
             },
             groups: {
                 title: 'Gruppi',
+                subTitle: 'Gestisci i gruppi per l\'utente corrente',
             },
             roles: {
                 title: 'Ruoli',
+                primaryTitle:'Roles',
+                subTitle:'Gestisci i ruoli per l\'utente corrente',
+                permissionTitle:'Autorizzazioni',
+                permissionSubTitle:'Gestisci le autorizzazioni API per l\'utente corrente',
             },
             attributes: {  
                 title: 'Attributi',
@@ -290,6 +298,8 @@ const messages: TranslationMessages = {
             },
             tos: {
                 title: 'Termini di servizio',
+                primaryTitle:'Termini di servizio',
+                subTitle:'Gestisci i termini di servizio per l\'utente corrente.'
             },
         },
         group:{
