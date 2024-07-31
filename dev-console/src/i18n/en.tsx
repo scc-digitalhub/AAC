@@ -185,12 +185,19 @@ const enMessages: TranslationMessages = {
             },
             settings: {
                 title: 'Settings',
+                basic: 'Basic',
+                display: 'Display',
+                advanced: 'Advanced',
             },
             configuration: {
                 title: 'Configuration',
             },
             hooks: {
                 title: 'Hooks',
+                attribute: 'Attribute mapping',
+                attributeDesc:'Provide a function to transform principal attributes during login. Return a valid map with all the attributes.',
+                authFunction: 'Authentication function',
+                authFunctionDesc:'Provide a function to evaluate an authorization policy during the login flow. Return a boolean true/false to represent a decision.'
             },
             app:{
                 title: 'Applications',

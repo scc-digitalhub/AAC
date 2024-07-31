@@ -14,26 +14,23 @@ import {
     useUpdate,
     useRefresh,
     ShowButton,
-    EditButton,
     useTranslate,
     BulkDeleteButton,
 } from 'react-admin';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import BlockIcon from '@mui/icons-material/Block';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { InspectButton } from '@dslab/ra-inspect-button';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { UserCreateForm } from './UserCreate';
 import { DropDownButton } from '../components/DropdownButton';
 import { RowButtonGroup } from '../components/RowButtonGroup';
-import { ActionsButtons } from '../components/ActionsButtons';
 import { Page } from '../components/page';
 import { PageTitle } from '../components/pageTitle';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
+
 
 const PostBulkActionButtons = () => (
     <>
@@ -83,7 +80,12 @@ export const UserList = () => {
                             <ChipField source="role" size="small" />
                         )}
                     </ArrayField>
-                    <ActionsButtons />
+                    <RowButtonGroup label="⋮">
+                        <DropDownButton>
+                            <ShowButton />
+                            <DeleteWithDialogButton />
+                        </DropDownButton>
+                    </RowButtonGroup>
                 </Datagrid>
             </List>
         </Page>
@@ -106,7 +108,6 @@ const UserListActions = () => {
         </TopToolbar>
     );
 };
-
 
 const EmailVerified = (props: any) => {
     let s = props.source;

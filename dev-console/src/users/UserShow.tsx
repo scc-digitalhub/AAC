@@ -97,7 +97,6 @@ const ShowToolBarActions = () => {
     return (
         <TopToolbar>
             <ActiveButton />
-            <EditButton />
             <InspectButton />
             <DeleteWithDialogButton />
             <ExportRecordButton language="yaml" color="info" />

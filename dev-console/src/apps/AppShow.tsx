@@ -97,7 +97,7 @@ const AppTabComponent = () => {
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                 label="Scopes">
-                    {record.configuration.scopes && (
+                    {record.scopes && (
                       <ReferenceArrayField source="scopes" reference="scopes" />
                     )
                       }

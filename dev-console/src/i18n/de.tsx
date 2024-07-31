@@ -193,7 +193,6 @@ const messages: TranslationMessages = {
                 title: 'Identity providers',
                 subtitle: 'Manage identity providers',
             },
-            
             import: {
                 title: 'Import Provider',
                 description:
@@ -204,12 +203,19 @@ const messages: TranslationMessages = {
             },
             settings: {
                 title: 'Einstellungen',
+                basic: 'Grundlagen',
+                display: 'Anzeige',
+                advanced: 'Erweitert',
             },
             configuration: {
                 title: 'Konfiguration',
             },
             hooks: {
                 title: 'Hooks',
+                attribute: 'Attributzuordnung',
+                attributeDesc:'Geben Sie eine Funktion zum Transformieren der Anbieterattribute waehrend des Anmeldevorgangs ein. Gibt eine gültige Map mit allen Attributen aus.',
+                authFunction: 'Authentifizierungsfunktion',
+                authFunctionDesc:'Geben Sie eine Funktion zur Evaluierung der Autorisierungsregeln waehrend des Anmeldevorgangs ein. Gibt ein Boolean true/false zur Verfügung aus.'
             },
             app:{
                 title: 'Anwendungen',

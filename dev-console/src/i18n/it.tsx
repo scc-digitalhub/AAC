@@ -241,12 +241,19 @@ const messages: TranslationMessages = {
             },
             settings: {
                 title: 'Impostazioni',
+                basic: 'Impostazioni base',
+                display: 'Impostazioni visualizzazione',
+                advanced: 'Impostazioni avanzate',
             },
             configuration: {
                 title: 'Configurazione',
             },
             hooks: {
                 title: 'Hook',
+                attribute: 'Mapping attributi',
+                attributeDesc:'Fornisci una funzione che trasforma gli attributi principali durante il login. Restituisce un mappa con tutti gli attributi.',
+                authFunction: 'Funzione di autenticazione',
+                authFunctionDesc:'Fornisci una funzione per valutare l\'autorizzazione durante la fase di accesso. Restituisce un valore booleano true/false per la decisione.'
             },
             app:{
                 title: 'Applicazioni',

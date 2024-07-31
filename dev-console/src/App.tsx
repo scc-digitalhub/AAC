@@ -187,7 +187,7 @@ const DevApp = () => {
                  <Resource
                     name="scopes"
                     list={<ScopeList />}
-                    recordRepresentation={(record) => `${record.id} ${record.name}`}
+                    recordRepresentation={(record) => `${record.name}`}
 
 />
                 <Resource

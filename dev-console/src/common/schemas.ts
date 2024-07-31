@@ -119,26 +119,31 @@ export const schemaConfIdp: UiSchema = {
 };
 
 export const uiSchemaOAuthClient: UiSchema = {
-    'ui:layout':[4,4,4]
+    'ui:layout': [4, 4, 4]
 };
-export const uiSchemaSettingIdp: UiSchema = {
-    // 'ui:layout':[4,4,4] da fare a mano
+export const uiSchemaInternalIdp: UiSchema = {
+    'ui:layout': [12],
+    'ui:order': [
+        'confirmationRequired',
+        'confirmationValidity',
+        'enableDelete',
+        'enableRegistration',
+        'enableUpdate',
+        'maxSessionDuration'
+
+    ],
 };
-export const uiSchemaConfigIdp: UiSchema = {
-    // 'ui:layout':[4,4,4] da fare a mano
-};
-export const uiSchemaPasswordIdp: UiSchema = {
-    // 'ui:layout':[4,4,4] da fare a mano
-};
-export const uiSchemaConfIdp: UiSchema = {
+export const uiSchemaOIDCIdp: UiSchema = {
     // 'ui:layout':[4,4,4] da fare a mano
 };
 
+export const getUiSchema = (type: string) => {
+    if (uiIdpSchema[type])
+        return uiIdpSchema[type];
+    else uiIdpSchema['default'];
+}
 export const uiIdpSchema = {
-    'urn:jsonschema:it:smartcommunitylab:aac:internal:provider:InternalIdentityProviderConfigMap':uiSchemaSettingIdp,
-    'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap':uiSchemaSettingIdp,
-    'urn:jsonschema:it:smartcommunitylab:aac:password:provider:PasswordIdentityProviderConfigMap':uiSchemaSettingIdp,
-    'urn:jsonschema:it:smartcommunitylab:aac:saml:provider:SamlIdentityProviderConfigMap':uiSchemaSettingIdp,
-    'urn:jsonschema:it:smartcommunitylab:aac:spid:provider:SpidIdentityProviderConfigMap':uiSchemaSettingIdp,
-    'urn:jsonschema:it:smartcommunitylab:aac:webauthn:provider:WebAuthnIdentityProviderConfigMap':uiSchemaSettingIdp,
+    'default': uiSchemaOAuthClient,
+    'urn:jsonschema:it:smartcommunitylab:aac:internal:provider:InternalIdentityProviderConfigMap': uiSchemaInternalIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap': uiSchemaOIDCIdp,
 };

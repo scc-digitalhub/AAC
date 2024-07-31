@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import {
+    BooleanField,
     Datagrid,
     DateField,
     EditButton,
@@ -10,6 +11,7 @@ import {
     TabbedShowLayout,
     TextField,
     TopToolbar,
+    TranslatableFields,
     useEditContext,
     useNotify,
     useRecordContext,
@@ -22,8 +24,13 @@ import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
-import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
+import {
+    getUiSchema,
+    schemaOAuthClient,
+    uiSchemaOAuthClient,
+} from '../common/schemas';
 import { Page } from '../components/page';
+import { AceEditorField } from '@dslab/ra-ace-editor';
 
 export const IdpShow = () => {
     return (
@@ -53,48 +60,80 @@ const IdpTabComponent = () => {
                     <TextField source="provider" />
                     <TextField source="enabled" />
                     <TextField source="registered" />
-                    
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.idp.settings.title')}
                 >
-                    <OAuthJsonSchemaForm />
+                    <SectionTitle text={translate('page.idp.settings.basic')} />
+                    <TextField source="name" />
+                    <SectionTitle
+                        text={translate('page.idp.settings.display')}
+                    />
+                    <TranslatableFields locales={['it', 'en', 'de']}>
+                        <TextField source="titleMap" />
+                        <TextField source="descriptionMap" multiline />
+                    </TranslatableFields>
+                    <SectionTitle
+                        text={translate('page.idp.settings.advanced')}
+                    />
+
+                    <TextField source="settings.events" label="Events" />
+                    <TextField
+                        source="settings.persistence"
+                        label="Persistence"
+                    />
+                    <BooleanField source="settings.linkable" />
+                    <TextField source="settings.type" />
+                    <TextField source="settings.persistence" />
+                    <BooleanField source="settings.linkable" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.idp.configuration.title')}
                 >
-                   
-                    <OAuthJsonSchemaForm />
+                    <JsonSchemaField
+                        source="configuration"
+                        schema={record.schema}
+                        uiSchema={getUiSchema(record?.schema?.id)}
+                    />
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab
-                    label={translate('page.idp.hooks.title')}
-                >
-                    
+                <TabbedShowLayout.Tab label={translate('page.idp.hooks.title')}>
+                <SectionTitle
+                        text={translate('page.idp.hooks.attribute')}
+                        secondaryText={translate('page.idp.hooks.attributeDesc')}
+                    />
+                    <Box>
+                        <AceEditorField
+                            source="settings.hookFunctions.attributeMapping"
+                            mode="yaml"
+                            theme="github"
+                        ></AceEditorField>
+                    </Box>
+                    <SectionTitle
+                        text={translate('page.idp.hooks.authFunction')}
+                        secondaryText={translate('page.idp.hooks.authFunctionDesc')}
+                    />
+                    <Box>
+                        <AceEditorField
+                            source="settings.hookFunctions.authorize"
+                            mode="yaml"
+                            theme="github"
+                        ></AceEditorField>
+                    </Box>
                 </TabbedShowLayout.Tab>
-                <TabbedShowLayout.Tab
-                    label={translate('page.idp.app.title')}
-                >
-                    <ReferenceManyField reference="apps" target="providers" label="app">
-              <Datagrid >
-                <TextField source="id" />
-                <TextField source="name" />
-              </Datagrid>
-            </ReferenceManyField>
+                <TabbedShowLayout.Tab label={translate('page.idp.app.title')}>
+                    <ReferenceManyField
+                        reference="apps"
+                        target="providers"
+                        label="app"
+                    >
+                        <Datagrid bulkActionButtons={false}>
+                            <TextField source="id" />
+                            <TextField source="name" />
+                        </Datagrid>
+                    </ReferenceManyField>
                 </TabbedShowLayout.Tab>
             </TabbedShowLayout>
         </>
-    );
-};
-const OAuthJsonSchemaForm = () => {
-    const record = useRecordContext();
-    if (!record) return null;
-
-    return (
-        <JsonSchemaField
-            source="configuration"
-            schema={schemaOAuthClient}
-            uiSchema={uiSchemaOAuthClient}
-        />
     );
 };
 const ShowToolBarActions = () => {
