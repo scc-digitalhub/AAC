@@ -39,7 +39,7 @@ const UserTabComponent = () => {
 
     return (
         <>
-            <PageTitle text={record.username} secondaryText={record?.id} />
+            <PageTitle text={record.username} secondaryText={record?.id} copy={true}/>
             <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab
                     label={translate('page.user.overview.title')}

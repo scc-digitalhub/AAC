@@ -33,7 +33,7 @@ const AppTabComponent = () => {
 
     return (
         <>
-            <PageTitle text={record.name} secondaryText={record?.id} />
+            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
             <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab label="Overview">
                     <TextField source="id" />

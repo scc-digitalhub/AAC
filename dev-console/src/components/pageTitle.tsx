@@ -5,7 +5,7 @@ import {  MouseEvent } from 'react';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export const PageTitle = (props: PageTitleProps) => {
-    const { text, secondaryText, icon } = props;
+    const { text, secondaryText, copy, icon } = props;
     const notify = useNotify();
 
     return (
@@ -22,12 +22,13 @@ export const PageTitle = (props: PageTitleProps) => {
                      <Typography
                          component="span"
                          variant="h6"
-                         sx={{ pt: 0, pb: 1,  background: 'lightgray',padding: '2px',textAlign: 'left' }}
+                         sx={{ pt: 0, pb: 1,  background: copy?'lightgray':'',padding: '2px',textAlign: 'left' }}
                          
                      >
                        
                          {secondaryText}
                      </Typography>
+                     {copy &&
                      <IconButton
                          onClick={(event: MouseEvent<HTMLElement>) => {
                              event.stopPropagation();
@@ -39,6 +40,7 @@ export const PageTitle = (props: PageTitleProps) => {
                      >
                          <ContentCopyIcon fontSize="small" />
                      </IconButton>
+                     }
                  </>
                 )}
             </Box>
@@ -48,5 +50,6 @@ export const PageTitle = (props: PageTitleProps) => {
 export interface PageTitleProps {
     text: string;
     secondaryText?: any;
+    copy?: boolean;
     icon?: ReactElement;
 }

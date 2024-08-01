@@ -41,7 +41,7 @@ const UserTabComponent = () => {
     if (!record) return null;
     return (
         <>
-            <PageTitle text={record.username} secondaryText={record?.id} />
+            <PageTitle text={record.username} secondaryText={record?.id} copy={true}/>
             <TabbedForm  toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label={translate('page.user.overview.title')}>
                 <TextField source="username" />

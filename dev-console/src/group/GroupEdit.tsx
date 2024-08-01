@@ -181,7 +181,7 @@ const GroupTabComponent = () => {
 
     return (
         <>
-            <PageTitle text={record.name} secondaryText={record?.id} />
+            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
             <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label="Overview">
                     <TextField source="id" />

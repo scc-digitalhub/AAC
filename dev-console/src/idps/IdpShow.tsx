@@ -49,7 +49,7 @@ const IdpTabComponent = () => {
 
     return (
         <>
-            <PageTitle text={record.name} secondaryText={record?.id} />
+            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
             <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab
                     label={translate('page.idp.overview.title')}
