@@ -140,10 +140,9 @@ export const uiSchemaOIDCIdp: UiSchema = {
 export const getUiSchema = (type: string) => {
     if (uiIdpSchema[type])
         return uiIdpSchema[type];
-    else uiIdpSchema['default'];
+    else return {};
 }
 export const uiIdpSchema = {
-    'default': uiSchemaOAuthClient,
     'urn:jsonschema:it:smartcommunitylab:aac:internal:provider:InternalIdentityProviderConfigMap': uiSchemaInternalIdp,
     'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap': uiSchemaOIDCIdp,
 };
