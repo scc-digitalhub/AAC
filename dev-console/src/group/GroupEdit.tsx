@@ -192,6 +192,7 @@ const GroupTabComponent = () => {
                 <TabbedForm.Tab label="Settings">
                     <TextInput source="name" fullWidth />
                     <TextInput source="group" fullWidth />
+                    <TextInput source="description" multiline fullWidth />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label="Roles">
                     <TextField source="id" />

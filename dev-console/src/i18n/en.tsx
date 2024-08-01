@@ -207,7 +207,7 @@ const enMessages: TranslationMessages = {
         user: {
             list: {
                 title: 'Users',
-                subtitle: 'Manage users',
+                subtitle: 'View and manage user and roles',
             },
             overview: {
                 title: 'Overview',

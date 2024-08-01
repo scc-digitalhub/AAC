@@ -18,6 +18,7 @@ export const IdField = <
     const { className, source, emptyText, ...rest } = props;
     const record = useRecordContext(props);
     const value = get(record, source)?.toString();
+    if (!value) return <>{source}</>;
     const notify = useNotify();
     return (
         <>

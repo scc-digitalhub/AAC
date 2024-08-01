@@ -49,6 +49,7 @@ const GroupTabComponent = () => {
                 >
                     <TextField source="name" />
                     <TextField source="group" />
+                    <TextField source="description" />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab
                     label={translate('page.group.roles.title')}
