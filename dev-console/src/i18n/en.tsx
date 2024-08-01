@@ -85,6 +85,12 @@ const enMessages: TranslationMessages = {
                 description: 'View and update your authentications',
                 manage: 'Manage authentications',
             },
+            number: {
+                apps: "Number of client applications",
+                users: "Number of users",
+                idp: "Number of (active) providers",
+                services: "Number of custom services",
+            }
         },
         app: {
             overview: {

@@ -147,35 +147,42 @@ const messages: TranslationMessages = {
                 title: 'Autenticazioni',
                 description: 'Visualizza e modifica le tue autenticazioni',
                 manage: 'Gestisci le autenticazioni',
-            },
-        },
-        app:{
-            overview: {
-                title: 'Informazioni',
 
             },
-            credentials:{
+            number: {
+                apps: 'Numero di applicazioni',
+                users: 'Numero di utenti',
+                idp: 'Numero di  provider attivi',
+                service: 'Numero di servizi',
+            },
+        },
+        app: {
+            overview: {
+                title: 'Informazioni',
+            },
+            credentials: {
                 title: 'Credenziali',
                 header: {
-                    title:'Credenziali OAuth2',
-                    subtitle:'Gestisci le credenziali client per AAC',
-                }
+                    title: 'Credenziali OAuth2',
+                    subtitle: 'Gestisci le credenziali client per AAC',
+                },
             },
             settings: {
-                title:'Impostazioni',
+                title: 'Impostazioni',
             },
             configuration: {
-                title:'OAuth2',
+                title: 'OAuth2',
                 header: {
-                    title:'Configurazione OAuth2.0',
-                    subtitle:'Configurazione base per client OAuth2/OpenId '
-                }
-            }
+                    title: 'Configurazione OAuth2.0',
+                    subtitle: 'Configurazione base per client OAuth2/OpenId ',
+                },
+            },
         },
         attributeset: {
             list: {
                 title: 'Set di attributi',
-                subtitle: 'Registra e gestisci i set di attributi personalizzati. Ogni attributo personalizzato sarà disponibile come profilo personalizzato per essere utilizzato sia via profili API che via token, con uno scope associato profile.setidentifier.me',
+                subtitle:
+                    'Registra e gestisci i set di attributi personalizzati. Ogni attributo personalizzato sarà disponibile come profilo personalizzato per essere utilizzato sia via profili API che via token, con uno scope associato profile.setidentifier.me',
             },
         },
         accounts: {
@@ -251,15 +258,17 @@ const messages: TranslationMessages = {
             hooks: {
                 title: 'Hook',
                 attribute: 'Mapping attributi',
-                attributeDesc:'Fornisci una funzione che trasforma gli attributi principali durante il login. Restituisce un mappa con tutti gli attributi.',
+                attributeDesc:
+                    'Fornisci una funzione che trasforma gli attributi principali durante il login. Restituisce un mappa con tutti gli attributi.',
                 authFunction: 'Funzione di autenticazione',
-                authFunctionDesc:'Fornisci una funzione per valutare l\'autorizzazione durante la fase di accesso. Restituisce un valore booleano true/false per la decisione.'
+                authFunctionDesc:
+                    "Fornisci una funzione per valutare l'autorizzazione durante la fase di accesso. Restituisce un valore booleano true/false per la decisione.",
             },
-            app:{
+            app: {
                 title: 'Applicazioni',
-            }
+            },
         },
-        user:{
+        user: {
             list: {
                 title: 'Utenti',
                 subtitle: 'Gestisci gli utenti',
@@ -269,28 +278,30 @@ const messages: TranslationMessages = {
             },
             account: {
                 title: 'Account',
-                subTitle: 'Gestisci gli account per l\'utente corrente',
+                subTitle: "Gestisci gli account per l'utente corrente",
             },
             audit: {
                 title: 'Audit',
-                subTitle: 'Gestisci l\'audit per l\'utente corrente',
+                subTitle: "Gestisci l'audit per l'utente corrente",
             },
             apps: {
                 title: 'Applicazioni',
-                subTitle: 'Gestisci le applicazioni connesse per l\'utente corrente',
+                subTitle:
+                    "Gestisci le applicazioni connesse per l'utente corrente",
             },
             groups: {
                 title: 'Gruppi',
-                subTitle: 'Gestisci i gruppi per l\'utente corrente',
+                subTitle: "Gestisci i gruppi per l'utente corrente",
             },
             roles: {
                 title: 'Ruoli',
-                primaryTitle:'Roles',
-                subTitle:'Gestisci i ruoli per l\'utente corrente',
-                permissionTitle:'Autorizzazioni',
-                permissionSubTitle:'Gestisci le autorizzazioni API per l\'utente corrente',
+                primaryTitle: 'Roles',
+                subTitle: "Gestisci i ruoli per l'utente corrente",
+                permissionTitle: 'Autorizzazioni',
+                permissionSubTitle:
+                    "Gestisci le autorizzazioni API per l'utente corrente",
             },
-            attributes: {  
+            attributes: {
                 title: 'Attributi',
             },
             spaceRoles: {
@@ -298,11 +309,12 @@ const messages: TranslationMessages = {
             },
             tos: {
                 title: 'Termini di servizio',
-                primaryTitle:'Termini di servizio',
-                subTitle:'Gestisci i termini di servizio per l\'utente corrente.'
+                primaryTitle: 'Termini di servizio',
+                subTitle:
+                    "Gestisci i termini di servizio per l'utente corrente.",
             },
         },
-        group:{
+        group: {
             list: {
                 title: 'Gruppi',
                 subtitle: 'Gestisci i gruppi',

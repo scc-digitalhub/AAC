@@ -108,6 +108,12 @@ const messages: TranslationMessages = {
                 description: 'Ihre Authentifizierungen anzeigen und bearbeiten',
                 manage: 'Verwalten Sie Ihre Authentifizierungen',
             },
+            number: {
+                apps: 'Anzahl der Bewerbungen',
+                users: 'Anzahl der Benutzer',
+                idp: 'Anzahl der IdP',
+                services: 'Anzahl der Dienste',
+            },
         },
         app:{
             overview: {
