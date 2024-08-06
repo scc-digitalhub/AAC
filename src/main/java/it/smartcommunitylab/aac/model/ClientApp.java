@@ -94,6 +94,10 @@ public class ClientApp {
     //    @JsonIgnore
     private Set<SpaceRole> spaceRoles;
 
+    // groups
+    @JsonProperty("groups")
+    private Set<Group> groups;
+
     // mappers
     // TODO
 
@@ -291,6 +295,19 @@ public class ClientApp {
     public void setSpaceRoles(Collection<SpaceRole> rr) {
         this.spaceRoles = new HashSet<>();
         spaceRoles.addAll(rr);
+    }
+    
+
+    /**
+     * Groups
+     */
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Collection<Group> gg) {
+        this.groups = new HashSet<>();
+        groups.addAll(gg);
     }
     
     public String getId() {

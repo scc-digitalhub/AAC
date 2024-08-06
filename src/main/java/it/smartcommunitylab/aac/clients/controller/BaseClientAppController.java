@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -46,6 +48,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /*
  * Base controller for client app
@@ -77,12 +80,14 @@ public class BaseClientAppController implements InitializingBean {
 
     @GetMapping("/apps/{realm}")
     @Operation(summary = "list client apps from a given realm")
-    public Collection<ClientApp> listClientApp(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    public Page<ClientApp> listClientApp(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list client apps for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return clientManager.listClientApps(realm);
+        return clientManager.searchClientApps(realm, q, pageRequest);
     }
 
     @GetMapping("/apps/{realm}/{clientId}")
