@@ -143,8 +143,7 @@ const DevApp = () => {
                 requireAuth
                 disableTelemetry
             >
-                <Resource name="apps" {...apps}
-                 />
+                <Resource name="apps" {...apps} />
                 <Resource
                     name="idps"
                     list={<IdpList />}
@@ -178,18 +177,18 @@ const DevApp = () => {
                     edit={<GroupEdit />}
                     show={<GroupShow />}
                     icon={GroupIcon}
+                    recordRepresentation={record => record.group}
                 />
                 <Resource
                     name="resources"
                     list={<ScopeList />}
                     icon={RecourceIcon}
                 />
-                 <Resource
+                <Resource
                     name="scopes"
                     list={<ScopeList />}
-                    recordRepresentation={(record) => `${record.name}`}
-
-/>
+                    recordRepresentation={record => `${record.name}`}
+                />
                 <Resource
                     name="roles"
                     list={<RoleList />}
@@ -197,13 +196,14 @@ const DevApp = () => {
                     show={<RoleShow />}
                     edit={<RoleEdit />}
                     icon={RoleIcon}
+                    recordRepresentation={record => record.role}
                 />
                 <Resource
                     name="attributeset"
                     list={<AttributeSetList />}
                     icon={AttributeIcon}
                 />
-                <Resource name="subjects"/> 
+                <Resource name="subjects" />
             </Admin>
         </RootSelectorContextProvider>
     );

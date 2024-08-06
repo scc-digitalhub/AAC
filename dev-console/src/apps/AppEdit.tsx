@@ -1,15 +1,15 @@
 import { Box, Divider } from '@mui/material';
 import {
     Edit,
+    Labeled,
     ReferenceArrayInput,
-    SaveButton,
     ShowButton,
     TabbedForm,
     TextField,
     TextInput,
-    Toolbar,
     TopToolbar,
     useEditContext,
+    useGetList,
     useNotify,
     useRecordContext,
     useRefresh,
@@ -24,61 +24,124 @@ import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Page } from '../components/page';
 import { TabToolbar } from '../components/TabToolbar';
+import { AppIcon } from './AppIcon';
+import { AppTitle } from './AppTitle';
 
 export const AppEdit = () => {
+    //fetch related to resolve relations
+    const { data: roles } = useGetList('roles', {
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: 'roleId', order: 'ASC' },
+    });
+    const { data: groups } = useGetList('groups', {
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: 'groupId', order: 'ASC' },
+    });
+
+    //inflate back flattened fields
+    const transform = data => ({
+        ...data,
+        roles: roles?.filter(r => data.roles.includes(r.id)),
+        groups: groups?.filter(r => data.groups.includes(r.id)),
+    });
+
     return (
         <Page>
             <Edit
                 actions={<EditToolBarActions />}
-                mutationMode="pessimistic"
+                mutationMode="optimistic"
                 component={Box}
+                redirect={'edit'}
+                transform={transform}
+                queryOptions={{ meta: { flatten: ['roles', 'groups'] } }}
             >
-                <AppTabComponent />
+                <AppTitle />
+                <AppEditForm />
             </Edit>
         </Page>
     );
 };
 
-
-const AppTabComponent = () => {
+const AppEditForm = () => {
     const translate = useTranslate();
-    const notify = useNotify();
-    const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
     if (!record) return null;
     return (
-        <>
-            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
-            <TabbedForm toolbar={<TabToolbar />}>
-                <TabbedForm.Tab label={translate('page.app.overview.title')}>
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
+            <TabbedForm.Tab label={translate('page.app.overview.title')}>
+                <Labeled>
                     <TextField source="name" />
+                </Labeled>
+                <Labeled>
                     <TextField source="type" />
+                </Labeled>
+                <Labeled>
                     <TextField source="clientId" />
+                </Labeled>
+                <Labeled>
                     <TextField source="scopes" />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label={translate('page.app.settings.title')}>
-                    <EditSetting />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab
-                    label={translate('page.app.configuration.title')}
-                >
-                    <SectionTitle
-                        text={translate('page.app.configuration.header.title')}
-                        secondaryText={translate(
-                            'page.app.configuration.header.subtitle'
-                        )}
-                    />
-                    <EditOAuthJsonSchemaForm />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label="Providers">
-                    <ReferenceArrayInput source="providers" reference="idps" />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label="Scopes">
-                    <ReferenceArrayInput source="scopes" reference="scopes" />
-                </TabbedForm.Tab>
-            </TabbedForm>
-        </>
+                </Labeled>
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label={translate('page.app.settings.title')}>
+                <SectionTitle
+                    text={translate('page.app.settings.header.title')}
+                    secondaryText={translate(
+                        'page.app.settings.header.subtitle'
+                    )}
+                />
+                <TextInput source="name" fullWidth />
+                <TextInput source="description" fullWidth />
+            </TabbedForm.Tab>
+
+            <TabbedForm.Tab label="Providers">
+                <SectionTitle
+                    text={translate('page.app.providers.header.title')}
+                    secondaryText={translate(
+                        'page.app.providers.header.subtitle'
+                    )}
+                />
+                <ReferenceArrayInput source="providers" reference="idps" />
+            </TabbedForm.Tab>
+
+            <TabbedForm.Tab label={translate('page.app.configuration.title')}>
+                <SectionTitle
+                    text={translate('page.app.configuration.header.title')}
+                    secondaryText={translate(
+                        'page.app.configuration.header.subtitle'
+                    )}
+                />
+                <JsonSchemaInput
+                    source="configuration"
+                    schema={schemaOAuthClient}
+                    uiSchema={uiSchemaOAuthClient}
+                />
+            </TabbedForm.Tab>
+
+            <TabbedForm.Tab label="Api access">
+                <SectionTitle
+                    text={translate('page.app.scopes.header.title')}
+                    secondaryText={translate('page.app.scopes.header.subtitle')}
+                />
+                <ReferenceArrayInput source="scopes" reference="scopes" />
+            </TabbedForm.Tab>
+
+            <TabbedForm.Tab label="Roles">
+                <SectionTitle
+                    text={translate('page.app.roles.header.title')}
+                    secondaryText={translate('page.app.roles.header.subtitle')}
+                />
+                <ReferenceArrayInput source="roles" reference="roles" />
+            </TabbedForm.Tab>
+
+            <TabbedForm.Tab label="Groups">
+                <SectionTitle
+                    text={translate('page.app.groups.header.title')}
+                    secondaryText={translate('page.app.groups.header.subtitle')}
+                />
+                <ReferenceArrayInput source="groups" reference="groups" />
+            </TabbedForm.Tab>
+        </TabbedForm>
     );
 };
 
@@ -94,9 +157,7 @@ const EditSetting = () => {
                     <Box display="flex" width={430}>
                         <TextInput source="name" fullWidth />
                     </Box>
-                    <Box display="flex" width={430}>
-                        <TextInput source="description" fullWidth />
-                    </Box>
+                    <Box display="flex" width={430}></Box>
                     <Divider />
                 </Box>
             </Box>
@@ -115,18 +176,5 @@ const EditToolBarActions = () => {
             <DeleteWithDialogButton />
             <ExportRecordButton language="yaml" color="info" />
         </TopToolbar>
-    );
-};
-
-const EditOAuthJsonSchemaForm = () => {
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
-
-    return (
-        <JsonSchemaInput
-            source="configuration"
-            schema={schemaOAuthClient}
-            uiSchema={uiSchemaOAuthClient}
-        />
     );
 };

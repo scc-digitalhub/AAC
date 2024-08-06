@@ -119,7 +119,20 @@ export const schemaConfIdp: UiSchema = {
 };
 
 export const uiSchemaOAuthClient: UiSchema = {
-    'ui:layout': [4, 4, 4]
+    'ui:order': [
+        'applicationType',
+        'authenticationMethods',
+        'authorizedGrantTypes',
+        'redirectUris',
+        'firstParty',
+        'idTokenClaims',
+        'refreshTokenRotation',
+        'subjectType',
+        'tokenType',
+        'accessTokenValidity',
+        'refreshTokenValidity',
+    ],
+    'ui:layout': [12, 12, 12, 12, 4, 4, 4, 6, 6, 6, 6],
 };
 export const uiSchemaInternalIdp: UiSchema = {
     'ui:layout': [12],
@@ -129,8 +142,7 @@ export const uiSchemaInternalIdp: UiSchema = {
         'enableDelete',
         'enableRegistration',
         'enableUpdate',
-        'maxSessionDuration'
-
+        'maxSessionDuration',
     ],
 };
 export const uiSchemaOIDCIdp: UiSchema = {
@@ -138,12 +150,13 @@ export const uiSchemaOIDCIdp: UiSchema = {
 };
 
 export const getUiSchema = (type: string) => {
-    if (uiIdpSchema[type])
-        return uiIdpSchema[type];
+    if (uiIdpSchema[type]) return uiIdpSchema[type];
     else uiIdpSchema['default'];
-}
+};
 export const uiIdpSchema = {
-    'default': uiSchemaOAuthClient,
-    'urn:jsonschema:it:smartcommunitylab:aac:internal:provider:InternalIdentityProviderConfigMap': uiSchemaInternalIdp,
-    'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap': uiSchemaOIDCIdp,
+    default: uiSchemaOAuthClient,
+    'urn:jsonschema:it:smartcommunitylab:aac:internal:provider:InternalIdentityProviderConfigMap':
+        uiSchemaInternalIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:oidc:provider:OIDCIdentityProviderConfigMap':
+        uiSchemaOIDCIdp,
 };

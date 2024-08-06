@@ -1,8 +1,52 @@
-import { useRootSelector } from "@dslab/ra-root-selector";
-import { Box, Divider } from "@mui/material";
-import { useBasename, useGetResourceLabel, Menu, MenuItemLink } from "react-admin";
-import { RealmIcon } from "../myrealms/RealmIcon";
+import { useRootSelector } from '@dslab/ra-root-selector';
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Box,
+    Divider,
+} from '@mui/material';
+import {
+    useBasename,
+    useGetResourceLabel,
+    Menu,
+    MenuItemLink,
+    useTranslate,
+} from 'react-admin';
+import { RealmIcon } from '../myrealms/RealmIcon';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { ReactElement } from 'react';
+import { AppIcon } from '../apps/AppIcon';
+import { UserIcon } from '../users/UserIcon';
+import { IdpIcon } from '../idps/IdpIcon';
+import { AttributeIcon } from '../attributeset/AttributeIcon';
+import { RoleIcon } from '../roles/RoleIcon';
+
+const defaultIcon = <RealmIcon />;
+
+const MenuEntries = (props: {
+    children: ReactElement | ReactElement[];
+    label: string;
+    icon?: ReactElement;
+}) => {
+    const { label, children, icon = defaultIcon } = props;
+    const translate = useTranslate();
+
+    return (
+        <Accordion elevation={0}>
+            <AccordionSummary>
+                <MenuItemLink
+                    leftIcon={icon}
+                    to={''}
+                    // sx={{ textAlign: 'left' }}
+                >
+                    {translate(label)}
+                </MenuItemLink>
+            </AccordionSummary>
+            <AccordionDetails>{children}</AccordionDetails>
+        </Accordion>
+    );
+};
 
 export const MyMenu = () => {
     const basename = useBasename();

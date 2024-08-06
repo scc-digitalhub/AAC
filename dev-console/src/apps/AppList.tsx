@@ -7,6 +7,9 @@ import {
     ExportButton,
     useTranslate,
     BulkDeleteButton,
+    Labeled,
+    useRecordContext,
+    FieldProps,
 } from 'react-admin';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
@@ -14,13 +17,30 @@ import { PageTitle } from '../components/pageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
-import { Box, Paper, Typography } from '@mui/material';
+import { Avatar, Box, Paper, Stack, Typography } from '@mui/material';
 import { Page } from '../components/page';
-const PostBulkActionButtons = () => (
-    <>
-        <BulkDeleteButton />
-    </>
-);
+import { AppIcon } from './AppIcon';
+import { grey } from '@mui/material/colors';
+
+const NameField = (props: FieldProps) => {
+    return (
+        <Stack direction={'row'} columnGap={2} py={1}>
+            <Avatar sx={{ mt: 1, backgroundColor: grey[200] }}>
+                <AppIcon color={'secondary'} />
+            </Avatar>
+            <Stack>
+                <TextField source="name" color={'primary'} variant="h6" />
+                <TextField
+                    source="configuration.applicationType"
+                    label="type"
+                    variant="body2"
+                />
+                <TextField source="description" defaultValue={' '} />
+            </Stack>
+        </Stack>
+    );
+};
+
 export const AppList = () => {
     const translate = useTranslate();
     return (
@@ -31,18 +51,15 @@ export const AppList = () => {
             />
             <List
                 exporter={YamlExporter}
-                actions={<AppListActions />}
-                filters={RealmFilters}
+                actions={<ListActions />}
+                filters={ListFilters}
                 sort={{ field: 'name', order: 'DESC' }}
                 component={Box}
                 empty={false}
             >
-                <Datagrid
-                    bulkActionButtons={<PostBulkActionButtons />}
-                    rowClick="show"
-                >
-                    <TextField source="name" />
-                    <IdField source="id" />
+                <Datagrid bulkActionButtons={false} rowClick="show">
+                    <NameField source="name" />
+                    <IdField source="clientId" label="id" />
                     <ActionsButtons />
                 </Datagrid>
             </List>
@@ -50,7 +67,7 @@ export const AppList = () => {
     );
 };
 
-const RealmFilters = [<SearchInput source="q" alwaysOn />];
+const ListFilters = [<SearchInput source="q" alwaysOn />];
 const transform = (data: any) => {
     return {
         ...data,
@@ -58,7 +75,7 @@ const transform = (data: any) => {
         type: 'oauth2',
     };
 };
-const AppListActions = () => {
+const ListActions = () => {
     return (
         <TopToolbar>
             <CreateInDialogButton

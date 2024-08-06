@@ -86,11 +86,11 @@ const enMessages: TranslationMessages = {
                 manage: 'Manage authentications',
             },
             number: {
-                apps: "Number of client applications",
-                users: "Number of users",
-                idp: "Number of (active) providers",
-                services: "Number of custom services",
-            }
+                apps: 'Number of client applications',
+                users: 'Number of users',
+                idp: 'Number of (active) providers',
+                services: 'Number of custom services',
+            },
         },
         app: {
             overview: {
@@ -220,33 +220,36 @@ const enMessages: TranslationMessages = {
             },
             account: {
                 title: 'Account',
-                subTitle:'Manage accounts for the current user'
+                subTitle: 'Manage accounts for the current user',
             },
             audit: {
                 title: 'Audit',
-                subTitle:'Review audit log for the current user'
+                subTitle: 'Review audit log for the current user',
             },
             apps: {
                 title: 'Apps',
-                subTitle:'Manage connected apps for the current user'
+                subTitle: 'Manage connected apps for the current user',
             },
             groups: {
                 title: 'Groups',
-                subTitle:'Manage groups for the current user'
+                subTitle: 'Manage groups for the current user',
             },
             roles: {
                 title: 'Roles',
-                primaryTitle:'Roles',
-                subTitle:'Manage roles for the current user',
-                permissionTitle:'Permissions',
-                permissionSubTitle:'Manage API permissions for the current user',
+                primaryTitle: 'Roles',
+                subTitle: 'Manage roles for the current user',
+                permissionTitle: 'Permissions',
+                permissionSubTitle:
+                    'Manage API permissions for the current user',
             },
             attributes: {
                 title: 'Attributes',
                 identityPrimaryTitle: 'Attributi di identità',
-                identitySubTitle:'Esamina gli attributi per l\'utente corrente, come ricevuti dai provider di identità.',
+                identitySubTitle:
+                    "Esamina gli attributi per l'utente corrente, come ricevuti dai provider di identità.",
                 additionalPrimaryTitle: 'Attributi aggiuntivi',
-                additionalsubTitle:'samina e gestisci gli attributi aggiuntivi per l\'utente corrente.',
+                additionalsubTitle:
+                    "samina e gestisci gli attributi aggiuntivi per l'utente corrente.",
             },
             spaceRoles: {
                 title: 'Space Roles',
@@ -284,9 +287,15 @@ const enMessages: TranslationMessages = {
         invalid_attestation: 'Invalid attestation',
         missing_credentials: 'No credentials available, register one to login',
     },
+    message: {
+        content_copied: 'Content copied',
+        content_copied_x: '%{x} copied',
+
+    },
     action: {
         register: 'Register',
         actions: 'Actions',
+        click_to_copy: 'Click to copy',
     },
     field: {
         username: 'Username',
