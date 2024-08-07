@@ -88,7 +88,7 @@ public class Resource {
     }
     
     public String getId() {
-    	return this.resourceId;
+    	return getResourceId();
     }
 
     @Override

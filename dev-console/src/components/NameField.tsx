@@ -11,11 +11,13 @@ export const NameField = (props: NameFieldProps) => {
 
     return (
         <Stack direction={'row'} columnGap={2} py={1}>
-            <Avatar sx={{ mt: 1, backgroundColor: grey[200] }}>
-                {icon && isValidElement(icon)
-                    ? icon
-                    : displayText.substring(0, 2)}
-            </Avatar>
+            {icon !== false && (
+                <Avatar sx={{ mt: 1, backgroundColor: grey[200] }}>
+                    {icon && isValidElement(icon)
+                        ? icon
+                        : displayText.substring(0, 2)}
+                </Avatar>
+            )}
             <Stack>
                 <OptionalTextField text={text} variant="h6" color="primary" />
 
@@ -55,5 +57,5 @@ export interface NameFieldProps extends FieldProps {
     secondaryText?: string | ReactElement;
     //text is either a field name or an element
     tertiaryText?: string | ReactElement;
-    icon?: ReactElement;
+    icon?: ReactElement | boolean;
 }

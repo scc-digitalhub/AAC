@@ -17,6 +17,7 @@ import { LoginPage } from './pages/login';
 import apps from './apps';
 import groups from './group';
 import roles from './roles';
+import apiResources from './resources';
 
 import { AuditList } from './audit/AuditList';
 import { AttributeSetList } from './attributeset/AttributeSetList';
@@ -101,11 +102,7 @@ const DevApp = () => {
                     icon={UserIcon}
                 />
 
-                <Resource
-                    name="resources"
-                    list={<ScopeList />}
-                    icon={ApiResourceIcon}
-                />
+                <Resource name="resources" {...apiResources} />
                 <Resource
                     name="scopes"
                     list={<ScopeList />}
