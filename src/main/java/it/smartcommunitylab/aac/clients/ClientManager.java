@@ -430,12 +430,27 @@ public class ClientManager {
             throw new IllegalArgumentException("invalid client type");
         }
 
-        // load realm roles
-        Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
-        clientApp.setRealmRoles(roles);
+        //update roles if defined
+        if(app.getRealmRoles() != null) {
+            //replace roles
+            Collection<RealmRole> roles = realmRoleService.setRoles(clientId, realm, app.getRealmRoles().stream().map(RealmRole::getRole).toList());
+            clientApp.setRealmRoles(new HashSet<>(roles));
+        } else {
+            // load realm roles
+            Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+            clientApp.setRealmRoles(roles);
+        }
 
-        Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
-        clientApp.setGroups(groups);
+        //update groups if defined
+        if(app.getGroups() != null) {
+            //replace groups
+            Collection<Group> groups = groupService.setSubjectGroups(clientId, realm, app.getGroups().stream().map(Group::getGroup).toList());
+            clientApp.setGroups(groups);        
+        } else {
+            //load groups
+            Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
+            clientApp.setGroups(groups);
+        }
 
         return clientApp;
     }
