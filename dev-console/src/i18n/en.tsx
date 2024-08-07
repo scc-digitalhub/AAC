@@ -290,12 +290,13 @@ const enMessages: TranslationMessages = {
     message: {
         content_copied: 'Content copied',
         content_copied_x: '%{x} copied',
-
     },
     action: {
         register: 'Register',
         actions: 'Actions',
         click_to_copy: 'Click to copy',
+        authorities: 'Authorities',
+        test: 'Test',
     },
     field: {
         username: 'Username',

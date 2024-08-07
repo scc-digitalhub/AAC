@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import {
+    DeleteWithConfirmButton,
     Edit,
     Labeled,
     ReferenceArrayInput,
@@ -10,16 +11,19 @@ import {
     TopToolbar,
     useEditContext,
     useGetList,
+    useRefresh,
     useTranslate,
 } from 'react-admin';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { SectionTitle } from '../components/sectionTitle';
-import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
+import { schemaOAuthClient, uiSchemaOAuthClient } from './schemas';
 import { Page } from '../components/page';
 import { TabToolbar } from '../components/TabToolbar';
 import { AppTitle } from './AppTitle';
+import { AuthoritiesDialogButton } from '../components/AuthoritiesDialog';
+import { TestDialogButton } from './TestDialog';
 
 export const AppEdit = () => {
     //fetch related to resolve relations
@@ -139,11 +143,16 @@ const AppEditForm = () => {
     );
 };
 
-const EditToolBarActions = () => (
-    <TopToolbar>
-        <ShowButton />
-        <InspectButton />
-        <DeleteWithConfirmButton />
-        <ExportRecordButton language="yaml" color="info" />
-    </TopToolbar>
-);
+const EditToolBarActions = () => {
+    const refresh = useRefresh();
+    return (
+        <TopToolbar>
+            <TestDialogButton />
+            <ShowButton />
+            <InspectButton />
+            <AuthoritiesDialogButton onSuccess={() => refresh()} />
+            <DeleteWithConfirmButton />
+            <ExportRecordButton language="yaml" color="info" />
+        </TopToolbar>
+    );
+};

@@ -16,6 +16,7 @@ import { Box } from '@mui/material';
 import { Page } from '../components/page';
 import { AppIcon } from './AppIcon';
 import { NameField } from '../components/NameField';
+import { isValidElement, ReactElement } from 'react';
 
 export const AppList = () => {
     const translate = useTranslate();
@@ -33,19 +34,35 @@ export const AppList = () => {
                 component={Box}
                 empty={false}
             >
-                <Datagrid bulkActionButtons={false} rowClick="show">
-                    <NameField
-                        text="name"
-                        secondaryText="configuration.applicationType"
-                        tertiaryText="description"
-                        source="name"
-                        icon={<AppIcon color={'secondary'} />}
-                    />
-                    <IdField source="clientId" label="id" />
-                    <ActionsButtons />
-                </Datagrid>
+                <AppListView />
             </List>
         </Page>
+    );
+};
+
+export const AppListView = (props: { actions?: ReactElement | boolean }) => {
+    const { actions: actionProps = true } = props;
+
+    const actions = !actionProps ? (
+        false
+    ) : isValidElement(actionProps) ? (
+        actionProps
+    ) : (
+        <ActionsButtons />
+    );
+
+    return (
+        <Datagrid bulkActionButtons={false} rowClick="show">
+            <NameField
+                text="name"
+                secondaryText="configuration.applicationType"
+                tertiaryText="description"
+                source="name"
+                icon={<AppIcon color={'secondary'} />}
+            />
+            <IdField source="clientId" label="id" />
+            {actions !== false && actions}
+        </Datagrid>
     );
 };
 

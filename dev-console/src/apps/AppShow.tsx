@@ -18,6 +18,7 @@ import { Page } from '../components/page';
 import { AppTitle } from './AppTitle';
 import { IdField } from '../components/IdField';
 import { AppEndpointsView } from './AppEndpoints';
+import { TestDialogButton } from './TestDialog';
 
 export const AppShow = () => {
     return (
@@ -46,6 +47,8 @@ const AppView = () => {
                 <TextField source="type" />
                 <TextField source="clientId" />
                 <TextField source="scopes" />
+                <ReferenceArrayField source="groups" reference="groups" />
+                <ReferenceArrayField source="roles" reference="roles" />
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab
                 label={translate('page.app.credentials.title')}
@@ -108,6 +111,7 @@ const AppView = () => {
 
 const ShowToolBarActions = () => (
     <TopToolbar>
+        <TestDialogButton />
         <EditButton />
         <InspectButton />
         <DeleteWithConfirmButton />

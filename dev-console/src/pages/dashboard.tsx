@@ -113,8 +113,12 @@ const DevDashboard = () => {
                             <div>
                                 {translate('page.dashboard.apps.description')}
                             </div>
-                            {apps > 0 && (
-                                <Stack direction="row" alignItems="center" sx={{ mt: 2 }}>
+                            {apps && apps > 0 && (
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    sx={{ mt: 2 }}
+                                >
                                     <CounterBadge
                                         value={apps}
                                         color="secondary.main"
@@ -153,8 +157,12 @@ const DevDashboard = () => {
                                     'page.dashboard.services.description'
                                 )}
                             </div>
-                            {services > 0 && (
-                                <Stack direction="row" alignItems="center" sx={{ mt: 2 }}>
+                            {services && services > 0 && (
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    sx={{ mt: 2 }}
+                                >
                                     <CounterBadge
                                         value={services}
                                         color="secondary.main"
@@ -199,8 +207,12 @@ const DevDashboard = () => {
                                     'page.dashboard.authentications.description'
                                 )}
                             </div>
-                            {idps > 0 && (
-                                <Stack direction="row" alignItems="center" sx={{ mt: 2 }}>
+                            {idps && idps > 0 && (
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    sx={{ mt: 2 }}
+                                >
                                     <CounterBadge
                                         value={idps}
                                         color="secondary.main"
