@@ -24,11 +24,7 @@ import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
-import {
-    getUiSchema,
-    schemaOAuthClient,
-    uiSchemaOAuthClient,
-} from '../common/schemas';
+import { getUiSchema } from '../common/schemas';
 import { Page } from '../components/page';
 import { AceEditorField } from '@dslab/ra-ace-editor';
 
@@ -49,7 +45,11 @@ const IdpTabComponent = () => {
 
     return (
         <>
-            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
+            <PageTitle
+                text={record.name}
+                secondaryText={record?.id}
+                copy={true}
+            />
             <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab
                     label={translate('page.idp.overview.title')}
@@ -97,9 +97,11 @@ const IdpTabComponent = () => {
                     />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.idp.hooks.title')}>
-                <SectionTitle
+                    <SectionTitle
                         text={translate('page.idp.hooks.attribute')}
-                        secondaryText={translate('page.idp.hooks.attributeDesc')}
+                        secondaryText={translate(
+                            'page.idp.hooks.attributeDesc'
+                        )}
                     />
                     <Box>
                         <AceEditorField
@@ -110,7 +112,9 @@ const IdpTabComponent = () => {
                     </Box>
                     <SectionTitle
                         text={translate('page.idp.hooks.authFunction')}
-                        secondaryText={translate('page.idp.hooks.authFunctionDesc')}
+                        secondaryText={translate(
+                            'page.idp.hooks.authFunctionDesc'
+                        )}
                     />
                     <Box>
                         <AceEditorField

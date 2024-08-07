@@ -29,6 +29,7 @@ import { PageTitle } from '../components/pageTitle';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { useEffect, useState } from 'react';
 import { CounterBadge } from '../components/CounterBadge';
+import { Page } from '../components/page';
 
 const DevDashboard = () => {
     const { data: user, isLoading } = useGetIdentity();
@@ -76,7 +77,7 @@ const DevDashboard = () => {
         return <LoadingIndicator />;
     }
     return (
-        <Container maxWidth="lg">
+        <Page>
             <PageTitle
                 text={realm.name}
                 secondaryText={translate('page.dashboard.description')}
@@ -239,7 +240,7 @@ const DevDashboard = () => {
                     </Card>
                 </Grid>
             </Grid>
-        </Container>
+        </Page>
     );
 };
 

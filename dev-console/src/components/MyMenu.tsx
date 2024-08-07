@@ -62,17 +62,22 @@ export const MyMenu = () => {
         >
             <Box flex={1}>
                 <Menu.DashboardItem />
+                {/* apps */}
                 <Menu.ResourceItem name="apps" />
-                <Menu.ResourceItem name="idps" />
-                <Menu.ResourceItem name="audit" />
-                <Menu.ResourceItem name="sevices" />
+                <Menu.ResourceItem name="services" />
+                {/* users */}
                 <Menu.ResourceItem name="users" />
                 <Menu.ResourceItem name="groups" />
-                <Menu.ResourceItem name="resources" />
-                <Menu.ResourceItem name="templates" />
-                <Menu.ResourceItem name="services" />
+                {/* authentication */}
+                <Menu.ResourceItem name="idps" />
+                {/* authorization */}
                 <Menu.ResourceItem name="roles" />
+                <Menu.ResourceItem name="resources" />
+                {/* attributes  */}
                 <Menu.ResourceItem name="attributeset" />
+                <Menu.ResourceItem name="aps" />
+
+                <Menu.ResourceItem name="audit" />
                 <Divider />
                 <MenuItemLink
                     leftIcon={<SettingsIcon />}

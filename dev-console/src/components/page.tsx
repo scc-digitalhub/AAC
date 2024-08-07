@@ -1,11 +1,19 @@
 import { styled } from '@mui/material/styles';
-import { Container, Paper, PaperProps } from '@mui/material';
+import { Container, ContainerOwnProps, Paper, PaperProps } from '@mui/material';
 
-export const Page = (props: PaperProps) => {
-    const { children, className, elevation = 0, ...rest } = props;
+export const Page = (
+    props: PaperProps & Pick<ContainerOwnProps, 'maxWidth'>
+) => {
+    const {
+        children,
+        className,
+        elevation = 0,
+        maxWidth = false,
+        ...rest
+    } = props;
 
     return (
-        <Container maxWidth={false} sx={{ pb: 2 }}>
+        <Container maxWidth={maxWidth} sx={{ pb: 2 }}>
             <StyledPaper className={className} elevation={elevation} {...rest}>
                 {children}
             </StyledPaper>

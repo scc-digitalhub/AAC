@@ -63,8 +63,7 @@ const enMessages: TranslationMessages = {
     page: {
         dashboard: {
             welcome: 'Welcome, %{name}',
-            description:
-                'Manage you personal information, accounts and review your security settings',
+            description: 'Manage realm, applications and users',
             apps: {
                 title: 'Client Application',
                 description: 'Review and manage your applications',

@@ -25,11 +25,7 @@ import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/page';
 import { PageTitle } from '../components/pageTitle';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
-import {
-    getUiSchema,
-    schemaOAuthClient,
-    uiSchemaOAuthClient,
-} from '../common/schemas';
+import { getUiSchema } from '../common/schemas';
 import { Box } from '@mui/material';
 import { TabToolbar } from '../components/TabToolbar';
 import { SectionTitle } from '../components/sectionTitle';
@@ -56,7 +52,11 @@ const IdpTabComponent = () => {
     if (!record) return null;
     return (
         <>
-            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
+            <PageTitle
+                text={record.name}
+                secondaryText={record?.id}
+                copy={true}
+            />
             <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label={translate('page.idp.overview.title')}>
                     <TextField source="name" />
@@ -106,7 +106,9 @@ const IdpTabComponent = () => {
                 <TabbedForm.Tab label={translate('page.idp.hooks.title')}>
                     <SectionTitle
                         text={translate('page.idp.hooks.attribute')}
-                        secondaryText={translate('page.idp.hooks.attributeDesc')}
+                        secondaryText={translate(
+                            'page.idp.hooks.attributeDesc'
+                        )}
                     />
                     <Box>
                         <AceEditorInput
@@ -117,7 +119,9 @@ const IdpTabComponent = () => {
                     </Box>
                     <SectionTitle
                         text={translate('page.idp.hooks.authFunction')}
-                        secondaryText={translate('page.idp.hooks.authFunctionDesc')}
+                        secondaryText={translate(
+                            'page.idp.hooks.authFunctionDesc'
+                        )}
                     />
                     <Box>
                         <AceEditorInput

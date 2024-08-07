@@ -14,7 +14,6 @@ import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { PageTitle } from '../components/pageTitle';
-import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Page } from '../components/page';
 import { ActiveButton } from './activeButton';
 import { TabToolbar } from '../components/TabToolbar';
@@ -33,7 +32,6 @@ export const UserEdit = () => {
     );
 };
 
-
 const UserTabComponent = () => {
     const translate = useTranslate();
     const { isLoading, record } = useEditContext<any>();
@@ -41,22 +39,22 @@ const UserTabComponent = () => {
     if (!record) return null;
     return (
         <>
-            <PageTitle text={record.username} secondaryText={record?.id} copy={true}/>
-            <TabbedForm  toolbar={<TabToolbar />}>
+            <PageTitle
+                text={record.username}
+                secondaryText={record?.id}
+                copy={true}
+            />
+            <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label={translate('page.user.overview.title')}>
-                <TextField source="username" />
+                    <TextField source="username" />
                     <TextField source="email" />
                     <TextField source="subjectId" />
                     <TextField source="roles" />
                     <TextField source="permissions" />
                 </TabbedForm.Tab>
-                <TabbedForm.Tab label={translate('page.user.account.title')}>
-                <JsonSchemaInput
-                        source="account"
-                        schema={schemaOAuthClient}
-                        uiSchema={uiSchemaOAuthClient}
-                    />
-                </TabbedForm.Tab>
+                <TabbedForm.Tab
+                    label={translate('page.user.account.title')}
+                ></TabbedForm.Tab>
                 <TabbedForm.Tab label={translate('page.user.audit.title')}>
                     <TextField source="id" />
                 </TabbedForm.Tab>
@@ -83,7 +81,6 @@ const UserTabComponent = () => {
     );
 };
 
-
 const EditToolBarActions = () => {
     const record = useRecordContext();
     if (!record) return null;
@@ -95,9 +92,6 @@ const EditToolBarActions = () => {
             <InspectButton />
             <DeleteWithDialogButton />
             <ExportRecordButton language="yaml" color="info" />
-            
         </TopToolbar>
     );
 };
-
-

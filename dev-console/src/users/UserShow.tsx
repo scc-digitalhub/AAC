@@ -18,7 +18,6 @@ import { Page } from '../components/page';
 import { ActiveButton } from './activeButton';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
-import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { IdField } from '../components/IdField';
 import { SectionTitle } from '../components/sectionTitle';
 
@@ -39,7 +38,11 @@ const UserTabComponent = () => {
 
     return (
         <>
-            <PageTitle text={record.username} secondaryText={record?.id} copy={true}/>
+            <PageTitle
+                text={record.username}
+                secondaryText={record?.id}
+                copy={true}
+            />
             <TabbedShowLayout syncWithLocation={false}>
                 <TabbedShowLayout.Tab
                     label={translate('page.user.overview.title')}
