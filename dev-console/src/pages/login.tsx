@@ -1,7 +1,7 @@
 import { useTranslate } from 'react-admin';
 import { Container, Avatar } from '@mui/material';
 
-import { PageTitle } from '../components/pageTitle';
+import { PageTitle } from '../components/PageTitle';
 import LoginIcon from '@mui/icons-material/Login';
 
 export const LoginPage = () => {

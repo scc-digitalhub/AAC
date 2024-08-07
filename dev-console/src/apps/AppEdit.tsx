@@ -11,6 +11,8 @@ import {
     TopToolbar,
     useEditContext,
     useGetList,
+    useGetOne,
+    useRecordContext,
     useRefresh,
     useTranslate,
 } from 'react-admin';
@@ -19,21 +21,22 @@ import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from './schemas';
-import { Page } from '../components/page';
+import { Page } from '../components/Page';
 import { TabToolbar } from '../components/TabToolbar';
-import { AppTitle } from './AppTitle';
 import { AuthoritiesDialogButton } from '../components/AuthoritiesDialog';
 import { TestDialogButton } from './TestDialog';
+import { RefreshingExportButton } from '../components/RefreshingExportButton';
+import { ResourceTitle } from '../components/ResourceTitle';
 
 export const AppEdit = () => {
     //fetch related to resolve relations
     const { data: roles } = useGetList('roles', {
         pagination: { page: 1, perPage: 100 },
-        sort: { field: 'roleId', order: 'ASC' },
+        sort: { field: 'name', order: 'ASC' },
     });
     const { data: groups } = useGetList('groups', {
         pagination: { page: 1, perPage: 100 },
-        sort: { field: 'groupId', order: 'ASC' },
+        sort: { field: 'name', order: 'ASC' },
     });
 
     //inflate back flattened fields
@@ -52,8 +55,9 @@ export const AppEdit = () => {
                 redirect={'edit'}
                 transform={transform}
                 queryOptions={{ meta: { flatten: ['roles', 'groups'] } }}
+                mutationOptions={{ meta: { flatten: ['roles', 'groups'] } }}
             >
-                <AppTitle />
+                <ResourceTitle />
                 <AppEditForm />
             </Edit>
         </Page>
@@ -145,6 +149,10 @@ const AppEditForm = () => {
 
 const EditToolBarActions = () => {
     const refresh = useRefresh();
+    const record = useRecordContext();
+
+    if (!record) return null;
+
     return (
         <TopToolbar>
             <TestDialogButton />
@@ -152,7 +160,7 @@ const EditToolBarActions = () => {
             <InspectButton />
             <AuthoritiesDialogButton onSuccess={() => refresh()} />
             <DeleteWithConfirmButton />
-            <ExportRecordButton language="yaml" color="info" />
+            <RefreshingExportButton />
         </TopToolbar>
     );
 };

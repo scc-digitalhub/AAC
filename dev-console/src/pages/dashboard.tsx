@@ -25,11 +25,11 @@ import { useLocation } from 'react-router-dom';
 import AppsIcon from '@mui/icons-material/Apps';
 import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import { PageTitle } from '../components/pageTitle';
+import { PageTitle } from '../components/PageTitle';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { useEffect, useState } from 'react';
 import { CounterBadge } from '../components/CounterBadge';
-import { Page } from '../components/page';
+import { Page } from '../components/Page';
 
 const DevDashboard = () => {
     const { data: user, isLoading } = useGetIdentity();

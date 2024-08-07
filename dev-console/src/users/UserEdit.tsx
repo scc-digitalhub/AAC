@@ -13,8 +13,8 @@ import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
-import { PageTitle } from '../components/pageTitle';
-import { Page } from '../components/page';
+import { PageTitle } from '../components/PageTitle';
+import { Page } from '../components/Page';
 import { ActiveButton } from './activeButton';
 import { TabToolbar } from '../components/TabToolbar';
 

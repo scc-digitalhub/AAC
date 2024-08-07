@@ -169,6 +169,9 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             if (resource !== 'myrealms' && params.meta?.root) {
                 suffix = '/' + params.meta.root;
             }
+
+            const flatten = params.meta?.flatten || [];
+
             const url = `${apiUrl}/${resource}${suffix}` + `/${params.id}`;
             return httpClient(url, {
                 method: 'PUT',
@@ -176,7 +179,35 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                     typeof params.data === 'string'
                         ? params.data
                         : JSON.stringify(params.data),
-            }).then(({ json }) => ({ data: json }));
+            }).then(({ status, json }) => {
+                if (status !== 200) {
+                    throw new Error('Invalid response status ' + status);
+                }
+
+                //flatten nested fields if required
+                if (json) {
+                    for (const k of flatten) {
+                        if (k in json) {
+                            if (Array.isArray(json[k])) {
+                                json[k] = json[k].map(e => {
+                                    return typeof e === 'object' && 'id' in e
+                                        ? e['id']
+                                        : e;
+                                });
+                            } else if (
+                                typeof json[k] === 'object' &&
+                                'id' in json[k]
+                            ) {
+                                json[k] = json[k]['id'];
+                            }
+                        }
+                    }
+                }
+
+                return {
+                    data: json,
+                };
+            });
         },
         updateMany: (resource, params) => {
             let prefix = '';

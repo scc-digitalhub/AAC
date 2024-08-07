@@ -27,8 +27,8 @@ import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { UserCreateForm } from './UserCreate';
 import { DropDownButton } from '../components/DropdownButton';
 import { RowButtonGroup } from '../components/RowButtonGroup';
-import { Page } from '../components/page';
-import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/Page';
+import { PageTitle } from '../components/PageTitle';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
 

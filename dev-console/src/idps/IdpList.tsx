@@ -39,8 +39,8 @@ import { IdpCreateForm } from './IdpCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
-import { PageTitle } from '../components/pageTitle';
-import { Page } from '../components/page';
+import { PageTitle } from '../components/PageTitle';
+import { Page } from '../components/Page';
 
 
 const PostBulkActionButtons = () => (

@@ -18,14 +18,14 @@ import {
     useRefresh,
     useTranslate,
 } from 'react-admin';
-import { PageTitle } from '../components/pageTitle';
+import { PageTitle } from '../components/PageTitle';
 import { SectionTitle } from '../components/sectionTitle';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { JsonSchemaField } from '@dslab/ra-jsonschema-input';
 import { getUiSchema } from '../common/schemas';
-import { Page } from '../components/page';
+import { Page } from '../components/Page';
 import { AceEditorField } from '@dslab/ra-ace-editor';
 
 export const IdpShow = () => {

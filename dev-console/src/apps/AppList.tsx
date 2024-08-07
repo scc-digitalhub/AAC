@@ -8,15 +8,16 @@ import {
 } from 'react-admin';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
-import { PageTitle } from '../components/pageTitle';
+import { PageTitle } from '../components/PageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { Box } from '@mui/material';
-import { Page } from '../components/page';
+import { Page } from '../components/Page';
 import { AppIcon } from './AppIcon';
 import { NameField } from '../components/NameField';
 import { isValidElement, ReactElement } from 'react';
+import { useRootSelector } from '@dslab/ra-root-selector';
 
 export const AppList = () => {
     const translate = useTranslate();
@@ -69,9 +70,11 @@ export const AppListView = (props: { actions?: ReactElement | boolean }) => {
 const ListFilters = [<SearchInput source="q" alwaysOn key={'q'} />];
 
 const ListActions = () => {
+    const { root: realmId } = useRootSelector();
     const transform = (data: any) => {
         return {
             ...data,
+            realm: realmId,
             configuration: { applicationType: data.type },
             type: 'oauth2',
         };

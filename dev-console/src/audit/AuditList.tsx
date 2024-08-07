@@ -17,8 +17,8 @@ import { Typography } from '@mui/material';
 
 import { useForm, FormProvider } from 'react-hook-form';
 import { Box, Button } from '@mui/material';
-import { Page } from '../components/page';
-import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/Page';
+import { PageTitle } from '../components/PageTitle';
 import { YamlExporter } from '../components/YamlExporter';
 
 export const AuditList = () => {

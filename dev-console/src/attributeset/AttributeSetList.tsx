@@ -16,7 +16,7 @@ import { Typography } from '@mui/material';
 import { useForm, FormProvider } from 'react-hook-form';
 import { Box } from '@mui/material';
 import React from 'react';
-import { PageTitle } from '../components/pageTitle';
+import { PageTitle } from '../components/PageTitle';
 import { SectionTitle } from '../components/sectionTitle';
 
 export const AttributeSetList = () => {

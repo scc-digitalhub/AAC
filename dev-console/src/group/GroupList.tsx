@@ -1,9 +1,7 @@
 import {
     List,
-    useListContext,
     SearchInput,
     Datagrid,
-    TextField,
     TopToolbar,
     Button,
     useNotify,
@@ -13,8 +11,9 @@ import {
     SimpleForm,
     SaveButton,
     Toolbar,
+    NumberField,
+    ExportButton,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
 import {
     Box,
     Dialog,
@@ -26,19 +25,21 @@ import { YamlExporter } from '../components/YamlExporter';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 
 import ImportExportIcon from '@mui/icons-material/ImportExport';
-import React from 'react';
+import React, { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { GroupCreateForm } from './GroupCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
-import { PageTitle } from '../components/pageTitle';
+import { PageTitle } from '../components/PageTitle';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
+import { GroupIcon } from './GroupIcon';
+import { NameField } from '../components/NameField';
+import { Page } from '../components/Page';
 
 export const GroupList = () => {
     const translate = useTranslate();
-    useListContext<any>();
     return (
-        <>
+        <Page>
             <PageTitle
                 text={translate('page.group.list.title')}
                 secondaryText={translate('page.group.list.subtitle')}
@@ -47,53 +48,51 @@ export const GroupList = () => {
                 exporter={YamlExporter}
                 actions={<GroupListActions />}
                 filters={GroupFilters}
-                sort={{ field: 'name', order: 'DESC' }}
+                sort={{ field: 'name', order: 'ASC' }}
+                component={Box}
                 empty={false}
             >
-                <Datagrid bulkActionButtons={false} rowClick="show">
-                    <TextField source="name" />
-                    <IdField source="id" />
-                    <TextField source="group" />
-                    <ActionsButtons />
-                </Datagrid>
+                <GroupListView />
             </List>
-        </>
+        </Page>
+    );
+};
+
+export const GroupListView = (props: { actions?: ReactElement | boolean }) => {
+    const { actions: actionProps = true } = props;
+
+    const actions = !actionProps ? (
+        false
+    ) : isValidElement(actionProps) ? (
+        actionProps
+    ) : (
+        <ActionsButtons />
+    );
+
+    return (
+        <Datagrid bulkActionButtons={false} rowClick="show">
+            <NameField
+                text="name"
+                secondaryText="group"
+                source="name"
+                icon={<GroupIcon color={'secondary'} />}
+            />
+            <IdField source="groupId" label="id" />
+            <NumberField source="size" label={'members'} sortable={false} />
+            {actions !== false && actions}
+        </Datagrid>
     );
 };
 
 const GroupFilters = [<SearchInput source="q" alwaysOn />];
-const transformCrate = (data: any) => {
-    return {
-        ...data,
-        group: data.key,
-    };
-};
 
 const GroupListActions = () => {
     const { root: realmId } = useRootSelector();
-
-    const notify = useNotify();
-    const translate = useTranslate();
-    const options = {
-        meta: { import: false, resetId: false },
-    };
-    const [open, setOpen] = React.useState(false);
-    const importTo = `/groups/r/${realmId}/import`;
-    const handleClick = () => {
-        setOpen(true);
-    };
-    const handleClose = () => {
-        setOpen(false);
-    };
     const transform = (data: any) => {
-        options.meta.import = true;
-        options.meta.resetId = data.resetId;
-        data = data.yamlInput;
-        return data;
-    };
-
-    const onSuccess = (data: any) => {
-        notify(`Group imported successfully`);
+        return {
+            ...data,
+            realm: realmId,
+        };
     };
 
     return (
@@ -102,52 +101,11 @@ const GroupListActions = () => {
                 fullWidth
                 maxWidth={'md'}
                 variant="contained"
-                transform={transformCrate}
+                transform={transform}
             >
                 <GroupCreateForm />
             </CreateInDialogButton>
-            <Button
-                variant="contained"
-                label="Import"
-                onClick={handleClick}
-                to={importTo}
-            >
-                {<ImportExportIcon />}
-            </Button>
-            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-                <DialogTitle>Import Provider</DialogTitle>
-                <DialogContent>
-                    <Create
-                        transform={transform}
-                        mutationOptions={{ ...options, onSuccess }}
-                    >
-                        <SimpleForm toolbar={<ImportToolbar />}>
-                            <Typography>
-                                {translate('page.idp.import.description')}
-                            </Typography>
-                            <Box>
-                                <AceEditorInput
-                                    source="yamlInput"
-                                    mode="yaml"
-                                    theme="github"
-                                ></AceEditorInput>
-                            </Box>
-                            <Box>
-                                <BooleanInput
-                                    label="Reset ID(s)"
-                                    source="resetId"
-                                />
-                            </Box>
-                        </SimpleForm>
-                    </Create>
-                </DialogContent>
-            </Dialog>
+            <ExportButton variant="contained" />
         </TopToolbar>
     );
 };
-
-const ImportToolbar = () => (
-    <Toolbar>
-        <SaveButton />
-    </Toolbar>
-);

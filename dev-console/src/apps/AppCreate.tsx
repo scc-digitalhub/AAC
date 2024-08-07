@@ -1,6 +1,6 @@
 import { CreateBase, Form, SelectInput, TextInput, Toolbar } from 'react-admin';
 import { Card, CardContent, Box, Divider } from '@mui/material';
-import { Page } from '../components/page';
+import { Page } from '../components/Page';
 
 export const AppCreateForm = () => {
     return (

@@ -1,11 +1,10 @@
-import { RoleCreate } from './RoleCreate';
 import { RoleList } from './RoleList';
 import { RoleEdit } from './RoleEdit';
-import { RoleShow } from './RoleShow';
+import { RoleIcon } from './RoleIcon';
 
 export default {
     list: RoleList,
-    create: RoleCreate,
-    show: RoleShow,
     edit: RoleEdit,
+    icon: RoleIcon,
+    recordRepresentation: record => record.role,
 };

@@ -9,7 +9,7 @@ import {
 import { ServiceCreateForm } from './ServiceCreate';
 import { Box } from '@mui/material';
 import { ActionsButtons } from '../components/ActionsButtons';
-import { Page } from '../components/page';
+import { Page } from '../components/Page';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
 

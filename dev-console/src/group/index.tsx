@@ -1,7 +1,10 @@
-import { GroupCreate } from "./GroupCreate";
-import { GroupList } from "./GroupList";
+import { GroupEdit } from './GroupEdit';
+import { GroupIcon } from './GroupIcon';
+import { GroupList } from './GroupList';
 
 export default {
     list: GroupList,
-    create: GroupCreate
+    edit: GroupEdit,
+    icon: GroupIcon,
+    recordRepresentation: record => record.group,
 };

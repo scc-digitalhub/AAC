@@ -14,11 +14,11 @@ import {
 import { SectionTitle } from '../components/sectionTitle';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
-import { Page } from '../components/page';
-import { AppTitle } from './AppTitle';
+import { Page } from '../components/Page';
 import { IdField } from '../components/IdField';
 import { AppEndpointsView } from './AppEndpoints';
 import { TestDialogButton } from './TestDialog';
+import { ResourceTitle } from '../components/ResourceTitle';
 
 export const AppShow = () => {
     return (
@@ -28,7 +28,7 @@ export const AppShow = () => {
                 component={Box}
                 queryOptions={{ meta: { flatten: ['roles', 'groups'] } }}
             >
-                <AppTitle />
+                <ResourceTitle />
                 <AppView />
             </Show>
         </Page>

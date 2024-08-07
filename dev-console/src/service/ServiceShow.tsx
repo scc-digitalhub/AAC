@@ -11,8 +11,8 @@ import {
 } from 'react-admin';
 import { useParams } from 'react-router-dom';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { PageTitle } from '../components/pageTitle';
-import { Page } from '../components/page';
+import { PageTitle } from '../components/PageTitle';
+import { Page } from '../components/Page';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';

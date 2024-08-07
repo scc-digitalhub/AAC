@@ -1,116 +1,130 @@
+import { Box } from '@mui/material';
 import {
-    Box,
-    Card,
-    CardContent,
-    Divider,
-    IconButton,
-    Typography,
-} from '@mui/material';
-import {
-    Button,
     Edit,
-    EditBase,
-    Form,
+    Labeled,
+    NumberField,
     ReferenceArrayInput,
-    SaveButton,
-    ShowButton,
     TabbedForm,
-    TabbedShowLayout,
     TextField,
     TextInput,
-    Toolbar,
     TopToolbar,
-    useEditContext,
-    useNotify,
+    useGetList,
     useRecordContext,
-    useRedirect,
-    useRefresh,
+    useTranslate,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import React from 'react';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { IdField } from '../components/IdField';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { Page } from '../components/page';
-import { PageTitle } from '../components/pageTitle';
+import { Page } from '../components/Page';
 import { TabToolbar } from '../components/TabToolbar';
 import { DatagridArrayInput } from '@dslab/ra-datagrid-input';
+import { SectionTitle } from '../components/sectionTitle';
+import { RefreshingExportButton } from '../components/RefreshingExportButton';
+import { ResourceTitle } from '../components/ResourceTitle';
 
 export const GroupEdit = () => {
-    const params = useParams();
-    const options = { meta: { realmId: params.realmId } };
+    //fetch related to resolve relations
+    const { data: roles } = useGetList('roles', {
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: 'name', order: 'ASC' },
+    });
+
+    //inflate back flattened fields
+    const transform = data => ({
+        ...data,
+        roles: roles?.filter(r => data.roles.includes(r.id)),
+    });
+
     return (
         <Page>
             <Edit
                 actions={<GroupToolBarActions />}
-                mutationMode="pessimistic"
-                queryOptions={options}
+                mutationMode="optimistic"
                 component={Box}
+                redirect={'edit'}
+                transform={transform}
+                queryOptions={{ meta: { flatten: ['roles'] } }}
+                mutationOptions={{ meta: { flatten: ['roles'] } }}
             >
-                <GroupTabComponent />
+                <ResourceTitle />
+                <GroupEditForm />
             </Edit>
         </Page>
     );
 };
 
-const GroupTabComponent = () => {
+const GroupEditForm = () => {
+    const translate = useTranslate();
     const record = useRecordContext();
     if (!record) return null;
 
     return (
-        <>
-            <PageTitle
-                text={record.name}
-                secondaryText={record?.id}
-                copy={true}
-            />
-            <TabbedForm toolbar={<TabToolbar />}>
-                <TabbedForm.Tab label="Overview">
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
+            <TabbedForm.Tab label="Overview">
+                <Labeled>
                     <TextField source="id" />
+                </Labeled>
+                <Labeled>
                     <TextField source="name" />
+                </Labeled>
+                <Labeled>
                     <TextField source="group" />
-                    <TextField source="members" />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label="Settings">
-                    <TextInput source="name" fullWidth />
-                    <TextInput source="group" fullWidth />
-                    <TextInput source="description" multiline fullWidth />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label="Roles">
-                    <TextField source="id" />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label="Members">
-                    <ReferenceArrayInput source="members" reference="subjects">
-                        <DatagridArrayInput
-                            dialogFilters={[
-                                <TextInput label="query" source="q" />,
-                            ]}
-                            dialogFilterDefaultValues={{ q: '' }}
-                        >
-                            <TextField source="name" />
-                            <TextField source="type" />
-                            <IdField source="id" />
-                        </DatagridArrayInput>
-                    </ReferenceArrayInput>
-                </TabbedForm.Tab>
-            </TabbedForm>
-        </>
+                </Labeled>
+                <Labeled>
+                    <NumberField source="size" label="members" />
+                </Labeled>
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="Settings">
+                <SectionTitle
+                    text={translate('page.group.settings.header.title')}
+                    secondaryText={translate(
+                        'page.group.settings.header.subtitle'
+                    )}
+                />
+                <TextInput source="group" fullWidth readOnly />
+                <TextInput source="name" fullWidth />
+                <TextInput source="description" multiline fullWidth />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="Roles">
+                <SectionTitle
+                    text={translate('page.group.roles.header.title')}
+                    secondaryText={translate(
+                        'page.group.roles.header.subtitle'
+                    )}
+                />
+                <ReferenceArrayInput source="roles" reference="roles" />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="Members">
+                <SectionTitle
+                    text={translate('page.group.members.header.title')}
+                    secondaryText={translate(
+                        'page.group.roles.members.subtitle'
+                    )}
+                />
+                <ReferenceArrayInput source="members" reference="subjects">
+                    <DatagridArrayInput
+                        dialogFilters={[<TextInput label="query" source="q" />]}
+                        dialogFilterDefaultValues={{ q: '' }}
+                    >
+                        <TextField source="name" />
+                        <TextField source="type" />
+                        <IdField source="id" />
+                    </DatagridArrayInput>
+                </ReferenceArrayInput>
+            </TabbedForm.Tab>
+        </TabbedForm>
     );
 };
 
 const GroupToolBarActions = () => {
     const record = useRecordContext();
     if (!record) return null;
+
     return (
         <TopToolbar>
-            <ShowButton />
             <InspectButton />
             <DeleteWithDialogButton />
-            <ExportRecordButton />
+            <RefreshingExportButton />
         </TopToolbar>
     );
 };
