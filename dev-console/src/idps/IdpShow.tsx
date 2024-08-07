@@ -4,6 +4,7 @@ import {
     Datagrid,
     DateField,
     EditButton,
+    RecordContextProvider,
     ReferenceManyField,
     RichTextField,
     Show,
@@ -30,7 +31,7 @@ import {
     uiSchemaOAuthClient,
 } from '../common/schemas';
 import { Page } from '../components/page';
-import { AceEditorField } from '@dslab/ra-ace-editor';
+import { AceEditorField } from '../components/AceEditorField';
 
 export const IdpShow = () => {
     return (
@@ -97,13 +98,14 @@ const IdpTabComponent = () => {
                     />
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.idp.hooks.title')}>
+                <RecordContextProvider value={record?.settings.hookFunctions}>
                 <SectionTitle
                         text={translate('page.idp.hooks.attribute')}
                         secondaryText={translate('page.idp.hooks.attributeDesc')}
                     />
                     <Box>
                         <AceEditorField
-                            source="settings.hookFunctions.attributeMapping"
+                            source="attributeMapping"
                             mode="yaml"
                             theme="github"
                         ></AceEditorField>
@@ -114,11 +116,13 @@ const IdpTabComponent = () => {
                     />
                     <Box>
                         <AceEditorField
-                            source="settings.hookFunctions.authorize"
+                            source="authorize"
                             mode="yaml"
                             theme="github"
                         ></AceEditorField>
+                        
                     </Box>
+                    </RecordContextProvider>
                 </TabbedShowLayout.Tab>
                 <TabbedShowLayout.Tab label={translate('page.idp.app.title')}>
                     <ReferenceManyField

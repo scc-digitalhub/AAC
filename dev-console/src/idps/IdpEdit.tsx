@@ -3,6 +3,7 @@ import {
     BooleanInput,
     Datagrid,
     Edit,
+    RecordContextProvider,
     ReferenceManyField,
     SaveButton,
     SelectInput,
@@ -34,8 +35,25 @@ import { Box } from '@mui/material';
 import { TabToolbar } from '../components/TabToolbar';
 import { SectionTitle } from '../components/sectionTitle';
 import { RichTextInput } from 'ra-input-rich-text';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { Editor } from '../components/AceEditorInput';
+import { useForm, FormProvider, useFormContext } from 'react-hook-form';
+import { attributeMappingFunction, authorizeFunction } from './hookFuntions';
+import { CheckBoxInput } from '../components/CheckBoxInput';
 
+const transform = async data => {
+    console.log('data', data);
+    return {
+        ...data,
+
+        settings: {
+            hookFunctions: {
+                ...data.settings?.hookFunctions,
+                attributeMapping: data.attributeMapping?.base64,
+                authorize: data.authorize?.base64,
+            },
+        },
+    };
+};
 export const IdpEdit = () => {
     return (
         <Page>
@@ -43,6 +61,7 @@ export const IdpEdit = () => {
                 actions={<EditToolBarActions />}
                 mutationMode="pessimistic"
                 component={Box}
+                transform={transform}
             >
                 <IdpTabComponent />
             </Edit>
@@ -56,7 +75,11 @@ const IdpTabComponent = () => {
     if (!record) return null;
     return (
         <>
-            <PageTitle text={record.name} secondaryText={record?.id} copy={true}/>
+            <PageTitle
+                text={record.name}
+                secondaryText={record?.id}
+                copy={true}
+            />
             <TabbedForm toolbar={<TabToolbar />}>
                 <TabbedForm.Tab label={translate('page.idp.overview.title')}>
                     <TextField source="name" />
@@ -100,32 +123,52 @@ const IdpTabComponent = () => {
                     <JsonSchemaInput
                         source="configuration"
                         schema={record.schema}
-                        uiSchema={getUiSchema(record?.schema?.id)}
+                        uiSchema={getUiSchema(record?.schema?.id)} //todo schema per tipo di ipd
                     />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label={translate('page.idp.hooks.title')}>
-                    <SectionTitle
-                        text={translate('page.idp.hooks.attribute')}
-                        secondaryText={translate('page.idp.hooks.attributeDesc')}
-                    />
-                    <Box>
-                        <AceEditorInput
-                            source="settings.hookFunctions.attributeMapping"
-                            mode="yaml"
-                            theme="github"
-                        ></AceEditorInput>
-                    </Box>
-                    <SectionTitle
-                        text={translate('page.idp.hooks.authFunction')}
-                        secondaryText={translate('page.idp.hooks.authFunctionDesc')}
-                    />
-                    <Box>
-                        <AceEditorInput
-                            source="settings.hookFunctions.authorize"
-                            mode="yaml"
-                            theme="github"
-                        ></AceEditorInput>
-                    </Box>
+                    <RecordContextProvider
+                        value={record?.settings.hookFunctions}
+                    >
+                        <SectionTitle
+                            text={translate('page.idp.hooks.attribute')}
+                            secondaryText={translate(
+                                'page.idp.hooks.attributeDesc'
+                            )}
+                        />
+                        <Box>
+                            <CheckBoxInput
+                                source="attributeMapping"
+                                defaultFunction={attributeMappingFunction}
+                            />
+                            <Editor
+                                source="attributeMapping"
+                                mode="typescript"
+                                theme="github"
+                                defaultFunction={attributeMappingFunction}
+
+                            ></Editor>
+                        </Box>
+                        <SectionTitle
+                            text={translate('page.idp.hooks.authFunction')}
+                            secondaryText={translate(
+                                'page.idp.hooks.authFunctionDesc'
+                            )}
+                        />
+                        <Box>
+                            <CheckBoxInput
+                                source="authorize"
+                                defaultFunction={authorizeFunction}
+                            />
+                            <Editor
+                                source="authorize"
+                                mode="typescript"
+                                theme="github"
+                                defaultFunction={authorizeFunction}
+
+                            ></Editor>
+                        </Box>
+                    </RecordContextProvider>
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label={translate('page.idp.app.title')}>
                     <ReferenceManyField

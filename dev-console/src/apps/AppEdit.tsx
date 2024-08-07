@@ -69,6 +69,7 @@ const AppTabComponent = () => {
                             'page.app.configuration.header.subtitle'
                         )}
                     />
+                    <TextInput source="clientId" readOnly/>
                     <EditOAuthJsonSchemaForm />
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label="Providers">
@@ -76,6 +77,7 @@ const AppTabComponent = () => {
                 </TabbedForm.Tab>
                 <TabbedForm.Tab label="Scopes">
                     <ReferenceArrayInput source="scopes" reference="scopes" />
+                    {/* todo getlist di risorse scope, click con dialog che aggiunge in scope */}
                 </TabbedForm.Tab>
             </TabbedForm>
         </>
