@@ -1,4 +1,4 @@
-import { Box, Divider } from '@mui/material';
+import { Box } from '@mui/material';
 import {
     Edit,
     Labeled,
@@ -10,21 +10,15 @@ import {
     TopToolbar,
     useEditContext,
     useGetList,
-    useNotify,
-    useRecordContext,
-    useRefresh,
     useTranslate,
 } from 'react-admin';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
-import { PageTitle } from '../components/pageTitle';
 import { SectionTitle } from '../components/sectionTitle';
 import { schemaOAuthClient, uiSchemaOAuthClient } from '../common/schemas';
 import { Page } from '../components/page';
 import { TabToolbar } from '../components/TabToolbar';
-import { AppIcon } from './AppIcon';
 import { AppTitle } from './AppTitle';
 
 export const AppEdit = () => {
@@ -145,36 +139,11 @@ const AppEditForm = () => {
     );
 };
 
-const EditSetting = () => {
-    const notify = useNotify();
-    const refresh = useRefresh();
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
-    return (
-        <Box>
-            <Box display="flex">
-                <Box flex="1" mt={-1}>
-                    <Box display="flex" width={430}>
-                        <TextInput source="name" fullWidth />
-                    </Box>
-                    <Box display="flex" width={430}></Box>
-                    <Divider />
-                </Box>
-            </Box>
-        </Box>
-    );
-};
-
-const EditToolBarActions = () => {
-    const record = useRecordContext();
-    if (!record) return null;
-
-    return (
-        <TopToolbar>
-            <ShowButton />
-            <InspectButton />
-            <DeleteWithDialogButton />
-            <ExportRecordButton language="yaml" color="info" />
-        </TopToolbar>
-    );
-};
+const EditToolBarActions = () => (
+    <TopToolbar>
+        <ShowButton />
+        <InspectButton />
+        <DeleteWithConfirmButton />
+        <ExportRecordButton language="yaml" color="info" />
+    </TopToolbar>
+);

@@ -2,14 +2,9 @@ import {
     List,
     SearchInput,
     Datagrid,
-    TextField,
     TopToolbar,
     ExportButton,
     useTranslate,
-    BulkDeleteButton,
-    Labeled,
-    useRecordContext,
-    FieldProps,
 } from 'react-admin';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
@@ -17,29 +12,10 @@ import { PageTitle } from '../components/pageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
-import { Avatar, Box, Paper, Stack, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import { Page } from '../components/page';
 import { AppIcon } from './AppIcon';
-import { grey } from '@mui/material/colors';
-
-const NameField = (props: FieldProps) => {
-    return (
-        <Stack direction={'row'} columnGap={2} py={1}>
-            <Avatar sx={{ mt: 1, backgroundColor: grey[200] }}>
-                <AppIcon color={'secondary'} />
-            </Avatar>
-            <Stack>
-                <TextField source="name" color={'primary'} variant="h6" />
-                <TextField
-                    source="configuration.applicationType"
-                    label="type"
-                    variant="body2"
-                />
-                <TextField source="description" defaultValue={' '} />
-            </Stack>
-        </Stack>
-    );
-};
+import { NameField } from '../components/NameField';
 
 export const AppList = () => {
     const translate = useTranslate();
@@ -58,7 +34,13 @@ export const AppList = () => {
                 empty={false}
             >
                 <Datagrid bulkActionButtons={false} rowClick="show">
-                    <NameField source="name" />
+                    <NameField
+                        text="name"
+                        secondaryText="configuration.applicationType"
+                        tertiaryText="description"
+                        source="name"
+                        icon={<AppIcon color={'secondary'} />}
+                    />
                     <IdField source="clientId" label="id" />
                     <ActionsButtons />
                 </Datagrid>
@@ -67,15 +49,17 @@ export const AppList = () => {
     );
 };
 
-const ListFilters = [<SearchInput source="q" alwaysOn />];
-const transform = (data: any) => {
-    return {
-        ...data,
-        configuration: { applicationType: data.type },
-        type: 'oauth2',
-    };
-};
+const ListFilters = [<SearchInput source="q" alwaysOn key={'q'} />];
+
 const ListActions = () => {
+    const transform = (data: any) => {
+        return {
+            ...data,
+            configuration: { applicationType: data.type },
+            type: 'oauth2',
+        };
+    };
+
     return (
         <TopToolbar>
             <CreateInDialogButton

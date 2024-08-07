@@ -37,7 +37,7 @@ import { IdpIcon } from './idps/IdpIcon';
 import { UserIcon } from './users/UserIcon';
 import { GroupShow } from './group/GroupShow';
 import { GroupIcon } from './group/GroupIcon';
-import { RecourceIcon } from './resources/ResourceIcon';
+import { ApiResourceIcon } from './resources/ApiResourceIcon';
 import { ServiceShow } from './service/ServiceShow';
 import { ServiceEdit } from './service/ServiceEdit';
 import { ServiceIcon } from './service/ServiceIcon';
@@ -182,7 +182,7 @@ const DevApp = () => {
                 <Resource
                     name="resources"
                     list={<ScopeList />}
-                    icon={RecourceIcon}
+                    icon={ApiResourceIcon}
                 />
                 <Resource
                     name="scopes"

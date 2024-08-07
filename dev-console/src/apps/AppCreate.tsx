@@ -1,33 +1,7 @@
-import {
-    CreateBase,
-    Form,
-    SelectInput,
-    TextInput,
-    Toolbar,
-} from 'react-admin';
+import { CreateBase, Form, SelectInput, TextInput, Toolbar } from 'react-admin';
 import { Card, CardContent, Box, Divider } from '@mui/material';
 import { Page } from '../components/page';
 
-export const AppCreate = () => {
-
-    const transform = (data: any) => {
-        return {
-            ...data,
-            configuration: { applicationType: data.type },
-            type: 'oauth2',
-        };
-    };
-    return (
-        <Page>
-        <CreateBase
-            transform={transform}
-            redirect={'list'}
-        >
-            <AppCreateForm />
-        </CreateBase>
-        </Page>
-    );
-};
 export const AppCreateForm = () => {
     return (
         <Box mt={2} display="flex">
