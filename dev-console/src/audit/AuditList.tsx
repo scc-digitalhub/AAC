@@ -20,6 +20,7 @@ import { Box, Button } from '@mui/material';
 import { Page } from '../components/Page';
 import { PageTitle } from '../components/PageTitle';
 import { YamlExporter } from '../components/YamlExporter';
+import { InspectButton } from '@dslab/ra-inspect-button';
 
 export const AuditList = () => {
     const translate = useTranslate();
@@ -38,19 +39,28 @@ export const AuditList = () => {
                 sort={{ field: 'time', order: 'DESC' }}
                 component={Box}
             >
-                <Datagrid
-                    rowClick="expand"
-                    expand={<AuditDetails />}
-                    bulkActionButtons={false}
-                >
-                    <DateField source="time" showTime />
-                    <TextField source="type" />
-                    <TextField source="principal" />
-                </Datagrid>
+                <AuditListView />
             </List>
         </Page>
     );
 };
+
+export const AuditListView = () => {
+    return (
+        <Datagrid
+            rowClick="expand"
+            expand={<AuditDetails />}
+            bulkActionButtons={false}
+            expandSingle
+        >
+            <DateField source="id" showTime label="field.time" />
+            <TextField source="type" />
+            <TextField source="principal" />
+            <InspectButton label="ra.action.show" variant="contained" />
+        </Datagrid>
+    );
+};
+
 const AuditFilters = [<SearchInput source="q" alwaysOn />];
 
 // https://marmelab.com/react-admin/FilteringTutorial.html#building-a-custom-filter

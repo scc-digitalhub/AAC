@@ -8,15 +8,12 @@ import {
     TextField,
     TextInput,
     TopToolbar,
-    useGetOne,
     useRecordContext,
     useTranslate,
 } from 'react-admin';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
-import { PageTitle } from '../components/PageTitle';
 import { TabToolbar } from '../components/TabToolbar';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';

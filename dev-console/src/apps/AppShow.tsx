@@ -4,6 +4,7 @@ import {
     EditButton,
     Labeled,
     ReferenceArrayField,
+    ReferenceManyField,
     Show,
     TabbedShowLayout,
     TextField,
@@ -19,6 +20,7 @@ import { IdField } from '../components/IdField';
 import { AppEndpointsView } from './AppEndpoints';
 import { TestDialogButton } from './TestDialog';
 import { ResourceTitle } from '../components/ResourceTitle';
+import { AuditListView } from '../audit/AuditList';
 
 export const AppShow = () => {
     return (
@@ -52,10 +54,8 @@ const AppView = () => {
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.credentials">
                 <SectionTitle
-                    text={translate('page.app.credentials.header.title')}
-                    secondaryText={translate(
-                        'page.app.credentials.header.subtitle'
-                    )}
+                    text="page.apps.credentials.header.title"
+                    secondaryText="page.apps.credentials.header.subtitle"
                 />
                 <Grid container gap={1}>
                     <Grid item xs={12}>
@@ -88,20 +88,26 @@ const AppView = () => {
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.api_access">
                 <SectionTitle
-                    text={translate('page.app.scopes.header.title')}
-                    secondaryText={translate('page.app.scopes.header.subtitle')}
+                    text="page.apps.scopes.header.title"
+                    secondaryText="page.apps.scopes.header.subtitle"
                 />
                 <ReferenceArrayField source="scopes" reference="scopes" />
             </TabbedShowLayout.Tab>
-            {}
             <TabbedShowLayout.Tab label="tab.endpoints">
                 <SectionTitle
-                    text={translate('page.app.endpoints.header.title')}
-                    secondaryText={translate(
-                        'page.app.endpoints.header.subtitle'
-                    )}
+                    text="page.apps.endpoints.header.title"
+                    secondaryText="page.apps.endpoints.header.subtitle"
                 />
                 <AppEndpointsView />
+            </TabbedShowLayout.Tab>
+            <TabbedShowLayout.Tab label="tab.audit">
+                <SectionTitle
+                    text="page.apps.audit.title"
+                    secondaryText="page.apps.audit.subTitle"
+                />
+                <ReferenceManyField reference="audit" target="principal">
+                    <AuditListView />
+                </ReferenceManyField>
             </TabbedShowLayout.Tab>
         </TabbedShowLayout>
     );

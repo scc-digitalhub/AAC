@@ -49,6 +49,7 @@ const CONTEXT_PATH: string =
 const API_URL: string = process.env.REACT_APP_API_URL as string;
 const dataProvider = appDataProvider(API_URL);
 const authProvider = appAuthProvider(API_URL);
+export const DEFAULT_LANGUAGES = ['en', 'it', 'es', 'lv', 'de'];
 
 const DevApp = () => {
     return (

@@ -23,6 +23,7 @@ import it.smartcommunitylab.aac.audit.AuditManager;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -41,6 +43,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /*
  * Base controller for audit
@@ -67,26 +71,27 @@ public class BaseAuditController implements InitializingBean {
         return Config.R_USER;
     }
 
-    @GetMapping("/audit/{realm}")
-    @Operation(summary = "find audit events from a given realm")
-    public Collection<AuditEvent> findEvents(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-        @RequestParam(required = false, name = "type") Optional<String> type,
-        @RequestParam(required = false, name = "after") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> after,
-        @RequestParam(required = false, name = "before") @DateTimeFormat(
-            iso = DateTimeFormat.ISO.DATE_TIME
-        ) Optional<Date> before
-    ) throws NoSuchRealmException {
-        logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
+    // @GetMapping("/audit/{realm}")
+    // @Operation(summary = "find audit events from a given realm")
+    // public Collection<AuditEvent> findEvents(
+    //     @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+    //     @RequestParam(required = false, name = "type") Optional<String> type,
+    //     @RequestParam(required = false, name = "after") @DateTimeFormat(
+    //         iso = DateTimeFormat.ISO.DATE_TIME
+    //     ) Optional<Date> after,
+    //     @RequestParam(required = false, name = "before") @DateTimeFormat(
+    //         iso = DateTimeFormat.ISO.DATE_TIME
+    //     ) Optional<Date> before
+    // ) throws NoSuchRealmException {
+    //     logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return auditManager.findRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
-    }
+    //     return auditManager.findRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null));
+    // }
 
-    @GetMapping("/audit/{realm}/search")
+    // @GetMapping("/audit/{realm}/search")
+    @GetMapping("/audit/{realm}")    
     @Operation(summary = "find audit events from a given realm")
-    public Page<AuditEvent> searchEvents(
+    public Page<AuditEntry> searchEvents(
             @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
             @RequestParam(required = false, name = "type") Optional<String> type,
             @RequestParam(required = false, name = "after") @DateTimeFormat(
@@ -95,10 +100,45 @@ public class BaseAuditController implements InitializingBean {
             @RequestParam(required = false, name = "before") @DateTimeFormat(
                     iso = DateTimeFormat.ISO.DATE_TIME
             ) Optional<Date> before,
+            @RequestParam(required = false) String principal,
             Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("find audit events for realm {}", StringUtils.trimAllWhitespace(realm));
+        if(principal != null) {
+            List<AuditEvent> events = auditManager.findPrincipalEvents(realm, principal, type.orElse(null), after.orElse(null), before.orElse(null));
+            return PageableExecutionUtils.getPage(
+                events.stream().map(a -> new AuditEntry(a)).toList(),
+                pageRequest,
+                () -> events.size()
+            ); 
+        }
 
-        return auditManager.searchRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null), pageRequest);
+
+        Page<AuditEvent> page = auditManager.searchRealmEvents(realm, type.orElse(null), after.orElse(null), before.orElse(null), pageRequest);
+
+        return PageableExecutionUtils.getPage(
+            page.getContent().stream().map(a -> new AuditEntry(a)).toList(),
+            pageRequest,
+            () -> page.getTotalElements()
+        );           
+    }
+
+
+    
+    public class AuditEntry {
+        @JsonUnwrapped
+        private AuditEvent event;
+
+        public String getId() {
+            return event != null ? event.getTimestamp().toString() : null;
+        }
+
+        public AuditEntry(AuditEvent event) {
+            this.event = event;
+        }
+        
+        public AuditEvent getEvent() {
+            return event;
+        }       
     }
 }

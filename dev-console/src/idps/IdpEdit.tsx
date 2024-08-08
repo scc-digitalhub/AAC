@@ -9,6 +9,7 @@ import {
     TextInput,
     TopToolbar,
     TranslatableInputs,
+    useDataProvider,
     useDelete,
     useNotify,
     useRecordContext,
@@ -37,7 +38,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { getIdpIcon } from './utils';
 import { IdField } from '../components/IdField';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import dataProvider from '../dataProvider';
+import { DEFAULT_LANGUAGES } from '../App';
 
 export const IdpEdit = () => {
     return (
@@ -70,11 +73,28 @@ const IdpEditTitle = () => {
 };
 const IdpEditForm = () => {
     const translate = useTranslate();
+    const dataProvider = useDataProvider();
+    const { root: realmId } = useRootSelector();
     const record = useRecordContext();
     const schema = useMemo(() => getIdpSchema(record.schema), [record]);
+    const [availableLocales, setAvailableLocales] =
+        useState<string[]>(DEFAULT_LANGUAGES);
+
+    useEffect(() => {
+        if (dataProvider && realmId) {
+            dataProvider.getOne('myrealms', { id: realmId }).then(data => {
+                if (data && 'localizationConfiguration' in data) {
+                    setAvailableLocales(
+                        (data.localizationConfiguration as any)['languages'] ||
+                            DEFAULT_LANGUAGES
+                    );
+                }
+            });
+        }
+    }, [dataProvider, realmId]);
 
     if (!record) return null;
-    console.log('s', schema, schema.id);
+
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
@@ -96,10 +116,16 @@ const IdpEditForm = () => {
                 <TextInput source="name" fullWidth />
 
                 <SectionTitle text="page.idps.settings.display" />
-                <TranslatableInputs locales={['it', 'en', 'de']} fullWidth>
-                    <TextInput source="titleMap" />
-                    <TextInput source="descriptionMap" multiline />
-                </TranslatableInputs>
+                {availableLocales && (
+                    <TranslatableInputs locales={availableLocales} fullWidth>
+                        <TextInput source="titleMap" label="field.title.name" />
+                        <TextInput
+                            source="descriptionMap"
+                            label="field.description.name"
+                            multiline
+                        />
+                    </TranslatableInputs>
+                )}
 
                 <SectionTitle text="page.idps.settings.advanced" />
                 <JsonSchemaInput
