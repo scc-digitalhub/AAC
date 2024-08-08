@@ -35,6 +35,7 @@ export const ApiResourcesList = () => {
                 sort={{ field: 'name', order: 'ASC' }}
                 component={Box}
                 empty={false}
+                pagination={false}
             >
                 <ResourceListView />
             </List>
@@ -50,7 +51,7 @@ export const ResourceListView = () => {
                 source="name"
                 icon={false}
             />
-            <IdField source="resourceId" label="id" />
+            <IdField source="resourceId" label="resource" />
             <ArrayField source="scopes">
                 <SingleFieldList linkType={false}>
                     <ChipField source="scope" size="small" />
@@ -58,12 +59,10 @@ export const ResourceListView = () => {
             </ArrayField>
             <ShowInDialogButton variant="contained" maxWidth={'md'} fullWidth>
                 <Page>
-                    <NameField
-                        text=""
-                        secondaryText="resourceId"
-                        tertiaryText="description"
-                        source="name"
-                        icon={false}
+                    <TextField
+                        source="description"
+                        variant="h6"
+                        sx={{ mb: 1 }}
                     />
 
                     <ArrayField source="scopes">

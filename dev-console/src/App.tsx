@@ -1,30 +1,29 @@
-import './App.css';
 import { Admin, Resource } from 'react-admin';
 import { BrowserRouter } from 'react-router-dom';
+
 import appDataProvider from './dataProvider';
 import appAuthProvider from './authProvider';
-import MyLayout from './components/MyLayout';
+import i18nProvider from './i18nProvider';
+import themeProvider from './themeProvider';
+import './App.css';
+import AppLayout from './components/AppLayout';
 
-import 'typeface-titillium-web';
-import 'typeface-roboto-mono';
-
-import theme from './themeProvider';
 import { RootSelectorContextProvider } from '@dslab/ra-root-selector';
 
+// pages
 import DevDashboard from './pages/dashboard';
 import { LoginPage } from './pages/login';
 
+// resources
 import apps from './apps';
 import groups from './group';
 import roles from './roles';
+import idps from './idps';
 import apiResources from './resources';
 
 import { AuditList } from './audit/AuditList';
 import { AttributeSetList } from './attributeset/AttributeSetList';
-import { IdpList } from './idps/IdpList';
-import { IdpCreate } from './idps/IdpCreate';
-import i18nProvider from './i18nProvider';
-import { IdpEdit } from './idps/IdpEdit';
+
 import { ServiceList } from './service/ServiceList';
 import { ServiceCreate } from './service/ServiceCreate';
 import { UserList } from './users/UserList';
@@ -33,16 +32,13 @@ import { ScopeList } from './scopes/ScopeList';
 
 import { UserShow } from './users/UserShow';
 import { RealmIcon } from './myrealms/RealmIcon';
-import { IdpIcon } from './idps/IdpIcon';
 import { UserIcon } from './users/UserIcon';
 
-import { ApiResourceIcon } from './resources/ApiResourceIcon';
 import { ServiceShow } from './service/ServiceShow';
 import { ServiceEdit } from './service/ServiceEdit';
 import { ServiceIcon } from './service/ServiceIcon';
 import { AttributeIcon } from './attributeset/AttributeIcon';
 
-import { IdpShow } from './idps/IdpShow';
 import { UserEdit } from './users/UserEdit';
 
 //config
@@ -65,8 +61,8 @@ const DevApp = () => {
                 authProvider={authProvider}
                 i18nProvider={i18nProvider}
                 dashboard={DevDashboard}
-                layout={MyLayout}
-                theme={theme}
+                layout={AppLayout}
+                theme={themeProvider}
                 loginPage={<LoginPage />}
                 authCallbackPage={false}
                 requireAuth
@@ -75,14 +71,7 @@ const DevApp = () => {
                 <Resource name="apps" {...apps} />
                 <Resource name="groups" {...groups} />
                 <Resource name="roles" {...roles} />
-                <Resource
-                    name="idps"
-                    list={<IdpList />}
-                    create={<IdpCreate />}
-                    edit={<IdpEdit />}
-                    show={<IdpShow />}
-                    icon={IdpIcon}
-                />
+                <Resource name="idps" {...idps} />
                 <Resource name="myrealms" icon={RealmIcon} />
                 <Resource name="audit" list={<AuditList />} />
                 <Resource

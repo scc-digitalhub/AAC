@@ -1,111 +1,55 @@
 import {
-    CreateBase,
     Form,
+    SaveButton,
     SelectInput,
     TextInput,
-    Toolbar,
-    useNotify,
-    useRedirect,
+    useDataProvider,
 } from 'react-admin';
-import { Card, CardContent, Box, Divider } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import { DialogActions, Stack } from '@mui/material';
+import { Page } from '../components/Page';
+import { useEffect, useMemo, useState } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
 
-export const IdpCreate = () => {
+export const IdpCreateForm = () => {
+    const dataProvider = useDataProvider();
     const { root: realmId } = useRootSelector();
+    const [authorities, setAuthorities] = useState<string[]>([]);
 
-
-
-    const transform = (data: any) => {
-        return {
-            ...data,
-            type: 'identity',
-            realm: realmId,
-            configuration: { applicationType: data.type },
-        };
-    };
+    useEffect(() => {
+        if (dataProvider) {
+            dataProvider
+                .invoke({ path: 'idps/' + realmId + '/authorities' })
+                .then(data => {
+                    setAuthorities(data || []);
+                });
+        }
+    }, [dataProvider]);
 
     return (
-        <CreateBase
-            transform={transform}
-            redirect="list"
-        >
-            <IdpCreateForm />
-        </CreateBase>
+        <Form>
+            <Page>
+                <Stack rowGap={2}>
+                    <SelectInput
+                        source="authority"
+                        required
+                        label="field.authority.name"
+                        helperText="field.authority.helperText"
+                        choices={authorities.sort().map(a => ({
+                            id: a,
+                            name: 'authority.' + a,
+                        }))}
+                    />
+                    <TextInput
+                        source="name"
+                        label="field.name.name"
+                        helperText="field.name.helperText"
+                        fullWidth
+                    />
+                </Stack>
+            </Page>
+            <DialogActions>
+                <SaveButton label="ra.action.create" variant="text" />
+            </DialogActions>
+        </Form>
     );
 };
-
-export const IdpCreateForm = () => {
-    return (
-        <Box mt={2} display="flex">
-        <Box flex="1">
-            <Form>
-                <Card>
-                    <CardContent>
-                        <Box>
-                            <Box display="flex">
-                                <Box flex="1" mt={-1}>
-                                    <Box display="flex" width={430}>
-                                        <TextInput
-                                            source="name"
-                                            fullWidth
-                                        />
-                                    </Box>
-                                    <Box display="flex" width={430}>
-                                        <SelectInput
-                                            defaultValue={'apple'}
-                                            source="authority"
-                                            label="Authority"
-                                            choices={[
-                                                {
-                                                    id: 'apple',
-                                                    name: 'Apple',
-                                                },
-                                                {
-                                                    id: 'internal',
-                                                    name: 'Internal',
-                                                },
-                                                {
-                                                    id: 'password',
-                                                    name: 'Password',
-                                                },
-                                                {
-                                                    id: 'github',
-                                                    name: 'Github',
-                                                },
-                                                {
-                                                    id: 'facebook',
-                                                    name: 'Facebook',
-                                                },
-                                                {
-                                                    id: 'saml',
-                                                    name: 'Saml',
-                                                },
-                                                {
-                                                    id: 'webauthn',
-                                                    name: 'WebAuthn',
-                                                },
-                                                {
-                                                    id: 'google',
-                                                    name: 'Google',
-                                                },
-                                                {
-                                                    id: 'oidc',
-                                                    name: 'Oidc',
-                                                },
-                                            ]}
-                                        />
-                                    </Box>
-                                    <Divider />
-                                </Box>
-                            </Box>
-                        </Box>
-                    </CardContent>
-                    <Toolbar />
-                </Card>
-            </Form>
-        </Box>
-    </Box>
-    );
-
-}

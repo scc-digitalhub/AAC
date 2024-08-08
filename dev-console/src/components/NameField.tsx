@@ -7,7 +7,7 @@ import get from 'lodash/get';
 export const NameField = (props: NameFieldProps) => {
     const { text, secondaryText, tertiaryText, icon } = props;
     const record = useRecordContext(props);
-    const displayText = typeof text === 'string' ? get(record, text) : '';
+    const displayText = typeof text === 'string' ? get(record, text) || '' : '';
 
     return (
         <Stack direction={'row'} columnGap={2} py={1}>

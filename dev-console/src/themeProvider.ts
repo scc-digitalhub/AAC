@@ -1,4 +1,6 @@
-import { Admin, Resource, defaultTheme } from 'react-admin';
+import { defaultTheme } from 'react-admin';
+import 'typeface-titillium-web';
+// import 'typeface-roboto-mono';
 
 export const theme = {
     ...defaultTheme,

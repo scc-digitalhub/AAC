@@ -75,7 +75,6 @@ const ListActions = () => {
         return {
             ...data,
             realm: realmId,
-            configuration: { applicationType: data.type },
             type: 'oauth2',
         };
     };
@@ -84,7 +83,7 @@ const ListActions = () => {
         <TopToolbar>
             <CreateInDialogButton
                 fullWidth
-                maxWidth={'md'}
+                maxWidth={'sm'}
                 variant="contained"
                 transform={transform}
             >

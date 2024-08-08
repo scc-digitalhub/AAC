@@ -1,37 +1,30 @@
-import { Form, TextInput, Toolbar } from 'react-admin';
-import { Card, CardContent, Box, Divider } from '@mui/material';
+import { Form, SaveButton, TextInput } from 'react-admin';
+import { DialogActions, Stack } from '@mui/material';
+import { Page } from '../components/Page';
 
 export const GroupCreateForm = () => {
     return (
-        <Box mt={2} display="flex">
-            <Box flex="1">
-                <Form>
-                    <Card>
-                        <CardContent>
-                            <Box>
-                                <Box display="flex">
-                                    <Box flex="1" mt={-1}>
-                                        <Box display="flex" width={430}>
-                                            <TextInput
-                                                source="name"
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box display="flex" width={430}>
-                                            <TextInput
-                                                source="group"
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Divider />
-                                    </Box>
-                                </Box>
-                            </Box>
-                        </CardContent>
-                        <Toolbar />
-                    </Card>
-                </Form>
-            </Box>
-        </Box>
+        <Form>
+            <Page>
+                <Stack rowGap={2}>
+                    <TextInput
+                        source="name"
+                        label="field.name.name"
+                        helperText="field.name.helperText"
+                        fullWidth
+                    />
+
+                    <TextInput
+                        source="group"
+                        label="field.group.name"
+                        helperText="field.group.helperText"
+                        fullWidth
+                    />
+                </Stack>
+            </Page>
+            <DialogActions>
+                <SaveButton label="ra.action.create" variant="text" />
+            </DialogActions>
+        </Form>
     );
 };

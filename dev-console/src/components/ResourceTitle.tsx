@@ -5,8 +5,10 @@ import {
 } from 'react-admin';
 import { PageTitle } from '../components/PageTitle';
 import BlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import { isValidElement, ReactElement } from 'react';
 
-export const ResourceTitle = () => {
+export const ResourceTitle = (props: { icon?: ReactElement }) => {
+    const { icon } = props;
     const record = useRecordContext();
     const resource = useResourceContext();
     const definition = useResourceDefinition();
@@ -16,6 +18,16 @@ export const ResourceTitle = () => {
     }
 
     const ResourceIcon = definition.icon || BlankIcon;
+    const iconEl =
+        icon && isValidElement(icon) ? (
+            icon
+        ) : (
+            <ResourceIcon
+                fontSize="large"
+                sx={{ fontSize: '96px' }}
+                color="primary"
+            />
+        );
 
     const recordRepresentation =
         typeof definition.recordRepresentation === 'function'
@@ -31,13 +43,7 @@ export const ResourceTitle = () => {
             text={displayText}
             secondaryText={record.id}
             copy={true}
-            icon={
-                <ResourceIcon
-                    fontSize="large"
-                    sx={{ fontSize: '96px' }}
-                    color="primary"
-                />
-            }
+            icon={iconEl}
         />
     );
 };

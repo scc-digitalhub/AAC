@@ -3,28 +3,13 @@ import {
     SearchInput,
     Datagrid,
     TopToolbar,
-    Button,
-    useNotify,
     useTranslate,
-    BooleanInput,
-    Create,
-    SimpleForm,
-    SaveButton,
-    Toolbar,
     NumberField,
     ExportButton,
 } from 'react-admin';
-import {
-    Box,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    Typography,
-} from '@mui/material';
+import { Box } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
 
-import ImportExportIcon from '@mui/icons-material/ImportExport';
 import React, { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { GroupCreateForm } from './GroupCreate';
@@ -41,8 +26,8 @@ export const GroupList = () => {
     return (
         <Page>
             <PageTitle
-                text={translate('page.group.list.title')}
-                secondaryText={translate('page.group.list.subtitle')}
+                text={translate('page.groups.list.title')}
+                secondaryText={translate('page.groups.list.subtitle')}
             />
             <List
                 exporter={YamlExporter}
@@ -99,7 +84,7 @@ const GroupListActions = () => {
         <TopToolbar>
             <CreateInDialogButton
                 fullWidth
-                maxWidth={'md'}
+                maxWidth={'sm'}
                 variant="contained"
                 transform={transform}
             >

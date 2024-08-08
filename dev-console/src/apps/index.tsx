@@ -8,4 +8,5 @@ export default {
     show: AppShow,
     edit: AppEdit,
     icon: AppIcon,
+    recordRepresentation: record => record.name,
 };

@@ -82,7 +82,7 @@ const RoleListActions = () => {
         <TopToolbar>
             <CreateInDialogButton
                 fullWidth
-                maxWidth={'md'}
+                maxWidth={'sm'}
                 variant="contained"
                 transform={transform}
             >

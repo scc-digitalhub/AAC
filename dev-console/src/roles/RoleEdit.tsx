@@ -47,7 +47,7 @@ const RoleEditForm = () => {
 
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
-            <TabbedForm.Tab label="Overview">
+            <TabbedForm.Tab label="tab.overview">
                 <Labeled>
                     <TextField source="id" />
                 </Labeled>
@@ -61,7 +61,7 @@ const RoleEditForm = () => {
                     <NumberField source="size" label="subjects" />
                 </Labeled>
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="Settings">
+            <TabbedForm.Tab label="tab.settings">
                 <SectionTitle
                     text={translate('page.role.settings.header.title')}
                     secondaryText={translate(
@@ -72,7 +72,7 @@ const RoleEditForm = () => {
                 <TextInput source="name" fullWidth />
                 <TextInput source="description" multiline fullWidth />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="Permission">
+            <TabbedForm.Tab label="tab.permissions">
                 <SectionTitle
                     text={translate('page.roles.permissions.header.title')}
                     secondaryText={translate(
@@ -81,7 +81,7 @@ const RoleEditForm = () => {
                 />
                 <ReferenceArrayInput source="permissions" reference="scopes" />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="Subjects">
+            <TabbedForm.Tab label="tab.subjects">
                 <SectionTitle
                     text={translate('page.roles.subjects.header.title')}
                     secondaryText={translate(

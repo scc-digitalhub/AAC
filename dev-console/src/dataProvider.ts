@@ -155,11 +155,14 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             const url =
                 `${apiUrl}/${resource}${prefix}` + `?${stringify(query)}`;
             return httpClient(url).then(({ headers, json }) => {
-                if (!json) {
+                if (json && Array.isArray(json)) {
+                    return { data: json, total: json.length };
+                }
+                if (!json.content) {
                     throw new Error('the response must match page<> model');
                 }
                 return {
-                    data: json,
+                    data: json.content,
                     total: parseInt(json.totalElements, 10),
                 };
             });

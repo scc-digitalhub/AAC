@@ -1,182 +1,269 @@
 import {
-    BooleanField,
-    BooleanInput,
+    Button,
     Datagrid,
     Edit,
+    Labeled,
     ReferenceManyField,
-    SaveButton,
-    SelectInput,
-    ShowButton,
     TabbedForm,
     TextField,
     TextInput,
-    Toolbar,
     TopToolbar,
     TranslatableInputs,
+    useDelete,
+    useNotify,
     useRecordContext,
+    useRefresh,
     useTranslate,
+    useUpdate,
 } from 'react-admin';
-import { useParams } from 'react-router-dom';
-import React from 'react';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
-import { EnableIdpButton } from './IdpList';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
-import { PageTitle } from '../components/PageTitle';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
-import { getUiSchema } from '../common/schemas';
 import { Box } from '@mui/material';
 import { TabToolbar } from '../components/TabToolbar';
 import { SectionTitle } from '../components/sectionTitle';
-import { RichTextInput } from 'ra-input-rich-text';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { RefreshingExportButton } from '../components/RefreshingExportButton';
+import { useRootSelector } from '@dslab/ra-root-selector';
+import {
+    getIdpSchema,
+    getIdpUiSchema,
+    schemaIdpSettings,
+    uiSchemaIdpSettings,
+} from './schemas';
+import { ResourceTitle } from '../components/ResourceTitle';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import { getIdpIcon } from './utils';
+import { IdField } from '../components/IdField';
+import { useMemo } from 'react';
 
 export const IdpEdit = () => {
     return (
         <Page>
             <Edit
                 actions={<EditToolBarActions />}
-                mutationMode="pessimistic"
+                mutationMode="optimistic"
                 component={Box}
+                redirect={'edit'}
             >
-                <IdpTabComponent />
+                <IdpEditTitle />
+                <IdpEditForm />
             </Edit>
         </Page>
     );
 };
-
-const IdpTabComponent = () => {
+const IdpEditTitle = () => {
     const record = useRecordContext();
-    const translate = useTranslate();
     if (!record) return null;
-    return (
-        <>
-            <PageTitle
-                text={record.name}
-                secondaryText={record?.id}
-                copy={true}
-            />
-            <TabbedForm toolbar={<TabToolbar />}>
-                <TabbedForm.Tab label={translate('page.idp.overview.title')}>
-                    <TextField source="name" />
-                    <TextField source="type" />
-                    <TextField source="authority" />
-                    <TextField source="provider" />
-                    <TextField source="enabled" />
-                    <TextField source="registered" />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label={translate('page.idp.settings.title')}>
-                    <SectionTitle text={translate('page.idp.settings.basic')} />
-                    <TextInput source="name" fullWidth />
-                    <SectionTitle
-                        text={translate('page.idp.settings.display')}
-                    />
-                    <TranslatableInputs locales={['it', 'en', 'de']} fullWidth>
-                        <TextInput source="titleMap" />
-                        <TextInput source="descriptionMap" multiline />
-                    </TranslatableInputs>
-                    <SectionTitle
-                        text={translate('page.idp.settings.advanced')}
-                    />
 
-                    <SelectInput
-                        fullWidth
-                        source="settings.events"
-                        choices={settingEvents}
-                        label="Events"
-                    />
-                    <SelectInput
-                        fullWidth
-                        source="settings.persistence"
-                        choices={settingPersistences}
-                        label="Persistence"
-                    />
-                    <BooleanInput source="settings.linkable" />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab
-                    label={translate('page.idp.configuration.title')}
-                >
+    return (
+        <ResourceTitle
+            icon={getIdpIcon(record.authority, {
+                fontSize: 'large',
+                sx: { fontSize: '96px' },
+                color: 'primary',
+            })}
+        />
+    );
+};
+const IdpEditForm = () => {
+    const translate = useTranslate();
+    const record = useRecordContext();
+    const schema = useMemo(() => getIdpSchema(record.schema), [record]);
+
+    if (!record) return null;
+    console.log('s', schema, schema.id);
+    return (
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
+            <TabbedForm.Tab label="tab.overview">
+                <Labeled>
+                    <TextField source="id" />
+                </Labeled>
+                <Labeled>
+                    <TextField source="name" />
+                </Labeled>
+                <Labeled>
+                    <TextField source="type" />
+                </Labeled>
+                <Labeled>
+                    <TextField source="authority" />
+                </Labeled>
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.settings">
+                <SectionTitle text="page.idps.settings.basic" />
+                <TextInput source="name" fullWidth />
+
+                <SectionTitle text="page.idps.settings.display" />
+                <TranslatableInputs locales={['it', 'en', 'de']} fullWidth>
+                    <TextInput source="titleMap" />
+                    <TextInput source="descriptionMap" multiline />
+                </TranslatableInputs>
+
+                <SectionTitle text="page.idps.settings.advanced" />
+                <JsonSchemaInput
+                    source="settings"
+                    schema={schemaIdpSettings}
+                    uiSchema={uiSchemaIdpSettings}
+                />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.configuration">
+                {schema && (
                     <JsonSchemaInput
                         source="configuration"
-                        schema={record.schema}
-                        uiSchema={getUiSchema(record?.schema?.id)}
+                        schema={schema}
+                        uiSchema={getIdpUiSchema(record.schema)}
                     />
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label={translate('page.idp.hooks.title')}>
-                    <SectionTitle
-                        text={translate('page.idp.hooks.attribute')}
-                        secondaryText={translate(
-                            'page.idp.hooks.attributeDesc'
-                        )}
-                    />
-                    <Box>
-                        <AceEditorInput
-                            source="settings.hookFunctions.attributeMapping"
-                            mode="yaml"
-                            theme="github"
-                        ></AceEditorInput>
-                    </Box>
-                    <SectionTitle
-                        text={translate('page.idp.hooks.authFunction')}
-                        secondaryText={translate(
-                            'page.idp.hooks.authFunctionDesc'
-                        )}
-                    />
-                    <Box>
-                        <AceEditorInput
-                            source="settings.hookFunctions.authorize"
-                            mode="yaml"
-                            theme="github"
-                        ></AceEditorInput>
-                    </Box>
-                </TabbedForm.Tab>
-                <TabbedForm.Tab label={translate('page.idp.app.title')}>
-                    <ReferenceManyField
-                        reference="apps"
-                        target="providers"
-                        label="app"
-                    >
-                        {/* {record.apps && record.apps.map(app =>  (
+                )}
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.hooks">
+                <SectionTitle
+                    text="page.idps.hooks.attribute"
+                    secondaryText="page.idps.hooks.attributeDesc"
+                />
+                <Box>
+                    <AceEditorInput
+                        source="settings.hookFunctions.attributeMapping"
+                        mode="yaml"
+                        theme="github"
+                    ></AceEditorInput>
+                </Box>
+                <SectionTitle
+                    text="page.idps.hooks.authFunction"
+                    secondaryText="page.idps.hooks.authFunctionDesc"
+                />
+                <Box>
+                    <AceEditorInput
+                        source="settings.hookFunctions.authorize"
+                        mode="yaml"
+                        theme="github"
+                    ></AceEditorInput>
+                </Box>
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.apps">
+                <SectionTitle
+                    text="page.idps.apps.title"
+                    secondaryText="page.idps.apps.description"
+                />
+
+                <ReferenceManyField
+                    reference="apps"
+                    sort={{ field: 'name', order: 'ASC' }}
+                    target="providers"
+                    label="app"
+                >
+                    {/* {record.apps && record.apps.map(app =>  (
                             <TextField source="name" />
                         ))} */}
 
-                        <Datagrid bulkActionButtons={false}>
-                            <TextField source="id" />
-                            <TextField source="name" />
-                            {/* <BooleanInput label="Enable" source="idps" /> */}
-                        </Datagrid>
-                    </ReferenceManyField>
-                </TabbedForm.Tab>
-            </TabbedForm>
-        </>
+                    <Datagrid bulkActionButtons={false} sx={{ width: '100%' }}>
+                        <TextField source="name" />
+                        <IdField source="clientId" label="id" />
+                    </Datagrid>
+                </ReferenceManyField>
+            </TabbedForm.Tab>
+        </TabbedForm>
     );
 };
 
 const EditToolBarActions = () => {
-    const [open, setOpen] = React.useState(false);
     const record = useRecordContext();
     if (!record) return null;
+
     return (
         <TopToolbar>
-            <EnableIdpButton />
-            <ShowButton />
+            <ToggleIdpButton />
 
             <InspectButton />
             <DeleteWithDialogButton />
-            <ExportRecordButton />
+            <RefreshingExportButton />
         </TopToolbar>
     );
 };
-const settingEvents = [
-    { id: 'none', name: 'none' },
-    { id: 'minimal', name: 'minimal' },
-    { id: 'details', name: 'details' },
-    { id: 'full', name: 'full' },
-];
-const settingPersistences = [
-    { id: 'none', name: 'none' },
-    { id: 'session', name: 'session' },
-    { id: 'memory', name: 'memory' },
-    { id: 'repository', name: 'repository' },
-];
+
+export const ToggleIdpButton = () => {
+    const record = useRecordContext();
+    const { root: realmId } = useRootSelector();
+    const notify = useNotify();
+    const refresh = useRefresh();
+    const [disable] = useDelete(
+        'idps',
+        {
+            id: record.provider + '/status',
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(record.id + ` disabled successfully`, {
+                    type: 'warning',
+                });
+                refresh();
+            },
+            onError: error => {
+                const msg =
+                    error && typeof error === 'object' && 'message' in error
+                        ? (error['message'] as string)
+                        : 'ra.error.http_error';
+
+                notify(msg, {
+                    type: 'error',
+                });
+            },
+        }
+    );
+    const [enable] = useUpdate(
+        'idps',
+        {
+            id: record.provider + '/status',
+            data: record,
+            meta: { realmId: realmId },
+        },
+        {
+            onSuccess: () => {
+                notify(record.id + ` enabled successfully`, {
+                    type: 'success',
+                });
+                refresh();
+            },
+            onError: error => {
+                const msg =
+                    error && typeof error === 'object' && 'message' in error
+                        ? (error['message'] as string)
+                        : 'ra.error.http_error';
+
+                notify(msg, {
+                    type: 'error',
+                });
+            },
+        }
+    );
+
+    if (!record) return null;
+    return (
+        <>
+            {record.enabled && (
+                <Button
+                    onClick={e => {
+                        disable();
+                        e.stopPropagation();
+                    }}
+                    label="Disable"
+                    color="warning"
+                    startIcon={<StopIcon />}
+                ></Button>
+            )}
+            {!record.enabled && (
+                <Button
+                    onClick={e => {
+                        enable();
+                        e.stopPropagation();
+                    }}
+                    label="Enable"
+                    color="success"
+                    startIcon={<PlayArrowIcon />}
+                ></Button>
+            )}
+        </>
+    );
+};

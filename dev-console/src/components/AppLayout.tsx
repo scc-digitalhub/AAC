@@ -16,9 +16,7 @@ import DeveloperModeIcon from '@mui/icons-material/DeveloperMode';
 import SettingsIcon from '@mui/icons-material/Settings';
 import React from 'react';
 
-import {
-    RootResourceSelectorMenu,
-} from '@dslab/ra-root-selector';
+import { RootResourceSelectorMenu } from '@dslab/ra-root-selector';
 import { MyMenu } from './MyMenu';
 
 const DEV_URL: string = process.env.REACT_APP_DEVELOPER_CONSOLE as string;
@@ -113,8 +111,8 @@ const MyAppBar = (props: AppBarProps) => {
     );
 };
 
-const MyLayout = (props: any) => (
+const AppLayout = (props: any) => (
     <Layout {...props} appBar={MyAppBar} menu={MyMenu} />
 );
 
-export default MyLayout;
+export default AppLayout;

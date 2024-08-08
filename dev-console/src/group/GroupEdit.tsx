@@ -60,7 +60,7 @@ const GroupEditForm = () => {
 
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
-            <TabbedForm.Tab label="Overview">
+            <TabbedForm.Tab label="tab.overview">
                 <Labeled>
                     <TextField source="id" />
                 </Labeled>
@@ -74,7 +74,7 @@ const GroupEditForm = () => {
                     <NumberField source="size" label="members" />
                 </Labeled>
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="Settings">
+            <TabbedForm.Tab label="tab.settings">
                 <SectionTitle
                     text={translate('page.group.settings.header.title')}
                     secondaryText={translate(
@@ -85,7 +85,7 @@ const GroupEditForm = () => {
                 <TextInput source="name" fullWidth />
                 <TextInput source="description" multiline fullWidth />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="Roles">
+            <TabbedForm.Tab label="tab.roles">
                 <SectionTitle
                     text={translate('page.group.roles.header.title')}
                     secondaryText={translate(
@@ -94,7 +94,7 @@ const GroupEditForm = () => {
                 />
                 <ReferenceArrayInput source="roles" reference="roles" />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="Members">
+            <TabbedForm.Tab label="tab.members">
                 <SectionTitle
                     text={translate('page.group.members.header.title')}
                     secondaryText={translate(

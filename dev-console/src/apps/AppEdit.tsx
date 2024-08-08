@@ -71,7 +71,7 @@ const AppEditForm = () => {
     if (!record) return null;
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
-            <TabbedForm.Tab label={translate('page.app.overview.title')}>
+            <TabbedForm.Tab label="tab.overview">
                 <Labeled>
                     <TextField source="name" />
                 </Labeled>
@@ -85,7 +85,7 @@ const AppEditForm = () => {
                     <TextField source="scopes" />
                 </Labeled>
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.app.settings.title')}>
+            <TabbedForm.Tab label="tab.settings">
                 <SectionTitle
                     text={translate('page.app.settings.header.title')}
                     secondaryText={translate(
@@ -96,17 +96,21 @@ const AppEditForm = () => {
                 <TextInput source="description" fullWidth />
             </TabbedForm.Tab>
 
-            <TabbedForm.Tab label="Providers">
+            <TabbedForm.Tab label="tab.providers">
                 <SectionTitle
                     text={translate('page.app.providers.header.title')}
                     secondaryText={translate(
                         'page.app.providers.header.subtitle'
                     )}
                 />
-                <ReferenceArrayInput source="providers" reference="idps" />
+                <ReferenceArrayInput
+                    source="providers"
+                    reference="idps"
+                    sort={{ field: 'name', order: 'ASC' }}
+                />
             </TabbedForm.Tab>
 
-            <TabbedForm.Tab label={translate('page.app.configuration.title')}>
+            <TabbedForm.Tab label="tab.configuration">
                 <SectionTitle
                     text={translate('page.app.configuration.header.title')}
                     secondaryText={translate(
@@ -120,7 +124,7 @@ const AppEditForm = () => {
                 />
             </TabbedForm.Tab>
 
-            <TabbedForm.Tab label="Api access">
+            <TabbedForm.Tab label="tab.api_access">
                 <SectionTitle
                     text={translate('page.app.scopes.header.title')}
                     secondaryText={translate('page.app.scopes.header.subtitle')}
@@ -128,20 +132,28 @@ const AppEditForm = () => {
                 <ReferenceArrayInput source="scopes" reference="scopes" />
             </TabbedForm.Tab>
 
-            <TabbedForm.Tab label="Roles">
+            <TabbedForm.Tab label="tab.roles">
                 <SectionTitle
                     text={translate('page.app.roles.header.title')}
                     secondaryText={translate('page.app.roles.header.subtitle')}
                 />
-                <ReferenceArrayInput source="roles" reference="roles" />
+                <ReferenceArrayInput
+                    source="roles"
+                    reference="roles"
+                    sort={{ field: 'role', order: 'ASC' }}
+                />
             </TabbedForm.Tab>
 
-            <TabbedForm.Tab label="Groups">
+            <TabbedForm.Tab label="tab.groups">
                 <SectionTitle
                     text={translate('page.app.groups.header.title')}
                     secondaryText={translate('page.app.groups.header.subtitle')}
                 />
-                <ReferenceArrayInput source="groups" reference="groups" />
+                <ReferenceArrayInput
+                    source="groups"
+                    reference="groups"
+                    sort={{ field: 'group', order: 'ASC' }}
+                />
             </TabbedForm.Tab>
         </TabbedForm>
     );

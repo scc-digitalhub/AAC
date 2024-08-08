@@ -1,21 +1,27 @@
 import { Box, Typography } from '@mui/material';
-import { ReactElement } from 'react';
+import { isValidElement, ReactElement } from 'react';
+import { useTranslate } from 'react-admin';
 
 export const SectionTitle = (props: SectionTitleProps) => {
-    const { text, secondaryText, icon } = props;
+    const translate = useTranslate();
+    const { text, secondaryText } = props;
 
     return (
         <Box marginBottom={2}>
             <Typography variant="h5" sx={{ pt: 0, pb: 1, textAlign: 'left' }}>
-                {text}
+                {translate(text || '')}
             </Typography>
-            {secondaryText && (
+            {secondaryText && typeof secondaryText === 'string' ? (
                 <Typography
                     variant="h6"
                     sx={{ pt: 0, pb: 1, textAlign: 'left' }}
                 >
-                    {secondaryText}
+                    {translate(secondaryText || '')}
                 </Typography>
+            ) : isValidElement(secondaryText) ? (
+                secondaryText
+            ) : (
+                ''
             )}
         </Box>
     );
@@ -23,6 +29,5 @@ export const SectionTitle = (props: SectionTitleProps) => {
 
 export interface SectionTitleProps {
     text: string;
-    secondaryText?: string | number | undefined;
-    icon?: ReactElement;
+    secondaryText?: string | number | ReactElement | undefined;
 }

@@ -42,7 +42,7 @@ const AppView = () => {
 
     return (
         <TabbedShowLayout syncWithLocation={false}>
-            <TabbedShowLayout.Tab label={translate('page.app.overview.title')}>
+            <TabbedShowLayout.Tab label="tab.overview">
                 <TextField source="name" />
                 <TextField source="type" />
                 <TextField source="clientId" />
@@ -50,9 +50,7 @@ const AppView = () => {
                 <ReferenceArrayField source="groups" reference="groups" />
                 <ReferenceArrayField source="roles" reference="roles" />
             </TabbedShowLayout.Tab>
-            <TabbedShowLayout.Tab
-                label={translate('page.app.credentials.title')}
-            >
+            <TabbedShowLayout.Tab label="tab.credentials">
                 <SectionTitle
                     text={translate('page.app.credentials.header.title')}
                     secondaryText={translate(
@@ -88,7 +86,7 @@ const AppView = () => {
                     )}
                 </Grid>
             </TabbedShowLayout.Tab>
-            <TabbedShowLayout.Tab label="Api access">
+            <TabbedShowLayout.Tab label="tab.api_access">
                 <SectionTitle
                     text={translate('page.app.scopes.header.title')}
                     secondaryText={translate('page.app.scopes.header.subtitle')}
@@ -96,7 +94,7 @@ const AppView = () => {
                 <ReferenceArrayField source="scopes" reference="scopes" />
             </TabbedShowLayout.Tab>
             {}
-            <TabbedShowLayout.Tab label="Endpoints">
+            <TabbedShowLayout.Tab label="tab.endpoints">
                 <SectionTitle
                     text={translate('page.app.endpoints.header.title')}
                     secondaryText={translate(
