@@ -99,7 +99,7 @@ export const IdpListView = (props: { actions?: ReactElement | boolean }) => {
     );
 };
 
-const IdpNameField = (props: { source: string }) => {
+export const IdpNameField = (props: { source: string }) => {
     const record = useRecordContext();
     const icon = record ? (
         getIdpIcon(record.authority, { color: 'primary' })

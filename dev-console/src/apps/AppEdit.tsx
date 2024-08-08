@@ -1,6 +1,7 @@
 import { Box, Grid } from '@mui/material';
 import {
     Button,
+    CheckboxGroupInput,
     DeleteWithConfirmButton,
     Edit,
     Labeled,
@@ -43,6 +44,8 @@ import { useRootSelector } from '@dslab/ra-root-selector';
 import { useEffect, useState } from 'react';
 import TestIcon from '@mui/icons-material/DirectionsRun';
 import { AceEditorField } from '../components/AceEditorField';
+import { NameField } from '../components/NameField';
+import { IdpNameField } from '../idps/IdpList';
 
 export const AppEdit = () => {
     //fetch related to resolve relations
@@ -120,6 +123,21 @@ const AppEditForm = () => {
                     reference="idps"
                     sort={{ field: 'name', order: 'ASC' }}
                 />
+                <ReferenceArrayInput
+                    source="providers"
+                    reference="idps"
+                    sort={{ field: 'name', order: 'ASC' }}
+                >
+                    <CheckboxGroupInput
+                        row={false}
+                        labelPlacement="end"
+                        // optionText={
+                        //      <NameField text="name" secondaryText="provider" icon={false} />
+                        // }
+                        optionText={<IdpNameField source="name" />}
+                        sx={{ textAlign: 'left' }}
+                    />
+                </ReferenceArrayInput>
             </TabbedForm.Tab>
 
             <TabbedForm.Tab label="tab.configuration">
