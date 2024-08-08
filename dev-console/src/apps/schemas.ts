@@ -91,3 +91,28 @@ export const uiSchemaOAuthClient: UiSchema = {
         },
     },
 };
+
+export const schemaWebHooks: RJSFSchema = {
+    type: 'object',
+    properties: {
+        beforeUserApproval: {
+            type: ['string', 'null'],
+            format: 'url',
+        },
+        afterUserApproval: {
+            type: ['string', 'null'],
+            format: 'url',
+        },
+        beforeTokenGrant: {
+            type: ['string', 'null'],
+            format: 'url',
+        },
+        afterTokenGrant: {
+            type: ['string', 'null'],
+            format: 'url',
+        },
+    },
+};
+
+export const claimMappingDefaultValue =
+    'LyoqCiAqIERFRklORSBZT1VSIE9XTiBDTEFJTSBNQVBQSU5HIEhFUkUKKiovCmZ1bmN0aW9uIGNsYWltTWFwcGluZyhjbGFpbXMpIHsKICAgcmV0dXJuIGNsYWltczsKfQo=';

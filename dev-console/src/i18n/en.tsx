@@ -296,6 +296,7 @@ const enMessages: TranslationMessages = {
         click_to_copy: 'Click to copy',
         authorities: 'Authorities',
         test: 'Test',
+        enable_disable: 'Enable/Disable',
     },
     field: {
         username: 'Username',

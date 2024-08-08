@@ -1,4 +1,21 @@
 export class utils {
+    public static parseBase64(source: string): string | null {
+        try {
+            return atob(source || '');
+        } catch (e: any) {
+            console.log('p', e);
+            return null;
+        }
+    }
+
+    public static encodeBase64(source: string): string | null {
+        try {
+            return source ? btoa(source) : null;
+        } catch (e: any) {
+            return null;
+        }
+    }
+
     //deep copy an obj with nested props
     public static deepCopy<T>(source: T): T {
         return Array.isArray(source)
