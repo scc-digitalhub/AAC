@@ -25,7 +25,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 @Valid
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Resource {
 
     @Pattern(regexp = SystemKeys.SLUG_PATTERN)

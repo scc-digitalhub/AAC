@@ -27,8 +27,13 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.model.ClientApp;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -39,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -83,11 +89,24 @@ public class BaseClientAppController implements InitializingBean {
     public Page<ClientApp> listClientApp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false) String q,
+        @RequestParam(required = false) String[] providers,
         Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list client apps for realm {}", StringUtils.trimAllWhitespace(realm));
-
-        return clientManager.searchClientApps(realm, q, pageRequest);
+        
+        if(providers == null || providers.length == 0) {
+            return clientManager.searchClientApps(realm, q, pageRequest);
+        } else {
+            //manually filter, breaks pagination
+            Set<String> ps = new HashSet<>(Arrays.asList(providers));
+            Page<ClientApp> page = clientManager.searchClientApps(realm, q, pageRequest);
+            return PageableExecutionUtils.getPage(
+                page.getContent().stream().filter(a -> Arrays.asList(a.getProviders()).stream().anyMatch(p -> ps.contains(p))).toList(),
+                pageRequest,
+                () -> page.getTotalElements()
+            );
+           
+        }
     }
 
     @GetMapping("/apps/{realm}/{clientId}")

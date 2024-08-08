@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /*
  * Base controller for scopes
@@ -87,16 +88,23 @@ public class BaseScopesController implements InitializingBean {
     @GetMapping("/resources/{realm}")
     @Operation(summary = "List resources for the given realm")
     public Collection<Resource> listResources(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q
     ) throws NoSuchRealmException {
         logger.debug("list resources");
-
-        return scopeManager.listResources();
+        if(q == null) {
+            return scopeManager.listResources();
+        } else {
+            //filter locally
+            return scopeManager.listResources().stream().filter(r -> {
+                return r.getName().toLowerCase().contains(q.toLowerCase()) || r.getResourceId().toLowerCase().contains(q.toLowerCase());
+            }).toList();
+        }
     }
 
     @GetMapping("/resources/{realm}/{resourceId}")
     @Operation(summary = "Get a resource with all its scopes for the given realm")
-    public Resource listResources(
+    public Resource getResource(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId
     ) throws NoSuchRealmException, NoSuchResourceException {
