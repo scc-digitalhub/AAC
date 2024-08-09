@@ -2,20 +2,22 @@ import { defaultTheme } from 'react-admin';
 import 'typeface-titillium-web';
 // import 'typeface-roboto-mono';
 
+const palette = {
+    primary: {
+        main: '#0066cc',
+        dark: '#00478e',
+        light: '#3384d6',
+    },
+    secondary: {
+        main: '#b2b2b2',
+        dark: '#7c7c7c',
+        light: '#c1c1c1',
+    },
+};
+
 export const theme = {
     ...defaultTheme,
-    palette: {
-        primary: {
-            main: '#0066cc',
-            dark: '#00478e',
-            light: '#3384d6',
-        },
-        secondary: {
-            main: '#b2b2b2',
-            dark: '#7c7c7c',
-            light: '#c1c1c1',
-        },
-    },
+    palette,
     typography: {
         fontFamily: ['"Titillium Web"', 'Geneva', 'Tahoma', 'sans-serif'].join(
             ','
@@ -56,12 +58,11 @@ export const theme = {
         // fontFamily: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Arial', 'sans-serif'].join(','),
     },
     components: {
-        // Name of the component
-        MuiCardContent: {
+        RaAppBar: {
             styleOverrides: {
-                // Name of the slot
                 root: {
-                    // fontFamily: 'Lora,serif' as const,
+                    backgroundColor: palette.primary.main,
+                    color: defaultTheme.palette?.secondary?.contrastText,
                 },
             },
         },

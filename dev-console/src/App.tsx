@@ -8,7 +8,10 @@ import themeProvider from './themeProvider';
 import './App.css';
 import AppLayout from './components/AppLayout';
 
-import { RootSelectorContextProvider } from '@dslab/ra-root-selector';
+import {
+    RootSelectorContextProvider,
+    RootSelectorInitialWrapper,
+} from '@dslab/ra-root-selector';
 
 // pages
 import DevDashboard from './pages/dashboard';
@@ -20,6 +23,7 @@ import groups from './group';
 import roles from './roles';
 import idps from './idps';
 import apiResources from './resources';
+import myrealms from './myrealms';
 
 import { AuditList } from './audit/AuditList';
 import { AttributeSetList } from './attributeset/AttributeSetList';
@@ -40,6 +44,7 @@ import { ServiceIcon } from './service/ServiceIcon';
 import { AttributeIcon } from './attributeset/AttributeIcon';
 
 import { UserEdit } from './users/UserEdit';
+import { RealmList, RealmSelectorList } from './myrealms/RealmList';
 
 //config
 const CONTEXT_PATH: string =
@@ -55,7 +60,7 @@ const DevApp = () => {
     return (
         <RootSelectorContextProvider
             resource="myrealms"
-            // initialApp={<InitialWrapper />}
+            initialApp={<InitialWrapper />}
         >
             <Admin
                 dataProvider={dataProvider}
@@ -73,7 +78,7 @@ const DevApp = () => {
                 <Resource name="groups" {...groups} />
                 <Resource name="roles" {...roles} />
                 <Resource name="idps" {...idps} />
-                <Resource name="myrealms" icon={RealmIcon} />
+                <Resource name="myrealms" {...myrealms} />
                 <Resource name="audit" list={<AuditList />} />
                 <Resource
                     name="services"
@@ -107,6 +112,28 @@ const DevApp = () => {
                 <Resource name="subjects" />
             </Admin>
         </RootSelectorContextProvider>
+    );
+};
+const InitialWrapper = () => {
+    return (
+        <RootSelectorInitialWrapper
+            resource="myrealms"
+            selector={<RealmSelectorList />}
+        >
+            <Admin
+                layout={AppLayout}
+                dataProvider={dataProvider}
+                authProvider={authProvider}
+                i18nProvider={i18nProvider}
+                theme={themeProvider}
+                loginPage={<LoginPage />}
+                authCallbackPage={false}
+                requireAuth
+                disableTelemetry
+            >
+                <Resource name="myrealms" {...myrealms} />
+            </Admin>
+        </RootSelectorInitialWrapper>
     );
 };
 

@@ -12,6 +12,7 @@ import {
     Menu,
     MenuItemLink,
     useTranslate,
+    useCreatePath,
 } from 'react-admin';
 import { RealmIcon } from '../myrealms/RealmIcon';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -51,8 +52,9 @@ const MenuEntries = (props: {
 export const MyMenu = () => {
     const basename = useBasename();
     const getResourceLabel = useGetResourceLabel();
-    const { base, root } = useRootSelector();
-    console.log('base', base);
+    const { base, root: realmId } = useRootSelector();
+    const createPath = useCreatePath();
+
     return (
         <Menu
             sx={{
@@ -81,7 +83,11 @@ export const MyMenu = () => {
                 <Divider />
                 <MenuItemLink
                     leftIcon={<SettingsIcon />}
-                    to={`${basename}/config`}
+                    to={createPath({
+                        resource: 'myrealms',
+                        id: realmId,
+                        type: 'edit',
+                    })}
                     primaryText={'menu.configuration'}
                 />
                 <MenuItemLink

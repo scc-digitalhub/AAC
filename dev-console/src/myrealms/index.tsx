@@ -1,13 +1,10 @@
-import { RealmShow } from './RealmShow';
-import { RealmList } from './RealmList';
 import { RealmEdit } from './RealmEdit';
-import { RealmCreate } from './RealmCreate';
 import { RealmIcon } from './RealmIcon';
+import { RealmList } from './RealmList';
 
 export default {
     list: RealmList,
-    show: RealmShow,
     edit: RealmEdit,
-    create: RealmCreate,
     icon: RealmIcon,
+    recordRepresentation: record => record.slug,
 };

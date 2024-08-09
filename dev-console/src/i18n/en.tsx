@@ -297,6 +297,8 @@ const enMessages: TranslationMessages = {
         authorities: 'Authorities',
         test: 'Test',
         enable_disable: 'Enable/Disable',
+        manage: 'Manage',
+        show: 'Show',
     },
     field: {
         username: 'Username',

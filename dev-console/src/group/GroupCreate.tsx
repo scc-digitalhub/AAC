@@ -12,6 +12,7 @@ export const GroupCreateForm = () => {
                         label="field.name.name"
                         helperText="field.name.helperText"
                         fullWidth
+                        required
                     />
 
                     <TextInput
@@ -19,6 +20,7 @@ export const GroupCreateForm = () => {
                         label="field.group.name"
                         helperText="field.group.helperText"
                         fullWidth
+                        required
                     />
                 </Stack>
             </Page>

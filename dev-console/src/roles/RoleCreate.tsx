@@ -12,6 +12,7 @@ export const RoleCreateForm = () => {
                         label="field.name.name"
                         helperText="field.name.helperText"
                         fullWidth
+                        required
                     />
 
                     <TextInput
@@ -19,6 +20,7 @@ export const RoleCreateForm = () => {
                         label="field.role.name"
                         helperText="field.role.helperText"
                         fullWidth
+                        required
                     />
                 </Stack>
             </Page>

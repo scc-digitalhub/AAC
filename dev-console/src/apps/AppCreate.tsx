@@ -17,6 +17,7 @@ export const AppCreateForm = () => {
                         label="field.name.name"
                         helperText="field.name.helperText"
                         fullWidth
+                        required
                     />
 
                     <SelectInput
