@@ -14,20 +14,21 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import DeveloperModeIcon from '@mui/icons-material/DeveloperMode';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import React from 'react';
 
 import { RootResourceSelectorMenu } from '@dslab/ra-root-selector';
 import { MyMenu } from './MyMenu';
 
-const DEV_URL: string = process.env.REACT_APP_DEVELOPER_CONSOLE as string;
+const ACCOUNT_URL: string = process.env.REACT_APP_USER_CONSOLE as string;
 const ADMIN_URL: string = process.env.REACT_APP_ADMIN_CONSOLE as string;
 
-const DeveloperMenu: FunctionComponent<MenuItemProps<'li'>> = React.forwardRef(
-    function MenuToDev(props, ref) {
+const AccountMenu: FunctionComponent<MenuItemProps<'li'>> = React.forwardRef(
+    function MenuToAccount(props, ref) {
         const translate = useTranslate();
         const isXSmall = false;
         const handleClick = () => {
-            window.location.href = DEV_URL;
+            window.location.href = ACCOUNT_URL;
             return;
         };
         return (
@@ -37,9 +38,9 @@ const DeveloperMenu: FunctionComponent<MenuItemProps<'li'>> = React.forwardRef(
                 component={isXSmall ? 'span' : 'li'}
             >
                 <ListItemIcon>
-                    <DeveloperModeIcon />
+                    <AccountBoxIcon />
                 </ListItemIcon>
-                <ListItemText>{translate('developer')}</ListItemText>
+                <ListItemText>{translate('account')}</ListItemText>
             </MenuItem>
         );
     }
@@ -83,7 +84,7 @@ const MyUserMenu = () => {
 
     return (
         <UserMenu>
-            {isDeveloper && <DeveloperMenu />}
+            {isDeveloper && <AccountMenu />}
             {isAdmin && <AdminMenu />}
             <Logout />
         </UserMenu>
