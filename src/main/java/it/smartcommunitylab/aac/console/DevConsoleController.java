@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,11 +26,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.controller.BaseAuditController.AuditEntry;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.config.ApplicationProperties;
@@ -63,7 +67,11 @@ public class DevConsoleController {
 	private UserManager userManager;
 
 	@GetMapping("/myrealms")
-	public ResponseEntity<Page<Realm>> myRealms(UserAuthentication auth) {
+	public Page<Realm> myRealms(
+		UserAuthentication auth,
+	    @RequestParam(required = false) String q,
+		Pageable pageRequest
+	) {
 		List<Realm> realms = new ArrayList<>();
 		boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(Config.R_ADMIN));
 
@@ -81,8 +89,23 @@ public class DevConsoleController {
 			}
 		}
 
-		PageImpl<Realm> realmPage = new PageImpl<>(realms);
-		return ResponseEntity.ok(realmPage);
+		if(q != null) {
+			//filter
+			List<Realm> list = realms.stream().filter(r -> (r.getSlug().toLowerCase().contains(q.toLowerCase()) || r.getName().toLowerCase().contains(q.toLowerCase()))).toList();
+			return PageableExecutionUtils.getPage(
+            	list,
+            	pageRequest,
+            	() -> list.size()
+        	);     
+		} else {
+			List<Realm> list = realms;
+			return PageableExecutionUtils.getPage(
+            	list,
+            	pageRequest,
+            	() -> list.size()
+        	);           
+		}
+
 	}
 
 	@GetMapping("/myrealms/{slug}")
