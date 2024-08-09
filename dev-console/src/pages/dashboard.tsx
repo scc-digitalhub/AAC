@@ -259,7 +259,7 @@ export const DashboardVerticalCard = (props: {
                         sx={{ textAlign: 'center', pt: 1 }}
                         alignItems="center"
                     >
-                        {number && (
+                        {number !== undefined && (
                             <Typography color={grey[800]} variant="h3">
                                 {number}
                             </Typography>
@@ -387,7 +387,7 @@ export const DashboardHorizontalCard = (props: {
                                 color: grey[700],
                             }}
                         />
-                        {number && (
+                        {number !== undefined && (
                             <Box>
                                 <Typography color={grey[800]} variant="h3">
                                     {number}
@@ -483,7 +483,7 @@ export const DashboardTextCard = (props: {
                 avatar={displayIcon}
             />
             <CardContent sx={{ px: 3 }}>
-                {number && (
+                {number !== undefined && (
                     <Box>
                         <Typography color={grey[800]} variant="h2">
                             {number}
