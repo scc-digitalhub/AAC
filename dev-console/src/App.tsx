@@ -21,6 +21,7 @@ import { LoginPage } from './pages/login';
 import apps from './apps';
 import groups from './group';
 import roles from './roles';
+import users from './users';
 import idps from './idps';
 import apiResources from './resources';
 import myrealms from './myrealms';
@@ -88,14 +89,7 @@ const DevApp = () => {
                     edit={<ServiceEdit />}
                     icon={ServiceIcon}
                 />
-                <Resource
-                    name="users"
-                    list={<UserList />}
-                    create={<UserCreate />}
-                    show={<UserShow />}
-                    edit={<UserEdit />}
-                    icon={UserIcon}
-                />
+                <Resource name="users" {...users} />
 
                 <Resource name="resources" {...apiResources} />
                 <Resource

@@ -1,2 +1,3 @@
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-export const RoleIcon = SupportAgentIcon;
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+export const RoleIcon = WorkspacePremiumIcon;

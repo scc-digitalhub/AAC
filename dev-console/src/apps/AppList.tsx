@@ -13,24 +13,22 @@ import { PageTitle } from '../components/PageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { AppCreateForm } from './AppCreate';
 import { ActionsButtons } from '../components/ActionsButtons';
-import { Box, Chip, Stack } from '@mui/material';
+import { Box } from '@mui/material';
 import { Page } from '../components/Page';
 import { AppIcon } from './AppIcon';
 import { NameField } from '../components/NameField';
 import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
-import { RoleIcon } from '../roles/RoleIcon';
-import { GroupIcon } from '../group/GroupIcon';
-import DeveloperIcon from '@mui/icons-material/DeveloperMode';
-import AdminIcon from '@mui/icons-material/AdminPanelSettings';
+import { TagsField } from '../components/TagsField';
+import { getAppIcon } from './utils';
 
 export const AppList = () => {
     const translate = useTranslate();
     return (
         <Page>
             <PageTitle
-                text={translate('page.app.list.title')}
-                secondaryText={translate('page.app.list.subtitle')}
+                text={translate('page.apps.list.title')}
+                secondaryText={translate('page.apps.list.subtitle')}
             />
             <List
                 exporter={YamlExporter}
@@ -59,13 +57,7 @@ export const AppListView = (props: { actions?: ReactElement | boolean }) => {
 
     return (
         <Datagrid bulkActionButtons={false} rowClick="show">
-            <NameField
-                text="name"
-                secondaryText="configuration.applicationType"
-                tertiaryText="description"
-                source="name"
-                icon={<AppIcon color={'secondary'} />}
-            />
+            <AppNameField source="name" />
             <IdField source="clientId" label="id" />
             <TagsField />
             {actions !== false && actions}
@@ -73,32 +65,24 @@ export const AppListView = (props: { actions?: ReactElement | boolean }) => {
     );
 };
 
-const TagsField = () => {
+export const AppNameField = (props: { source: string }) => {
     const record = useRecordContext();
-    if (!record) return null;
 
+    const icon = record ? (
+        getAppIcon(record.configuration?.applicationType, {
+            color: 'primary',
+        })
+    ) : (
+        <AppIcon />
+    );
     return (
-        <Stack direction={'row'} spacing={1}>
-            {record.authorities.map(a =>
-                a.role === 'ROLE_ADMIN' ? (
-                    <Chip label={a.role} color="warning" icon={<AdminIcon />} />
-                ) : a.role === 'ROLE_DEVELOPER' ? (
-                    <Chip
-                        label={a.role}
-                        color="warning"
-                        icon={<DeveloperIcon />}
-                    />
-                ) : (
-                    <Chip label={a.role} color="warning" />
-                )
-            )}
-            {record.groups.map(g => (
-                <Chip label={g.group} icon={<GroupIcon />} color="secondary" />
-            ))}
-            {record.roles.map(r => (
-                <Chip label={r.role} icon={<RoleIcon />} color="secondary" />
-            ))}
-        </Stack>
+        <NameField
+            text="name"
+            secondaryText="configuration.applicationType"
+            tertiaryText="description"
+            source="name"
+            icon={icon}
+        />
     );
 };
 

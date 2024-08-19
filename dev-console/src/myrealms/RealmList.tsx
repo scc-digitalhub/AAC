@@ -37,7 +37,6 @@ import {
 import { RowButtonGroup } from '../components/RowButtonGroup';
 
 export const RealmList = () => {
-    console.log('list');
     const translate = useTranslate();
     return (
         <Page>
@@ -59,7 +58,6 @@ export const RealmList = () => {
     );
 };
 export const RealmSelectorList = (props: RootSelectorListProps) => {
-    console.log('selector');
     const translate = useTranslate();
     return (
         <Page>

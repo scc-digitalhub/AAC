@@ -1,102 +1,144 @@
+import { Box } from '@mui/material';
 import {
-    EditBase,
-    Form,
-    TextInput,
-    useEditContext,
     BooleanInput,
-    useNotify,
-    useRedirect,
-    Toolbar,
-    SaveButton,
+    Edit,
+    Labeled,
+    NumberField,
+    ReferenceArrayInput,
+    TabbedForm,
+    TextField,
+    TextInput,
+    TopToolbar,
+    useGetList,
+    useRecordContext,
+    useTranslate,
 } from 'react-admin';
-import { Card, CardContent, Box, Divider } from '@mui/material';
-import { useParams } from 'react-router';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
+import { IdField } from '../components/IdField';
+import { Page } from '../components/Page';
+import { TabToolbar } from '../components/TabToolbar';
+import { DatagridArrayInput } from '@dslab/ra-datagrid-input';
+import { SectionTitle } from '../components/sectionTitle';
+import { RefreshingExportButton } from '../components/RefreshingExportButton';
+import { ResourceTitle } from '../components/ResourceTitle';
+import SettingsIcon from '@mui/icons-material/Settings';
+import {
+    realmLocalizationSchema,
+    realmOAuthSchema,
+    realmTosSchema,
+} from './schemas';
+import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 
 export const RealmEdit = () => {
-    const notify = useNotify();
-    const redirect = useRedirect();
-    const params = useParams();
-    const options = { meta: { realmId: params.id } };
-
-    const onSuccess = (data: any) => {
-        notify(`Realm created successfully`);
-        redirect('list', 'myrealms');
-    };
-
-    const transform = (data: any) => {
-        console.log(data);
-        let body = createRealm(data);
-        console.log(body);
-        return body;
-    };
-
     return (
-        <EditBase
-            mutationMode="pessimistic"
-            redirect="list"
-            transform={transform}
-            mutationOptions={{ ...options, onSuccess }}
-            queryOptions={options}
-        >
-            <RealmEditContent />
-        </EditBase>
+        <Page>
+            <Edit
+                actions={<RealmToolBarActions />}
+                mutationMode="optimistic"
+                component={Box}
+                redirect={'edit'}
+            >
+                <ResourceTitle
+                    text={'configuration'}
+                    icon={
+                        <SettingsIcon
+                            fontSize="large"
+                            sx={{ fontSize: '96px' }}
+                            color="secondary"
+                        />
+                    }
+                />
+                <RealmEditForm />
+            </Edit>
+        </Page>
     );
 };
 
-const RealmEditContent = () => {
-    const { isLoading, record } = useEditContext<any>();
-    if (isLoading || !record) return null;
+const RealmEditForm = () => {
+    const translate = useTranslate();
+    const record = useRecordContext();
+    if (!record) return null;
 
     return (
-        <Box mt={2} display="flex">
-            <Box flex="1">
-                <Form>
-                    <Card>
-                        <CardContent>
-                            <Box>
-                                <Box display="flex">
-                                    <Box flex="1" mt={-1}>
-                                        <Box display="flex" width={430}>
-                                            <TextInput
-                                                source="slug"
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box display="flex" width={430}>
-                                            <TextInput
-                                                source="name"
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Box>
-                                            <BooleanInput
-                                                source="public"
-                                                fullWidth
-                                            />
-                                        </Box>
-                                        <Divider />
-                                    </Box>
-                                </Box>
-                            </Box>
-                        </CardContent>
-                        <EditRealmsToolbar />
-                    </Card>
-                </Form>
-            </Box>
-        </Box>
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
+            <TabbedForm.Tab label="tab.settings">
+                <SectionTitle
+                    text={translate('page.realm.settings.header.title')}
+                    secondaryText={translate(
+                        'page.realm.settings.header.subtitle'
+                    )}
+                />
+                <TextInput source="slug" fullWidth readOnly />
+                <TextInput source="name" fullWidth />
+                <TextInput source="description" multiline fullWidth />
+                <BooleanInput source="public" />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.localization">
+                <SectionTitle
+                    text={translate('page.realm.localization.header.title')}
+                    secondaryText={translate(
+                        'page.realm.localization.header.subtitle'
+                    )}
+                />
+                <JsonSchemaInput
+                    source="localizationConfiguration"
+                    schema={realmLocalizationSchema}
+                />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.oauth2">
+                <SectionTitle
+                    text={translate('page.realm.oauth2.header.title')}
+                    secondaryText={translate(
+                        'page.realm.oauth2.header.subtitle'
+                    )}
+                />
+                <JsonSchemaInput
+                    source="oauthConfiguration"
+                    schema={realmOAuthSchema}
+                />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.tos">
+                <SectionTitle
+                    text={translate('page.realm.tos.header.title')}
+                    secondaryText={translate('page.realm.tos.header.subtitle')}
+                />
+                <JsonSchemaInput
+                    source="tosConfiguration"
+                    schema={realmTosSchema}
+                />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.members">
+                <SectionTitle
+                    text={translate('page.realm.members.header.title')}
+                    secondaryText={translate(
+                        'page.realm.roles.members.subtitle'
+                    )}
+                />
+                <ReferenceArrayInput source="members" reference="subjects">
+                    <DatagridArrayInput
+                        dialogFilters={[<TextInput label="query" source="q" />]}
+                        dialogFilterDefaultValues={{ q: '' }}
+                    >
+                        <TextField source="name" />
+                        <TextField source="type" />
+                        <IdField source="id" />
+                    </DatagridArrayInput>
+                </ReferenceArrayInput>
+            </TabbedForm.Tab>
+        </TabbedForm>
     );
 };
 
-const EditRealmsToolbar = (props: any) => (
-    <Toolbar {...props}>
-        <SaveButton />
-    </Toolbar>
-);
+const RealmToolBarActions = () => {
+    const record = useRecordContext();
+    if (!record) return null;
 
-function createRealm(data: any): any {
-    let body: any = {};
-    body['slug'] = data.slug;
-    body['name'] = data.name;
-    body['public'] = data.public;
-    return body;
-}
+    return (
+        <TopToolbar>
+            <InspectButton />
+            <DeleteWithDialogButton />
+            <RefreshingExportButton />
+        </TopToolbar>
+    );
+};

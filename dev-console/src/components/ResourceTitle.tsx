@@ -1,4 +1,7 @@
 import {
+    Link,
+    useCreatePath,
+    useGetResourceLabel,
     useRecordContext,
     useResourceContext,
     useResourceDefinition,
@@ -6,15 +9,19 @@ import {
 import { PageTitle } from '../components/PageTitle';
 import BlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import { isValidElement, ReactElement } from 'react';
+import { Typography } from '@mui/material';
 
 export const ResourceTitle = (props: {
     text?: string | ReactElement;
     icon?: ReactElement;
+    breadcrumb?: ReactElement | boolean;
 }) => {
-    const { text, icon } = props;
+    const { text, icon, breadcrumb = true } = props;
     const record = useRecordContext();
     const resource = useResourceContext();
     const definition = useResourceDefinition();
+    const createPath = useCreatePath();
+    const getResourceLabel = useGetResourceLabel();
 
     if (!record || !definition) {
         return null;
@@ -43,11 +50,27 @@ export const ResourceTitle = (props: {
         text || record.name || recordRepresentation || record.id;
 
     return (
-        <PageTitle
-            text={displayText}
-            secondaryText={record.id}
-            copy={true}
-            icon={iconEl}
-        />
+        <>
+            {breadcrumb && isValidElement(breadcrumb) ? (
+                breadcrumb
+            ) : (
+                <Link to={createPath({ resource, type: 'list' })}>
+                    <Typography
+                        variant="body1"
+                        mb={2}
+                        color="primary"
+                        sx={{ fontWeight: 600 }}
+                    >
+                        {getResourceLabel(resource, 2)} &raquo;
+                    </Typography>
+                </Link>
+            )}
+            <PageTitle
+                text={displayText}
+                secondaryText={record.id}
+                copy={true}
+                icon={iconEl}
+            />
+        </>
     );
 };

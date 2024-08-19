@@ -31,7 +31,10 @@ import { Page } from '../components/Page';
 import { PageTitle } from '../components/PageTitle';
 import { YamlExporter } from '../components/YamlExporter';
 import { IdField } from '../components/IdField';
-
+import { isValidElement, ReactElement } from 'react';
+import { ActionsButtons } from '../components/ActionsButtons';
+import { NameField } from '../components/NameField';
+import { TagsField } from '../components/TagsField';
 
 const PostBulkActionButtons = () => (
     <>
@@ -39,55 +42,50 @@ const PostBulkActionButtons = () => (
     </>
 );
 export const UserList = () => {
-    const { root: realmId } = useRootSelector();
-    const record = useRecordContext();
     const translate = useTranslate();
     return (
         <Page>
             <PageTitle
-                text={translate('page.user.list.title')}
-                secondaryText={translate('page.user.list.subtitle')}
+                text={translate('page.users.list.title')}
+                secondaryText={translate('page.users.list.subtitle')}
             />
             <List
                 empty={false}
                 exporter={YamlExporter}
                 actions={<UserListActions />}
                 filters={UserFilters}
-                sort={{ field: 'username', order: 'DESC' }}
+                sort={{ field: 'username', order: 'ASC' }}
                 component={Box}
             >
-                <Datagrid
-                    bulkActionButtons={<PostBulkActionButtons />}
-                    rowClick="show"
-                >
-                    <WrapperField>
-                        <Stack>
-                            <TextField source="username" />
-                            {`${realmId}` !== 'system' && (
-                                <span>
-                                    <TextField source="email" />
-                                    <EmailVerified source="emailVerified" />
-                                </span>
-                            )}
-                        </Stack>
-                    </WrapperField>
-                    <IdField source="id" />
-                    <ArrayField
-                        source="authorities"
-                    >
-                            <SingleFieldList>
-                                <ChipField source="authority" size='small'/>
-                            </SingleFieldList>
-                    </ArrayField>
-                    <RowButtonGroup label="⋮">
-                        <DropDownButton>
-                            <ShowButton />
-                            <DeleteWithDialogButton />
-                        </DropDownButton>
-                    </RowButtonGroup>
-                </Datagrid>
+                <UserListView />
             </List>
         </Page>
+    );
+};
+
+export const UserListView = (props: { actions?: ReactElement | boolean }) => {
+    const { actions: actionProps = true } = props;
+
+    const actions = !actionProps ? (
+        false
+    ) : isValidElement(actionProps) ? (
+        actionProps
+    ) : (
+        <ActionsButtons />
+    );
+
+    return (
+        <Datagrid bulkActionButtons={false} rowClick="show">
+            <NameField
+                text="username"
+                secondaryText="id"
+                tertiaryText="email"
+                source="username"
+            />
+            <IdField source="subjectId" label="id" />
+            <TagsField />
+            {actions !== false && actions}
+        </Datagrid>
     );
 };
 
@@ -131,23 +129,6 @@ const transform = (data: any) => {
     return {
         ...data,
     };
-};
-const Empty = () => {
-    return (
-        <Box textAlign="center" mt={30} ml={70}>
-            <Typography variant="h6" paragraph>
-                No user, create one
-            </Typography>
-            <CreateInDialogButton
-                fullWidth
-                maxWidth={'md'}
-                variant="contained"
-                transform={transform}
-            >
-                <UserCreateForm />
-            </CreateInDialogButton>
-        </Box>
-    );
 };
 
 const ActiveButton = () => {

@@ -34,6 +34,7 @@ import { ResourceTitle } from '../components/ResourceTitle';
 import { IdpNameField } from '../idps/IdpList';
 import { AppResources } from './AppResources';
 import { ClaimMappingEditor } from './ClaimMappingEditor';
+import { AppTitle } from './AppShow';
 
 export const AppEdit = () => {
     //fetch related to resolve relations
@@ -64,7 +65,7 @@ export const AppEdit = () => {
                 queryOptions={{ meta: { flatten: ['roles', 'groups'] } }}
                 mutationOptions={{ meta: { flatten: ['roles', 'groups'] } }}
             >
-                <ResourceTitle />
+                <AppTitle />
                 <AppEditForm />
             </Edit>
         </Page>

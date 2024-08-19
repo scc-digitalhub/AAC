@@ -38,18 +38,9 @@ import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
 import React, { useMemo } from 'react';
 import ConfirmIcon from '@mui/icons-material/CheckCircle';
+import { DataGridBlankHeader } from '../components/DataGridBlankHeader';
 
-const DatagridHeader = ({ children }: DatagridHeaderProps) => (
-    <TableHead>
-        <TableRow>
-            {React.Children.map(children, child =>
-                React.isValidElement<FieldProps>(child) ? (
-                    <TableCell key={child.props.source}></TableCell>
-                ) : null
-            )}
-        </TableRow>
-    </TableHead>
-);
+
 export const AppResources = () => {
     const resource = useResourceContext();
     const { field } = useInput({
@@ -61,7 +52,7 @@ export const AppResources = () => {
         <Datagrid
             bulkActionButtons={false}
             rowClick={false}
-            header={<DatagridHeader />}
+            header={<DataGridBlankHeader />}
         >
             <NameField
                 text="name"

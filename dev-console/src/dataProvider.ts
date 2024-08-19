@@ -149,7 +149,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 size: perPage,
             };
             let prefix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 prefix = '/' + params.meta.root;
             }
             const url =
