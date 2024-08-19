@@ -1,15 +1,27 @@
 import { useRootSelector } from '@dslab/ra-root-selector';
-import { Stack } from '@mui/material';
+import {
+    Container,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+} from '@mui/material';
 import { useState, useEffect } from 'react';
 import {
     useDataProvider,
     RecordContextProvider,
     Labeled,
     TextField,
+    useTranslate,
 } from 'react-admin';
+import { IdField } from '../components/IdField';
 
 export const AppEndpointsView = () => {
     const dataProvider = useDataProvider();
+    const translate = useTranslate();
     const { root: realmId } = useRootSelector();
     const [config, setConfig] = useState<any>();
 
@@ -39,15 +51,31 @@ export const AppEndpointsView = () => {
 
     return (
         <RecordContextProvider value={config}>
-            <Stack>
-                {fields.map(field => {
-                    return (
-                        <Labeled key={'endpoints.' + field}>
-                            <TextField source={field} />
-                        </Labeled>
-                    );
-                })}
-            </Stack>
+            <Container maxWidth="md" sx={{ mx: 0, px: 0 }}>
+                <Table size="small">
+                    <TableBody>
+                        {fields.map(field => (
+                            <TableRow
+                                key={'endpoints.' + field}
+                                sx={{
+                                    '&:last-child td, &:last-child th': {
+                                        border: 0,
+                                    },
+                                }}
+                            >
+                                <TableCell component="th" scope="row">
+                                    <strong>
+                                        {translate('field.' + field)}
+                                    </strong>
+                                </TableCell>
+                                <TableCell align="right">
+                                    <IdField source={field} />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </Container>
         </RecordContextProvider>
     );
 };

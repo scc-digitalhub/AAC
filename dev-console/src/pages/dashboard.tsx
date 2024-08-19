@@ -124,42 +124,7 @@ const DevDashboard = () => {
                     )
                 }
             />
-            <Grid container spacing={2}>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardHorizontalCard number={apps} resource="apps" />
-                </Grid>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardHorizontalCard number={users} resource="users" />
-                </Grid>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardHorizontalCard number={idps} resource="idps" />
-                </Grid>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardHorizontalCard
-                        number={services}
-                        resource="services"
-                    />
-                </Grid>
-            </Grid>
-            <br />
-            <Grid container spacing={2}>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardVerticalCard number={apps} resource="apps" />
-                </Grid>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardVerticalCard number={users} resource="users" />
-                </Grid>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardVerticalCard number={idps} resource="idps" />
-                </Grid>
-                <Grid item xs={12} md={3} zeroMinWidth>
-                    <DashboardVerticalCard
-                        number={services}
-                        resource="services"
-                    />
-                </Grid>
-            </Grid>
-            <br />
+
             <Grid container spacing={2}>
                 <Grid item xs={12} md={3} zeroMinWidth>
                     <DashboardTextCard number={apps} resource="apps" />

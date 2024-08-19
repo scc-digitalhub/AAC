@@ -68,9 +68,14 @@ public class BaseScopesController implements InitializingBean {
     @GetMapping("/scopes/{realm}")
     @Operation(summary = "Get scopes for the given realm")
     public Collection<Scope> listScopes(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q
     ) throws NoSuchRealmException {
         logger.debug("list scopes");
+        if(q != null) {
+            return scopeManager.listScopes().stream().filter(s -> s.getScope().toLowerCase().contains(q.toLowerCase())).toList();
+        } 
+
         return scopeManager.listScopes();
     }
 

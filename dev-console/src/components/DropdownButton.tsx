@@ -28,7 +28,8 @@ export const DropDownButton = (props: DrodownButtonProps) => {
         event.stopPropagation();
         setAnchorEl(event.currentTarget);
     };
-    const handleClose = (): void => {
+    const handleClose = (event: MouseEvent<HTMLElement>): void => {
+        event.stopPropagation();
         setAnchorEl(null);
     };
 
@@ -54,13 +55,23 @@ export const DropDownButton = (props: DrodownButtonProps) => {
                 keepMounted
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
-                
             >
-                <Stack direction={'column'} sx={{minWidth:'80px', marginLeft: '10px',alignItems: 'flex-start'}}>{children}</Stack>
+                <Stack
+                    direction={'column'}
+                    sx={{
+                        minWidth: '80px',
+                        marginLeft: '10px',
+                        alignItems: 'flex-start',
+                    }}
+                >
+                    {children}
+                </Stack>
             </Menu>
         </Box>
     );
 };
 
 export type DrodownButtonProps<RecordType extends RaRecord = any> =
-    ShowButtonProps & { children: ReactElement | ReactElement[] };
+    ShowButtonProps & {
+        children: ReactElement | ReactElement[];
+    };

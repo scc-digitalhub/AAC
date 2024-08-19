@@ -2,11 +2,14 @@ import {
     Button,
     Datagrid,
     Edit,
+    IconButtonWithTooltip,
     Labeled,
     ReferenceManyField,
+    SaveButton,
     TabbedForm,
     TextField,
     TextInput,
+    Toolbar,
     TopToolbar,
     TranslatableInputs,
     useDataProvider,
@@ -21,7 +24,7 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
-import { Box } from '@mui/material';
+import { Alert, Box, Typography } from '@mui/material';
 import { TabToolbar } from '../components/TabToolbar';
 import { SectionTitle } from '../components/sectionTitle';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
@@ -41,6 +44,9 @@ import { IdField } from '../components/IdField';
 import { useEffect, useMemo, useState } from 'react';
 import dataProvider from '../dataProvider';
 import { DEFAULT_LANGUAGES } from '../App';
+import WarningIcon from '@mui/icons-material/WarningOutlined';
+import RegisteredIcon from '@mui/icons-material/VerifiedUser';
+import { PageTitle } from '../components/PageTitle';
 
 export const IdpEdit = () => {
     return (
@@ -63,6 +69,7 @@ const IdpEditTitle = () => {
 
     return (
         <ResourceTitle
+            text={<IdpTitle />}
             icon={getIdpIcon(record.authority, {
                 fontSize: 'large',
                 sx: { fontSize: '96px' },
@@ -71,6 +78,34 @@ const IdpEditTitle = () => {
         />
     );
 };
+
+const IdpTitle = () => {
+    const record = useRecordContext();
+    if (!record) return null;
+
+    return (
+        <Typography variant="h4" sx={{ pt: 0, pb: 1, textAlign: 'left' }}>
+            {record.name}{' '}
+            {record?.enabled && !record.registered && (
+                <IconButtonWithTooltip
+                    label={'error.idp_registration_error'}
+                    color="error"
+                >
+                    <WarningIcon fontSize="small" />
+                </IconButtonWithTooltip>
+            )}
+            {record.registered && (
+                <IconButtonWithTooltip
+                    label={'notification.idp_registered'}
+                    color="success"
+                >
+                    <RegisteredIcon fontSize="small" />
+                </IconButtonWithTooltip>
+            )}
+        </Typography>
+    );
+};
+
 const IdpEditForm = () => {
     const translate = useTranslate();
     const dataProvider = useDataProvider();
@@ -96,7 +131,7 @@ const IdpEditForm = () => {
     if (!record) return null;
 
     return (
-        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
+        <TabbedForm toolbar={<EditTabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
                     <TextField source="id" />
@@ -112,10 +147,17 @@ const IdpEditForm = () => {
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
-                <SectionTitle text="page.idps.settings.basic" />
+                <SectionTitle
+                    text="page.idps.settings.basic.title"
+                    secondaryText="page.idps.settings.basic.subtitle"
+                />
+
                 <TextInput source="name" fullWidth />
 
-                <SectionTitle text="page.idps.settings.display" />
+                <SectionTitle
+                    text="page.idps.settings.display.title"
+                    secondaryText="page.idps.settings.display.subtitle"
+                />
                 {availableLocales && (
                     <TranslatableInputs locales={availableLocales} fullWidth>
                         <TextInput source="titleMap" label="field.title.name" />
@@ -127,7 +169,10 @@ const IdpEditForm = () => {
                     </TranslatableInputs>
                 )}
 
-                <SectionTitle text="page.idps.settings.advanced" />
+                <SectionTitle
+                    text="page.idps.settings.advanced.title"
+                    secondaryText="page.idps.settings.advanced.subtitle"
+                />
                 <JsonSchemaInput
                     source="settings"
                     schema={schemaIdpSettings}
@@ -135,6 +180,11 @@ const IdpEditForm = () => {
                 />
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.configuration">
+                <SectionTitle
+                    text="page.idps.configuration.title"
+                    secondaryText="page.idps.configuration.subtitle"
+                />
+
                 {schema && (
                     <JsonSchemaInput
                         source="configuration"
@@ -193,16 +243,34 @@ const IdpEditForm = () => {
     );
 };
 
+export const EditTabToolbar = () => {
+    const record = useRecordContext();
+    const translate = useTranslate();
+
+    return (
+        <>
+            {record.enabled && (
+                <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
+                    {translate('error.idp_is_enabled')}
+                </Alert>
+            )}
+            <Toolbar>
+                <SaveButton />
+            </Toolbar>
+        </>
+    );
+};
+
 const EditToolBarActions = () => {
+    const translate = useTranslate();
     const record = useRecordContext();
     if (!record) return null;
 
     return (
         <TopToolbar>
             <ToggleIdpButton />
-
             <InspectButton />
-            <DeleteWithDialogButton />
+            <DeleteWithDialogButton disabled={record?.registered} />
             <RefreshingExportButton />
         </TopToolbar>
     );

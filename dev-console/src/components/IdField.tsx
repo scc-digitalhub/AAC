@@ -1,4 +1,4 @@
-import { IconButton, Stack, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import get from 'lodash/get';
 import { MouseEvent } from 'react';
 

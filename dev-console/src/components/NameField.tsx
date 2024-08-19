@@ -5,7 +5,13 @@ import { isValidElement, ReactElement } from 'react';
 import get from 'lodash/get';
 
 export const NameField = (props: NameFieldProps) => {
-    const { text, secondaryText, tertiaryText, icon } = props;
+    const {
+        text,
+        secondaryText,
+        tertiaryText,
+        icon,
+        color = 'primary',
+    } = props;
     const record = useRecordContext(props);
     const displayText = typeof text === 'string' ? get(record, text) || '' : '';
 
@@ -19,10 +25,10 @@ export const NameField = (props: NameFieldProps) => {
                 </Avatar>
             )}
             <Stack>
-                <OptionalTextField text={text} variant="h6" color="primary" />
+                <OptionalTextField text={text} variant="h6" color={color} />
 
                 {secondaryText && (
-                    <OptionalTextField text={secondaryText} variant="body2" />
+                    <OptionalTextField text={secondaryText} variant="body2" color={'secondary'} />
                 )}
 
                 {tertiaryText && (
@@ -50,7 +56,9 @@ export const OptionalTextField = (
     );
 };
 
-export interface NameFieldProps extends FieldProps {
+export interface NameFieldProps
+    extends FieldProps,
+        Pick<TypographyOwnProps, 'color'> {
     //text is either a field name or an element
     text: string | ReactElement;
     //text is either a field name or an element

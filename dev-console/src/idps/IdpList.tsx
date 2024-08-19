@@ -84,15 +84,18 @@ export const IdpListView = (props: { actions?: ReactElement | boolean }) => {
             <FunctionField
                 source="registered"
                 sortable={false}
-                render={record => (
-                    <BooleanField
-                        source="registered"
-                        sortable={false}
-                        TrueIcon={RegisteredIcon}
-                        FalseIcon={WarningIcon}
-                        color={record.registered ? 'primary' : 'error'}
-                    />
-                )}
+                render={record => {
+                    if (!record.enabled) return <></>;
+                    return (
+                        <BooleanField
+                            source="registered"
+                            sortable={false}
+                            TrueIcon={RegisteredIcon}
+                            FalseIcon={WarningIcon}
+                            color={record.registered ? 'primary' : 'error'}
+                        />
+                    );
+                }}
             />
             {actions !== false && actions}
         </Datagrid>
@@ -101,8 +104,22 @@ export const IdpListView = (props: { actions?: ReactElement | boolean }) => {
 
 export const IdpNameField = (props: { source: string }) => {
     const record = useRecordContext();
+    const color = record?.registered
+        ? 'primary'
+        : record?.enabled
+        ? 'warning'
+        : 'info';
+
+    const iconColor = record?.registered
+        ? 'primary'
+        : record?.enabled
+        ? 'error'
+        : 'disabled';
+
     const icon = record ? (
-        getIdpIcon(record.authority, { color: 'primary' })
+        getIdpIcon(record.authority, {
+            color: iconColor,
+        })
     ) : (
         <IdpIcon />
     );
@@ -113,6 +130,7 @@ export const IdpNameField = (props: { source: string }) => {
             secondaryText="authority"
             source="name"
             icon={icon}
+            color={color}
         />
     );
 };

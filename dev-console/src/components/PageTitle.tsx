@@ -7,7 +7,11 @@ import {
     Stack,
 } from '@mui/material';
 import { isValidElement, ReactElement } from 'react';
-import { IconButtonWithTooltip, sanitizeFieldRestProps, useNotify } from 'react-admin';
+import {
+    IconButtonWithTooltip,
+    sanitizeFieldRestProps,
+    useNotify,
+} from 'react-admin';
 import { MouseEvent } from 'react';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { grey } from '@mui/material/colors';
@@ -21,12 +25,16 @@ export const PageTitle = (props: PageTitleProps) => {
             <Stack direction={'row'} columnGap={2}>
                 {icon && isValidElement(icon) ? icon : ''}
                 <Box>
-                    <Typography
-                        variant="h4"
-                        sx={{ pt: 0, pb: 1, textAlign: 'left' }}
-                    >
-                        {text}
-                    </Typography>
+                    {text && isValidElement(text) ? (
+                        text
+                    ) : (
+                        <Typography
+                            variant="h4"
+                            sx={{ pt: 0, pb: 1, textAlign: 'left' }}
+                        >
+                            {text}
+                        </Typography>
+                    )}
                     {secondaryText && (
                         <>
                             <Typography
@@ -70,7 +78,7 @@ export const PageTitle = (props: PageTitleProps) => {
 };
 
 export interface PageTitleProps {
-    text: string;
+    text: string | ReactElement;
     secondaryText?: any;
     copy?: boolean;
     icon?: ReactElement;

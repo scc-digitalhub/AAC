@@ -17,11 +17,12 @@ export const ActionsButtons = () => {
     if (!record) {
         return null;
     }
+
     return (
         <RowButtonGroup label="⋮">
             <DropDownButton>
-                {definition && definition.hasShow && <ShowButton />}
-                {definition && definition.hasEdit && <EditButton />}
+                {definition?.hasShow && <ShowButton />}
+                {definition?.hasEdit && <EditButton />}
                 <DeleteWithDialogButton />
             </DropDownButton>
         </RowButtonGroup>

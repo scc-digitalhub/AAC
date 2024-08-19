@@ -7,8 +7,11 @@ import { PageTitle } from '../components/PageTitle';
 import BlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import { isValidElement, ReactElement } from 'react';
 
-export const ResourceTitle = (props: { icon?: ReactElement }) => {
-    const { icon } = props;
+export const ResourceTitle = (props: {
+    text?: string | ReactElement;
+    icon?: ReactElement;
+}) => {
+    const { text, icon } = props;
     const record = useRecordContext();
     const resource = useResourceContext();
     const definition = useResourceDefinition();
@@ -36,7 +39,8 @@ export const ResourceTitle = (props: { icon?: ReactElement }) => {
             ? definition.recordRepresentation
             : undefined;
 
-    const displayText = record.name || recordRepresentation || record.id;
+    const displayText =
+        text || record.name || recordRepresentation || record.id;
 
     return (
         <PageTitle

@@ -1,7 +1,9 @@
-import { Box, Grid } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import {
+    Button,
     DeleteWithConfirmButton,
     EditButton,
+    IconButtonWithTooltip,
     Labeled,
     ReferenceArrayField,
     ReferenceManyField,
@@ -21,6 +23,8 @@ import { AppEndpointsView } from './AppEndpoints';
 import { TestDialogButton } from './TestDialog';
 import { ResourceTitle } from '../components/ResourceTitle';
 import { AuditListView } from '../audit/AuditList';
+import DeveloperIcon from '@mui/icons-material/DeveloperMode';
+import AdminIcon from '@mui/icons-material/AdminPanelSettings';
 
 export const AppShow = () => {
     return (
@@ -30,10 +34,31 @@ export const AppShow = () => {
                 component={Box}
                 queryOptions={{ meta: { flatten: ['roles', 'groups'] } }}
             >
-                <ResourceTitle />
+                <ResourceTitle text={<AppTitle />} />
                 <AppView />
             </Show>
         </Page>
+    );
+};
+
+export const AppTitle = () => {
+    const record = useRecordContext();
+    if (!record) return null;
+
+    return (
+        <Typography variant="h4" sx={{ pt: 0, pb: 1, textAlign: 'left' }}>
+            {record.name}{' '}
+            {record.authorities.find(r => r.role === 'ROLE_DEVELOPER') && (
+                <IconButtonWithTooltip label={'ROLE_DEVELOPER'} color="warning">
+                    <DeveloperIcon fontSize="small" />
+                </IconButtonWithTooltip>
+            )}{' '}
+            {record.authorities.find(r => r.role === 'ROLE_ADMIN') && (
+                <IconButtonWithTooltip label={'ROLE_ADMIN'} color="warning">
+                    <AdminIcon fontSize="small" />
+                </IconButtonWithTooltip>
+            )}
+        </Typography>
     );
 };
 
