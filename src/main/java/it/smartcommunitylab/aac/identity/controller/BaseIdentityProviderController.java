@@ -224,14 +224,18 @@ public class BaseIdentityProviderController implements InitializingBean {
 
         // check if active
         ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
-
+        boolean registered = providerManager.isProviderRegistered(realm, provider);
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
-        if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
-            try {
-                provider = providerManager.unregisterProvider(realm, providerId);
-            } catch (NoSuchAuthorityException e) {
-                // skip
+        if (registered) {
+            if(forceRegistration) {
+                try {
+                    provider = providerManager.unregisterProvider(realm, providerId);
+                } catch (NoSuchAuthorityException e) {
+                    // skip
+                }
+            } else {
+                throw new IllegalArgumentException("active providers can not be updated, disable or force");
             }
         }
 
