@@ -379,7 +379,7 @@ public class SubjectService {
         List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubjectAndRealm(uuid, realm);
 
         // unpack roles
-        Set<SubjectAuthorityEntity> newRoles = roles
+        Set<SubjectAuthorityEntity> newRoles = roles == null ? Collections.emptySet() : roles
             .stream()
             .map(r -> {
                 SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);

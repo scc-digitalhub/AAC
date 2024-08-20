@@ -435,7 +435,8 @@ public class AACBootstrap {
                                 r.isPublic(),
                                 r.getOAuthConfiguration() != null ? r.getOAuthConfiguration().getConfiguration() : null,
                                 r.getTosConfiguration() != null ? r.getTosConfiguration().getConfiguration() : null,
-                                r.getLocalizationConfiguration() != null ? r.getLocalizationConfiguration().getConfiguration() : null
+                                r.getLocalizationConfiguration() != null ? r.getLocalizationConfiguration().getConfiguration() : null,
+                                r.getTemplatesConfiguration() != null ? r.getTemplatesConfiguration().getConfiguration() : null
                             );
                     }
 

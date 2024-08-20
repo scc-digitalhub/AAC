@@ -40,6 +40,8 @@ public class TemplateProviderSettingsMap extends AbstractSettingsMap {
 
     @Deprecated
     private Set<Language> languages;
+
+    @Deprecated
     private String customStyle;
 
     @Deprecated
@@ -51,6 +53,7 @@ public class TemplateProviderSettingsMap extends AbstractSettingsMap {
         this.languages = languages;
     }
 
+    @Deprecated
     public String getCustomStyle() {
         return customStyle;
     }

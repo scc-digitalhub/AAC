@@ -83,9 +83,9 @@ public class TosConfigTest {
             realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
-            realm.getOAuthConfiguration().getConfiguration(),
+            null,
             tosConfig.getConfiguration(),
-            null
+            null, null
         );
 
         //updated model shows 'enabled'
@@ -108,9 +108,9 @@ public class TosConfigTest {
             realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
-            realm.getOAuthConfiguration().getConfiguration(),
+            null,
             tosConfig.getConfiguration(),
-            null
+            null, null
         );
 
         //updated model shows 'disabled'
@@ -148,9 +148,9 @@ public class TosConfigTest {
             realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
-            realm.getOAuthConfiguration().getConfiguration(),
+            null,
             tosConfig.getConfiguration(),
-            null
+            null, null
         );
 
         //updated model shows 'enabled'
@@ -173,9 +173,9 @@ public class TosConfigTest {
             realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
-            realm.getOAuthConfiguration().getConfiguration(),
+            null,
             tosConfig.getConfiguration(),
-            null
+            null, null
         );
 
         //updated model shows 'disabled'
@@ -247,9 +247,9 @@ public class TosConfigTest {
             realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
-            realm.getOAuthConfiguration().getConfiguration(),
+            null,
             configMap.getConfiguration(),
-            null
+            null, null
         );
     }
 

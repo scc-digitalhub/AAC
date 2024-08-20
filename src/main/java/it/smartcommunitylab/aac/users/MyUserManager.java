@@ -204,6 +204,9 @@ public class MyUserManager {
         Realm realm = realmService.getRealm(slug);
         // make sure config is clear
         realm.setOAuthConfiguration(null);
+        realm.setTosConfiguration(null);
+        realm.setLocalizationConfiguration(null);
+        realm.setTemplatesConfiguration(null);
 
         return realm;
     }

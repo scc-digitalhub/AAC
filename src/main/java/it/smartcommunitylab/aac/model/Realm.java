@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
+import it.smartcommunitylab.aac.templates.model.TemplatesConfigurationMap;
 import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -45,11 +46,13 @@ public class Realm {
     private OAuth2ConfigurationMap oauthConfiguration;
     private TosConfigurationMap tosConfiguration;
     private LocalizationConfigurationMap localizationConfiguration;
+    private TemplatesConfigurationMap templatesConfiguration;
 
     public Realm() {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
+        this.templatesConfiguration = new TemplatesConfigurationMap();
     }
 
     public Realm(String slug) {
@@ -57,6 +60,7 @@ public class Realm {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
+        this.templatesConfiguration = new TemplatesConfigurationMap();
     }
 
     public String getName() {
@@ -126,4 +130,14 @@ public class Realm {
     public void setLocalizationConfiguration(LocalizationConfigurationMap localizationConfiguration) {
         this.localizationConfiguration = localizationConfiguration;
     }
+
+    public TemplatesConfigurationMap getTemplatesConfiguration() {
+        return templatesConfiguration;
+    }
+
+    public void setTemplatesConfiguration(TemplatesConfigurationMap templatesConfiguration) {
+        this.templatesConfiguration = templatesConfiguration;
+    }
+
+    
 }

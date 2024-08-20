@@ -85,6 +85,7 @@ public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap
     }
 
     @Override
+    @Deprecated
     public String getCustomStyle() {
         return StringUtils.hasText(settingsMap.getCustomStyle()) ? settingsMap.getCustomStyle() : "";
     }

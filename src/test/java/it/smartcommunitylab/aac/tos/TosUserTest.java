@@ -260,9 +260,9 @@ public class TosUserTest {
             realm.getEmail(),
             realm.isEditable(),
             realm.isPublic(),
-            realm.getOAuthConfiguration().getConfiguration(),
+            null,
             configMap.getConfiguration(),
-            null
+            null, null
         );
     }
 

@@ -76,6 +76,8 @@ import java.util.stream.Stream;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -245,6 +247,28 @@ public class RealmManager {
             localizationConfigMap = r.getLocalizationConfiguration().getConfiguration();
         }
 
+        Map<String, Serializable> templatesConfigMap = null;
+        if (r.getTemplatesConfiguration() != null) {
+            // validate style
+            // TODO add css validator
+            String customStyle = r.getTemplatesConfiguration().getCustomStyle();
+            if ("null".equals(customStyle)) {
+                customStyle = "";
+            }
+            // use wholetext to avoid escaping ><& etc.
+            // this could break the final document
+            // TODO use a proper CSS parser
+            Document dirty = Jsoup.parseBodyFragment(customStyle);
+            Cleaner cleaner = new Cleaner(Safelist.none());
+            Document clean = cleaner.clean(dirty);
+
+            String style = clean.body().wholeText();       
+            r.getTemplatesConfiguration().setCustomStyle(style);
+            
+            //export
+            templatesConfigMap = r.getTemplatesConfiguration().getConfiguration();
+        }
+
         Realm realm = realmService.updateRealm(
             slug,
             name,
@@ -253,7 +277,8 @@ public class RealmManager {
             r.isPublic(),
             oauth2ConfigMap,
             tosConfigMap,
-            localizationConfigMap
+            localizationConfigMap,
+            templatesConfigMap
         );
 
         return realm;
@@ -526,24 +551,22 @@ public class RealmManager {
     }
 
     private Developer toDeveloper(String realm, User user) {
-        Developer dev = new Developer(user.getSubjectId(), realm);
+        Developer dev = new Developer(user.getSubjectId(), user.getRealm());
 
         dev.setUsername(user.getUsername());
         dev.setEmail(user.getEmail());
 
         // filter realm+global authorities
-        Set<GrantedAuthority> authorities = user
+        Set<RealmGrantedAuthority> authorities = user
             .getAuthorities()
             .stream()
-            .filter(a -> {
-                if (a instanceof SimpleGrantedAuthority) {
-                    return true;
-                }
+            .filter(a -> {               
                 if (a instanceof RealmGrantedAuthority) {
                     return realm.equals(((RealmGrantedAuthority) a).getRealm());
                 }
                 return false;
             })
+            .map(r -> (RealmGrantedAuthority)r)
             .collect(Collectors.toSet());
 
         dev.setAuthorities(authorities);
