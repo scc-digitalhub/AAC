@@ -77,6 +77,7 @@ public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap
     }
 
     @Override
+    @Deprecated
     public Set<Language> getLanguages() {
         return !CollectionUtils.isEmpty(settingsMap.getLanguages())
             ? settingsMap.getLanguages()

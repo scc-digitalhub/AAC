@@ -62,6 +62,7 @@ public abstract class AbstractTemplateProvider<
     }
 
     @Override
+    @Deprecated
     public Collection<String> getLanguages() {
         return config.getLanguages().stream().map(l -> l.getValue()).collect(Collectors.toList());
     }
