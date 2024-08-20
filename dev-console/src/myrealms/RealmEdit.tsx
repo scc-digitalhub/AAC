@@ -1,8 +1,9 @@
-import { Box } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 import {
     BooleanInput,
     Edit,
     Labeled,
+    List,
     NumberField,
     ReferenceArrayInput,
     TabbedForm,
@@ -26,9 +27,17 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import {
     realmLocalizationSchema,
     realmOAuthSchema,
+    realmTemplatesSchema,
     realmTosSchema,
 } from './schemas';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
+import WarningIcon from '@mui/icons-material/WarningOutlined';
+import { AceEditorInput } from '../components/AceEditorInput';
+import {
+    DeveloperFilters,
+    DeveloperListActions,
+    DeveloperListView,
+} from '../developers/DeveloperList';
 
 export const RealmEdit = () => {
     return (
@@ -60,6 +69,14 @@ const RealmEditForm = () => {
     const record = useRecordContext();
     if (!record) return null;
 
+    if (!record.editable) {
+        return (
+            <Alert severity="warning" icon={<WarningIcon />}>
+                {translate('error.not_editable')}
+            </Alert>
+        );
+    }
+
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.settings">
@@ -86,6 +103,20 @@ const RealmEditForm = () => {
                     schema={realmLocalizationSchema}
                 />
             </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.templates">
+                <SectionTitle
+                    text={translate('page.realm.templates.header.title')}
+                    secondaryText={translate(
+                        'page.realm.templates.header.subtitle'
+                    )}
+                />
+                <AceEditorInput
+                    source="templatesConfiguration.customStyle"
+                    label="field.customStyle"
+                    mode="css"
+                    minLines={12}
+                />
+            </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.oauth2">
                 <SectionTitle
                     text={translate('page.realm.oauth2.header.title')}
@@ -108,23 +139,25 @@ const RealmEditForm = () => {
                     schema={realmTosSchema}
                 />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label="tab.members">
+            <TabbedForm.Tab label="tab.developers">
                 <SectionTitle
-                    text={translate('page.realm.members.header.title')}
+                    text={translate('page.realm.developers.header.title')}
                     secondaryText={translate(
-                        'page.realm.roles.members.subtitle'
+                        'page.realm.roles.developers.subtitle'
                     )}
                 />
-                <ReferenceArrayInput source="members" reference="subjects">
-                    <DatagridArrayInput
-                        dialogFilters={[<TextInput label="query" source="q" />]}
-                        dialogFilterDefaultValues={{ q: '' }}
-                    >
-                        <TextField source="name" />
-                        <TextField source="type" />
-                        <IdField source="id" />
-                    </DatagridArrayInput>
-                </ReferenceArrayInput>
+                <List
+                    resource="developers"
+                    exporter={false}
+                    actions={<DeveloperListActions />}
+                    sort={{ field: 'name', order: 'ASC' }}
+                    component={Box}
+                    empty={false}
+                    disableSyncWithLocation
+                    storeKey={false}
+                >
+                    <DeveloperListView />
+                </List>
             </TabbedForm.Tab>
         </TabbedForm>
     );
@@ -132,7 +165,7 @@ const RealmEditForm = () => {
 
 const RealmToolBarActions = () => {
     const record = useRecordContext();
-    if (!record) return null;
+    if (!record || !record.editable) return null;
 
     return (
         <TopToolbar>

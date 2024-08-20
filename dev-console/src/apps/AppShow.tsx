@@ -23,10 +23,10 @@ import { AppEndpointsView } from './AppEndpoints';
 import { TestDialogButton } from './TestDialog';
 import { ResourceTitle } from '../components/ResourceTitle';
 import { AuditListView } from '../audit/AuditList';
-import DeveloperIcon from '@mui/icons-material/DeveloperMode';
-import AdminIcon from '@mui/icons-material/AdminPanelSettings';
+
 import { getAppIcon } from './utils';
 import { AppIcon } from './AppIcon';
+import { AdminIcon, DeveloperIcon } from '../developers/DeveloperIcon';
 
 export const AppShow = () => {
     return (

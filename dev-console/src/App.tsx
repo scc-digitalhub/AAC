@@ -31,21 +31,14 @@ import { AttributeSetList } from './attributeset/AttributeSetList';
 
 import { ServiceList } from './service/ServiceList';
 import { ServiceCreate } from './service/ServiceCreate';
-import { UserList } from './users/UserList';
-import { UserCreate } from './users/UserCreate';
 import { ScopeList } from './scopes/ScopeList';
-
-import { UserShow } from './users/UserShow';
-import { RealmIcon } from './myrealms/RealmIcon';
-import { UserIcon } from './users/UserIcon';
 
 import { ServiceShow } from './service/ServiceShow';
 import { ServiceEdit } from './service/ServiceEdit';
 import { ServiceIcon } from './service/ServiceIcon';
 import { AttributeIcon } from './attributeset/AttributeIcon';
 
-import { UserEdit } from './users/UserEdit';
-import { RealmList, RealmSelectorList } from './myrealms/RealmList';
+import { RealmSelectorList } from './myrealms/RealmList';
 
 //config
 const CONTEXT_PATH: string =
@@ -79,7 +72,12 @@ const DevApp = () => {
                 <Resource name="groups" {...groups} />
                 <Resource name="roles" {...roles} />
                 <Resource name="idps" {...idps} />
-                <Resource name="myrealms" {...myrealms} />
+                <Resource
+                    name="myrealms"
+                    edit={myrealms.edit}
+                    recordRepresentation={myrealms.recordRepresentation}
+                    icon={myrealms.icon}
+                />
                 <Resource name="audit" list={<AuditList />} />
                 <Resource
                     name="services"
@@ -104,6 +102,8 @@ const DevApp = () => {
                     icon={AttributeIcon}
                 />
                 <Resource name="subjects" />
+                <Resource name="connectedapps" />
+                <Resource name="developers" />
             </Admin>
         </RootSelectorContextProvider>
     );
@@ -125,7 +125,12 @@ const InitialWrapper = () => {
                 requireAuth
                 disableTelemetry
             >
-                <Resource name="myrealms" {...myrealms} />
+                <Resource
+                    name="myrealms"
+                    list={myrealms.list}
+                    icon={myrealms.icon}
+                    recordRepresentation={myrealms.recordRepresentation}
+                />
             </Admin>
         </RootSelectorInitialWrapper>
     );

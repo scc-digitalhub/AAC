@@ -42,6 +42,7 @@ import CancelIcon from '@mui/icons-material/ErrorOutline';
 import ConfirmIcon from '@mui/icons-material/CheckCircle';
 
 const defaultIcon = <LocalPoliceIcon />;
+export const AuthoritiesIcon = LocalPoliceIcon;
 
 export const AuthoritiesDialogButton = (
     props: AuthoritiesDialogButtonProps

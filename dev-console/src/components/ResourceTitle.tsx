@@ -53,7 +53,7 @@ export const ResourceTitle = (props: {
         <>
             {breadcrumb && isValidElement(breadcrumb) ? (
                 breadcrumb
-            ) : (
+            ) : definition.hasList ? (
                 <Link to={createPath({ resource, type: 'list' })}>
                     <Typography
                         variant="body1"
@@ -64,6 +64,8 @@ export const ResourceTitle = (props: {
                         {getResourceLabel(resource, 2)} &raquo;
                     </Typography>
                 </Link>
+            ) : (
+                <></>
             )}
             <PageTitle
                 text={displayText}

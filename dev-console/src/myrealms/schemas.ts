@@ -17,6 +17,18 @@ export const realmLocalizationSchema: RJSFSchema = {
     },
 };
 
+export const realmTemplatesSchema: RJSFSchema = {
+    type: 'object',
+    properties: {
+        customStyle: {
+            type: ['string', 'null'],
+            default: null,
+            title: 'field.customStyle.name',
+            description: 'field.customStyle.helperText',
+        },
+    },
+};
+
 export const realmOAuthSchema: RJSFSchema = {
     type: 'object',
     properties: {

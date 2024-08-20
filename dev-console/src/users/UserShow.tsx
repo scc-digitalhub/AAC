@@ -27,13 +27,13 @@ import { SectionTitle } from '../components/sectionTitle';
 import { AuthoritiesDialogButton } from '../components/AuthoritiesDialog';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';
-import DeveloperIcon from '@mui/icons-material/DeveloperMode';
-import AdminIcon from '@mui/icons-material/AdminPanelSettings';
+
 import { grey } from '@mui/material/colors';
 import { isValidElement } from 'react';
 import { AuditListView } from '../audit/AuditList';
 import { ConnectedApps } from './ConnectedApps';
 import { useRootSelector } from '@dslab/ra-root-selector';
+import { AdminIcon, DeveloperIcon } from '../developers/DeveloperIcon';
 
 export const UserShow = () => {
     return (
