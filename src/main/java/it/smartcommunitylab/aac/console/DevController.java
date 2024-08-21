@@ -276,6 +276,21 @@ public class DevController {
                 })
                 .collect(Collectors.toList());
             bean.setRegistrationEvents(registrationEvents);
+
+            bean.setTokenCount(auditManager.countRealmEvents(realm, "OAUTH2_TOKEN_GRANT", after, null));
+            List<AuditEvent> tokenEvents = auditManager
+                .searchRealmEvents(realm, "OAUTH2_TOKEN_GRANT", after, null, PageRequest.of(0, 5))
+                .getContent()
+                .stream()
+                .map(e -> {
+                    // clear event details
+                    Map<String, Object> d = new HashMap<>(e.getData());
+                    d.remove("details");
+
+                    return new AuditEvent(e.getTimestamp(), e.getPrincipal(), e.getType(), d);
+                })
+                .collect(Collectors.toList());
+            bean.setTokenEvents(tokenEvents);            
         }
 
         return ResponseEntity.ok(bean);
