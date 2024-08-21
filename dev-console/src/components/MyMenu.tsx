@@ -20,7 +20,7 @@ import { ReactElement } from 'react';
 import { AppIcon } from '../apps/AppIcon';
 import { UserIcon } from '../users/UserIcon';
 import { IdpIcon } from '../idps/IdpIcon';
-import { AttributeIcon } from '../attributeset/AttributeIcon';
+import { AttributeSetIcon } from '../attributeset/AttributeSetIcon';
 import { RoleIcon } from '../roles/RoleIcon';
 
 const defaultIcon = <RealmIcon />;

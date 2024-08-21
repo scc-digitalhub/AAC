@@ -27,12 +27,11 @@ import apiResourcesDefinition from './resources';
 import myrealmsDefinition from './myrealms';
 import auditDefinition from './audit';
 import serviceDefinition from './service';
-
-import { AttributeSetList } from './attributeset/AttributeSetList';
+import attributeSetDefinition from './attributeset';
 
 import { ScopeList } from './scopes/ScopeList';
 
-import { AttributeIcon } from './attributeset/AttributeIcon';
+import { AttributeSetIcon } from './attributeset/AttributeSetIcon';
 
 import { RealmSelectorList } from './myrealms/RealmList';
 
@@ -87,11 +86,7 @@ const DevApp = () => {
                     recordRepresentation={record => `${record.name}`}
                 />
 
-                <Resource
-                    name="attributeset"
-                    list={<AttributeSetList />}
-                    icon={AttributeIcon}
-                />
+                <Resource name="attributeset" {...attributeSetDefinition} />
                 <Resource name="subjects" />
                 <Resource name="connectedapps" />
                 <Resource name="developers" />

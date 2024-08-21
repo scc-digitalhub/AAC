@@ -1,2 +1,3 @@
 import InventoryIcon from '@mui/icons-material/Inventory';
-export const AttributeIcon = InventoryIcon;
+
+export const AttributeSetIcon = InventoryIcon;

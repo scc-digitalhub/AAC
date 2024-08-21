@@ -1,4 +1,3 @@
-import { ServiceCreate } from './ServiceCreate';
 import { ServiceEdit } from './ServiceEdit';
 import { ServiceIcon } from './ServiceIcon';
 import { ServiceList } from './ServiceList';
