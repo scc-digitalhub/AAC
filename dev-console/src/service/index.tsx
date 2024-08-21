@@ -1,7 +1,11 @@
 import { ServiceCreate } from './ServiceCreate';
+import { ServiceEdit } from './ServiceEdit';
+import { ServiceIcon } from './ServiceIcon';
 import { ServiceList } from './ServiceList';
 
 export default {
     list: ServiceList,
-    create: ServiceCreate,
+    edit: ServiceEdit,
+    icon: ServiceIcon,
+    recordRepresentation: record => record.name,
 };

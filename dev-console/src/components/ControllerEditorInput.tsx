@@ -20,7 +20,6 @@ export const ControlledEditorInput = (
     });
     const checked = field?.value;
     const [disabled, setDisabled] = useState<boolean>(!checked);
-
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const enabled = event.target.checked;
         if (enabled) {

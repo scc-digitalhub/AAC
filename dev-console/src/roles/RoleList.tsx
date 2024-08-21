@@ -54,7 +54,7 @@ export const RoleListView = (props: { actions?: ReactElement | boolean }) => {
     );
 
     return (
-        <Datagrid bulkActionButtons={false} rowClick="show">
+        <Datagrid bulkActionButtons={false} rowClick="edit">
             <NameField
                 text="name"
                 secondaryText="role"

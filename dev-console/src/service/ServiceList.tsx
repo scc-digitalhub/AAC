@@ -1,55 +1,109 @@
-import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import {
     List,
-    Datagrid,
-    TextField,
-    TopToolbar,
     SearchInput,
+    Datagrid,
+    TopToolbar,
+    useTranslate,
+    NumberField,
+    ExportButton,
+    ArrayField,
+    ChipField,
+    SingleFieldList,
+    FunctionField,
 } from 'react-admin';
-import { ServiceCreateForm } from './ServiceCreate';
 import { Box } from '@mui/material';
-import { ActionsButtons } from '../components/ActionsButtons';
-import { Page } from '../components/Page';
 import { YamlExporter } from '../components/YamlExporter';
+
+import React, { isValidElement, ReactElement } from 'react';
+import { useRootSelector } from '@dslab/ra-root-selector';
+import { ServiceCreateForm } from './ServiceCreate';
+import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
+import { PageTitle } from '../components/PageTitle';
+import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
+import { ServiceIcon } from './ServiceIcon';
+import { NameField } from '../components/NameField';
+import { Page } from '../components/Page';
 
 export const ServiceList = () => {
+    const translate = useTranslate();
     return (
         <Page>
+            <PageTitle
+                text={translate('page.services.list.title')}
+                secondaryText={translate('page.services.list.subtitle')}
+            />
             <List
-                actions={<ServiceListActions />}
-                component={Box}
                 exporter={YamlExporter}
+                actions={<ServiceListActions />}
                 filters={ServiceFilters}
-                sort={{ field: 'name', order: 'DESC' }}
+                sort={{ field: 'name', order: 'ASC' }}
+                component={Box}
                 empty={false}
             >
-                <Datagrid bulkActionButtons={false} rowClick="show">
-                    <TextField source="name" />
-                    <IdField source="id" />
-                    <ActionsButtons />
-                </Datagrid>
+                <ServiceListView />
             </List>
         </Page>
     );
 };
-const ServiceFilters = [<SearchInput source="q" alwaysOn />];
-const createTransform = (data: any) => {
-    return {
-        ...data,
-    };
+
+export const ServiceListView = (props: {
+    actions?: ReactElement | boolean;
+}) => {
+    const { actions: actionProps = true } = props;
+
+    const actions = !actionProps ? (
+        false
+    ) : isValidElement(actionProps) ? (
+        actionProps
+    ) : (
+        <ActionsButtons />
+    );
+
+    return (
+        <Datagrid bulkActionButtons={false} rowClick="edit">
+            <NameField
+                text="name"
+                secondaryText="namespace"
+                tertiaryText="description"
+                source="name"
+                icon={<ServiceIcon color={'secondary'} />}
+            />
+            <IdField source="serviceId" label="id" />
+            <ArrayField source="scopes">
+                <SingleFieldList linkType={false}>
+                    <FunctionField
+                        render={s => <ChipField source="scope" size="small" />}
+                    />
+                </SingleFieldList>
+            </ArrayField>
+            {actions !== false && actions}
+        </Datagrid>
+    );
 };
+
+const ServiceFilters = [<SearchInput source="q" alwaysOn />];
+
 const ServiceListActions = () => {
+    const { root: realmId } = useRootSelector();
+    const transform = (data: any) => {
+        return {
+            ...data,
+            realm: realmId,
+        };
+    };
+
     return (
         <TopToolbar>
             <CreateInDialogButton
                 fullWidth
-                maxWidth={'md'}
+                maxWidth={'sm'}
                 variant="contained"
-                transform={createTransform}
+                transform={transform}
             >
                 <ServiceCreateForm />
             </CreateInDialogButton>
+            <ExportButton variant="contained" />
         </TopToolbar>
     );
 };

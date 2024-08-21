@@ -12,6 +12,7 @@ import {
     TextField,
     TextInput,
     TopToolbar,
+    useDataProvider,
     useEditContext,
     useGetList,
     useRecordContext,
@@ -21,6 +22,7 @@ import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { SectionTitle } from '../components/sectionTitle';
 import {
+    claimMappingDefaultValue,
     schemaOAuthClient,
     schemaWebHooks,
     uiSchemaOAuthClient,
@@ -33,8 +35,10 @@ import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';
 import { IdpNameField } from '../idps/IdpList';
 import { AppResources } from './AppResources';
-import { ClaimMappingEditor } from './ClaimMappingEditor';
+// import { ClaimMappingEditor } from './ClaimMappingEditor';
 import { AppTitle } from './AppShow';
+import { ClaimMappingEditor } from '../components/ClaimMappingEditor';
+import { useRootSelector } from '@dslab/ra-root-selector';
 
 export const AppEdit = () => {
     //fetch related to resolve relations
@@ -73,9 +77,27 @@ export const AppEdit = () => {
 };
 
 const AppEditForm = () => {
+    const dataProvider = useDataProvider();
+    const { root: realmId } = useRootSelector();
+
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
     if (!record) return null;
+
+    const handleTest = (record, code) => {
+        return dataProvider.invoke({
+            path: 'apps/' + realmId + '/' + record.id + '/claims',
+            body: JSON.stringify({
+                code,
+                name: 'claimMapping',
+                scopes: [],
+            }),
+            options: {
+                method: 'POST',
+            },
+        });
+    };
+
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
@@ -165,8 +187,12 @@ const AppEditForm = () => {
                     secondaryText="page.apps.hooks.claimMapping.subtitle"
                 />
 
-                <ClaimMappingEditor />
-
+                {/* <ClaimMappingEditor /> */}
+                <ClaimMappingEditor
+                    source="hookFunctions.claimMapping"
+                    onTest={handleTest}
+                    defaultValue={claimMappingDefaultValue}
+                />
                 <SectionTitle
                     text="page.apps.hooks.webhooks.title"
                     secondaryText="page.apps.hooks.webhooks.subtitle"

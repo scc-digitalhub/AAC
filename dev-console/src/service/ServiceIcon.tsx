@@ -1,2 +1,4 @@
 import MiscellaneousServicesIcon from '@mui/icons-material/MiscellaneousServices';
-export const ServiceIcon = MiscellaneousServicesIcon;
+import HubIcon from '@mui/icons-material/Hub';
+
+export const ServiceIcon = HubIcon;

@@ -1,63 +1,33 @@
-import {
-    CreateBase,
-    Form,
-    TextInput,
-    Toolbar,
-} from 'react-admin';
-import { Card, CardContent, Box, Divider } from '@mui/material';
-
-export const ServiceCreate = () => {
-
-    const transform = (data: any) => {
-        return {
-            ...data
-        };
-    };
-    return (
-        <CreateBase
-            transform={transform}
-        >
-            <ServiceCreateForm />
-        </CreateBase>
-    );
-};
+import { Form, SaveButton, TextInput } from 'react-admin';
+import { DialogActions, Stack } from '@mui/material';
+import { Page } from '../components/Page';
 
 export const ServiceCreateForm = () => {
-    return (<Box mt={2} display="flex">
-    <Box flex="1">
+    return (
         <Form>
-            <Card>
-                <CardContent>
-                    <Box>
-                        <Box display="flex">
-                            <Box flex="1" mt={-1}>
-                                <Box display="flex" width={430}>
-                                    <TextInput
-                                        source="name"
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box display="flex" width={430}>
-                                    <TextInput
-                                        source="description"
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Box display="flex" width={430}>
-                                    <TextInput
-                                        source="namespace"
-                                        fullWidth
-                                    />
-                                </Box>
-                                <Divider />
-                            </Box>
-                        </Box>
-                    </Box>
-                </CardContent>
-                <Toolbar />
-            </Card>
+            <Page>
+                <Stack rowGap={2}>
+                    <TextInput
+                        source="name"
+                        label="field.name.name"
+                        helperText="field.name.helperText"
+                        fullWidth
+                        required
+                    />
+
+                    <TextInput
+                        source="namespace"
+                        label="field.namespace.name"
+                        helperText="field.namespace.helperText"
+                        fullWidth
+                        required
+                        type={'url'}
+                    />
+                </Stack>
+            </Page>
+            <DialogActions>
+                <SaveButton label="ra.action.create" variant="text" />
+            </DialogActions>
         </Form>
-    </Box>
-</Box>
     );
-}
+};

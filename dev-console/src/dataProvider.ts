@@ -58,7 +58,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 size: perPage,
             };
             let suffix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 suffix = '/' + params.meta.root;
             }
             const url =
@@ -78,7 +82,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         getOne: (resource, params) => {
             let suffix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 suffix = '/' + params.meta.root;
             }
 
@@ -118,7 +126,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         getMany: (resource, params) => {
             //no pagination!
             let prefix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 prefix = '/' + params.meta.root;
             }
             const url = `${apiUrl}/${resource}${prefix}`;
@@ -173,7 +185,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         update: (resource, params) => {
             let suffix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 suffix = '/' + params.meta.root;
             }
 
@@ -218,7 +234,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         updateMany: (resource, params) => {
             let prefix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 prefix = '/' + params.meta.root;
             }
             const url = `${apiUrl}${prefix}/${resource}`;
@@ -243,7 +263,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             let body: any;
 
             let suffix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 suffix = '/' + params.meta.root;
             }
             let url = `${apiUrl}/${resource}${suffix}`;
@@ -267,7 +291,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         delete: (resource, params) => {
             let suffix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 suffix = '/' + params.meta.root;
             }
             const url = `${apiUrl}/${resource}${suffix}` + `/${params.id}`;
@@ -278,7 +306,11 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
         },
         deleteMany: (resource, params) => {
             let prefix = '';
-            if (resource !== 'myrealms' && params.meta?.root) {
+            if (
+                resource !== 'myrealms' &&
+                resource.indexOf('/') === -1 &&
+                params.meta?.root
+            ) {
                 prefix = '/' + params.meta.root;
             }
             const url = `${apiUrl}${prefix}/${resource}`;
