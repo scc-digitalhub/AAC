@@ -1,4 +1,5 @@
 import { UserCreate } from './UserCreate';
+import { UserEdit } from './UserEdit';
 import { UserIcon } from './UserIcon';
 import { UserList } from './UserList';
 import { UserShow } from './UserShow';
@@ -6,7 +7,7 @@ import { UserShow } from './UserShow';
 export default {
     list: UserList,
     create: UserCreate,
-    show: UserShow,
+    edit: UserEdit,
     icon: UserIcon,
     recordRepresentation: record => record.username,
 };
