@@ -111,7 +111,7 @@ public class BaseScopesController implements InitializingBean {
     @Operation(summary = "Get a resource with all its scopes for the given realm")
     public Resource getResource(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String resourceId
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.URI_PATTERN) String resourceId
     ) throws NoSuchRealmException, NoSuchResourceException {
         logger.debug("get resource {}", StringUtils.trimAllWhitespace(resourceId));
 
