@@ -8,6 +8,7 @@ import {
     Edit,
     FunctionField,
     IconButtonWithTooltip,
+    Labeled,
     ReferenceArrayField,
     ReferenceArrayInput,
     ReferenceManyField,
@@ -152,49 +153,51 @@ const UserForm = () => {
             syncWithLocation={false}
             validate={values => ({ error: 'not editable' })}
         >
-            <TabbedForm.Tab label={translate('page.user.overview.title')}>
-                <TextField source="username" />
-                <TextField source="email" />
-                <TextField source="subjectId" />
-                <ReferenceArrayField source="groups" reference="groups" />
-                <ReferenceArrayField source="roles" reference="roles" />
+            <TabbedForm.Tab label={'tab.overview'}>
+                <Labeled>
+                    <TextField source="username" />
+                </Labeled>
+                <Labeled>
+                    <TextField source="email" />
+                </Labeled>
+                <Labeled>
+                    <TextField source="subjectId" />
+                </Labeled>
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.user.account.title')}>
+            <TabbedForm.Tab label={'tab.account'}>
                 <SectionTitle
                     text={translate('page.user.account.title')}
-                    secondaryText={translate('page.user.account.subTitle')}
+                    secondaryText={translate('page.user.account.subtitle')}
                 />
                 <UserAccountsForm />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.user.apps.title')}>
+            <TabbedForm.Tab label={'tab.apps'}>
                 <SectionTitle
                     text={translate('page.user.apps.title')}
-                    secondaryText={translate('page.user.apps.subTitle')}
+                    secondaryText={translate('page.user.apps.subtitle')}
                 />
                 <ConnectedApps />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.user.groups.title')}>
+            <TabbedForm.Tab label={'tab.groups'}>
                 <SectionTitle
                     text={translate('page.user.groups.title')}
-                    secondaryText={translate('page.user.groups.subTitle')}
+                    secondaryText={translate('page.user.groups.subtitle')}
                 />
 
                 <UserReferencedInput reference="groups" source="groups" />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.user.roles.title')}>
+            <TabbedForm.Tab label={'tab.roles'}>
                 <SectionTitle
                     text={translate('page.user.roles.title')}
-                    secondaryText={translate('page.user.roles.subTitle')}
+                    secondaryText={translate('page.user.roles.subtitle')}
                 />
                 <UserReferencedInput reference="roles" source="roles" />
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.user.attributes.title')}>
+            <TabbedForm.Tab label={'tab.attributes'}>
                 <SectionTitle
-                    text={translate(
-                        'page.user.attributes.identityPrimaryTitle'
-                    )}
+                    text={translate('page.user.attributes.identity.title')}
                     secondaryText={translate(
-                        'page.user.attributes.identitySubTitle'
+                        'page.user.attributes.identity.subtitle'
                     )}
                 />
 
@@ -218,11 +221,9 @@ const UserForm = () => {
                 <br />
                 <br />
                 <SectionTitle
-                    text={translate(
-                        'page.user.attributes.additionalPrimaryTitle'
-                    )}
+                    text={translate('page.user.attributes.attributes.title')}
                     secondaryText={translate(
-                        'page.user.attributes.additionalsubTitle'
+                        'page.user.attributes.attributes.subtitle'
                     )}
                 />
                 <ArrayField source="attributes">
@@ -242,12 +243,14 @@ const UserForm = () => {
                     </Datagrid>
                 </ArrayField>
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={translate('page.user.tos.title')}>
+            <TabbedForm.Tab label={'tab.tos'}>
                 <SectionTitle
-                    text={translate('page.user.tos.primaryTitle')}
-                    secondaryText={translate('page.user.tos.subTitle')}
+                    text={translate('page.user.tos.title')}
+                    secondaryText={translate('page.user.tos.subtitle')}
                 />
-                <BooleanField source="tosAccepted" label="field.tosAccepted" />
+                <Labeled>
+                    <BooleanField source="tos" label="field.tosAccepted" />
+                </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.audit">
                 <SectionTitle
@@ -276,7 +279,7 @@ const EditToolBarActions = () => {
 
     return (
         <TopToolbar>
-            <ActiveButton />
+            <ToggleUserStatusButton />
             <InspectButton />
             <AuthoritiesDialogButton onSuccess={() => refresh()} />
             <DeleteWithDialogButton />
@@ -620,6 +623,61 @@ const ToggleConfirmButton = (props: { reference: string }) => {
                     label="action.reset"
                     color="warning"
                     startIcon={<GppBadIcon />}
+                ></Button>
+            )}
+        </>
+    );
+};
+
+export const ToggleUserStatusButton = () => {
+    const record = useRecordContext();
+    const resource = useResourceContext();
+    const dataProvider = useDataProvider();
+    const { root: realmId } = useRootSelector();
+    const notify = useNotify();
+    const refresh = useRefresh();
+
+    const handleStatus = status => {
+        if (dataProvider && record) {
+            dataProvider
+                .invoke({
+                    path: 'users/' + realmId + '/' + record.id + '/status',
+                    body: JSON.stringify({ status }),
+                    options: {
+                        method: 'PUT',
+                    },
+                })
+                .then(() => {
+                    notify('ra.notification.updated', {
+                        messageArgs: { smart_count: 1 },
+                    });
+                    refresh();
+                });
+        }
+    };
+
+    if (!record) return null;
+    return (
+        <>
+            {record.status === 'active' ? (
+                <Button
+                    onClick={e => {
+                        handleStatus('inactive');
+                        e.stopPropagation();
+                    }}
+                    label="action.disable"
+                    color="warning"
+                    startIcon={<LockIcon />}
+                ></Button>
+            ) : (
+                <Button
+                    onClick={e => {
+                        handleStatus('active');
+                        e.stopPropagation();
+                    }}
+                    label="action.enable"
+                    color="success"
+                    startIcon={<LockOpenIcon />}
                 ></Button>
             )}
         </>
