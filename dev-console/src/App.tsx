@@ -23,6 +23,7 @@ import groupsDefinition from './group';
 import rolesDefinition from './roles';
 import usersDefinition from './users';
 import idpsDefinition from './idps';
+import apsDefinition from './aps';
 import apiResourcesDefinition from './resources';
 import myrealmsDefinition from './myrealms';
 import auditDefinition from './audit';
@@ -67,6 +68,7 @@ const DevApp = () => {
                 <Resource name="groups" {...groupsDefinition} />
                 <Resource name="roles" {...rolesDefinition} />
                 <Resource name="idps" {...idpsDefinition} />
+                <Resource name="aps" {...apsDefinition} />
                 <Resource
                     name="myrealms"
                     edit={myrealmsDefinition.edit}
