@@ -12,7 +12,7 @@ import {
 } from 'react-admin';
 import { DialogActions, Grid, Stack } from '@mui/material';
 import { Page } from '../components/Page';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import utils from '../utils';
 import { ControlledEditorInput } from '../components/ControllerEditorInput';

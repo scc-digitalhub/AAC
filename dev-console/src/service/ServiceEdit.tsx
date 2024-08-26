@@ -1,14 +1,12 @@
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import {
     ArrayField,
     BooleanField,
     Datagrid,
     DeleteWithConfirmButton,
     Edit,
-    FunctionField,
     Labeled,
     SaveButton,
-    ShowButton,
     TabbedForm,
     TextField,
     TextInput,
@@ -20,16 +18,12 @@ import {
     useRefresh,
     useTranslate,
 } from 'react-admin';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
-import { PageTitle } from '../components/PageTitle';
-import { TabToolbar } from '../components/TabToolbar';
 import { ResourceTitle } from '../components/ResourceTitle';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { NameField } from '../components/NameField';
 import {
     CreateInDialogButton,
@@ -95,13 +89,16 @@ const ServiceEditForm = () => {
         <TabbedForm toolbar={<ServiceTabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
-                    <TextField source="id" />
+                    <TextField source="id" label="field.id.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="name" />
+                    <TextField source="name" label="field.name.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="namespace" />
+                    <TextField
+                        source="namespace"
+                        label="field.namespace.name"
+                    />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
@@ -111,9 +108,26 @@ const ServiceEditForm = () => {
                         'page.service.settings.header.subtitle'
                     )}
                 />
-                <TextInput source="namespace" fullWidth readOnly />
-                <TextInput source="name" fullWidth />
-                <TextInput source="description" multiline fullWidth />
+                <TextInput
+                    source="namespace"
+                    label="field.namespace.name"
+                    helperText="field.namespace.helperText"
+                    fullWidth
+                    readOnly
+                />
+                <TextInput
+                    source="name"
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                    fullWidth
+                />
+                <TextInput
+                    source="description"
+                    label="field.description.name"
+                    helperText="field.description.helperText"
+                    multiline
+                    fullWidth
+                />
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.scopes">
                 <SectionTitle
@@ -145,9 +159,10 @@ const ServiceEditForm = () => {
                             text="name"
                             secondaryText="scope"
                             source="name"
+                            label="field.name.name"
                             icon={false}
                         />
-                        <TextField source="type" />
+                        <TextField source="type" label="field.type.name" />
                         <RowButtonGroup>
                             <EditInDialogButton
                                 title={translate('ra.page.edit', {
@@ -215,10 +230,14 @@ const ServiceEditForm = () => {
                             text="name"
                             secondaryText="key"
                             source="name"
+                            label="field.name.name"
                             icon={false}
                         />
-                        <TextField source="type" />
-                        <BooleanField source="multiple" />
+                        <TextField source="type" label="field.type.name" />
+                        <BooleanField
+                            source="multiple"
+                            label="field.multiple.name"
+                        />
                         <RowButtonGroup>
                             <EditInDialogButton
                                 title={translate('ra.page.edit', {
@@ -264,12 +283,16 @@ const ServiceEditForm = () => {
                 />
                 <ClaimMappingEditor
                     source="claimMapping.user"
+                    label="field.claimMapping.user.name"
+                    helperText="field.claimMapping.user.helperText"
                     onTest={handleValidate('user')}
                     defaultValue={claimMappingDefaultValue}
                 />
 
                 <ClaimMappingEditor
                     source="claimMapping.client"
+                    label="field.claimMapping.client.name"
+                    helperText="field.claimMapping.client.helperText"
                     onTest={handleValidate('client')}
                     defaultValue={claimMappingDefaultValue}
                 />

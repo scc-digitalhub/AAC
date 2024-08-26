@@ -7,10 +7,12 @@ import {
     Labeled,
     List,
     ReferenceArrayInput,
+    SaveButton,
     ShowButton,
     TabbedForm,
     TextField,
     TextInput,
+    Toolbar,
     TopToolbar,
     useDataProvider,
     useEditContext,
@@ -20,7 +22,7 @@ import {
 } from 'react-admin';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import {
     claimMappingDefaultValue,
     schemaOAuthClient,
@@ -28,14 +30,11 @@ import {
     uiSchemaOAuthClient,
 } from './schemas';
 import { Page } from '../components/Page';
-import { TabToolbar } from '../components/TabToolbar';
 import { AuthoritiesDialogButton } from '../components/AuthoritiesDialog';
 import { TestDialogButton } from './TestDialog';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
-import { ResourceTitle } from '../components/ResourceTitle';
 import { IdpNameField } from '../idps/IdpList';
 import { AppResources } from './AppResources';
-// import { ClaimMappingEditor } from './ClaimMappingEditor';
 import { AppTitle } from './AppShow';
 import { ClaimMappingEditor } from '../components/ClaimMappingEditor';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -61,7 +60,7 @@ export const AppEdit = () => {
     return (
         <Page>
             <Edit
-                actions={<EditToolBarActions />}
+                actions={<ActionsToolbar />}
                 mutationMode="optimistic"
                 component={Box}
                 redirect={'edit'}
@@ -102,16 +101,16 @@ const AppEditForm = () => {
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
-                    <TextField source="name" />
+                    <TextField source="name" label="field.name.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="type" />
+                    <TextField source="type" label="field.type.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="clientId" />
+                    <TextField source="clientId" label="field.clientId.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="scopes" />
+                    <TextField source="scopes" label="field.scopes.name" />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
@@ -119,8 +118,18 @@ const AppEditForm = () => {
                     text="page.apps.settings.header.title"
                     secondaryText="page.apps.settings.header.subtitle"
                 />
-                <TextInput source="name" fullWidth />
-                <TextInput source="description" fullWidth />
+                <TextInput
+                    source="name"
+                    fullWidth
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                />
+                <TextInput
+                    source="description"
+                    fullWidth
+                    label="field.description.name"
+                    helperText="field.description.helperText"
+                />
             </TabbedForm.Tab>
 
             <TabbedForm.Tab label="tab.providers">
@@ -128,17 +137,16 @@ const AppEditForm = () => {
                     text="page.apps.providers.header.title"
                     secondaryText="page.apps.providers.header.subtitle"
                 />
-                {/* <ReferenceArrayInput
-                    source="providers"
-                    reference="idps"
-                    sort={{ field: 'name', order: 'ASC' }}
-                /> */}
                 <ReferenceArrayInput
                     source="providers"
+                    label="field.providers.name"
+                    helperText="field.providers.helperText"
                     reference="idps"
                     sort={{ field: 'name', order: 'ASC' }}
                 >
                     <CheckboxGroupInput
+                        label="field.providers.name"
+                        helperText="field.providers.helperText"
                         row={false}
                         labelPlacement="end"
                         optionText={<IdpNameField source="name" />}
@@ -164,9 +172,15 @@ const AppEditForm = () => {
                     text="page.apps.scopes.header.title"
                     secondaryText="page.apps.scopes.header.subtitle"
                 />
-                <ReferenceArrayInput source="scopes" reference="scopes">
+                <ReferenceArrayInput
+                    source="scopes"
+                    reference="scopes"
+                    label="field.scopes.name"
+                    helperText="field.scopes.helperText"
+                >
                     <AutocompleteArrayInput
-                        label="scopes"
+                        label="field.scopes.name"
+                        helperText="field.scopes.helperText"
                         optionText={'id'}
                         optionValue={'id'}
                     />
@@ -187,7 +201,6 @@ const AppEditForm = () => {
                     secondaryText="page.apps.hooks.claimMapping.subtitle"
                 />
 
-                {/* <ClaimMappingEditor /> */}
                 <ClaimMappingEditor
                     source="hookFunctions.claimMapping"
                     onTest={handleTest}
@@ -209,8 +222,17 @@ const AppEditForm = () => {
                 <ReferenceArrayInput
                     source="roles"
                     reference="roles"
+                    label="field.roles.name"
+                    helperText="field.roles.helperText"
                     sort={{ field: 'role', order: 'ASC' }}
-                />
+                >
+                    <AutocompleteArrayInput
+                        label="field.roles.name"
+                        helperText="field.roles.helperText"
+                        optionText={'role'}
+                        optionValue={'id'}
+                    />
+                </ReferenceArrayInput>
             </TabbedForm.Tab>
 
             <TabbedForm.Tab label="tab.groups">
@@ -221,14 +243,23 @@ const AppEditForm = () => {
                 <ReferenceArrayInput
                     source="groups"
                     reference="groups"
+                    label="field.groups.name"
+                    helperText="field.groups.helperText"
                     sort={{ field: 'group', order: 'ASC' }}
-                />
+                >
+                    <AutocompleteArrayInput
+                        label="field.groups.name"
+                        helperText="field.groups.helperText"
+                        optionText={'group'}
+                        optionValue={'id'}
+                    />
+                </ReferenceArrayInput>
             </TabbedForm.Tab>
         </TabbedForm>
     );
 };
 
-const EditToolBarActions = () => {
+const ActionsToolbar = () => {
     const refresh = useRefresh();
     const record = useRecordContext();
 
@@ -245,3 +276,9 @@ const EditToolBarActions = () => {
         </TopToolbar>
     );
 };
+
+const TabToolbar = () => (
+    <Toolbar>
+        <SaveButton />
+    </Toolbar>
+);

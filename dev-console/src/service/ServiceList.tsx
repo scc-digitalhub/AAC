@@ -4,7 +4,6 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    NumberField,
     ExportButton,
     ArrayField,
     ChipField,
@@ -14,7 +13,7 @@ import {
 import { Box } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
 
-import React, { isValidElement, ReactElement } from 'react';
+import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { ServiceCreateForm } from './ServiceCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
@@ -67,10 +66,11 @@ export const ServiceListView = (props: {
                 secondaryText="namespace"
                 tertiaryText="description"
                 source="name"
+                label="field.name.name"
                 icon={<ServiceIcon color={'secondary'} />}
             />
-            <IdField source="serviceId" label="id" />
-            <ArrayField source="scopes">
+            <IdField source="serviceId" label="field.id.name" />
+            <ArrayField source="scopes" label="field.scopes.name">
                 <SingleFieldList linkType={false}>
                     <FunctionField
                         render={s => <ChipField source="scope" size="small" />}

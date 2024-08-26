@@ -17,8 +17,16 @@ export const ClaimMappingEditor = (props: {
     source: string;
     onTest: (record, code) => Promise<any>;
     defaultValue: string;
+    label?: string;
+    helperText?: string;
 }) => {
-    const { source, onTest, defaultValue: claimMappingDefaultValue } = props;
+    const {
+        source,
+        onTest,
+        defaultValue: claimMappingDefaultValue,
+        label,
+        helperText,
+    } = props;
     const record = useRecordContext();
     const notify = useNotify();
     const translate = useTranslate();
@@ -75,6 +83,8 @@ export const ClaimMappingEditor = (props: {
         <>
             <ControlledEditorInput
                 source={source}
+                label={label}
+                helperText={helperText}
                 defaultValue={claimMappingDefaultValue}
                 mode="javascript"
                 parse={utils.parseBase64}

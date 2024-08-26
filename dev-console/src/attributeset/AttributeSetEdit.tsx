@@ -1,37 +1,29 @@
 import { Box, Chip, Stack } from '@mui/material';
 import {
-    ArrayField,
     ArrayInput,
     BooleanInput,
-    ChipField,
     Edit,
     Labeled,
-    NumberField,
-    NumberInput,
-    ReferenceArrayInput,
     regex,
     required,
+    SaveButton,
     SelectInput,
     SimpleFormIterator,
     TabbedForm,
     TextField,
     TextInput,
+    Toolbar,
     TopToolbar,
-    useGetList,
     useRecordContext,
     useTranslate,
     WrapperField,
 } from 'react-admin';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
-import { IdField } from '../components/IdField';
 import { Page } from '../components/Page';
-import { TabToolbar } from '../components/TabToolbar';
-import { DatagridArrayInput } from '@dslab/ra-datagrid-input';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';
-import { AttributeEditForm, ClaimEditForm } from '../service/ServiceClaim';
 
 const pattern = /^[a-zA-Z.:_-]{3,}$/;
 
@@ -39,7 +31,7 @@ export const AttributeSetEdit = () => {
     return (
         <Page>
             <Edit
-                actions={<AttributeSetToolBarActions />}
+                actions={<ActionsToolbar />}
                 mutationMode="optimistic"
                 component={Box}
                 redirect={'edit'}
@@ -60,15 +52,18 @@ const AttributeSetEditForm = () => {
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
-                    <TextField source="id" />
+                    <TextField source="id" label="field.id.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="name" />
+                    <TextField source="name" label="field.name.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="identifier" />
+                    <TextField
+                        source="identifier"
+                        label="field.identifier.name"
+                    />
                 </Labeled>
-                <Labeled label="keys">
+                <Labeled label="field.keys.name">
                     <WrapperField label="keys">
                         <Stack direction={'row'} flexWrap={'wrap'} gap={1}>
                             {record?.keys?.map(k => (
@@ -85,9 +80,26 @@ const AttributeSetEditForm = () => {
                         'page.attributeSet.settings.header.subtitle'
                     )}
                 />
-                <TextInput source="identifier" fullWidth readOnly />
-                <TextInput source="name" fullWidth />
-                <TextInput source="description" multiline fullWidth />
+                <TextInput
+                    source="identifier"
+                    label="field.identifier.name"
+                    helperText="field.identifier.helperText"
+                    fullWidth
+                    readOnly
+                />
+                <TextInput
+                    source="name"
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                    fullWidth
+                />
+                <TextInput
+                    source="description"
+                    label="field.description.name"
+                    helperText="field.description.helperText"
+                    multiline
+                    fullWidth
+                />
             </TabbedForm.Tab>
 
             {record?.identifier && !record.identifier.startsWith('aac') && (
@@ -159,7 +171,7 @@ const AttributeSetEditForm = () => {
     );
 };
 
-const AttributeSetToolBarActions = () => {
+const ActionsToolbar = () => {
     const record = useRecordContext();
     if (!record) return null;
 
@@ -171,3 +183,9 @@ const AttributeSetToolBarActions = () => {
         </TopToolbar>
     );
 };
+
+const TabToolbar = () => (
+    <Toolbar>
+        <SaveButton />
+    </Toolbar>
+);

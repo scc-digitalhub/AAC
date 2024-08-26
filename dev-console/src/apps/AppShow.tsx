@@ -14,7 +14,7 @@ import {
     useRecordContext,
     useTranslate,
 } from 'react-admin';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { ExportRecordButton } from '@dslab/ra-export-record-button';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { Page } from '../components/Page';
@@ -98,12 +98,20 @@ const AppView = () => {
     return (
         <TabbedShowLayout syncWithLocation={false}>
             <TabbedShowLayout.Tab label="tab.overview">
-                <TextField source="name" />
-                <TextField source="type" />
-                <TextField source="clientId" />
-                <TextField source="scopes" />
-                <ReferenceArrayField source="groups" reference="groups" />
-                <ReferenceArrayField source="roles" reference="roles" />
+                <TextField source="name" label="field.name.name" />
+                <TextField source="type" label="field.type.name" />
+                <TextField source="clientId" label="field.clientId.name" />
+                <TextField source="scopes" label="field.scopes.name" />
+                <ReferenceArrayField
+                    source="groups"
+                    reference="groups"
+                    label="field.groups.name"
+                />
+                <ReferenceArrayField
+                    source="roles"
+                    reference="roles"
+                    label="field.roles.name"
+                />
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.credentials">
                 <SectionTitle
@@ -113,13 +121,19 @@ const AppView = () => {
                 <Grid container gap={1}>
                     <Grid item xs={12}>
                         <Labeled>
-                            <IdField label="Client ID" source="clientId" />
+                            <IdField
+                                source="clientId"
+                                label="field.clientId.name"
+                            />
                         </Labeled>
                     </Grid>
                     {record.configuration.clientSecret && (
                         <Grid item xs={12}>
                             <Labeled>
-                                <IdField source="configuration.clientSecret" />
+                                <IdField
+                                    source="configuration.clientSecret"
+                                    label="field.clientSecret.name"
+                                />
                             </Labeled>
                         </Grid>
                     )}
@@ -128,6 +142,7 @@ const AppView = () => {
                             <Labeled>
                                 <IdField
                                     source="configuration.jwks"
+                                    label="field.jwks.name"
                                     format={value =>
                                         value && value.length > 120
                                             ? value.substring(0, 120) + '...'
@@ -144,7 +159,7 @@ const AppView = () => {
                     text="page.apps.scopes.header.title"
                     secondaryText="page.apps.scopes.header.subtitle"
                 />
-                <ReferenceArrayField source="scopes" reference="scopes" />
+                <ReferenceArrayField source="scopes" reference="scopes" label="field.scopes.name"/>
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.endpoints">
                 <SectionTitle

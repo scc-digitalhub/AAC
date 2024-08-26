@@ -4,13 +4,12 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    NumberField,
     ExportButton,
 } from 'react-admin';
 import { Box } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
 
-import React, { isValidElement, ReactElement } from 'react';
+import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { PageTitle } from '../components/PageTitle';
@@ -19,6 +18,7 @@ import { IdField } from '../components/IdField';
 import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
 import { AttributeSetIcon } from './AttributeSetIcon';
+import { AttributeSetCreateForm } from './AttributeSetCreate';
 
 export const AttributeSetList = () => {
     const translate = useTranslate();
@@ -62,9 +62,10 @@ export const AttributeSetListView = (props: {
                 text="name"
                 secondaryText="identifier"
                 source="name"
+                label="field.name.name"
                 icon={<AttributeSetIcon color={'secondary'} />}
             />
-            <IdField source="id" label="id" />
+            <IdField source="id" label="field.id.name" />
             {actions !== false && actions}
         </Datagrid>
     );
@@ -89,8 +90,7 @@ const AttributeSetListActions = () => {
                 variant="contained"
                 transform={transform}
             >
-                {/* <AttributeSetCreateForm /> */}
-                <></>
+                <AttributeSetCreateForm />
             </CreateInDialogButton>
             <ExportButton variant="contained" />
         </TopToolbar>

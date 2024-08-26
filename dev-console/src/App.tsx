@@ -6,7 +6,7 @@ import appAuthProvider from './authProvider';
 import i18nProvider from './i18nProvider';
 import themeProvider from './themeProvider';
 import './App.css';
-import AppLayout from './components/AppLayout';
+import AppLayout from './layout/AppLayout';
 
 import {
     RootSelectorContextProvider,

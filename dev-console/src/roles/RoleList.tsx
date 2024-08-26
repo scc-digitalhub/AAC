@@ -59,10 +59,15 @@ export const RoleListView = (props: { actions?: ReactElement | boolean }) => {
                 text="name"
                 secondaryText="role"
                 source="name"
+                label="field.name.name"
                 icon={<RoleIcon color={'secondary'} />}
             />
-            <IdField source="id" label="id" />
-            <NumberField source="size" label={'subjects'} sortable={false} />
+            <IdField source="id" label="field.id.name" />
+            <NumberField
+                source="size"
+                label="field.subjects.name"
+                sortable={false}
+            />
             {actions !== false && actions}
         </Datagrid>
     );

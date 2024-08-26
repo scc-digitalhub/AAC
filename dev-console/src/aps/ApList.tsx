@@ -2,21 +2,13 @@ import { Box } from '@mui/material';
 
 import { isValidElement, ReactElement } from 'react';
 import {
-    Button,
     Datagrid,
-    Toolbar,
     List,
     SearchInput,
     TopToolbar,
     useRecordContext,
-    SaveButton,
-    useDelete,
-    useUpdate,
-    useNotify,
-    useRefresh,
     ExportButton,
     useTranslate,
-    NumberField,
     BooleanField,
     FunctionField,
 } from 'react-admin';
@@ -28,8 +20,7 @@ import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
 import { PageTitle } from '../components/PageTitle';
 import { Page } from '../components/Page';
-import { NameField, NameFieldProps } from '../components/NameField';
-import { GroupIcon } from '../group/GroupIcon';
+import { NameField } from '../components/NameField';
 import { ApIcon } from './ApIcon';
 import { getApIcon } from './utils';
 import EnabledIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -72,10 +63,11 @@ export const ApListView = (props: { actions?: ReactElement | boolean }) => {
 
     return (
         <Datagrid bulkActionButtons={false} rowClick="edit">
-            <ApNameField source="name" />
-            <IdField source="provider" label="id" />
+            <ApNameField source="name" label="field.name.name" />
+            <IdField source="provider" label="field.id.name" />
             <BooleanField
                 source="enabled"
+                label="field.enabled.name"
                 sortable={false}
                 TrueIcon={EnabledIcon}
                 FalseIcon={DisabledIcon}
@@ -83,6 +75,7 @@ export const ApListView = (props: { actions?: ReactElement | boolean }) => {
 
             <FunctionField
                 source="registered"
+                label="field.registered.name"
                 sortable={false}
                 render={record => {
                     if (!record.enabled) return <></>;
@@ -102,7 +95,8 @@ export const ApListView = (props: { actions?: ReactElement | boolean }) => {
     );
 };
 
-export const ApNameField = (props: { source: string }) => {
+export const ApNameField = (props: { source: string; label?: string }) => {
+    const { label } = props;
     const record = useRecordContext();
     const color = record?.registered
         ? 'primary'
@@ -129,6 +123,7 @@ export const ApNameField = (props: { source: string }) => {
             text="name"
             secondaryText="authority"
             source="name"
+            label={label}
             icon={icon}
             color={color}
         />

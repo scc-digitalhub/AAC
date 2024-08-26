@@ -1,69 +1,51 @@
-import { Avatar, Box, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Typography } from '@mui/material';
 import {
     ArrayField,
+    AutocompleteArrayInput,
     BooleanField,
     Button,
     Datagrid,
-    DeleteWithConfirmButton,
     Edit,
-    FunctionField,
     IconButtonWithTooltip,
     Labeled,
-    ReferenceArrayField,
     ReferenceArrayInput,
     ReferenceManyField,
-    SaveButton,
-    ShowButton,
     TabbedForm,
     TextField,
     Toolbar,
     TopToolbar,
     useDataProvider,
-    useDelete,
-    useEditContext,
     useGetList,
     useNotify,
     useRecordContext,
     useRefresh,
     useResourceContext,
     useTranslate,
-    useUpdate,
-    WrapperField,
 } from 'react-admin';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { InspectButton } from '@dslab/ra-inspect-button';
-import { PageTitle } from '../components/PageTitle';
 import { Page } from '../components/Page';
-import { ActiveButton } from './activeButton';
 import { AuthoritiesDialogButton } from '../components/AuthoritiesDialog';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { AuditListView } from '../audit/AuditList';
 import { IdField } from '../components/IdField';
 import { ResourceTitle } from '../components/ResourceTitle';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { DeveloperIcon, AdminIcon } from '../developers/DeveloperIcon';
 import { ConnectedApps } from './ConnectedApps';
-import { useWatch, ControllerRenderProps } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import ContentSave from '@mui/icons-material/Save';
-import { getIdpIcon } from '../idps/utils';
-import { IdpIcon } from '../idps/IdpIcon';
 import { NameField } from '../components/NameField';
 import { DataGridBlankHeader } from '../components/DataGridBlankHeader';
-import { DropDownButton } from '../components/DropdownButton';
-import { RowButtonGroup } from '../components/RowButtonGroup';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import EnabledIcon from '@mui/icons-material/CheckCircleOutlined';
-import DisabledIcon from '@mui/icons-material/CancelOutlined';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
-import SecurityIcon from '@mui/icons-material/Security';
+import GppBadIcon from '@mui/icons-material/GppBad';
+import { UserAccountsForm } from './UserAccounts';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import GppBadIcon from '@mui/icons-material/GppBad';
+import { ReferencedArrayInput } from '../components/ReferencedArrayInput';
 
 export const UserEdit = () => {
     return (
@@ -140,10 +122,7 @@ const UserAvatar = () => {
 
 const UserForm = () => {
     const record = useRecordContext();
-    const { root: realmId } = useRootSelector();
-    const dataProvider = useDataProvider();
     const translate = useTranslate();
-    const notify = useNotify();
 
     if (!record) return null;
 
@@ -155,13 +134,16 @@ const UserForm = () => {
         >
             <TabbedForm.Tab label={'tab.overview'}>
                 <Labeled>
-                    <TextField source="username" />
+                    <TextField source="username" label="field.username.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="email" />
+                    <TextField source="email" label="field.email.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="subjectId" />
+                    <TextField
+                        source="subjectId"
+                        label="field.subjectId.name"
+                    />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label={'tab.account'}>
@@ -184,14 +166,24 @@ const UserForm = () => {
                     secondaryText={translate('page.user.groups.subtitle')}
                 />
 
-                <UserReferencedInput reference="groups" source="groups" />
+                <ReferencedArrayInput
+                    reference="groups"
+                    source="groups"
+                    label="field.groups.name"
+                    helperText="field.groups.helperText"
+                />
             </TabbedForm.Tab>
             <TabbedForm.Tab label={'tab.roles'}>
                 <SectionTitle
                     text={translate('page.user.roles.title')}
                     secondaryText={translate('page.user.roles.subtitle')}
                 />
-                <UserReferencedInput reference="roles" source="roles" />
+                <ReferencedArrayInput
+                    reference="roles"
+                    source="roles"
+                    label="field.roles.name"
+                    helperText="field.roles.helperText"
+                />
             </TabbedForm.Tab>
             <TabbedForm.Tab label={'tab.attributes'}>
                 <SectionTitle
@@ -212,9 +204,10 @@ const UserForm = () => {
                             secondaryText="emailAddress"
                             tertiaryText="authority"
                             source="name"
+                            label="field.name.name"
                             icon={false}
                         />
-                        <IdField source="id" label="id" />
+                        <IdField source="id" label="field.id.name" />
                         <InspectButton variant="contained" />
                     </Datagrid>
                 </ArrayField>
@@ -236,9 +229,10 @@ const UserForm = () => {
                             text="identifier"
                             tertiaryText="authority"
                             source="identifier"
+                            label="field.identifier.name"
                             icon={false}
                         />
-                        <IdField source="id" label="id" />
+                        <IdField source="id" label="field.id.name" />
                         <InspectButton variant="contained" />
                     </Datagrid>
                 </ArrayField>
@@ -249,7 +243,7 @@ const UserForm = () => {
                     secondaryText={translate('page.user.tos.subtitle')}
                 />
                 <Labeled>
-                    <BooleanField source="tos" label="field.tosAccepted" />
+                    <BooleanField source="tos" label="field.tosAccepted.name" />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.audit">
@@ -264,12 +258,6 @@ const UserForm = () => {
         </TabbedForm>
     );
 };
-
-const TabToolbar = () => (
-    <Toolbar>
-        <SaveButton />
-    </Toolbar>
-);
 
 const EditToolBarActions = () => {
     const refresh = useRefresh();
@@ -288,350 +276,8 @@ const EditToolBarActions = () => {
     );
 };
 
-const UserReferencedInput = (props: { reference: string; source: string }) => {
-    const { reference, source } = props;
-    const record = useRecordContext();
-    const { root: realmId } = useRootSelector();
-    const dataProvider = useDataProvider();
-    const notify = useNotify();
-    const refresh = useRefresh();
-
-    //fetch related to resolve relations
-    const { data } = useGetList(reference, {
-        pagination: { page: 1, perPage: 100 },
-        sort: { field: 'name', order: 'ASC' },
-    });
-
-    if (!record) return null;
-
-    //inflate back flattened fields
-    const field = useWatch({ name: source, defaultValue: [] });
-    const handleSave = e => {
-        e.stopPropagation();
-        if (
-            dataProvider &&
-            record &&
-            data !== undefined &&
-            field !== undefined
-        ) {
-            const value = data.filter(g => field.includes(g.id));
-
-            dataProvider
-                .invoke({
-                    path:
-                        'users/' + realmId + '/' + record.id + '/' + reference,
-                    body: JSON.stringify(value),
-                    options: {
-                        method: 'PUT',
-                    },
-                })
-                .then(() => {
-                    notify('ra.notification.updated', {
-                        messageArgs: { smart_count: 1 },
-                    });
-                    refresh();
-                });
-        }
-    };
-
-    return (
-        <>
-            <ReferenceArrayInput
-                source={source}
-                reference={reference}
-                sort={{ field: 'name', order: 'ASC' }}
-            />
-            <Toolbar sx={{ width: '100%' }}>
-                <Button
-                    label="ra.action.save"
-                    startIcon={<ContentSave />}
-                    onClick={handleSave}
-                    variant="contained"
-                    size="medium"
-                />
-            </Toolbar>
-        </>
-    );
-};
-
-const UserAccountsForm = () => {
-    const record = useRecordContext();
-    const { root: realmId } = useRootSelector();
-
-    if (!record) return null;
-
-    const icon = record ? (
-        getIdpIcon(record.authority, {
-            color: 'info',
-        })
-    ) : (
-        <IdpIcon />
-    );
-
-    return (
-        <ReferenceManyField
-            reference={'users/' + realmId + '/' + record.id + '/account'}
-            sort={{ field: 'username', order: 'ASC' }}
-            target="accounts"
-            label="accounts"
-        >
-            {/* {record.apps && record.apps.map(app =>  (
-            <TextField source="name" />
-        ))} */}
-
-            <Datagrid
-                bulkActionButtons={false}
-                sx={{ width: '100%' }}
-                header={<DataGridBlankHeader />}
-            >
-                <NameField
-                    text="name"
-                    secondaryText="email"
-                    tertiaryText="authority"
-                    source="name"
-                    icon={icon}
-                />
-                <IdField source="id" label="id" />
-                <FunctionField
-                    source="status"
-                    render={r => (
-                        <Stack spacing={1} direction={'row'}>
-                            <BooleanField
-                                source="locked"
-                                valueLabelTrue="account.locked"
-                                valueLabelFalse="account.unlocked"
-                                TrueIcon={LockIcon}
-                                color={r.locked ? 'error' : 'primary'}
-                                FalseIcon={EnabledIcon}
-                            />
-                            <BooleanField
-                                source="confirmed"
-                                valueLabelTrue="account.confirmed"
-                                valueLabelFalse="account.unconfirmed"
-                                TrueIcon={VerifiedUserIcon}
-                                FalseIcon={WarningIcon}
-                                color={r.confirmed ? 'primary' : 'error'}
-                            />
-                        </Stack>
-                    )}
-                />
-                <RowButtonGroup label="⋮">
-                    <DropDownButton>
-                        <InspectButton />
-                        <ToggleStatusButton reference={record.id as string} />
-                        <VerifyButton reference={record.id as string} />
-                        <ToggleConfirmButton reference={record.id as string} />
-                        <DeleteWithConfirmButton redirect={false} />
-                    </DropDownButton>
-                </RowButtonGroup>
-            </Datagrid>
-        </ReferenceManyField>
-    );
-};
-
-export const ToggleStatusButton = (props: { reference: string }) => {
-    const { reference } = props;
-    const record = useRecordContext();
-    const resource = useResourceContext();
-    const dataProvider = useDataProvider();
-    const { root: realmId } = useRootSelector();
-    const notify = useNotify();
-    const refresh = useRefresh();
-
-    const handleDisable = () => {
-        if (dataProvider && record) {
-            dataProvider
-                .invoke({
-                    path:
-                        'users/' +
-                        realmId +
-                        '/' +
-                        reference +
-                        '/account/' +
-                        record.id +
-                        '/lock',
-                    body: JSON.stringify({}),
-                    options: {
-                        method: 'PUT',
-                    },
-                })
-                .then(() => {
-                    notify('ra.notification.updated', {
-                        messageArgs: { smart_count: 1 },
-                    });
-                    refresh();
-                });
-        }
-    };
-
-    const handleEnable = () => {
-        if (dataProvider && record) {
-            dataProvider
-                .invoke({
-                    path:
-                        'users/' +
-                        realmId +
-                        '/' +
-                        reference +
-                        '/account/' +
-                        record.id +
-                        '/lock',
-                    options: {
-                        method: 'DELETE',
-                    },
-                })
-                .then(() => {
-                    notify('ra.notification.updated', {
-                        messageArgs: { smart_count: 1 },
-                    });
-                    refresh();
-                });
-        }
-    };
-
-    if (!record) return null;
-    return (
-        <>
-            {!record.locked ? (
-                <Button
-                    onClick={e => {
-                        handleDisable();
-                        e.stopPropagation();
-                    }}
-                    label="action.lock"
-                    color="warning"
-                    startIcon={<LockIcon />}
-                ></Button>
-            ) : (
-                <Button
-                    onClick={e => {
-                        handleEnable();
-                        e.stopPropagation();
-                    }}
-                    label="action.unlock"
-                    color="success"
-                    startIcon={<LockOpenIcon />}
-                ></Button>
-            )}
-        </>
-    );
-};
-
-const VerifyButton = (props: { reference: string }) => {
-    const { reference } = props;
-    const record = useRecordContext();
-    const resource = useResourceContext();
-    const dataProvider = useDataProvider();
-    const { root: realmId } = useRootSelector();
-    const notify = useNotify();
-    const refresh = useRefresh();
-
-    const handleClick = () => {
-        if (dataProvider && record) {
-            dataProvider
-                .invoke({
-                    path:
-                        'users/' +
-                        realmId +
-                        '/' +
-                        reference +
-                        '/account/' +
-                        record.id +
-                        '/confirm',
-                    body: JSON.stringify({}),
-                    options: {
-                        method: 'POST',
-                    },
-                })
-                .then(() => {
-                    notify('ra.notification.updated', {
-                        messageArgs: { smart_count: 1 },
-                    });
-                    refresh();
-                });
-        }
-    };
-
-    if (!record || !record.email) return null;
-    return (
-        <Button
-            onClick={e => {
-                handleClick();
-                e.stopPropagation();
-            }}
-            label="action.verify"
-            color="success"
-            startIcon={<SecurityIcon />}
-        ></Button>
-    );
-};
-
-const ToggleConfirmButton = (props: { reference: string }) => {
-    const { reference } = props;
-    const record = useRecordContext();
-    const resource = useResourceContext();
-    const dataProvider = useDataProvider();
-    const { root: realmId } = useRootSelector();
-    const notify = useNotify();
-    const refresh = useRefresh();
-
-    const handleClick = action => {
-        if (dataProvider && record) {
-            dataProvider
-                .invoke({
-                    path:
-                        'users/' +
-                        realmId +
-                        '/' +
-                        reference +
-                        '/account/' +
-                        record.id +
-                        '/confirm',
-                    body: JSON.stringify({}),
-                    options: {
-                        method: action,
-                    },
-                })
-                .then(() => {
-                    notify('ra.notification.updated', {
-                        messageArgs: { smart_count: 1 },
-                    });
-                    refresh();
-                });
-        }
-    };
-
-    if (!record || !record.email) return null;
-    return (
-        <>
-            {record.confirmed === false ? (
-                <Button
-                    onClick={e => {
-                        handleClick('PUT');
-                        e.stopPropagation();
-                    }}
-                    label="action.confirm"
-                    color="warning"
-                    startIcon={<VerifiedUserIcon />}
-                ></Button>
-            ) : (
-                <Button
-                    onClick={e => {
-                        handleClick('DELETE');
-                        e.stopPropagation();
-                    }}
-                    label="action.reset"
-                    color="warning"
-                    startIcon={<GppBadIcon />}
-                ></Button>
-            )}
-        </>
-    );
-};
-
 export const ToggleUserStatusButton = () => {
     const record = useRecordContext();
-    const resource = useResourceContext();
     const dataProvider = useDataProvider();
     const { root: realmId } = useRootSelector();
     const notify = useNotify();

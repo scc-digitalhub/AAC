@@ -4,12 +4,8 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    ExportButton,
-    EditButton,
-    ShowButton,
     useRecordContext,
     useResourceContext,
-    useResourceDefinition,
     DeleteButton,
 } from 'react-admin';
 import { Box } from '@mui/material';
@@ -23,18 +19,13 @@ import {
     EditInDialogButton,
 } from '@dslab/ra-dialog-crud';
 import { PageTitle } from '../components/PageTitle';
-import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
 import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
 import { TagsField } from '../components/TagsField';
-import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { DropDownButton } from '../components/DropdownButton';
 import { RowButtonGroup } from '../components/RowButtonGroup';
-import {
-    AuthoritiesDialogButton,
-    AuthoritiesIcon,
-} from '../components/AuthoritiesDialog';
+import { AuthoritiesIcon } from '../components/AuthoritiesDialog';
 
 export const DeveloperList = () => {
     const translate = useTranslate();
@@ -79,9 +70,14 @@ export const DeveloperListView = (props: {
                 tertiaryText="email"
                 // icon={<DeveloperIcon color={'secondary'} />}
                 source="name"
+                label="field.name.name"
                 sortable={false}
             />
-            <IdField source="subjectId" label="id" sortable={false} />
+            <IdField
+                source="subjectId"
+                label="field.id.name"
+                sortable={false}
+            />
             <TagsField />
             {actions !== false && actions}
         </Datagrid>
@@ -90,7 +86,6 @@ export const DeveloperListView = (props: {
 
 export const DeveloperActionsButtons = () => {
     const record = useRecordContext();
-    const resource = useResourceContext();
 
     if (!record) {
         return null;

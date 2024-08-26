@@ -1,12 +1,10 @@
 import {
     Button,
     CheckboxGroupInput,
-    Datagrid,
     Edit,
     IconButtonWithTooltip,
     Labeled,
     ReferenceArrayInput,
-    ReferenceManyField,
     SaveButton,
     TabbedForm,
     TextField,
@@ -27,8 +25,7 @@ import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { Alert, Box, Typography } from '@mui/material';
-import { TabToolbar } from '../components/TabToolbar';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import {
@@ -41,14 +38,10 @@ import { ResourceTitle } from '../components/ResourceTitle';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import { getApIcon } from './utils';
-import { IdField } from '../components/IdField';
 import { useEffect, useMemo, useState } from 'react';
-import dataProvider from '../dataProvider';
 import { DEFAULT_LANGUAGES } from '../App';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
 import RegisteredIcon from '@mui/icons-material/VerifiedUser';
-import { PageTitle } from '../components/PageTitle';
-import { IdpNameField } from '../idps/IdpList';
 import { AttributeSetIcon } from '../attributeset/AttributeSetIcon';
 import { NameField } from '../components/NameField';
 import utils from '../utils';
@@ -58,7 +51,7 @@ export const ApEdit = () => {
     return (
         <Page>
             <Edit
-                actions={<EditToolBarActions />}
+                actions={<ActionsToolbar />}
                 mutationMode="optimistic"
                 component={Box}
                 redirect={'edit'}
@@ -113,7 +106,6 @@ const ApTitle = () => {
 };
 
 const ApEditForm = () => {
-    const translate = useTranslate();
     const dataProvider = useDataProvider();
     const { root: realmId } = useRootSelector();
     const record = useRecordContext();
@@ -137,19 +129,22 @@ const ApEditForm = () => {
     if (!record) return null;
 
     return (
-        <TabbedForm toolbar={<EditTabToolbar />} syncWithLocation={false}>
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
-                    <TextField source="id" />
+                    <TextField source="id" label="field.id.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="name" />
+                    <TextField source="name" label="field.name.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="type" />
+                    <TextField source="type" label="field.type.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="authority" />
+                    <TextField
+                        source="authority"
+                        label="field.authority.name"
+                    />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
@@ -158,7 +153,12 @@ const ApEditForm = () => {
                     secondaryText="page.aps.settings.basic.subtitle"
                 />
 
-                <TextInput source="name" fullWidth />
+                <TextInput
+                    source="name"
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                    fullWidth
+                />
 
                 <SectionTitle
                     text="page.aps.settings.display.title"
@@ -190,11 +190,6 @@ const ApEditForm = () => {
                     text="page.aps.attributeSets.header.title"
                     secondaryText="page.aps.attributeSets.header.subtitle"
                 />
-                {/* <ReferenceArrayInput
-                    source="providers"
-                    reference="aps"
-                    sort={{ field: 'name', order: 'ASC' }}
-                /> */}
                 <ReferenceArrayInput
                     source="settings.attributeSets"
                     reference="attributeset"
@@ -202,6 +197,8 @@ const ApEditForm = () => {
                 >
                     <CheckboxGroupInput
                         row={false}
+                        label="field.attributeSets.name"
+                        helperText="field.attributeSets.helperText"
                         labelPlacement="end"
                         optionText={
                             <NameField
@@ -247,7 +244,7 @@ const ApEditForm = () => {
     );
 };
 
-export const EditTabToolbar = () => {
+const TabToolbar = () => {
     const record = useRecordContext();
     const translate = useTranslate();
 
@@ -265,8 +262,7 @@ export const EditTabToolbar = () => {
     );
 };
 
-const EditToolBarActions = () => {
-    const translate = useTranslate();
+const ActionsToolbar = () => {
     const record = useRecordContext();
     if (!record) return null;
 

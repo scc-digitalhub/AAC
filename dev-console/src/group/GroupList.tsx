@@ -60,10 +60,15 @@ export const GroupListView = (props: { actions?: ReactElement | boolean }) => {
                 text="name"
                 secondaryText="group"
                 source="name"
+                label="field.name.name"
                 icon={<GroupIcon color={'secondary'} />}
             />
-            <IdField source="groupId" label="id" />
-            <NumberField source="size" label={'members'} sortable={false} />
+            <IdField source="groupId" label="field.id.name" />
+            <NumberField
+                source="size"
+                label="field.members.name"
+                sortable={false}
+            />
             {actions !== false && actions}
         </Datagrid>
     );

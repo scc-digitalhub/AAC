@@ -5,7 +5,6 @@ import {
     ExportButton,
     TopToolbar,
     Datagrid,
-    NumberField,
     ArrayField,
     ChipField,
     SingleFieldList,
@@ -17,7 +16,6 @@ import { Page } from '../components/Page';
 import { PageTitle } from '../components/PageTitle';
 import { IdField } from '../components/IdField';
 import { NameField } from '../components/NameField';
-import { GroupIcon } from '../group/GroupIcon';
 import { ShowInDialogButton } from '@dslab/ra-dialog-crud';
 
 export const ApiResourcesList = () => {
@@ -49,10 +47,11 @@ export const ResourceListView = () => {
                 text="name"
                 secondaryText="description"
                 source="name"
+                label="field.name.name"
                 icon={false}
             />
-            <IdField source="resourceId" label="resource" />
-            <ArrayField source="scopes">
+            <IdField source="resourceId" label="field.resource.name" />
+            <ArrayField source="scopes" label="field.scopes.name">
                 <SingleFieldList linkType={false}>
                     <ChipField source="scope" size="small" />
                 </SingleFieldList>

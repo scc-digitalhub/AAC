@@ -1,12 +1,15 @@
 import { Box } from '@mui/material';
 import {
+    AutocompleteArrayInput,
     Edit,
     Labeled,
     NumberField,
     ReferenceArrayInput,
+    SaveButton,
     TabbedForm,
     TextField,
     TextInput,
+    Toolbar,
     TopToolbar,
     useGetList,
     useRecordContext,
@@ -16,9 +19,8 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { IdField } from '../components/IdField';
 import { Page } from '../components/Page';
-import { TabToolbar } from '../components/TabToolbar';
 import { DatagridArrayInput } from '@dslab/ra-datagrid-input';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';
 
@@ -38,7 +40,7 @@ export const GroupEdit = () => {
     return (
         <Page>
             <Edit
-                actions={<GroupToolBarActions />}
+                actions={<ActionsToolbar />}
                 mutationMode="optimistic"
                 component={Box}
                 redirect={'edit'}
@@ -62,16 +64,16 @@ const GroupEditForm = () => {
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
-                    <TextField source="id" />
+                    <TextField source="id" label="field.id.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="name" />
+                    <TextField source="name" label="field.name.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="group" />
+                    <TextField source="group" label="field.group.name" />
                 </Labeled>
                 <Labeled>
-                    <NumberField source="size" label="members" />
+                    <NumberField source="size" l label="field.members.name" />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
@@ -81,9 +83,26 @@ const GroupEditForm = () => {
                         'page.group.settings.header.subtitle'
                     )}
                 />
-                <TextInput source="group" fullWidth readOnly />
-                <TextInput source="name" fullWidth />
-                <TextInput source="description" multiline fullWidth />
+                <TextInput
+                    source="group"
+                    label="field.group.name"
+                    helperText="field.group.helperText"
+                    fullWidth
+                    readOnly
+                />
+                <TextInput
+                    source="name"
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                    fullWidth
+                />
+                <TextInput
+                    source="description"
+                    label="field.description.name"
+                    helperText="field.description.helperText"
+                    multiline
+                    fullWidth
+                />
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.roles">
                 <SectionTitle
@@ -92,7 +111,12 @@ const GroupEditForm = () => {
                         'page.group.roles.header.subtitle'
                     )}
                 />
-                <ReferenceArrayInput source="roles" reference="roles" />
+                <ReferenceArrayInput source="roles" reference="roles">
+                    <AutocompleteArrayInput
+                        label="field.roles.name"
+                        helperText="field.roles.helperText"
+                    />
+                </ReferenceArrayInput>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.members">
                 <SectionTitle
@@ -105,10 +129,12 @@ const GroupEditForm = () => {
                     <DatagridArrayInput
                         dialogFilters={[<TextInput label="query" source="q" />]}
                         dialogFilterDefaultValues={{ q: '' }}
+                        label="field.members.name"
+                        helperText="field.members.helperText"
                     >
-                        <TextField source="name" />
-                        <TextField source="type" />
-                        <IdField source="id" />
+                        <TextField source="name" label="field.name.name" />
+                        <TextField source="type" label="field.type.name" />
+                        <IdField source="id" label="field.id.name" />
                     </DatagridArrayInput>
                 </ReferenceArrayInput>
             </TabbedForm.Tab>
@@ -116,7 +142,7 @@ const GroupEditForm = () => {
     );
 };
 
-const GroupToolBarActions = () => {
+const ActionsToolbar = () => {
     const record = useRecordContext();
     if (!record) return null;
 
@@ -128,3 +154,8 @@ const GroupToolBarActions = () => {
         </TopToolbar>
     );
 };
+const TabToolbar = () => (
+    <Toolbar>
+        <SaveButton />
+    </Toolbar>
+);

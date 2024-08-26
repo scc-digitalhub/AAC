@@ -121,18 +121,26 @@ export const schemaWebHooks: RJSFSchema = {
         beforeUserApproval: {
             type: ['string', 'null'],
             format: 'url',
+            title: 'field.webhooks.beforeUserApproval.name',
+            description: 'field.webhooks.beforeUserApproval.helperText',
         },
         afterUserApproval: {
             type: ['string', 'null'],
             format: 'url',
+            title: 'field.webhooks.afterUserApproval.name',
+            description: 'field.webhooks.afterUserApproval.helperText',
         },
         beforeTokenGrant: {
             type: ['string', 'null'],
             format: 'url',
+            title: 'field.webhooks.beforeTokenGrant.name',
+            description: 'field.webhooks.beforeTokenGrant.helperText',
         },
         afterTokenGrant: {
             type: ['string', 'null'],
             format: 'url',
+            title: 'field.webhooks.afterTokenGrant.name',
+            description: 'field.webhooks.afterTokenGrant.helperText',
         },
     },
 };

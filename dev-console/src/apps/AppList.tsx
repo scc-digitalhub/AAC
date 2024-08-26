@@ -57,15 +57,16 @@ export const AppListView = (props: { actions?: ReactElement | boolean }) => {
 
     return (
         <Datagrid bulkActionButtons={false} rowClick="show">
-            <AppNameField source="name" />
-            <IdField source="clientId" label="id" />
+            <AppNameField source="name" label="field.name.name" />
+            <IdField source="clientId" label="field.id.name" />
             <TagsField />
             {actions !== false && actions}
         </Datagrid>
     );
 };
 
-export const AppNameField = (props: { source: string }) => {
+export const AppNameField = (props: { source: string; label?: string }) => {
+    const { label } = props;
     const record = useRecordContext();
 
     const icon = record ? (
@@ -81,6 +82,7 @@ export const AppNameField = (props: { source: string }) => {
             secondaryText="configuration.applicationType"
             tertiaryText="description"
             source="name"
+            label={label}
             icon={icon}
         />
     );

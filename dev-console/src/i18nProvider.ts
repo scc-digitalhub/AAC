@@ -1,6 +1,7 @@
 import polyglotI18nProvider from 'ra-i18n-polyglot';
 import { TranslationMessages } from 'react-admin';
 import englishMessages from './i18n/en';
+// import englishMessages from 'ra-language-english';
 import italianMessages from './i18n/it';
 import germanMessages from './i18n/de';
 import spanishMessages from './i18n/en';

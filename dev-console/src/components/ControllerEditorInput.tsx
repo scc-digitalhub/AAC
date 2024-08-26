@@ -1,4 +1,4 @@
-import { FieldTitle, isRequired, useInput } from 'react-admin';
+import { FieldTitle, isRequired, Labeled, useInput } from 'react-admin';
 import { AceEditorInput, AceInputProps } from './AceEditorInput';
 import { Checkbox, FormControlLabel } from '@mui/material';
 import { useState } from 'react';
@@ -12,6 +12,7 @@ export const ControlledEditorInput = (
         defaultValue = null,
         disabledValue = null,
         isRequired,
+        label,
         ...rest
     } = props;
     const { field } = useInput({
@@ -40,30 +41,33 @@ export const ControlledEditorInput = (
     };
 
     return (
-        <>
-            <FormControlLabel
-                control={
-                    <Checkbox
-                        defaultChecked={checked}
-                        onChange={handleChange}
-                    />
-                }
-                label={
-                    <FieldTitle
-                        label="action.enable_disable"
-                        source={source}
-                        resource={resource}
-                        isRequired={isRequired}
-                    />
-                }
-            />
-            <AceEditorInput
-                source={source}
-                resource={resource}
-                isRequired={isRequired}
-                disabled={disabled}
-                {...rest}
-            />
-        </>
+        <Labeled label={label}>
+            <>
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            defaultChecked={checked}
+                            onChange={handleChange}
+                        />
+                    }
+                    label={
+                        <FieldTitle
+                            label="action.enable_disable"
+                            source={source}
+                            resource={resource}
+                            isRequired={isRequired}
+                        />
+                    }
+                />
+                <AceEditorInput
+                    source={source}
+                    resource={resource}
+                    isRequired={isRequired}
+                    disabled={disabled}
+                    label={false}
+                    {...rest}
+                />
+            </>
+        </Labeled>
     );
 };

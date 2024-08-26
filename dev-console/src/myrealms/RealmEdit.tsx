@@ -2,39 +2,31 @@ import { Alert, Box } from '@mui/material';
 import {
     BooleanInput,
     Edit,
-    Labeled,
     List,
-    NumberField,
-    ReferenceArrayInput,
+    SaveButton,
     TabbedForm,
-    TextField,
     TextInput,
+    Toolbar,
     TopToolbar,
-    useGetList,
     useRecordContext,
     useTranslate,
 } from 'react-admin';
 import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
-import { IdField } from '../components/IdField';
 import { Page } from '../components/Page';
-import { TabToolbar } from '../components/TabToolbar';
-import { DatagridArrayInput } from '@dslab/ra-datagrid-input';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
     realmLocalizationSchema,
     realmOAuthSchema,
-    realmTemplatesSchema,
     realmTosSchema,
 } from './schemas';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
 import { AceEditorInput } from '../components/AceEditorInput';
 import {
-    DeveloperFilters,
     DeveloperListActions,
     DeveloperListView,
 } from '../developers/DeveloperList';
@@ -43,7 +35,7 @@ export const RealmEdit = () => {
     return (
         <Page>
             <Edit
-                actions={<RealmToolBarActions />}
+                actions={<ActionsToolbar />}
                 mutationMode="optimistic"
                 component={Box}
                 redirect={'edit'}
@@ -86,10 +78,31 @@ const RealmEditForm = () => {
                         'page.realm.settings.header.subtitle'
                     )}
                 />
-                <TextInput source="slug" fullWidth readOnly />
-                <TextInput source="name" fullWidth />
-                <TextInput source="description" multiline fullWidth />
-                <BooleanInput source="public" />
+                <TextInput
+                    source="slug"
+                    label="field.slug.name"
+                    helperText="field.slug.helperText"
+                    fullWidth
+                    readOnly
+                />
+                <TextInput
+                    source="name"
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                    fullWidth
+                />
+                <TextInput
+                    source="description"
+                    label="field.description.name"
+                    helperText="field.description.helperText"
+                    multiline
+                    fullWidth
+                />
+                <BooleanInput
+                    source="public"
+                    label="field.public.name"
+                    helperText="field.public.helperText"
+                />
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.localization">
                 <SectionTitle
@@ -112,7 +125,8 @@ const RealmEditForm = () => {
                 />
                 <AceEditorInput
                     source="templatesConfiguration.customStyle"
-                    label="field.customStyle"
+                    label="field.customStyle.name"
+                    helperText="field.customStyle.helperText"
                     mode="css"
                     minLines={12}
                 />
@@ -163,7 +177,7 @@ const RealmEditForm = () => {
     );
 };
 
-const RealmToolBarActions = () => {
+const ActionsToolbar = () => {
     const record = useRecordContext();
     if (!record || !record.editable) return null;
 
@@ -175,3 +189,9 @@ const RealmToolBarActions = () => {
         </TopToolbar>
     );
 };
+
+const TabToolbar = () => (
+    <Toolbar>
+        <SaveButton />
+    </Toolbar>
+);

@@ -51,7 +51,6 @@ export const DeveloperCreateForm = () => {
 };
 
 export const DeveloperEditForm = () => {
-    const translate = useTranslate();
     const record = useRecordContext();
 
     if (!record) return null;

@@ -25,8 +25,7 @@ import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { Alert, Box, Typography } from '@mui/material';
-import { TabToolbar } from '../components/TabToolbar';
-import { SectionTitle } from '../components/sectionTitle';
+import { SectionTitle } from '../components/SectionTitle';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -42,11 +41,9 @@ import StopIcon from '@mui/icons-material/Stop';
 import { getIdpIcon } from './utils';
 import { IdField } from '../components/IdField';
 import { useEffect, useMemo, useState } from 'react';
-import dataProvider from '../dataProvider';
 import { DEFAULT_LANGUAGES } from '../App';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
 import RegisteredIcon from '@mui/icons-material/VerifiedUser';
-import { PageTitle } from '../components/PageTitle';
 
 export const IdpEdit = () => {
     return (
@@ -131,7 +128,7 @@ const IdpEditForm = () => {
     if (!record) return null;
 
     return (
-        <TabbedForm toolbar={<EditTabToolbar />} syncWithLocation={false}>
+        <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
                     <TextField source="id" />
@@ -243,7 +240,7 @@ const IdpEditForm = () => {
     );
 };
 
-export const EditTabToolbar = () => {
+const TabToolbar = () => {
     const record = useRecordContext();
     const translate = useTranslate();
 
@@ -262,7 +259,6 @@ export const EditTabToolbar = () => {
 };
 
 const EditToolBarActions = () => {
-    const translate = useTranslate();
     const record = useRecordContext();
     if (!record) return null;
 

@@ -53,10 +53,12 @@ export const AuditListView = () => {
             bulkActionButtons={false}
             expandSingle
         >
-            <DateField source="id" showTime label="field.time" />
-            <TextField source="type" />
-            <TextField source="principal" />
-            <InspectButton label="ra.action.show" variant="contained" />
+            <DateField source="id" showTime label="field.time.name" />
+            <TextField source="type" label="field.type.name" />
+            <TextField source="principal" label="field.principal.name" />
+            <>
+                <InspectButton label="ra.action.show" variant="contained" />
+            </>
         </Datagrid>
     );
 };

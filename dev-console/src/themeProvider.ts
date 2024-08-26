@@ -66,6 +66,13 @@ export const theme = {
                 },
             },
         },
+        MuiFormHelperText: {
+            styleOverrides: {
+                root: {
+                    marginBottom: '14px',
+                },
+            },
+        },
     },
 };
 
