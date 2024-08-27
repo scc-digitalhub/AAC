@@ -1,10 +1,14 @@
 package it.smartcommunitylab.aac.console;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -19,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import it.smartcommunitylab.aac.Config;
@@ -65,6 +73,37 @@ public class DevConsoleController {
 
 	@Autowired
 	private UserManager userManager;
+ 	
+	@GetMapping(
+        value = {
+        	"/",
+            "/{path:^(?!\\S+(?:\\.[a-z0-9]{2,}))\\S+$}",
+            "/-/**",
+        }
+    )
+    public ModelAndView console(HttpServletRequest request) {
+        String requestUrl = ServletUriComponentsBuilder
+            .fromRequestUri(request)
+            .replacePath(request.getContextPath())
+            .build()
+            .toUriString();
+
+        String applicationUrl = StringUtils.hasText(appProps.getUrl())
+            ? appProps.getUrl()
+            : requestUrl;
+
+        //build config
+        Map<String, String> config = new HashMap<>();
+        config.put("REACT_APP_APPLICATION_URL", applicationUrl);
+        config.put("REACT_APP_API_URL", applicationUrl);
+        config.put("REACT_APP_CONTEXT_PATH", "/console/dev/");
+
+        config.put("VITE_APP_NAME", appProps.getName());
+
+        // model.addAttribute("config", config);
+        return new ModelAndView("console/dev", Collections.singletonMap("config",config));
+    }
+
 
 	@GetMapping("/myrealms")
 	public Page<Realm> myRealms(
