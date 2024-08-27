@@ -11,7 +11,7 @@ export default defineConfig({
     server: {
         host: true,
     },
-    base: '',
+    base: '/console/dev/',
     build: {
         manifest: true,
         commonjsOptions: { transformMixedEsModules: true },

@@ -2,12 +2,14 @@ import { TranslationMessages } from 'ra-core';
 import raMessages from 'ra-language-english';
 import utils from '../../utils';
 import resources from './resources';
-import fields from './fields';
-import messages from './messages';
-import errors from './errors';
-import { pages, tabs } from './pages';
+import * as fields from './fields.json';
+import * as messages from './messages.json';
+import * as errors from './errors.json';
+import * as pages from './pages.json';
+import * as tabs from './tabs.json';
+import * as actions from './actions.json';
+
 import translations from './translations';
-import actions from './actions';
 
 const englishMessages: TranslationMessages = {
     ra: utils.deepCopy(raMessages.ra),

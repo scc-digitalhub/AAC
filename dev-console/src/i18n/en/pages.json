@@ -1,0 +1,191 @@
+{
+    "dashboard": {
+        "description": "Manage apps, users and services",
+        "logins_7_days": "Last 7 days logins",
+        "registrations_7_days": "Last 7 days registrations",
+        "tokens_7_days": "Last 7 days tokens"
+    },
+    "myrealms": {
+        "name": "Realm |||| Realms"
+    },
+    "apps": {
+        "list": {
+            "title": "Client applications",
+            "subtitle": "Manage web, mobile, server and IoT applications."
+        },
+        "credentials": {
+            "header": {
+                "title": "apps.credentials.header.title",
+                "subtitle": "apps.credentials.header.subtitle"
+            }
+        },
+        "scopes": {
+            "header": {
+                "title": "apps.scopes.header.title",
+                "subtitle": "apps.scopes.header.subtitle"
+            }
+        },
+        "endpoints": {
+            "header": {
+                "title": "apps.endpoints.header.title",
+                "subtitle": "apps.endpoints.header.subtitle"
+            }
+        },
+        "audit": {
+            "title": "apps.audit.title",
+            "subTitle": "apps.audit.subTitle"
+        },
+        "settings": {
+            "header": {
+                "title": "apps.settings.header.title",
+                "subtitle": "apps.settings.header.subtitle"
+            }
+        },
+        "providers": {
+            "header": {
+                "title": "apps.providers.header.title",
+                "subtitle": "apps.providers.header.subtitle"
+            }
+        },
+        "configuration": {
+            "header": {
+                "title": "apps.configuration.header.title",
+                "subtitle": "apps.configuration.header.subtitle"
+            }
+        },
+        "hooks": {
+            "claimMapping": {
+                "title": "apps.hooks.claimMapping.title",
+                "subtitle": "apps.hooks.claimMapping.subtitle"
+            },
+            "webhooks": {
+                "title": "apps.hooks.webhooks.title",
+                "subtitle": "apps.hooks.webhooks.subtitle"
+            }
+        },
+        "roles": {
+            "header": {
+                "title": "apps.roles.header.title",
+                "subtitle": "apps.roles.header.subtitle"
+            }
+        },
+        "groups": {
+            "header": {
+                "title": "apps.groups.header.title",
+                "subtitle": "apps.groups.header.subtitle"
+            }
+        }
+    },
+    "groups": {
+        "list": {
+            "title": "Groups",
+            "subtitle": "Register and manage realm groups."
+        }
+    },
+    "roles": {
+        "list": {
+            "title": "Roles",
+            "subtitle": "Register and manage realm roles."
+        }
+    },
+    "users": {
+        "list": {
+            "title": "Users",
+            "subtitle": "View and manage user, assign roles and groups"
+        }
+    },
+    "idps": {
+        "list": {
+            "title": "Identity providers",
+            "subtitle": "Register and manage identity providers for authentication and identification."
+        },
+        "settings": {
+            "basic": {
+                "title": "idps.settings.basic.title",
+                "subtitle": "idps.settings.basic.subtitle"
+            },
+            "display": {
+                "title": "idps.settings.display.title",
+                "subtitle": "idps.settings.display.subtitle"
+            },
+            "advanced": {
+                "title": "idps.settings.advanced.title",
+                "subtitle": "idps.settings.advanced.subtitle"
+            }
+        },
+        "configuration": {
+            "title": "idps.configuration.title",
+            "subtitle": "idps.configuration.subtitle"
+        },
+        "hooks": {
+            "attribute": "idps.hooks.attribute",
+            "attributeDesc": "idps.hooks.attributeDesc",
+            "authFunction": "idps.hooks.authFunction",
+            "authFunctionDesc": "idps.hooks.authFunctionDesc"
+        },
+        "apps": {
+            "title": "idps.apps.title",
+            "description": "idps.apps.description"
+        }
+    },
+    "aps": {
+        "list": {
+            "title": "Attribute providers",
+            "subtitle": "Register and manage attribute providers."
+        },
+        "settings": {
+            "basic": {
+                "title": "aps.settings.basic.title",
+                "subtitle": "aps.settings.basic.subtitle"
+            },
+            "display": {
+                "title": "aps.settings.display.title",
+                "subtitle": "aps.settings.display.subtitle"
+            },
+            "advanced": {
+                "title": "aps.settings.advanced.title",
+                "subtitle": "aps.settings.advanced.subtitle"
+            }
+        },
+        "attributeSets": {
+            "header": {
+                "title": "aps.attributeSets.header.title",
+                "subtitle": "aps.attributeSets.header.subtitle"
+            }
+        },
+        "configuration": {
+            "title": "aps.configuration.title",
+            "subtitle": "aps.configuration.subtitle"
+        }
+    },
+    "resources": {
+        "list": {
+            "title": "API resources",
+            "subtitle": "View and inspect resources and scopes."
+        }
+    },
+    "audit": {
+        "list": {
+            "title": "Audit events",
+            "subtitle": "Review and inspect events for authentication, access and token usage."
+        }
+    },
+    "services": {
+        "list": {
+            "title": "API services",
+            "subtitle": "Register and manage custom services for APIs."
+        }
+    },
+    "attributeset": {
+        "list": {
+            "title": "Attribute sets",
+            "subtitle": "Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope `profile.setidentifier.me`"
+        }
+    },
+    "scopes": {
+        "list": {
+            "title": "Scopes",
+            "subtitle": "View and inspect resources and scopes."
+        }
+    }
+}

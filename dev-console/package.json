@@ -34,10 +34,15 @@
     "scripts": {
         "start": "env-cmd -f .env.development vite",
         "start:local": "env-cmd -f .env.local vite",
-        "build": "env-cmd -f .env.development vite build",
-        "serve": "env-cmd -f .env.development vite preview",
+        "build": "env-cmd -f .env vite build",
+        "serve": "env-cmd -f .env vite preview",
         "lint": "eslint --ext .js,.ts,.tsx \"./src/**/*.{js,ts,tsx}\" ",
-        "prettier": "prettier --config ./.prettierrc.js --write --list-different \"src/**/*.{js,ts,tsx,css}\""
+        "prettier": "prettier --config ./.prettierrc.js --write --list-different \"src/**/*.{js,ts,tsx,css}\"",
+        "i18n:en:fields": "grep -r \"field\\.\" src/ | awk -F '\"' '{print $2}' | grep '^field.' | node i18ngenerator.js -p field -f src/i18n/en/fields.json -o src/i18n/en/fields.json",
+        "i18n:en:pages": "grep -r \"page\\.\" src/ | awk -F '\"' '{print $2}' | grep '^page.' | node i18ngenerator.js -p page -f src/i18n/en/pages.json -o src/i18n/en/pages.json",
+        "i18n:en:errors": "grep -r \"error\\.\" src/ | awk -F '\"' '{print $2}' | grep '^error.' | node i18ngenerator.js -p error -f src/i18n/en/errors.json -o src/i18n/en/errors.json",
+        "i18n:en:messages": "grep -r \"message\\.\" src/ | awk -F '\"' '{print $2}' | grep '^message.' | node i18ngenerator.js -p message -f src/i18n/en/messages.json -o src/i18n/en/messages.json",
+        "i18n:en:tabs": "grep -r \"tab\\.\" src/ | awk -F '\"' '{print $2}' | grep '^tab.' | node i18ngenerator.js -p tab -f src/i18n/en/tabs.json -o src/i18n/en/tabs.json"
     },
     "devDependencies": {
         "@simplewebauthn/typescript-types": "^7.0.0",

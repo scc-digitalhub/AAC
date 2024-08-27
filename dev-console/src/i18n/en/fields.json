@@ -1,0 +1,166 @@
+{
+    "id": {
+        "name": "Id",
+        "helperText": "Unique identifier"
+    },
+    "name": {
+        "name": "Name",
+        "helperText": "Human readable name"
+    },
+    "description": {
+        "name": "Description",
+        "helperText": "Text describing the element, used for views"
+    },
+    "type": {
+        "name": "Type",
+        "helperText": "Type field"
+    },
+    "clientId": {
+        "name": "ClientId",
+        "helperText": "Client (unique) identifier"
+    },
+    "slug": {
+        "name": "Slug",
+        "helperText": "Path-style (unique) identifier"
+    },
+    "public": {
+        "name": "Public",
+        "helperText": "Toggle for public/private visibility"
+    },
+    "languages": {
+        "name": "Languages",
+        "helperText": "List of languages (codes) enabled"
+    },
+    "applicationType": {
+        "name": "Application type",
+        "helperText": "Type of (OAuth2) application"
+    },
+    "title": {
+        "name": "Title",
+        "helperText": "Title used for views"
+    },
+    "customStyle": {
+        "name": "Custom style",
+        "helperText": "Define a custom style sheet (CSS) to be injected in pages"
+    },
+    "namespace": {
+        "name": "namespace.name",
+        "helperText": "namespace.helperText"
+    },
+    "scope": {
+        "name": "scope.name",
+        "helperText": "scope.helperText"
+    },
+    "authority": {
+        "name": "authority.name",
+        "helperText": "authority.helperText"
+    },
+    "approvalRoles": {
+        "name": "approvalRoles.name",
+        "helperText": "approvalRoles.helperText"
+    },
+    "approvalAny": {
+        "name": "approvalAny.name",
+        "helperText": "approvalAny.helperText"
+    },
+    "approvalRequired": {
+        "name": "approvalRequired.name",
+        "helperText": "approvalRequired.helperText"
+    },
+    "multiple": {
+        "name": "multiple.name",
+        "helperText": "multiple.helperText"
+    },
+    "claimMapping": {
+        "user": {
+            "name": "claimMapping.user.name",
+            "helperText": "claimMapping.user.helperText"
+        },
+        "client": {
+            "name": "claimMapping.client.name",
+            "helperText": "claimMapping.client.helperText"
+        }
+    },
+    "key": {
+        "name": "key.name",
+        "helperText": "key.helperText"
+    },
+    "groups": {
+        "name": "groups.name",
+        "helperText": "groups.helperText"
+    },
+    "roles": {
+        "name": "roles.name",
+        "helperText": "roles.helperText"
+    },
+    "clientSecret": {
+        "name": "clientSecret.name"
+    },
+    "jwks": {
+        "name": "jwks.name"
+    },
+    "context": "context",
+    "result": "result",
+    "providers": {
+        "name": "providers.name",
+        "helperText": "providers.helperText"
+    },
+    "scopes": {
+        "name": "scopes.name",
+        "helperText": "scopes.helperText"
+    },
+    "attributeSets": {
+        "name": "attributeSets.name",
+        "helperText": "attributeSets.helperText"
+    },
+    "enabled": {
+        "name": "enabled.name"
+    },
+    "registered": {
+        "name": "registered.name"
+    },
+    "username": {
+        "name": "username.name"
+    },
+    "subjectId": {
+        "name": "subjectId.name",
+        "helperText": "subjectId.helperText"
+    },
+    "identifier": {
+        "name": "identifier.name",
+        "helperText": "identifier.helperText"
+    },
+    "accounts": {
+        "name": "accounts.name"
+    },
+    "status": {
+        "name": "status.name"
+    },
+    "role": {
+        "name": "role.name",
+        "helperText": "role.helperText"
+    },
+    "subjects": {
+        "name": "subjects.name",
+        "helperText": "subjects.helperText"
+    },
+    "permissions": {
+        "name": "permissions.name",
+        "helperText": "permissions.helperText"
+    },
+    "group": {
+        "name": "group.name",
+        "helperText": "group.helperText"
+    },
+    "members": {
+        "name": "members.name",
+        "helperText": "members.helperText"
+    },
+    "email": {
+        "name": "email.name",
+        "helperText": "email.helperText"
+    },
+    "keys": {
+        "name": "keys.name"
+    }
+}
