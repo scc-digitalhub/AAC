@@ -21,7 +21,7 @@ import 'ace-builds/src-noconflict/theme-solarized_light';
 import { Fragment } from 'react';
 import { get } from 'lodash';
 
-export const AceEditorField = (props: AceFieldProps) => {
+const AceEditorField = (props: AceFieldProps) => {
     const {
         mode = 'html',
         parse = data => data,

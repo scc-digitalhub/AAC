@@ -14,7 +14,7 @@ import { useWatch } from 'react-hook-form';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { useEffect, useState } from 'react';
 import TestIcon from '@mui/icons-material/DirectionsRun';
-import { AceEditorField } from '../components/AceEditorField';
+import { AceEditorField } from '@dslab/ra-ace-editor';
 
 export const ClaimMappingEditor = () => {
     const dataProvider = useDataProvider();

@@ -1,5 +1,7 @@
-import { ScopeList } from "./ScopeList";
+import { ScopeList } from './ScopeList';
 
 export default {
-    list: ScopeList
+    name: 'scopes',
+    list: ScopeList,
+    recordRepresentation: record => record.scope,
 };

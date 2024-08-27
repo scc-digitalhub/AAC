@@ -193,7 +193,7 @@ const AuthoritiesEditDialog = (props: {
                 },
             })
             .then(() => {
-                notify('notification.updated');
+                notify('ra.notification.updated');
                 if (onSuccess) {
                     onSuccess();
                 }

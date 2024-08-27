@@ -4,7 +4,7 @@
     "private": true,
     "license": "Apache-2.0",
     "dependencies": {
-        "@dslab/ra-ace-editor": "^1.0.3",
+        "@dslab/ra-ace-editor": "^1.1.0",
         "@dslab/ra-datagrid-input": "^1.0.0",
         "@dslab/ra-delete-dialog-button": "^1.0.0",
         "@dslab/ra-dialog-crud": "^1.0.2",

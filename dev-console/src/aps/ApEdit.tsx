@@ -45,7 +45,7 @@ import RegisteredIcon from '@mui/icons-material/VerifiedUser';
 import { AttributeSetIcon } from '../attributeset/AttributeSetIcon';
 import { NameField } from '../components/NameField';
 import utils from '../utils';
-import { AceEditorInput } from '../components/AceEditorInput';
+import { AceEditorInput } from '@dslab/ra-ace-editor';
 
 export const ApEdit = () => {
     return (
@@ -95,7 +95,7 @@ const ApTitle = () => {
             )}
             {record.registered && (
                 <IconButtonWithTooltip
-                    label={'notification.idp_registered'}
+                    label={'notification.registered'}
                     color="success"
                 >
                     <RegisteredIcon fontSize="small" />
@@ -252,7 +252,7 @@ const TabToolbar = () => {
         <>
             {record.enabled && (
                 <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
-                    {translate('error.idp_is_enabled')}
+                    {translate('error.provider_is_enabled')}
                 </Alert>
             )}
             <Toolbar>

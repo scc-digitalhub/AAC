@@ -19,7 +19,7 @@ export const RealmCreateForm = () => {
                         helperText="field.slug.helperText"
                         fullWidth
                         required
-                        validate={[minLength(3, 'error.message.min_length')]}
+                        validate={[minLength(3, 'error.invalid.min_length')]}
                     />
 
                     <TextInput
@@ -28,7 +28,7 @@ export const RealmCreateForm = () => {
                         helperText="field.name.helperText"
                         fullWidth
                         required
-                        validate={[minLength(3, 'error.message.min_length')]}
+                        validate={[minLength(3, 'error.invalid.min_length')]}
                     />
 
                     <BooleanInput

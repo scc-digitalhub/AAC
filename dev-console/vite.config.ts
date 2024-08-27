@@ -11,13 +11,13 @@ export default defineConfig({
     server: {
         host: true,
     },
-    base: './',
+    base: '',
     build: {
         manifest: true,
+        commonjsOptions: { transformMixedEsModules: true },
     },
     optimizeDeps: {
         include: ['@mui/material/Tooltip'],
-        exclude: ['js-big-decimal']
-
+        exclude: ['js-big-decimal'],
     },
 });

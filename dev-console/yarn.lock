@@ -231,10 +231,10 @@
     "@babel/helper-validator-identifier" "^7.24.7"
     to-fast-properties "^2.0.0"
 
-"@dslab/ra-ace-editor@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@dslab/ra-ace-editor/-/ra-ace-editor-1.0.3.tgz#c5a7312810a8f31a1c61550ea76140c5149de7a2"
-  integrity sha512-Wq/Ig6wKCMjrXpUctQht2m7qpjRGJKGTIzGEqxx047BdC2xYtmRjrATgLJMcbjFbcNdcaUU90o42+xOpHwPo+A==
+"@dslab/ra-ace-editor@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@dslab/ra-ace-editor/-/ra-ace-editor-1.1.0.tgz#077db12019cfcfac18392386400ac5aacde3d753"
+  integrity sha512-ZuRQfno4hVuhnoyHvpiSqPQ4PwooWRbm7F5vRp1bPFCgQcbScl74ejsDflWeVpXVIfWK3dIxlAfXBErx4Ym8HA==
   dependencies:
     ace-builds "^1.14.0"
     react-ace "^10.1.0"

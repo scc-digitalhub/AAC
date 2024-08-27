@@ -11,7 +11,7 @@ import { ControlledEditorInput } from '../components/ControllerEditorInput';
 import { useWatch } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import TestIcon from '@mui/icons-material/DirectionsRun';
-import { AceEditorField } from '../components/AceEditorField';
+import { AceEditorField } from '@dslab/ra-ace-editor';
 
 export const ClaimMappingEditor = (props: {
     source: string;

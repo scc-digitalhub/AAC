@@ -1,6 +1,5 @@
 import {
     Button,
-    CreateButton,
     useCreatePath,
     useDataProvider,
     useGetIdentity,
@@ -8,22 +7,16 @@ import {
     useTranslate,
 } from 'react-admin';
 import LinearProgress from '@mui/material/LinearProgress';
-import { alpha, Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { Grid, Avatar } from '@mui/material';
 import { PageTitle } from '../components/PageTitle';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { useEffect, useState } from 'react';
 import { Page } from '../components/Page';
-import {
-    DashboardCard,
-    DashboardHorizontalCard,
-    DashboardTextCard,
-    DashboardVerticalCard,
-} from '../components/cards';
+import { DashboardCard } from '../components/cards';
 import UserLoginIcon from '@mui/icons-material/LoginOutlined';
 import UserRegistrationIcon from '@mui/icons-material/HowToRegOutlined';
 import TokenIcon from '@mui/icons-material/Token';
-// import ContentAddIcon from '@mui/icons-material/Add';
 import ContentAddIcon from '@mui/icons-material/AddBoxOutlined';
 import { Link } from 'react-router-dom';
 
@@ -32,10 +25,6 @@ const DevDashboard = () => {
     const { root: realmId } = useRootSelector();
     const translate = useTranslate();
     const dataProvider = useDataProvider();
-    const theme = useTheme();
-    const bgColor = alpha(theme.palette?.primary?.main, 0.08);
-    const getResourceLabel = useGetResourceLabel();
-    const createPath = useCreatePath();
 
     const [stats, setStats] = useState<any>(null);
 
@@ -95,7 +84,7 @@ const DevDashboard = () => {
                         resource="audit"
                         // title="logins"
                         title={false}
-                        text="dashboard.logins_7_days"
+                        text="page.dashboard.logins_7_days"
                         to={false}
                         icon={
                             <UserLoginIcon
@@ -115,7 +104,7 @@ const DevDashboard = () => {
                         resource="audit"
                         // title="registrations"
                         title={false}
-                        text="dashboard.registrations_7_days"
+                        text="page.dashboard.registrations_7_days"
                         to={false}
                         icon={
                             <UserRegistrationIcon
@@ -134,7 +123,7 @@ const DevDashboard = () => {
                         resource="audit"
                         // title="tokens"
                         title={false}
-                        text="dashboard.tokens_7_days"
+                        text="page.dashboard.tokens_7_days"
                         to={false}
                         icon={<TokenIcon color="primary" fontSize="large" />}
                     />

@@ -19,7 +19,7 @@ import 'ace-builds/src-noconflict/theme-solarized_light';
 import { Fragment } from 'react';
 import { useInput, Labeled, InputHelperText, InputProps } from 'react-admin';
 
-export const AceEditorInput = (props: AceInputProps) => {
+const AceEditorInput = (props: AceInputProps) => {
     const {
         mode = 'html',
         theme = 'monokai',

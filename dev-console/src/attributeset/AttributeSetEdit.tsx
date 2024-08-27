@@ -75,9 +75,9 @@ const AttributeSetEditForm = () => {
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
                 <SectionTitle
-                    text={translate('page.attributeSet.settings.header.title')}
+                    text={translate('page.attributeset.settings.header.title')}
                     secondaryText={translate(
-                        'page.attributeSet.settings.header.subtitle'
+                        'page.attributeset.settings.header.subtitle'
                     )}
                 />
                 <TextInput
@@ -106,10 +106,10 @@ const AttributeSetEditForm = () => {
                 <TabbedForm.Tab label="tab.attributes">
                     <SectionTitle
                         text={translate(
-                            'page.attributeSet.attributes.header.title'
+                            'page.attributeset.attributes.header.title'
                         )}
                         secondaryText={translate(
-                            'page.attributeSet.attributes.header.subtitle'
+                            'page.attributeset.attributes.header.subtitle'
                         )}
                     />
 

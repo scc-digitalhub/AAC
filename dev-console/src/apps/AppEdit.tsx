@@ -279,6 +279,6 @@ const ActionsToolbar = () => {
 
 const TabToolbar = () => (
     <Toolbar>
-        <SaveButton />
+        <SaveButton alwaysEnable />
     </Toolbar>
 );

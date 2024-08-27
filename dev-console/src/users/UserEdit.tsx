@@ -146,10 +146,10 @@ const UserForm = () => {
                     />
                 </Labeled>
             </TabbedForm.Tab>
-            <TabbedForm.Tab label={'tab.account'}>
+            <TabbedForm.Tab label={'tab.accounts'}>
                 <SectionTitle
-                    text={translate('page.user.account.title')}
-                    secondaryText={translate('page.user.account.subtitle')}
+                    text={translate('page.user.accounts.title')}
+                    secondaryText={translate('page.user.accounts.subtitle')}
                 />
                 <UserAccountsForm />
             </TabbedForm.Tab>

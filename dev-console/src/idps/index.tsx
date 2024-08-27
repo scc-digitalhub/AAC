@@ -3,6 +3,7 @@ import { IdpIcon } from './IdpIcon';
 import { IdpList } from './IdpList';
 
 export default {
+    name: 'idps',
     list: IdpList,
     edit: IdpEdit,
     icon: IdpIcon,

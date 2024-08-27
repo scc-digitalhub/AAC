@@ -3,6 +3,7 @@ import { GroupIcon } from './GroupIcon';
 import { GroupList } from './GroupList';
 
 export default {
+    name: 'groups',
     list: GroupList,
     edit: GroupEdit,
     icon: GroupIcon,

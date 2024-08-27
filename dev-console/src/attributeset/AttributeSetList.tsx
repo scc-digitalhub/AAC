@@ -25,8 +25,8 @@ export const AttributeSetList = () => {
     return (
         <Page>
             <PageTitle
-                text={translate('page.attributeSets.list.title')}
-                secondaryText={translate('page.attributeSets.list.subtitle')}
+                text={translate('page.attributeset.list.title')}
+                secondaryText={translate('page.attributeset.list.subtitle')}
             />
             <List
                 exporter={YamlExporter}

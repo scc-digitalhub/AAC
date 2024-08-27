@@ -25,11 +25,11 @@ import {
 } from './schemas';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
-import { AceEditorInput } from '../components/AceEditorInput';
 import {
     DeveloperListActions,
     DeveloperListView,
 } from '../developers/DeveloperList';
+import { AceEditorInput } from '@dslab/ra-ace-editor';
 
 export const RealmEdit = () => {
     return (

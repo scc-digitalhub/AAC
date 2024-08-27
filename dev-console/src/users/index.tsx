@@ -4,6 +4,7 @@ import { UserIcon } from './UserIcon';
 import { UserList } from './UserList';
 
 export default {
+    name: 'users',
     list: UserList,
     create: UserCreate,
     edit: UserEdit,

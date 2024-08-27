@@ -4,6 +4,7 @@ import { AppList } from './AppList';
 import { AppShow } from './AppShow';
 
 export default {
+    name: 'apps',
     list: AppList,
     show: AppShow,
     edit: AppEdit,

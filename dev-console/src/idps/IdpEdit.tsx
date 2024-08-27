@@ -85,7 +85,7 @@ const IdpTitle = () => {
             {record.name}{' '}
             {record?.enabled && !record.registered && (
                 <IconButtonWithTooltip
-                    label={'error.idp_registration_error'}
+                    label={'error.registration.error'}
                     color="error"
                 >
                     <WarningIcon fontSize="small" />
@@ -93,7 +93,7 @@ const IdpTitle = () => {
             )}
             {record.registered && (
                 <IconButtonWithTooltip
-                    label={'notification.idp_registered'}
+                    label={'notification.registered'}
                     color="success"
                 >
                     <RegisteredIcon fontSize="small" />
@@ -104,7 +104,6 @@ const IdpTitle = () => {
 };
 
 const IdpEditForm = () => {
-    const translate = useTranslate();
     const dataProvider = useDataProvider();
     const { root: realmId } = useRootSelector();
     const record = useRecordContext();
@@ -131,16 +130,19 @@ const IdpEditForm = () => {
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
                 <Labeled>
-                    <TextField source="id" />
+                    <TextField source="id" label="field.id.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="name" />
+                    <TextField source="name" label="field.name.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="type" />
+                    <TextField source="type" label="field.type.name" />
                 </Labeled>
                 <Labeled>
-                    <TextField source="authority" />
+                    <TextField
+                        source="authority"
+                        label="field.authority.name"
+                    />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
@@ -149,7 +151,12 @@ const IdpEditForm = () => {
                     secondaryText="page.idps.settings.basic.subtitle"
                 />
 
-                <TextInput source="name" fullWidth />
+                <TextInput
+                    source="name"
+                    label="field.name.name"
+                    helperText="field.name.helperText"
+                    fullWidth
+                />
 
                 <SectionTitle
                     text="page.idps.settings.display.title"
@@ -157,10 +164,15 @@ const IdpEditForm = () => {
                 />
                 {availableLocales && (
                     <TranslatableInputs locales={availableLocales} fullWidth>
-                        <TextInput source="titleMap" label="field.title.name" />
+                        <TextInput
+                            source="titleMap"
+                            label="field.title.name"
+                            helperText="field.title.helperText"
+                        />
                         <TextInput
                             source="descriptionMap"
                             label="field.description.name"
+                            helperText="field.description.helperText"
                             multiline
                         />
                     </TranslatableInputs>
@@ -248,11 +260,11 @@ const TabToolbar = () => {
         <>
             {record.enabled && (
                 <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
-                    {translate('error.idp_is_enabled')}
+                    {translate('error.provider_is_enabled')}
                 </Alert>
             )}
             <Toolbar>
-                <SaveButton />
+                <SaveButton alwaysEnable />
             </Toolbar>
         </>
     );

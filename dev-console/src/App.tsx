@@ -18,6 +18,7 @@ import DevDashboard from './pages/dashboard';
 import { LoginPage } from './pages/login';
 
 // resources
+import myrealmsDefinition from './myrealms';
 import appsDefinition from './apps';
 import groupsDefinition from './group';
 import rolesDefinition from './roles';
@@ -25,14 +26,10 @@ import usersDefinition from './users';
 import idpsDefinition from './idps';
 import apsDefinition from './aps';
 import apiResourcesDefinition from './resources';
-import myrealmsDefinition from './myrealms';
 import auditDefinition from './audit';
 import serviceDefinition from './service';
 import attributeSetDefinition from './attributeset';
-
-import { ScopeList } from './scopes/ScopeList';
-
-import { AttributeSetIcon } from './attributeset/AttributeSetIcon';
+import scopesDefinition from './scopes';
 
 import { RealmSelectorList } from './myrealms/RealmList';
 
@@ -49,7 +46,7 @@ export const DEFAULT_LANGUAGES = ['en', 'it', 'es', 'lv', 'de'];
 const DevApp = () => {
     return (
         <RootSelectorContextProvider
-            resource="myrealms"
+            resource={myrealmsDefinition.name}
             initialApp={<InitialWrapper />}
         >
             <Admin
@@ -64,31 +61,26 @@ const DevApp = () => {
                 requireAuth
                 disableTelemetry
             >
-                <Resource name="apps" {...appsDefinition} />
-                <Resource name="groups" {...groupsDefinition} />
-                <Resource name="roles" {...rolesDefinition} />
-                <Resource name="idps" {...idpsDefinition} />
-                <Resource name="aps" {...apsDefinition} />
+                <Resource {...appsDefinition} />
+                <Resource {...groupsDefinition} />
+                <Resource {...rolesDefinition} />
+                <Resource {...idpsDefinition} />
+                <Resource {...apsDefinition} />
                 <Resource
-                    name="myrealms"
+                    name={myrealmsDefinition.name}
                     edit={myrealmsDefinition.edit}
                     recordRepresentation={
                         myrealmsDefinition.recordRepresentation
                     }
                     icon={myrealmsDefinition.icon}
                 />
-                <Resource name="audit" {...auditDefinition} />
-                <Resource name="services" {...serviceDefinition} />
-                <Resource name="users" {...usersDefinition} />
+                <Resource {...auditDefinition} />
+                <Resource {...serviceDefinition} />
+                <Resource {...usersDefinition} />
 
-                <Resource name="resources" {...apiResourcesDefinition} />
-                <Resource
-                    name="scopes"
-                    list={<ScopeList />}
-                    recordRepresentation={record => `${record.name}`}
-                />
-
-                <Resource name="attributeset" {...attributeSetDefinition} />
+                <Resource {...apiResourcesDefinition} />
+                <Resource {...scopesDefinition} />
+                <Resource {...attributeSetDefinition} />
                 <Resource name="subjects" />
                 <Resource name="connectedapps" />
                 <Resource name="developers" />
@@ -99,7 +91,7 @@ const DevApp = () => {
 const InitialWrapper = () => {
     return (
         <RootSelectorInitialWrapper
-            resource="myrealms"
+            resource={myrealmsDefinition.name}
             selector={<RealmSelectorList />}
         >
             <Admin
@@ -114,7 +106,7 @@ const InitialWrapper = () => {
                 disableTelemetry
             >
                 <Resource
-                    name="myrealms"
+                    name={myrealmsDefinition.name}
                     list={myrealmsDefinition.list}
                     icon={myrealmsDefinition.icon}
                     recordRepresentation={
