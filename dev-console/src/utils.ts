@@ -3,7 +3,7 @@ export class utils {
         try {
             return atob(source || '');
         } catch (e: any) {
-            console.log('p', e);
+            // console.log('p', e);
             return null;
         }
     }

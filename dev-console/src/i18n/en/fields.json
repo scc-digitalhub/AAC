@@ -162,5 +162,112 @@
     },
     "keys": {
         "name": "keys.name"
+    },
+    "": "",
+    "events": {
+        "helperText": "events.helperText",
+        "name": "events.name"
+    },
+    "linkable": {
+        "helperText": "linkable.helperText",
+        "name": "linkable.name"
+    },
+    "notes": {
+        "helperText": "notes.helperText",
+        "name": "notes.name"
+    },
+    "oauth2": {
+        "accessTokenValidity": {
+            "helperText": "oauth2.accessTokenValidity.helperText",
+            "name": "oauth2.accessTokenValidity.name"
+        },
+        "applicationType": {
+            "helperText": "oauth2.applicationType.helperText",
+            "name": "oauth2.applicationType.name"
+        },
+        "authenticationMethods": {
+            "helperText": "oauth2.authenticationMethods.helperText",
+            "name": "oauth2.authenticationMethods.name"
+        },
+        "authorizedGrantTypes": {
+            "helperText": "oauth2.authorizedGrantTypes.helperText",
+            "name": "oauth2.authorizedGrantTypes.name"
+        },
+        "enableClientRegistration": {
+            "helperText": "oauth2.enableClientRegistration.helperText",
+            "name": "oauth2.enableClientRegistration.name"
+        },
+        "firstParty": {
+            "helperText": "oauth2.firstParty.helperText",
+            "name": "oauth2.firstParty.name"
+        },
+        "idTokenClaims": {
+            "helperText": "oauth2.idTokenClaims.helperText",
+            "name": "oauth2.idTokenClaims.name"
+        },
+        "openClientRegistration": {
+            "helperText": "oauth2.openClientRegistration.helperText",
+            "name": "oauth2.openClientRegistration.name"
+        },
+        "redirectUris": {
+            "helperText": "oauth2.redirectUris.helperText",
+            "name": "oauth2.redirectUris.name"
+        },
+        "refreshTokenRotation": {
+            "helperText": "oauth2.refreshTokenRotation.helperText",
+            "name": "oauth2.refreshTokenRotation.name"
+        },
+        "refreshTokenValidity": {
+            "helperText": "oauth2.refreshTokenValidity.helperText",
+            "name": "oauth2.refreshTokenValidity.name"
+        },
+        "subjectType": {
+            "helperText": "oauth2.subjectType.helperText",
+            "name": "oauth2.subjectType.name"
+        },
+        "tokenType": {
+            "helperText": "oauth2.tokenType.helperText",
+            "name": "oauth2.tokenType.name"
+        }
+    },
+    "persistence": {
+        "helperText": "persistence.helperText",
+        "name": "persistence.name"
+    },
+    "position": {
+        "helperText": "position.helperText",
+        "name": "position.name"
+    },
+    "template_override": {
+        "helperText": "template_override.helperText",
+        "name": "template_override.name"
+    },
+    "tos": {
+        "approveTOS": {
+            "helperText": "tos.approveTOS.helperText",
+            "name": "tos.approveTOS.name"
+        },
+        "enableTOS": {
+            "helperText": "tos.enableTOS.helperText",
+            "name": "tos.enableTOS.name"
+        }
+    },
+    "webhooks": {
+        "afterTokenGrant": {
+            "helperText": "webhooks.afterTokenGrant.helperText",
+            "name": "webhooks.afterTokenGrant.name"
+        },
+        "afterUserApproval": {
+            "helperText": "webhooks.afterUserApproval.helperText",
+            "name": "webhooks.afterUserApproval.name"
+        },
+        "beforeTokenGrant": {
+            "helperText": "webhooks.beforeTokenGrant.helperText",
+            "name": "webhooks.beforeTokenGrant.name"
+        },
+        "beforeUserApproval": {
+            "helperText": "webhooks.beforeUserApproval.helperText",
+            "name": "webhooks.beforeUserApproval.name"
+        }
     }
 }

@@ -111,7 +111,6 @@ export const RealmListView = (props: { actions?: ReactElement | boolean }) => {
 
 const RealmSelectorActions = () => {
     const record = useRecordContext();
-    console.log('rs', record);
     return (
         <RowButtonGroup label="⋮">
             <Stack direction={'row'} columnGap={1}>

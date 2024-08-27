@@ -15,64 +15,64 @@
         },
         "credentials": {
             "header": {
-                "title": "apps.credentials.header.title",
-                "subtitle": "apps.credentials.header.subtitle"
+                "title": "Client credentials",
+                "subtitle": "Credentials used with OAuth2/OIDC for authenticating against AAC"
             }
         },
         "scopes": {
             "header": {
-                "title": "apps.scopes.header.title",
-                "subtitle": "apps.scopes.header.subtitle"
+                "title": "API resources and scopes",
+                "subtitle": "Manage API access by enabling scopes for selected resources. Clients will be able to ask and obtain only scopes enabled in this section."
             }
         },
         "endpoints": {
             "header": {
-                "title": "apps.endpoints.header.title",
-                "subtitle": "apps.endpoints.header.subtitle"
+                "title": "OAuth2 endpoints",
+                "subtitle": "AAC endpoints for OAuth2 and OpenId Connect."
             }
         },
         "audit": {
-            "title": "apps.audit.title",
-            "subTitle": "apps.audit.subTitle"
+            "title": "Audit log",
+            "subTitle": "Review audit log for the current application"
         },
         "settings": {
             "header": {
-                "title": "apps.settings.header.title",
-                "subtitle": "apps.settings.header.subtitle"
+                "title": "Basic settings",
+                "subtitle": "Configure application settings"
             }
         },
         "providers": {
             "header": {
-                "title": "apps.providers.header.title",
-                "subtitle": "apps.providers.header.subtitle"
+                "title": "Providers",
+                "subtitle": "Identity providers are used to authenticate users via login. Only enabled (and active) providers will be available for this client."
             }
         },
         "configuration": {
             "header": {
-                "title": "apps.configuration.header.title",
-                "subtitle": "apps.configuration.header.subtitle"
+                "title": "OAuth2 configuration",
+                "subtitle": "Client configuration for OAuth2/OIDC"
             }
         },
         "hooks": {
             "claimMapping": {
-                "title": "apps.hooks.claimMapping.title",
-                "subtitle": "apps.hooks.claimMapping.subtitle"
+                "title": "Custom claim mapping",
+                "subtitle": "Custom mapping for claims generation, executed after token grants. The result will be used as provided to build client responses."
             },
             "webhooks": {
-                "title": "apps.hooks.webhooks.title",
-                "subtitle": "apps.hooks.webhooks.subtitle"
+                "title": "WebHooks",
+                "subtitle": "Hooks are used to alter the token flow by performing actions and/or web calls"
             }
         },
         "roles": {
             "header": {
-                "title": "apps.roles.header.title",
-                "subtitle": "apps.roles.header.subtitle"
+                "title": "Roles",
+                "subtitle": "Manage roles for the client application"
             }
         },
         "groups": {
             "header": {
-                "title": "apps.groups.header.title",
-                "subtitle": "apps.groups.header.subtitle"
+                "title": "Groups",
+                "subtitle": "Manage groups for the client application"
             }
         }
     },
@@ -86,6 +86,17 @@
         "list": {
             "title": "Roles",
             "subtitle": "Register and manage realm roles."
+        },
+        "permissions": {
+            "header": {
+                "subtitle": "roles.permissions.header.subtitle",
+                "title": "roles.permissions.header.title"
+            }
+        },
+        "subjects": {
+            "header": {
+                "title": "roles.subjects.header.title"
+            }
         }
     },
     "users": {
@@ -180,12 +191,188 @@
         "list": {
             "title": "Attribute sets",
             "subtitle": "Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope `profile.setidentifier.me`"
+        },
+        "attributes": {
+            "header": {
+                "subtitle": "attributeset.attributes.header.subtitle",
+                "title": "attributeset.attributes.header.title"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "attributeset.settings.header.subtitle",
+                "title": "attributeset.settings.header.title"
+            }
         }
     },
     "scopes": {
         "list": {
             "title": "Scopes",
             "subtitle": "View and inspect resources and scopes."
+        }
+    },
+    "developers": {
+        "list": {
+            "subtitle": "developers.list.subtitle",
+            "title": "developers.list.title"
+        }
+    },
+    "group": {
+        "members": {
+            "header": {
+                "title": "Members"
+            }
+        },
+        "roles": {
+            "header": {
+                "subtitle": "Manage roles associated with the current group.",
+                "title": "Roles"
+            },
+            "members": {
+                "subtitle": "members"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "Basic Settings",
+                "title": "Basic Settings"
+            }
+        },
+        "subjects": {
+            "members": {
+                "subtitle": "Members"
+            }
+        }
+    },
+    "login": {
+        "description": "",
+        "header": "Login"
+    },
+    "realm": {
+        "developers": {
+            "header": {
+                "title": "Developers"
+            }
+        },
+        "localization": {
+            "header": {
+                "subtitle": "Manage localization and internationalization settings",
+                "title": "Localization"
+            }
+        },
+        "oauth2": {
+            "header": {
+                "subtitle": "Configure realm OAuth2/OIDC settings",
+                "title": "OAuth2 configuration"
+            }
+        },
+        "roles": {
+            "developers": {
+                "subtitle": "developers"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "Manage basic settings for the realm",
+                "title": "Basic settings"
+            }
+        },
+        "templates": {
+            "header": {
+                "subtitle": "Customize display settings and view templates",
+                "title": "Template and appearance"
+            }
+        },
+        "tos": {
+            "header": {
+                "subtitle": "Configure ToS usage",
+                "title": "Terms of service"
+            }
+        }
+    },
+    "realms": {
+        "list": {
+            "subtitle": "Create and manage realms",
+            "title": "Realms"
+        }
+    },
+    "role": {
+        "settings": {
+            "header": {
+                "title": "Basic settings"
+            }
+        }
+    },
+    "service": {
+        "claim": {
+            "definition": {
+                "subtitle": "service.claim.definition.subtitle",
+                "title": "service.claim.definition.title"
+            }
+        },
+        "claims": {
+            "header": {
+                "subtitle": "service.claims.header.subtitle",
+                "title": "service.claims.header.title"
+            },
+            "mapping": {
+                "subtitle": "service.claims.mapping.subtitle",
+                "title": "service.claims.mapping.title"
+            }
+        },
+        "scope": {
+            "authorizations": {
+                "subtitle": "service.scope.authorizations.subtitle",
+                "title": "service.scope.authorizations.title"
+            },
+            "definition": {
+                "subtitle": "service.scope.definition.subtitle",
+                "title": "service.scope.definition.title"
+            }
+        },
+        "scopes": {
+            "header": {
+                "subtitle": "service.scopes.header.subtitle",
+                "title": "service.scopes.header.title"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "service.settings.header.subtitle",
+                "title": "service.settings.header.title"
+            }
+        }
+    },
+    "user": {
+        "accounts": {
+            "subtitle": "user.accounts.subtitle",
+            "title": "user.accounts.title"
+        },
+        "apps": {
+            "subtitle": "user.apps.subtitle",
+            "title": "user.apps.title"
+        },
+        "attributes": {
+            "attributes": {
+                "subtitle": "user.attributes.attributes.subtitle",
+                "title": "user.attributes.attributes.title"
+            },
+            "identity": {
+                "subtitle": "user.attributes.identity.subtitle",
+                "title": "user.attributes.identity.title"
+            }
+        },
+        "groups": {
+            "subtitle": "user.groups.subtitle",
+            "title": "user.groups.title"
+        },
+        "roles": {
+            "subtitle": "user.roles.subtitle",
+            "title": "user.roles.title"
+        },
+        "tos": {
+            "subtitle": "user.tos.subtitle",
+            "title": "user.tos.title"
         }
     }
 }

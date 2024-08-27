@@ -65,10 +65,8 @@ const RoleEditForm = () => {
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">
                 <SectionTitle
-                    text={translate('page.role.settings.header.title')}
-                    secondaryText={translate(
-                        'page.group.settings.header.subtitle'
-                    )}
+                    text="page.role.settings.header.title"
+                    secondaryText="page.role.settings.header.subtitle"
                 />
                 <TextInput
                     source="role"
