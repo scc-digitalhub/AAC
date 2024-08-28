@@ -89,13 +89,14 @@
         },
         "permissions": {
             "header": {
-                "subtitle": "roles.permissions.header.subtitle",
-                "title": "roles.permissions.header.title"
+                "subtitle": "Manage API permissions for the current role",
+                "title": "Permissions"
             }
         },
         "subjects": {
             "header": {
-                "title": "roles.subjects.header.title"
+                "subtitle": "Manually manage subjects associated with this role",
+                "title": "Role subjects"
             }
         }
     },
@@ -112,31 +113,31 @@
         },
         "settings": {
             "basic": {
-                "title": "idps.settings.basic.title",
-                "subtitle": "idps.settings.basic.subtitle"
+                "title": "Basic settings",
+                "subtitle": ""
             },
             "display": {
-                "title": "idps.settings.display.title",
-                "subtitle": "idps.settings.display.subtitle"
+                "title": "Display settings",
+                "subtitle": ""
             },
             "advanced": {
-                "title": "idps.settings.advanced.title",
-                "subtitle": "idps.settings.advanced.subtitle"
+                "title": "Advanced settings",
+                "subtitle": ""
             }
         },
         "configuration": {
-            "title": "idps.configuration.title",
-            "subtitle": "idps.configuration.subtitle"
+            "title": "Configuration",
+            "subtitle": ""
         },
         "hooks": {
-            "attribute": "idps.hooks.attribute",
-            "attributeDesc": "idps.hooks.attributeDesc",
-            "authFunction": "idps.hooks.authFunction",
-            "authFunctionDesc": "idps.hooks.authFunctionDesc"
+            "attribute": "Custom attribute mapping",
+            "attributeDesc": "Provide a function to transform principal attributes during login. Return a valid map with all the attributes",
+            "authFunction": "Authorization function",
+            "authFunctionDesc": "Provide a function to evaluate an authorization policy during the login flow. Return a boolean true/false to represent a decision"
         },
         "apps": {
-            "title": "idps.apps.title",
-            "description": "idps.apps.description"
+            "title": "Client applications",
+            "description": ""
         }
     },
     "aps": {
@@ -146,27 +147,27 @@
         },
         "settings": {
             "basic": {
-                "title": "aps.settings.basic.title",
-                "subtitle": "aps.settings.basic.subtitle"
+                "title": "Basic settings",
+                "subtitle": ""
             },
             "display": {
-                "title": "aps.settings.display.title",
-                "subtitle": "aps.settings.display.subtitle"
+                "title": "Display settings",
+                "subtitle": ""
             },
             "advanced": {
-                "title": "aps.settings.advanced.title",
-                "subtitle": "aps.settings.advanced.subtitle"
+                "title": "Advanced settings",
+                "subtitle": ""
             }
         },
         "attributeSets": {
             "header": {
-                "title": "aps.attributeSets.header.title",
-                "subtitle": "aps.attributeSets.header.subtitle"
+                "title": "Attribute Sets",
+                "subtitle": ""
             }
         },
         "configuration": {
-            "title": "aps.configuration.title",
-            "subtitle": "aps.configuration.subtitle"
+            "title": "Configuration",
+            "subtitle": ""
         }
     },
     "resources": {
@@ -194,14 +195,14 @@
         },
         "attributes": {
             "header": {
-                "subtitle": "attributeset.attributes.header.subtitle",
-                "title": "attributeset.attributes.header.title"
+                "subtitle": "",
+                "title": "Attributes"
             }
         },
         "settings": {
             "header": {
-                "subtitle": "attributeset.settings.header.subtitle",
-                "title": "attributeset.settings.header.title"
+                "subtitle": "",
+                "title": "Basic settings"
             }
         }
     },
@@ -213,8 +214,8 @@
     },
     "developers": {
         "list": {
-            "subtitle": "developers.list.subtitle",
-            "title": "developers.list.title"
+            "subtitle": "",
+            "title": "Developers"
         }
     },
     "group": {
@@ -234,7 +235,7 @@
         },
         "settings": {
             "header": {
-                "subtitle": "Basic Settings",
+                "subtitle": "",
                 "title": "Basic Settings"
             }
         },
@@ -299,6 +300,7 @@
     "role": {
         "settings": {
             "header": {
+                "subtitle": "",
                 "title": "Basic settings"
             }
         }
@@ -306,40 +308,40 @@
     "service": {
         "claim": {
             "definition": {
-                "subtitle": "service.claim.definition.subtitle",
-                "title": "service.claim.definition.title"
+                "subtitle": "",
+                "title": "Claim definition"
             }
         },
         "claims": {
             "header": {
-                "subtitle": "service.claims.header.subtitle",
-                "title": "service.claims.header.title"
+                "subtitle": "Claims are used to carry authorization info with access and/or id tokens",
+                "title": "Service claims"
             },
             "mapping": {
-                "subtitle": "service.claims.mapping.subtitle",
-                "title": "service.claims.mapping.title"
+                "subtitle": "Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens.",
+                "title": "User claim mapping"
             }
         },
         "scope": {
             "authorizations": {
-                "subtitle": "service.scope.authorizations.subtitle",
-                "title": "service.scope.authorizations.title"
+                "subtitle": "",
+                "title": "Authorizations"
             },
             "definition": {
-                "subtitle": "service.scope.definition.subtitle",
-                "title": "service.scope.definition.title"
+                "subtitle": "",
+                "title": "Scope definition"
             }
         },
         "scopes": {
             "header": {
-                "subtitle": "service.scopes.header.subtitle",
-                "title": "service.scopes.header.title"
+                "subtitle": "Scopes are used to identify permissions on a resource managed by the service. Clients will ask for scopes during authorization.",
+                "title": "Service scopes"
             }
         },
         "settings": {
             "header": {
-                "subtitle": "service.settings.header.subtitle",
-                "title": "service.settings.header.title"
+                "subtitle": "",
+                "title": "Basic settings"
             }
         }
     },
