@@ -345,34 +345,34 @@
     },
     "user": {
         "accounts": {
-            "subtitle": "user.accounts.subtitle",
-            "title": "user.accounts.title"
+            "subtitle": "Manage accounts for the current user",
+            "title": "Accounts"
         },
         "apps": {
-            "subtitle": "user.apps.subtitle",
-            "title": "user.apps.title"
+            "subtitle": "Manage connected apps for the current user",
+            "title": "Connected Applications"
         },
         "attributes": {
             "attributes": {
-                "subtitle": "user.attributes.attributes.subtitle",
-                "title": "user.attributes.attributes.title"
+                "subtitle": "Review and manage additional attributes for the current user",
+                "title": "Additional Attributes"
             },
             "identity": {
-                "subtitle": "user.attributes.identity.subtitle",
-                "title": "user.attributes.identity.title"
+                "subtitle": "Review attributes for the current user, as received from identity providers",
+                "title": "Identity Attributes"
             }
         },
         "groups": {
-            "subtitle": "user.groups.subtitle",
-            "title": "user.groups.title"
+            "subtitle": "Manage groups for the current user",
+            "title": "Groups"
         },
         "roles": {
-            "subtitle": "user.roles.subtitle",
-            "title": "user.roles.title"
+            "subtitle": "Manage roles for the current user",
+            "title": "Roles"
         },
         "tos": {
-            "subtitle": "user.tos.subtitle",
-            "title": "user.tos.title"
+            "subtitle": "Manage Terms of service for the current user",
+            "title": "Terms of service"
         }
     }
 }
