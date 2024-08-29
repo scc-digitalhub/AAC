@@ -110,7 +110,7 @@
         "helperText": ""
     },
     "scopes": {
-        "name": "Add a scope",
+        "name": "Scopes",
         "helperText": ""
     },
     "attributeSets": {
@@ -153,12 +153,12 @@
         "helperText": ""
     },
     "group": {
-        "name": "group.name",
-        "helperText": "group.helperText"
+        "name": "Group",
+        "helperText": ""
     },
     "members": {
-        "name": "members.name",
-        "helperText": "members.helperText"
+        "name": "Members",
+        "helperText": "Total number of members"
     },
     "email": {
         "name": "Email Address",
