@@ -60,7 +60,7 @@ const RoleEditForm = () => {
                     />
                 </Labeled>
                 <Labeled>
-                    <NumberField source="size" label="field.subejcts.name" />
+                    <NumberField source="size" label="field.subjects.name" />
                 </Labeled>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.settings">

@@ -44,16 +44,16 @@
         "helperText": "Define a custom style sheet (CSS) to be injected in pages"
     },
     "namespace": {
-        "name": "namespace.name",
-        "helperText": "namespace.helperText"
+        "name": "Namespace",
+        "helperText": "Service Namespace"
     },
     "scope": {
         "name": "scope.name",
         "helperText": "scope.helperText"
     },
     "authority": {
-        "name": "authority.name",
-        "helperText": "authority.helperText"
+        "name": "Authority",
+        "helperText": ""
     },
     "approvalRoles": {
         "name": "approvalRoles.name",
@@ -86,12 +86,12 @@
         "helperText": "key.helperText"
     },
     "groups": {
-        "name": "groups.name",
-        "helperText": "groups.helperText"
+        "name": "Add a group",
+        "helperText": ""
     },
     "roles": {
-        "name": "roles.name",
-        "helperText": "roles.helperText"
+        "name": "Add custom role",
+        "helperText": ""
     },
     "clientSecret": {
         "name": "clientSecret.name"
@@ -102,12 +102,12 @@
     "context": "context",
     "result": "result",
     "providers": {
-        "name": "providers.name",
-        "helperText": "providers.helperText"
+        "name": "",
+        "helperText": ""
     },
     "scopes": {
-        "name": "scopes.name",
-        "helperText": "scopes.helperText"
+        "name": "Add a scope",
+        "helperText": ""
     },
     "attributeSets": {
         "name": "attributeSets.name",
@@ -120,11 +120,11 @@
         "name": "registered.name"
     },
     "username": {
-        "name": "username.name"
+        "name": "Username"
     },
     "subjectId": {
-        "name": "subjectId.name",
-        "helperText": "subjectId.helperText"
+        "name": "SubjectId",
+        "helperText": ""
     },
     "identifier": {
         "name": "identifier.name",
@@ -137,16 +137,16 @@
         "name": "status.name"
     },
     "role": {
-        "name": "role.name",
-        "helperText": "role.helperText"
+        "name": "Role",
+        "helperText": ""
     },
     "subjects": {
-        "name": "subjects.name",
-        "helperText": "subjects.helperText"
+        "name": "Subjects",
+        "helperText": "Numer of associated subjects"
     },
     "permissions": {
-        "name": "permissions.name",
-        "helperText": "permissions.helperText"
+        "name": "Permission",
+        "helperText": ""
     },
     "group": {
         "name": "group.name",
@@ -157,8 +157,8 @@
         "helperText": "members.helperText"
     },
     "email": {
-        "name": "email.name",
-        "helperText": "email.helperText"
+        "name": "Email Address",
+        "helperText": ""
     },
     "keys": {
         "name": "keys.name"
@@ -269,5 +269,32 @@
             "helperText": "webhooks.beforeUserApproval.helperText",
             "name": "webhooks.beforeUserApproval.name"
         }
+    },
+    "time": {
+        "name": "Time"
+    },
+    "principal": {
+        "name": "Principal"
+    },
+    "issuer": "Issuer",
+    "authorization_endpoint": "Authorization Endpoint",
+    "token_endpoint": "Token Endpoint",
+    "jwks_uri": "JWKS endpoint",
+    "userinfo_endpoint": "Userinfo endpoint",
+    "introspection_endpoint": "Introspection endpoint",
+    "revocation_endpoint": "Revocation endpoint",
+    "registration_endpoint": "Registration endpoint",
+    "end_session_endpoint": "Endsession endpoint",
+    "tosAccepted": {
+        "name": "Approved"
+    },
+    "account": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "verified": "Verified",
+        "unverified": "Unverified"
+    },
+    "clientJwk": {
+        "name": "Client Private Key (JWK)"
     }
 }
