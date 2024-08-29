@@ -59,26 +59,30 @@
         "name": "approvalRoles.name",
         "helperText": "approvalRoles.helperText"
     },
+    "approvalFunction": {
+        "name": "Authorization with approval function",
+        "helperText": ""
+    },
     "approvalAny": {
-        "name": "approvalAny.name",
-        "helperText": "approvalAny.helperText"
+        "name": "One of",
+        "helperText": ""
     },
     "approvalRequired": {
-        "name": "approvalRequired.name",
-        "helperText": "approvalRequired.helperText"
+        "name": "Authorization with explicit approval",
+        "helperText": ""
     },
     "multiple": {
-        "name": "multiple.name",
-        "helperText": "multiple.helperText"
+        "name": "Is Array",
+        "helperText": ""
     },
     "claimMapping": {
         "user": {
-            "name": "claimMapping.user.name",
-            "helperText": "claimMapping.user.helperText"
+            "name": "User claim mapping",
+            "helperText": "Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens"
         },
         "client": {
-            "name": "claimMapping.client.name",
-            "helperText": "claimMapping.client.helperText"
+            "name": "Client claim mapping",
+            "helperText": "Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens"
         }
     },
     "key": {
@@ -292,7 +296,10 @@
         "active": "Active",
         "inactive": "Inactive",
         "verified": "Verified",
-        "unverified": "Unverified"
+        "unverified": "Unverified",
+        "unlocked": "Unlocked",
+        "confirmed": "Confirmed",
+        "unconfirmed": "Unconfirmed"
     },
     "clientJwk": {
         "name": "Client Private Key (JWK)"

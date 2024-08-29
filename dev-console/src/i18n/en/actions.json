@@ -7,5 +7,10 @@
     "register": "Register",
     "select": "Select",
     "show": "Show",
-    "test": "Test"
+    "test": "Test",
+    "disable": "Block",
+    "lock": "Lock",
+    "verify": "Verify",
+    "reset": "Unconfirm",
+    "confirm": "Confirm"
 }

@@ -71,16 +71,16 @@ export const UserAccountsForm = () => {
                         <Stack spacing={1} direction={'row'}>
                             <BooleanField
                                 source="locked"
-                                valueLabelTrue="account.locked"
-                                valueLabelFalse="account.unlocked"
+                                valueLabelTrue="field.account.locked"
+                                valueLabelFalse="field.account.unlocked"
                                 TrueIcon={LockIcon}
                                 color={r.locked ? 'error' : 'primary'}
                                 FalseIcon={EnabledIcon}
                             />
                             <BooleanField
                                 source="confirmed"
-                                valueLabelTrue="account.confirmed"
-                                valueLabelFalse="account.unconfirmed"
+                                valueLabelTrue="field.account.confirmed"
+                                valueLabelFalse="field.account.unconfirmed"
                                 TrueIcon={VerifiedUserIcon}
                                 FalseIcon={WarningIcon}
                                 color={r.confirmed ? 'primary' : 'error'}

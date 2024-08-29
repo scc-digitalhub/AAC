@@ -136,6 +136,8 @@ export const ScopeEditForm = (props: { mode: 'create' | 'edit' }) => {
                     <Grid item xs={12}>
                         <ControlledEditorInput
                             source="approvalFunction"
+                            label="field.approvalFunction.name"
+                            helperText="field.approvalFunction.helperText"
                             defaultValue={scopeAuthorizationDefaultValue}
                             disabledValue={null}
                             mode="javascript"

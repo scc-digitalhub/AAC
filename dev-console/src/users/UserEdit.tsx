@@ -72,24 +72,24 @@ const UserTitle = () => {
         <Typography variant="h4" sx={{ pt: 0, pb: 1, textAlign: 'left' }}>
             {record.username}{' '}
             {record.status === 'active' ? (
-                <IconButtonWithTooltip label={'account.active'} color="success">
+                <IconButtonWithTooltip label={'field.account.active'} color="success">
                     <EnabledIcon fontSize="small" />
                 </IconButtonWithTooltip>
             ) : (
-                <IconButtonWithTooltip label={'account.inactive'} color="error">
+                <IconButtonWithTooltip label={'field.account.inactive'} color="error">
                     <WarningIcon fontSize="small" />
                 </IconButtonWithTooltip>
             )}
             {record.emailVerified === true ? (
                 <IconButtonWithTooltip
-                    label={'account.verified'}
+                    label={'field.account.verified'}
                     color="success"
                 >
                     <VerifiedUserIcon fontSize="small" />
                 </IconButtonWithTooltip>
             ) : (
                 <IconButtonWithTooltip
-                    label={'account.unverified'}
+                    label={'field.account.unverified'}
                     color="error"
                 >
                     <GppBadIcon fontSize="small" />
