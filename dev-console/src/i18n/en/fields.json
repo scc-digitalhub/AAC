@@ -43,6 +43,10 @@
         "name": "Username Attribute",
         "helperText": ""
     },
+    "subjectType": {
+        "name": "Subject attribute (if different from sub)",
+        "helperText": ""
+    },
     "subAttributeName": {
         "name": "Subject attribute (if different from sub)",
         "helperText": ""
@@ -489,5 +493,49 @@
     "askEmailScope": {
         "name": "Email",
         "helperText": "User Attributes"
+    },
+    "clientJwks": {
+        "name": "Client Private Key (JWK)",
+        "helperText": ""
+    },
+    "federationJwks": {
+        "name": "Federation Key (JWK)",
+        "helperText": ""
+    },
+    "claims": {
+        "name": "Claims",
+        "helperText": ""
+    },
+    "organizationName": {
+        "name": "Organization Name",
+        "helperText": ""
+    },
+    "contacts": {
+        "name": "Contacts",
+        "helperText": ""
+    },
+    "trustAnchor": {
+        "name": "Trust Anchors",
+        "helperText": ""
+    },
+    "trustMarks": {
+        "name": "Trust Marks",
+        "helperText": ""
+    },
+    "authorityHints": {
+        "name": "Authority Hints",
+        "helperText": ""
+    },
+    "acrValues": {
+        "name": "acrValues",
+        "helperText": "Advanced Configuration"
+    },
+    "userInfoJWEAlg": {
+        "name": "userInfoJWEAlg",
+        "helperText": "Advanced Configuration"
+    },
+    "userInfoJWEEnc": {
+        "name": "userInfoJWEEnc",
+        "helperText": "Advanced Configuration"
     }
 }
