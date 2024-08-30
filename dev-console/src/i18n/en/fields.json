@@ -91,6 +91,10 @@
         "name": "Prompt Mode",
         "helperText": ""
     },
+    "template_override": {
+        "name": "Template Override",
+        "helperText": ""
+    },    
     "authorization_endpoint": "Authorization Endpoint",
     "token_endpoint": "Token Endpoint",
     "jwks_uri": "JWKS endpoint",
@@ -136,7 +140,7 @@
         "helperText": ""
     },
     "approvalRoles": {
-        "name": "approvalRoles.name",
+        "name": "Authorization with realm roles",
         "helperText": "approvalRoles.helperText"
     },
     "approvalFunction": {
@@ -166,8 +170,8 @@
         }
     },
     "key": {
-        "name": "key.name",
-        "helperText": "key.helperText"
+        "name": "Key",
+        "helperText": ""
     },
     "groups": {
         "name": "Add a group",
@@ -178,12 +182,12 @@
         "helperText": ""
     },
     "jwks": {
-        "name": "jwks.name"
+        "name": "Client Key Set (JWKS)"
     },
     "context": "context",
     "result": "result",
     "providers": {
-        "name": "",
+        "name": "Providers",
         "helperText": ""
     },
     "scopes": {
@@ -191,8 +195,8 @@
         "helperText": ""
     },
     "attributeSets": {
-        "name": "attributeSets.name",
-        "helperText": "attributeSets.helperText"
+        "name": "Attribute Sets",
+        "helperText": ""
     },
     "enabled": {
         "name": "Active"
@@ -208,8 +212,8 @@
         "helperText": ""
     },
     "identifier": {
-        "name": "identifier.name",
-        "helperText": "identifier.helperText"
+        "name": "Set Identifier",
+        "helperText": ""
     },
     "accounts": {
         "name": "accounts.name"
@@ -246,109 +250,105 @@
     },
     "": "",
     "events": {
-        "helperText": "events.helperText",
-        "name": "events.name"
+        "helperText": "",
+        "name": "Audit events"
     },
     "linkable": {
-        "helperText": "linkable.helperText",
-        "name": "linkable.name"
+        "helperText": "",
+        "name": "Enable account linking"
     },
     "notes": {
-        "helperText": "notes.helperText",
-        "name": "notes.name"
+        "helperText": "",
+        "name": "Notes"
     },
     "oauth2": {
         "accessTokenValidity": {
-            "helperText": "oauth2.accessTokenValidity.helperText",
-            "name": "oauth2.accessTokenValidity.name"
+            "helperText": "",
+            "name": "Access token validity (sec)"
         },
         "applicationType": {
-            "helperText": "oauth2.applicationType.helperText",
-            "name": "oauth2.applicationType.name"
+            "helperText": "",
+            "name": "Application type"
         },
         "authenticationMethods": {
-            "helperText": "oauth2.authenticationMethods.helperText",
-            "name": "oauth2.authenticationMethods.name"
+            "helperText": "",
+            "name": "Authentication methods"
         },
         "authorizedGrantTypes": {
-            "helperText": "oauth2.authorizedGrantTypes.helperText",
-            "name": "oauth2.authorizedGrantTypes.name"
+            "helperText": "",
+            "name": "Grant types"
         },
         "enableClientRegistration": {
-            "helperText": "oauth2.enableClientRegistration.helperText",
-            "name": "oauth2.enableClientRegistration.name"
+            "helperText": "Dynamic client registration with management (OAuth2 and OIDC). Authorized parties (with a valid bearer token) will be able to register a client",
+            "name": "Enable Dynamic Client Registration"
         },
         "firstParty": {
-            "helperText": "oauth2.firstParty.helperText",
-            "name": "oauth2.firstParty.name"
+            "helperText": "",
+            "name": "First party"
         },
         "idTokenClaims": {
-            "helperText": "oauth2.idTokenClaims.helperText",
-            "name": "oauth2.idTokenClaims.name"
+            "helperText": "",
+            "name": "IdToken custom claims"
         },
         "openClientRegistration": {
-            "helperText": "oauth2.openClientRegistration.helperText",
-            "name": "oauth2.openClientRegistration.name"
+            "helperText": "Open Dynamic Registration disables authentication for DCR endpoints",
+            "name": "Enable Open Dynamic Client Registration"
         },
         "redirectUris": {
-            "helperText": "oauth2.redirectUris.helperText",
-            "name": "oauth2.redirectUris.name"
+            "helperText": "",
+            "name": "Redirect uris"
         },
         "refreshTokenRotation": {
-            "helperText": "oauth2.refreshTokenRotation.helperText",
-            "name": "oauth2.refreshTokenRotation.name"
+            "helperText": "",
+            "name": "Refresh token rotation"
         },
         "refreshTokenValidity": {
-            "helperText": "oauth2.refreshTokenValidity.helperText",
-            "name": "oauth2.refreshTokenValidity.name"
+            "helperText": "",
+            "name": "Refresh token validity (sec)"
         },
         "subjectType": {
-            "helperText": "oauth2.subjectType.helperText",
-            "name": "oauth2.subjectType.name"
+            "helperText": "",
+            "name": "Subject type"
         },
         "tokenType": {
-            "helperText": "oauth2.tokenType.helperText",
-            "name": "oauth2.tokenType.name"
+            "helperText": "",
+            "name": "Token type"
         }
     },
     "persistence": {
-        "helperText": "persistence.helperText",
-        "name": "persistence.name"
+        "helperText": "",
+        "name": "Persistence"
     },
     "position": {
-        "helperText": "position.helperText",
-        "name": "position.name"
-    },
-    "template_override": {
-        "helperText": "template_override.helperText",
-        "name": "template_override.name"
+        "helperText": "",
+        "name": "Localization"
     },
     "tos": {
         "approveTOS": {
-            "helperText": "tos.approveTOS.helperText",
-            "name": "tos.approveTOS.name"
+            "helperText": "",
+            "name": "Approve Terms of Service"
         },
         "enableTOS": {
-            "helperText": "tos.enableTOS.helperText",
-            "name": "tos.enableTOS.name"
+            "helperText": "",
+            "name": "Enable Terms of Service"
         }
     },
     "webhooks": {
         "afterTokenGrant": {
-            "helperText": "webhooks.afterTokenGrant.helperText",
-            "name": "webhooks.afterTokenGrant.name"
+            "helperText": "",
+            "name": "After token grant webhook"
         },
         "afterUserApproval": {
-            "helperText": "webhooks.afterUserApproval.helperText",
-            "name": "webhooks.afterUserApproval.name"
+            "helperText": "",
+            "name": "After user approval webhook"
         },
         "beforeTokenGrant": {
             "helperText": "webhooks.beforeTokenGrant.helperText",
-            "name": "webhooks.beforeTokenGrant.name"
+            "name": "Before token grant webhook"
         },
         "beforeUserApproval": {
-            "helperText": "webhooks.beforeUserApproval.helperText",
-            "name": "webhooks.beforeUserApproval.name"
+            "helperText": "",
+            "name": "Before user approval webhook"
         }
     },
     "time": {
@@ -392,6 +392,14 @@
     },
     "confirmationValidity": {
         "name": "Confirmation duration (seconds)",
+        "helperText": ""
+    },
+    "resource": {
+        "name": "Resource",
+        "helperText": ""
+    },
+    "usermode": {
+        "name": "UserMode",
         "helperText": ""
     }
 }
