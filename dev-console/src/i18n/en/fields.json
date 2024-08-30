@@ -537,5 +537,61 @@
     "userInfoJWEEnc": {
         "name": "userInfoJWEEnc",
         "helperText": "Advanced Configuration"
+    },
+    "entityId": {
+        "name": "Entity ID",
+        "helperText": ""
+    },
+    "signingKey": {
+        "name": "Signing Key",
+        "helperText": "Signing"
+    },
+    "signingCertificate": {
+        "name": "Signing Certificate",
+        "helperText": "Signing"
+    },
+    "organizationDisplayName": {
+        "name": "Organization Display Name",
+        "helperText": "Organization information"
+    },
+    "organizationUrl": {
+        "name": "Organization Url",
+        "helperText": "Organization information"
+    },
+    "contactPerson_EmailAddress": {
+        "name": "Contact person email",
+        "helperText": "Contact person information"
+    },
+    "contactPerson_IPACode": {
+        "name": "Contact person IPAcode",
+        "helperText": "Contact person information"
+    },
+    "contactPerson_Type": {
+        "name": "Contact person phone",
+        "helperText": "Contact person information"
+    },
+    "contactPerson_Public": {
+        "name": "Contact person Public",
+        "helperText": "Contact person information"
+    },
+    "idps": {
+        "name": "Identity Providers",
+        "helperText": "IdP Configuration"
+    },
+    "idpMetadataUrl": {
+        "name": "IdP Metadata Discovery URL",
+        "helperText": "IdP Configuration"
+    },
+    "spidAttributes": {
+        "name": "Identity Providers",
+        "helperText": "SPID IdP Configuration"
+    },
+    "spidLevel": {
+        "name": "Spid level",
+        "helperText": "SPID Advanced Configuration"
+    },
+    "usernameAttributeName": {
+        "name": "Spid username attribute",
+        "helperText": "SAML Advanced Configuration"
     }
 }
