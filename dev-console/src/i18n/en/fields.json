@@ -174,11 +174,11 @@
         "helperText": ""
     },
     "groups": {
-        "name": "Add a group",
+        "name": "Groups",
         "helperText": ""
     },
     "roles": {
-        "name": "Add custom role",
+        "name": "Roles",
         "helperText": ""
     },
     "jwks": {
@@ -382,10 +382,6 @@
         "name": "Enable Update",
         "helperText": ""
     },
-    "maxSessionDuration": {
-        "name": "Max session duration",
-        "helperText": ""
-    },
     "confirmationRequired": {
         "name": "Confirmation Required",
         "helperText": ""
@@ -401,5 +397,33 @@
     "usermode": {
         "name": "UserMode",
         "helperText": ""
+    },
+    "maxSessionDuration": {
+        "name": "Max session duration",
+        "helperText": "Session Management"
+    },
+    "displayAsButton": {
+        "name": "Show as button",
+        "helperText": "Display Management"
+    },
+    "allowUntrustedAttestation": {
+        "name": "Allow untrusted Attestation",
+        "helperText": "Credentials Management"
+    },
+    "requireResidentKey": {
+        "name": "Resident key",
+        "helperText": "User verification"
+    },
+    "registrationTimeout": {
+        "name": "Registration timeout (seconds)",
+        "helperText": "Operation Management"
+    },
+    "loginTimeout": {
+        "name": "Login timeout (seconds)",
+        "helperText": "Operation Management"
+    },
+    "requireAccountConfirmation": {
+        "name": "Require account confirmation",
+        "helperText": "User Management"
     }
 }
