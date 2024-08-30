@@ -19,6 +19,86 @@
         "name": "ClientId",
         "helperText": "Client (unique) identifier"
     },
+    "clientSecret": {
+        "name": "Client Secret",
+        "helperText": "Client Secret (unique) identifier"
+    },
+    "clientJwk": {
+        "name": "Client Private Key (JWK)",
+        "helperText": ""
+    },
+    "clientName": {
+        "name": "Client Name",
+        "helperText": ""
+    },
+    "clientAuthenticationMethod": {
+        "name": "Client Authentication Method",
+        "helperText": ""
+    }, 
+    "enablePkce": {
+        "name": "Enable PKCE",
+        "helperText": ""
+    },
+    "userNameAttributeName": {
+        "name": "Username Attribute",
+        "helperText": ""
+    },
+    "subAttributeName": {
+        "name": "Subject attribute (if different from sub)",
+        "helperText": ""
+    },
+    "trustEmailAddress": {
+        "name": "trustEmailAddress",
+        "helperText": ""
+    },
+    "requireEmailAddress": {
+        "name": "requireEmailAddress",
+        "helperText": ""
+    },
+    "alwaysTrustEmailAddress": {
+        "name": "alwaysTrustEmailAddress",
+        "helperText": ""
+    },
+    "authorizationUri": {
+        "name": "Authorization Endpoint",
+        "helperText": ""
+    },
+    "tokenUri": {
+        "name": "Token Endpoint",
+        "helperText": ""
+    },
+    "jwkSetUri": {
+        "name": "JWKS Endpoint",
+        "helperText": ""
+    },
+    "userInfoUri": {
+        "name": "Userinfo Endpoint",
+        "helperText": ""
+    },
+    "issuerUri": {
+        "name": "Issuer Endpoint",
+        "helperText": ""
+    },
+    "propagateEndSession": {
+        "name": "Propagate end session to idp",
+        "helperText": ""
+    },
+    "respectTokenExpiration": {
+        "name": "Use expiration from token for session",
+        "helperText": ""
+    },
+    "promptMode": {
+        "name": "Prompt Mode",
+        "helperText": ""
+    },
+    "authorization_endpoint": "Authorization Endpoint",
+    "token_endpoint": "Token Endpoint",
+    "jwks_uri": "JWKS endpoint",
+    "userinfo_endpoint": "Userinfo endpoint",
+    "introspection_endpoint": "Introspection endpoint",
+    "revocation_endpoint": "Revocation endpoint",
+    "registration_endpoint": "Registration endpoint",
+    "end_session_endpoint": "Endsession endpoint",   
     "slug": {
         "name": "Slug",
         "helperText": "Path-style (unique) identifier"
@@ -48,8 +128,8 @@
         "helperText": "Service Namespace"
     },
     "scope": {
-        "name": "scope.name",
-        "helperText": "scope.helperText"
+        "name": "Scope",
+        "helperText": ""
     },
     "authority": {
         "name": "Authority",
@@ -97,9 +177,6 @@
         "name": "Add custom role",
         "helperText": ""
     },
-    "clientSecret": {
-        "name": "clientSecret.name"
-    },
     "jwks": {
         "name": "jwks.name"
     },
@@ -118,10 +195,10 @@
         "helperText": "attributeSets.helperText"
     },
     "enabled": {
-        "name": "enabled.name"
+        "name": "Active"
     },
     "registered": {
-        "name": "registered.name"
+        "name": "Registered"
     },
     "username": {
         "name": "Username"
@@ -281,14 +358,6 @@
         "name": "Principal"
     },
     "issuer": "Issuer",
-    "authorization_endpoint": "Authorization Endpoint",
-    "token_endpoint": "Token Endpoint",
-    "jwks_uri": "JWKS endpoint",
-    "userinfo_endpoint": "Userinfo endpoint",
-    "introspection_endpoint": "Introspection endpoint",
-    "revocation_endpoint": "Revocation endpoint",
-    "registration_endpoint": "Registration endpoint",
-    "end_session_endpoint": "Endsession endpoint",
     "tosAccepted": {
         "name": "Approved"
     },
@@ -301,7 +370,28 @@
         "confirmed": "Confirmed",
         "unconfirmed": "Unconfirmed"
     },
-    "clientJwk": {
-        "name": "Client Private Key (JWK)"
+    "enableRegistration": {
+        "name": "Enable Registration",
+        "helperText": ""
+    },
+    "enableDelete": {
+        "name": "Enable Delete",
+        "helperText": ""
+    },
+    "enableUpdate": {
+        "name": "Enable Update",
+        "helperText": ""
+    },
+    "maxSessionDuration": {
+        "name": "Max session duration",
+        "helperText": ""
+    },
+    "confirmationRequired": {
+        "name": "Confirmation Required",
+        "helperText": ""
+    },
+    "confirmationValidity": {
+        "name": "Confirmation duration (seconds)",
+        "helperText": ""
     }
 }
