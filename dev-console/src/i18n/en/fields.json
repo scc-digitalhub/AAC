@@ -425,5 +425,69 @@
     "requireAccountConfirmation": {
         "name": "Require account confirmation",
         "helperText": "User Management"
+    },
+    "enablePasswordReset": {
+        "name": "Reset Enabled",
+        "helperText": "Password Management"
+    },
+    "passwordResetValidity": {
+        "name": "Reset duration (seconds)",
+        "helperText": "Password Management"
+    },
+    "passwordMinLength": {
+        "name": "Min length",
+        "helperText": "Password Policies"
+    },
+    "passwordMaxLength": {
+        "name": "Max length",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireAlpha": {
+        "name": "Require letters",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireSpecial": {
+        "name": "Require special characters",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireUppercaseAlpha": {
+        "name": "Require uppercase letters",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireNumber": {
+        "name": "Require numbers",
+        "helperText": "Password Policies"
+    },
+    "passwordSupportWhitespace": {
+        "name": "Support whitespace",
+        "helperText": "Password Policies"
+    },
+    "passwordMaxDays": {
+        "name": "Max duration (days)",
+        "helperText": "Password Security"
+    },
+    "passwordKeepNumber": {
+        "name": "Old passwords to keep (reuse protection)",
+        "helperText": "Password Security"
+    },
+    "teamId": {
+        "name": "Team ID",
+        "helperText": ""
+    },
+    "keyId": {
+        "name": "Key ID",
+        "helperText": ""
+    },
+    "privateKey": {
+        "name": "Client Private Key (PEM)",
+        "helperText": ""
+    },
+    "askNameScope": {
+        "name": "Full name",
+        "helperText": "User Attributes"
+    },
+    "askEmailScope": {
+        "name": "Email",
+        "helperText": "User Attributes"
     }
 }
