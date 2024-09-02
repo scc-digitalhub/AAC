@@ -9,7 +9,7 @@ export const RoleCreateForm = () => {
                 <Stack rowGap={2}>
                     <TextInput
                         source="name"
-                        label="field.role.name"
+                        label="field.name.name"
                         helperText="field.name.helperText"
                         fullWidth
                         required
