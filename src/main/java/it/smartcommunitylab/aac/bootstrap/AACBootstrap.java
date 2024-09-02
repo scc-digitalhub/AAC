@@ -424,7 +424,7 @@ public class AACBootstrap {
                     } else {
                         logger.debug("update realm {}", r.getSlug());
 
-                        // skip config maps
+                        // config maps
                         // TODO put in dedicated providers + config
                         realm =
                             realmService.updateRealm(
@@ -433,9 +433,10 @@ public class AACBootstrap {
                                 r.getEmail(),
                                 r.isEditable(),
                                 r.isPublic(),
-                                null,
-                                null,
-                                null
+                                r.getOAuthConfiguration() != null ? r.getOAuthConfiguration().getConfiguration() : null,
+                                r.getTosConfiguration() != null ? r.getTosConfiguration().getConfiguration() : null,
+                                r.getLocalizationConfiguration() != null ? r.getLocalizationConfiguration().getConfiguration() : null,
+                                r.getTemplatesConfiguration() != null ? r.getTemplatesConfiguration().getConfiguration() : null
                             );
                     }
 

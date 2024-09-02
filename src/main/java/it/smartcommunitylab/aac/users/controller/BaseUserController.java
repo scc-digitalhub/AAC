@@ -24,6 +24,7 @@ import it.smartcommunitylab.aac.accounts.base.AbstractUserAccount;
 import it.smartcommunitylab.aac.accounts.model.EditableUserAccount;
 import it.smartcommunitylab.aac.accounts.model.UserAccount;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
+import it.smartcommunitylab.aac.common.NoSuchGroupException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -31,10 +32,16 @@ import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.dto.UserEmail;
 import it.smartcommunitylab.aac.dto.UserStatus;
 import it.smartcommunitylab.aac.dto.UserSubject;
+import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.model.SubjectStatus;
 import it.smartcommunitylab.aac.model.User;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.users.UserManager;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -43,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -64,6 +72,8 @@ public class BaseUserController implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected UserManager userManager;
+    protected GroupManager groupManager;
+    protected RealmRoleManager roleManager;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -75,6 +85,15 @@ public class BaseUserController implements InitializingBean {
         this.userManager = userManager;
     }
 
+    @Autowired
+    public void setGroupManager(GroupManager groupManager) {
+        this.groupManager = groupManager;
+    }
+
+    @Autowired
+    public void setRoleManager(RealmRoleManager roleManager) {
+        this.roleManager = roleManager;
+    }
     public String getAuthority() {
         return Config.R_USER;
     }
@@ -88,9 +107,29 @@ public class BaseUserController implements InitializingBean {
     public Page<User> listUser(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false) String q,
+        @RequestParam(required = false) String group,
+        @RequestParam(required = false) String role,
         Pageable pageRequest
-    ) throws NoSuchRealmException {
+    ) throws NoSuchRealmException, NoSuchGroupException {
         logger.debug("list users for realm {}", StringUtils.trimAllWhitespace(realm));
+
+        if(group != null) {
+            //list members for group
+            String[] userIds = groupManager.getGroupMembers(realm, group).toArray(new String[0]);
+            
+            List<User> users = new ArrayList<>();
+            for(int i = 0; i< userIds.length; i++) {
+                if(pageRequest == null || (i >= pageRequest.getOffset() && i <=pageRequest.getOffset()+pageRequest.getPageSize())) {
+                    try {
+                        users.add(userManager.getUser(realm, userIds[i]));
+                    } catch (NoSuchUserException nue) {
+                        //skip, the id may refer to another entity
+                    }
+                }
+            }
+
+            return new PageImpl<>(users, pageRequest, userIds.length);
+        }
 
         // list users owned or accessible by this realm
         return userManager.searchUsers(realm, q, pageRequest);

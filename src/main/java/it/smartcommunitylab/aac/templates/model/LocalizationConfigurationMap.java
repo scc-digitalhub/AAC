@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.templates.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +30,7 @@ import java.util.Set;
 import javax.validation.Valid;
 
 @Valid
+@JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LocalizationConfigurationMap implements ConfigurableProperties {
 

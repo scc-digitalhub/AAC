@@ -18,6 +18,9 @@ package it.smartcommunitylab.aac.roles.persistence;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,4 +28,16 @@ public interface RealmRoleEntityRepository extends CustomJpaRepository<RealmRole
     RealmRoleEntity findByRealmAndRole(String realm, String role);
 
     List<RealmRoleEntity> findByRealm(String realm);
+    Page<RealmRoleEntity> findByRealm(String realm, Pageable pageRequest);
+
+
+    Page<RealmRoleEntity> findByRealmAndNameContainingIgnoreCaseOrRealmAndRoleContainingIgnoreCaseOrRealmAndIdContainingIgnoreCase(
+        String realmn,
+        String name,
+        String realmg,
+        String role,
+        String realmu,
+        String id,
+        Pageable page
+    );
 }

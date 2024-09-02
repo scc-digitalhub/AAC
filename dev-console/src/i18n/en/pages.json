@@ -1,0 +1,380 @@
+{
+    "dashboard": {
+        "description": "Manage apps, users and services",
+        "logins_7_days": "Last 7 days logins",
+        "registrations_7_days": "Last 7 days registrations",
+        "tokens_7_days": "Last 7 days tokens"
+    },
+    "myrealms": {
+        "name": "Realm |||| Realms"
+    },
+    "apps": {
+        "list": {
+            "title": "Client applications",
+            "subtitle": "Manage web, mobile, server and IoT applications."
+        },
+        "credentials": {
+            "header": {
+                "title": "Client credentials",
+                "subtitle": "Credentials used with OAuth2/OIDC for authenticating against AAC"
+            }
+        },
+        "scopes": {
+            "header": {
+                "title": "API resources and scopes",
+                "subtitle": "Manage API access by enabling scopes for selected resources. Clients will be able to ask and obtain only scopes enabled in this section."
+            }
+        },
+        "endpoints": {
+            "header": {
+                "title": "OAuth2 endpoints",
+                "subtitle": "AAC endpoints for OAuth2 and OpenId Connect."
+            }
+        },
+        "audit": {
+            "title": "Audit log",
+            "subTitle": "Review audit log for the current application"
+        },
+        "settings": {
+            "header": {
+                "title": "Basic settings",
+                "subtitle": "Configure application settings"
+            }
+        },
+        "providers": {
+            "header": {
+                "title": "Providers",
+                "subtitle": "Identity providers are used to authenticate users via login. Only enabled (and active) providers will be available for this client."
+            }
+        },
+        "configuration": {
+            "header": {
+                "title": "OAuth2 configuration",
+                "subtitle": "Client configuration for OAuth2/OIDC"
+            }
+        },
+        "hooks": {
+            "claimMapping": {
+                "title": "Custom claim mapping",
+                "subtitle": "Custom mapping for claims generation, executed after token grants. The result will be used as provided to build client responses."
+            },
+            "webhooks": {
+                "title": "WebHooks",
+                "subtitle": "Hooks are used to alter the token flow by performing actions and/or web calls"
+            }
+        },
+        "roles": {
+            "header": {
+                "title": "Roles",
+                "subtitle": "Manage roles for the client application"
+            }
+        },
+        "groups": {
+            "header": {
+                "title": "Groups",
+                "subtitle": "Manage groups for the client application"
+            }
+        }
+    },
+    "groups": {
+        "list": {
+            "title": "Groups",
+            "subtitle": "Register and manage realm groups."
+        }
+    },
+    "roles": {
+        "list": {
+            "title": "Roles",
+            "subtitle": "Register and manage realm roles."
+        },
+        "permissions": {
+            "header": {
+                "subtitle": "Manage API permissions for the current role",
+                "title": "Permissions"
+            }
+        },
+        "subjects": {
+            "header": {
+                "subtitle": "Manually manage subjects associated with this role",
+                "title": "Role subjects"
+            }
+        }
+    },
+    "users": {
+        "list": {
+            "title": "Users",
+            "subtitle": "View and manage user, assign roles and groups"
+        }
+    },
+    "idps": {
+        "list": {
+            "title": "Identity providers",
+            "subtitle": "Register and manage identity providers for authentication and identification."
+        },
+        "settings": {
+            "basic": {
+                "title": "Basic settings",
+                "subtitle": ""
+            },
+            "display": {
+                "title": "Display settings",
+                "subtitle": ""
+            },
+            "advanced": {
+                "title": "Advanced settings",
+                "subtitle": ""
+            }
+        },
+        "configuration": {
+            "title": "Configuration",
+            "subtitle": ""
+        },
+        "hooks": {
+            "attribute": "Custom attribute mapping",
+            "attributeDesc": "Provide a function to transform principal attributes during login. Return a valid map with all the attributes",
+            "authFunction": "Authorization function",
+            "authFunctionDesc": "Provide a function to evaluate an authorization policy during the login flow. Return a boolean true/false to represent a decision"
+        },
+        "apps": {
+            "title": "Client applications",
+            "description": ""
+        }
+    },
+    "aps": {
+        "list": {
+            "title": "Attribute providers",
+            "subtitle": "Register and manage attribute providers."
+        },
+        "settings": {
+            "basic": {
+                "title": "Basic settings",
+                "subtitle": ""
+            },
+            "display": {
+                "title": "Display settings",
+                "subtitle": ""
+            },
+            "advanced": {
+                "title": "Advanced settings",
+                "subtitle": ""
+            }
+        },
+        "attributeSets": {
+            "header": {
+                "title": "Attribute Sets",
+                "subtitle": ""
+            }
+        },
+        "configuration": {
+            "title": "Configuration",
+            "subtitle": ""
+        }
+    },
+    "resources": {
+        "list": {
+            "title": "API resources",
+            "subtitle": "View and inspect resources and scopes."
+        }
+    },
+    "audit": {
+        "list": {
+            "title": "Audit events",
+            "subtitle": "Review and inspect events for authentication, access and token usage."
+        }
+    },
+    "services": {
+        "list": {
+            "title": "API services",
+            "subtitle": "Register and manage custom services for APIs."
+        }
+    },
+    "attributeset": {
+        "list": {
+            "title": "Attribute sets",
+            "subtitle": "Register and manage custom attribute sets for users. Each custom attribute set will be available as custom profile for consumption both via profiles api and via token claims, with an associated scope `profile.setidentifier.me`"
+        },
+        "attributes": {
+            "header": {
+                "subtitle": "",
+                "title": "Attributes"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "",
+                "title": "Basic settings"
+            }
+        }
+    },
+    "scopes": {
+        "list": {
+            "title": "Scopes",
+            "subtitle": "View and inspect resources and scopes."
+        }
+    },
+    "developers": {
+        "list": {
+            "subtitle": "",
+            "title": "Developers"
+        }
+    },
+    "group": {
+        "members": {
+            "header": {
+                "title": "Members"
+            }
+        },
+        "roles": {
+            "header": {
+                "subtitle": "Manage roles associated with the current group.",
+                "title": "Roles"
+            },
+            "members": {
+                "subtitle": "members"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "",
+                "title": "Basic Settings"
+            }
+        },
+        "subjects": {
+            "members": {
+                "subtitle": "Members"
+            }
+        }
+    },
+    "login": {
+        "description": "",
+        "header": "Login"
+    },
+    "realm": {
+        "developers": {
+            "header": {
+                "title": "Developers"
+            }
+        },
+        "localization": {
+            "header": {
+                "subtitle": "Manage localization and internationalization settings",
+                "title": "Localization"
+            }
+        },
+        "oauth2": {
+            "header": {
+                "subtitle": "Configure realm OAuth2/OIDC settings",
+                "title": "OAuth2 configuration"
+            }
+        },
+        "roles": {
+            "developers": {
+                "subtitle": "developers"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "Manage basic settings for the realm",
+                "title": "Basic settings"
+            }
+        },
+        "templates": {
+            "header": {
+                "subtitle": "Customize display settings and view templates",
+                "title": "Template and appearance"
+            }
+        },
+        "tos": {
+            "header": {
+                "subtitle": "Configure ToS usage",
+                "title": "Terms of service"
+            }
+        }
+    },
+    "realms": {
+        "list": {
+            "subtitle": "Create and manage realms",
+            "title": "Realms"
+        }
+    },
+    "role": {
+        "settings": {
+            "header": {
+                "subtitle": "",
+                "title": "Basic settings"
+            }
+        }
+    },
+    "service": {
+        "claim": {
+            "definition": {
+                "subtitle": "",
+                "title": "Claim definition"
+            }
+        },
+        "claims": {
+            "header": {
+                "subtitle": "Claims are used to carry authorization info with access and/or id tokens",
+                "title": "Service claims"
+            },
+            "mapping": {
+                "subtitle": "Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens.",
+                "title": "User claim mapping"
+            }
+        },
+        "scope": {
+            "authorizations": {
+                "subtitle": "",
+                "title": "Authorizations"
+            },
+            "definition": {
+                "subtitle": "",
+                "title": "Scope definition"
+            }
+        },
+        "scopes": {
+            "header": {
+                "subtitle": "Scopes are used to identify permissions on a resource managed by the service. Clients will ask for scopes during authorization.",
+                "title": "Service scopes"
+            }
+        },
+        "settings": {
+            "header": {
+                "subtitle": "",
+                "title": "Basic settings"
+            }
+        }
+    },
+    "user": {
+        "accounts": {
+            "subtitle": "Manage accounts for the current user",
+            "title": "Accounts"
+        },
+        "apps": {
+            "subtitle": "Manage connected apps for the current user",
+            "title": "Connected Applications"
+        },
+        "attributes": {
+            "attributes": {
+                "subtitle": "Review and manage additional attributes for the current user",
+                "title": "Additional Attributes"
+            },
+            "identity": {
+                "subtitle": "Review attributes for the current user, as received from identity providers",
+                "title": "Identity Attributes"
+            }
+        },
+        "groups": {
+            "subtitle": "Manage groups for the current user",
+            "title": "Groups"
+        },
+        "roles": {
+            "subtitle": "Manage roles for the current user",
+            "title": "Roles"
+        },
+        "tos": {
+            "subtitle": "Manage Terms of service for the current user",
+            "title": "Terms of service"
+        }
+    }
+}

@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.Config;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AttributeProviderManager;
 import it.smartcommunitylab.aac.attributes.model.ConfigurableAttributeProvider;
+import it.smartcommunitylab.aac.attributes.service.AttributeProviderAuthorityService;
 import it.smartcommunitylab.aac.common.NoSuchAuthorityException;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
@@ -60,6 +61,9 @@ public class BaseAttributeProviderController implements InitializingBean {
 
     protected AttributeProviderManager providerManager;
 
+    // TODO evaluate replace with authorityManager
+    protected AttributeProviderAuthorityService authorityService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(providerManager, "provider manager is required");
@@ -70,8 +74,28 @@ public class BaseAttributeProviderController implements InitializingBean {
         this.providerManager = providerManager;
     }
 
+
+    @Autowired
+    public void setAuthorityService(AttributeProviderAuthorityService authorityService) {
+        this.authorityService = authorityService;
+    }
+
     public String getAuthority() {
         return Config.R_USER;
+    }
+
+    /*
+     * Authorities
+     *
+     * TODO evaluate returning a authority model as result
+     */
+    @GetMapping("/aps/{realm}/authorities")
+    @Operation(summary = "list aps authorities from a given realm")
+    public Collection<String> listAuthorities(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        logger.debug("list idp authorities for realm {}", StringUtils.trimAllWhitespace(realm));
+        return authorityService.getAuthorities().stream().map(a -> a.getAuthorityId()).collect(Collectors.toList());
     }
 
     /*

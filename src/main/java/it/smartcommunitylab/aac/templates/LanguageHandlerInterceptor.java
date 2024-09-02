@@ -19,6 +19,8 @@ package it.smartcommunitylab.aac.templates;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountTemplate;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +63,10 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
     }
 
     @Autowired
+    private RealmService realmService;
+
+
+    @Autowired
     private TemplateAuthority templateAuthority;
 
     @Override
@@ -99,7 +105,7 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
             // realm
             Object slug = modelAndView.getModel().get("realm");
             if (slug != null && slug instanceof String) {
-                String realm = (String) slug;
+                Realm realm = realmService.getRealm((String) slug);
                 Locale locale = LocaleContextHolder.getLocale();
                 String language = locale.getLanguage();
 
@@ -110,13 +116,18 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                 builder.query(request.getQueryString());
 
                 List<LanguageValue> languages = new ArrayList<>();
-                try {
-                    // load realm languages
-                    templateAuthority
-                        .getProviderByRealm(realm)
-                        .getLanguages()
+                // try {
+                    // load realm languages from templates
+                    //DEPRECATED
+                    // templateAuthority
+                    //     .getProviderByRealm(realm)
+                    //     .getLanguages()
+
+                    //load realm languages from config
+                    if(realm.getLocalizationConfiguration() != null && realm.getLocalizationConfiguration().getLanguages() != null) {
+                    realm.getLocalizationConfiguration().getLanguages()
                         .forEach(l -> {
-                            Locale loc = StringUtils.parseLocale(l);
+                            Locale loc = StringUtils.parseLocale(l.getValue());
                             if (loc == null) {
                                 return;
                             }
@@ -126,15 +137,16 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                             String url = builder.build().toString();
                             String label = loc.getDisplayLanguage(locale);
                             LanguageValue lv = new LanguageValue();
-                            lv.setCode(l);
+                            lv.setCode(l.getValue());
                             lv.setLabel(label);
                             lv.setUrl(url);
 
                             languages.add(lv);
                         });
-                } catch (NoSuchProviderException e) {
-                    // skip on error
-                }
+                    }
+                // } catch (NoSuchProviderException e) {
+                //     // skip on error
+                // }
 
                 modelAndView.addObject("languages", languages);
 

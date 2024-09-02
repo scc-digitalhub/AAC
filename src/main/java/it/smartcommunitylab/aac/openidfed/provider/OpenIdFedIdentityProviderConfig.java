@@ -104,7 +104,7 @@ public class OpenIdFedIdentityProviderConfig
                 Set<String> providers = configMap
                     .getProviders()
                     .stream()
-                    .map(p -> p.getValue())
+                    // .map(p -> p.getValue())
                     .collect(Collectors.toSet());
                 providerService =
                     new StaticOpenIdProviderDiscoveryService(

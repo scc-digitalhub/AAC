@@ -36,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -46,6 +48,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /*
  * Base controller for realm groups
@@ -85,12 +88,14 @@ public class BaseGroupController implements InitializingBean {
 
     @GetMapping("/groups/{realm}")
     @Operation(summary = "list groups for realm")
-    public Collection<Group> getGroups(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    public Page<Group> listGroups(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list groups for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return groupManager.getGroups(realm);
+        return groupManager.searchGroups(realm, q, pageRequest);
     }
 
     @PostMapping("/groups/{realm}")
@@ -114,6 +119,7 @@ public class BaseGroupController implements InitializingBean {
         g.setName(name);
         g.setDescription(description);
         g.setMembers(reg.getMembers());
+        g.setRoles(reg.getRoles());
 
         if (logger.isTraceEnabled()) {
             logger.trace("group bean: {}", StringUtils.trimAllWhitespace(g.toString()));
@@ -164,6 +170,7 @@ public class BaseGroupController implements InitializingBean {
         g.setName(name);
         g.setDescription(description);
         g.setMembers(reg.getMembers());
+        g.setRoles(reg.getRoles());
 
         if (logger.isTraceEnabled()) {
             logger.trace("group bean: {}", StringUtils.trimAllWhitespace(g.toString()));

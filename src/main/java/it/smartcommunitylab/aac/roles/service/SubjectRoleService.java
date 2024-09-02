@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.roles.service;
 
 import it.smartcommunitylab.aac.model.RealmRole;
+import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntityRepository;
@@ -255,9 +256,16 @@ public class SubjectRoleService {
     }
 
     private RealmRole toRole(SubjectRoleEntity r) {
-        RealmRole role = new RealmRole(r.getRealm(), r.getRole());
-        // TODO evaluate loading role model to fill properties
-
+        RealmRole role = new RealmRole(r.getRealm(), r.getRole());        
+        // load role model to fill properties
+        RealmRoleEntity re = roleRepository.findByRealmAndRole(r.getRealm(), r.getRole());
+        if (re != null) {
+            role.setRoleId(re.getId());
+            String name = re.getName() != null ? re.getName() : re.getRole();
+            role.setName(name);
+            role.setDescription(re.getDescription());
+        }
+        
         return role;
     }
 }

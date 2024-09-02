@@ -1,0 +1,597 @@
+{
+    "id": {
+        "name": "Id",
+        "helperText": "Unique identifier"
+    },
+    "name": {
+        "name": "Name",
+        "helperText": "Human readable name"
+    },
+    "description": {
+        "name": "Description",
+        "helperText": "Text describing the element, used for views"
+    },
+    "type": {
+        "name": "Type",
+        "helperText": "Type field"
+    },
+    "clientId": {
+        "name": "ClientId",
+        "helperText": "Client (unique) identifier"
+    },
+    "clientSecret": {
+        "name": "Client Secret",
+        "helperText": "Client Secret (unique) identifier"
+    },
+    "clientJwk": {
+        "name": "Client Private Key (JWK)",
+        "helperText": ""
+    },
+    "clientName": {
+        "name": "Client Name",
+        "helperText": ""
+    },
+    "clientAuthenticationMethod": {
+        "name": "Client Authentication Method",
+        "helperText": ""
+    }, 
+    "enablePkce": {
+        "name": "Enable PKCE",
+        "helperText": ""
+    },
+    "userNameAttributeName": {
+        "name": "Username Attribute",
+        "helperText": ""
+    },
+    "subjectType": {
+        "name": "Subject attribute (if different from sub)",
+        "helperText": ""
+    },
+    "subAttributeName": {
+        "name": "Subject attribute (if different from sub)",
+        "helperText": ""
+    },
+    "trustEmailAddress": {
+        "name": "trustEmailAddress",
+        "helperText": ""
+    },
+    "requireEmailAddress": {
+        "name": "requireEmailAddress",
+        "helperText": ""
+    },
+    "alwaysTrustEmailAddress": {
+        "name": "alwaysTrustEmailAddress",
+        "helperText": ""
+    },
+    "authorizationUri": {
+        "name": "Authorization Endpoint",
+        "helperText": ""
+    },
+    "tokenUri": {
+        "name": "Token Endpoint",
+        "helperText": ""
+    },
+    "jwkSetUri": {
+        "name": "JWKS Endpoint",
+        "helperText": ""
+    },
+    "userInfoUri": {
+        "name": "Userinfo Endpoint",
+        "helperText": ""
+    },
+    "issuerUri": {
+        "name": "Issuer Endpoint",
+        "helperText": ""
+    },
+    "propagateEndSession": {
+        "name": "Propagate end session to idp",
+        "helperText": ""
+    },
+    "respectTokenExpiration": {
+        "name": "Use expiration from token for session",
+        "helperText": ""
+    },
+    "promptMode": {
+        "name": "Prompt Mode",
+        "helperText": ""
+    },
+    "template_override": {
+        "name": "Template Override",
+        "helperText": ""
+    },    
+    "authorization_endpoint": "Authorization Endpoint",
+    "token_endpoint": "Token Endpoint",
+    "jwks_uri": "JWKS endpoint",
+    "userinfo_endpoint": "Userinfo endpoint",
+    "introspection_endpoint": "Introspection endpoint",
+    "revocation_endpoint": "Revocation endpoint",
+    "registration_endpoint": "Registration endpoint",
+    "end_session_endpoint": "Endsession endpoint",   
+    "slug": {
+        "name": "Slug",
+        "helperText": "Path-style (unique) identifier"
+    },
+    "public": {
+        "name": "Public",
+        "helperText": "Toggle for public/private visibility"
+    },
+    "languages": {
+        "name": "Languages",
+        "helperText": "List of languages (codes) enabled"
+    },
+    "applicationType": {
+        "name": "Application type",
+        "helperText": "Type of (OAuth2) application"
+    },
+    "title": {
+        "name": "Title",
+        "helperText": "Title used for views"
+    },
+    "customStyle": {
+        "name": "Custom style",
+        "helperText": "Define a custom style sheet (CSS) to be injected in pages"
+    },
+    "namespace": {
+        "name": "Namespace",
+        "helperText": "Service Namespace"
+    },
+    "scope": {
+        "name": "Scope",
+        "helperText": ""
+    },
+    "authority": {
+        "name": "Authority",
+        "helperText": ""
+    },
+    "approvalRoles": {
+        "name": "Authorization with realm roles",
+        "helperText": "approvalRoles.helperText"
+    },
+    "approvalFunction": {
+        "name": "Authorization with approval function",
+        "helperText": ""
+    },
+    "approvalAny": {
+        "name": "One of",
+        "helperText": ""
+    },
+    "approvalRequired": {
+        "name": "Authorization with explicit approval",
+        "helperText": ""
+    },
+    "multiple": {
+        "name": "Is Array",
+        "helperText": ""
+    },
+    "claimMapping": {
+        "user": {
+            "name": "User claim mapping",
+            "helperText": "Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens"
+        },
+        "client": {
+            "name": "Client claim mapping",
+            "helperText": "Claim mapping function should return fully-qualified claims of the current service ONLY. Service namespace is enforced when claims are added to tokens"
+        }
+    },
+    "key": {
+        "name": "Key",
+        "helperText": ""
+    },
+    "groups": {
+        "name": "Groups",
+        "helperText": ""
+    },
+    "roles": {
+        "name": "Roles",
+        "helperText": ""
+    },
+    "jwks": {
+        "name": "Client Key Set (JWKS)"
+    },
+    "context": "context",
+    "result": "result",
+    "providers": {
+        "name": "Providers",
+        "helperText": ""
+    },
+    "scopes": {
+        "name": "Scopes",
+        "helperText": ""
+    },
+    "attributeSets": {
+        "name": "Attribute Sets",
+        "helperText": ""
+    },
+    "enabled": {
+        "name": "Active"
+    },
+    "registered": {
+        "name": "Registered"
+    },
+    "username": {
+        "name": "Username"
+    },
+    "subjectId": {
+        "name": "SubjectId",
+        "helperText": ""
+    },
+    "identifier": {
+        "name": "Set Identifier",
+        "helperText": ""
+    },
+    "accounts": {
+        "name": "accounts.name"
+    },
+    "status": {
+        "name": "status.name"
+    },
+    "role": {
+        "name": "Role",
+        "helperText": ""
+    },
+    "subjects": {
+        "name": "Subjects",
+        "helperText": "Numer of associated subjects"
+    },
+    "permissions": {
+        "name": "Permission",
+        "helperText": ""
+    },
+    "group": {
+        "name": "Group",
+        "helperText": ""
+    },
+    "members": {
+        "name": "Members",
+        "helperText": "Total number of members"
+    },
+    "email": {
+        "name": "Email Address",
+        "helperText": ""
+    },
+    "keys": {
+        "name": "keys.name"
+    },
+    "": "",
+    "events": {
+        "helperText": "",
+        "name": "Audit events"
+    },
+    "linkable": {
+        "helperText": "",
+        "name": "Enable account linking"
+    },
+    "notes": {
+        "helperText": "",
+        "name": "Notes"
+    },
+    "oauth2": {
+        "accessTokenValidity": {
+            "helperText": "",
+            "name": "Access token validity (sec)"
+        },
+        "applicationType": {
+            "helperText": "",
+            "name": "Application type"
+        },
+        "authenticationMethods": {
+            "helperText": "",
+            "name": "Authentication methods"
+        },
+        "authorizedGrantTypes": {
+            "helperText": "",
+            "name": "Grant types"
+        },
+        "enableClientRegistration": {
+            "helperText": "Dynamic client registration with management (OAuth2 and OIDC). Authorized parties (with a valid bearer token) will be able to register a client",
+            "name": "Enable Dynamic Client Registration"
+        },
+        "firstParty": {
+            "helperText": "",
+            "name": "First party"
+        },
+        "idTokenClaims": {
+            "helperText": "",
+            "name": "IdToken custom claims"
+        },
+        "openClientRegistration": {
+            "helperText": "Open Dynamic Registration disables authentication for DCR endpoints",
+            "name": "Enable Open Dynamic Client Registration"
+        },
+        "redirectUris": {
+            "helperText": "",
+            "name": "Redirect uris"
+        },
+        "refreshTokenRotation": {
+            "helperText": "",
+            "name": "Refresh token rotation"
+        },
+        "refreshTokenValidity": {
+            "helperText": "",
+            "name": "Refresh token validity (sec)"
+        },
+        "subjectType": {
+            "helperText": "",
+            "name": "Subject type"
+        },
+        "tokenType": {
+            "helperText": "",
+            "name": "Token type"
+        }
+    },
+    "persistence": {
+        "helperText": "",
+        "name": "Persistence"
+    },
+    "position": {
+        "helperText": "",
+        "name": "Localization"
+    },
+    "tos": {
+        "approveTOS": {
+            "helperText": "",
+            "name": "Approve Terms of Service"
+        },
+        "enableTOS": {
+            "helperText": "",
+            "name": "Enable Terms of Service"
+        }
+    },
+    "webhooks": {
+        "afterTokenGrant": {
+            "helperText": "",
+            "name": "After token grant webhook"
+        },
+        "afterUserApproval": {
+            "helperText": "",
+            "name": "After user approval webhook"
+        },
+        "beforeTokenGrant": {
+            "helperText": "webhooks.beforeTokenGrant.helperText",
+            "name": "Before token grant webhook"
+        },
+        "beforeUserApproval": {
+            "helperText": "",
+            "name": "Before user approval webhook"
+        }
+    },
+    "time": {
+        "name": "Time"
+    },
+    "principal": {
+        "name": "Principal"
+    },
+    "issuer": "Issuer",
+    "tosAccepted": {
+        "name": "Approved"
+    },
+    "account": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "verified": "Verified",
+        "unverified": "Unverified",
+        "unlocked": "Unlocked",
+        "confirmed": "Confirmed",
+        "unconfirmed": "Unconfirmed"
+    },
+    "enableRegistration": {
+        "name": "Enable Registration",
+        "helperText": ""
+    },
+    "enableDelete": {
+        "name": "Enable Delete",
+        "helperText": ""
+    },
+    "enableUpdate": {
+        "name": "Enable Update",
+        "helperText": ""
+    },
+    "confirmationRequired": {
+        "name": "Confirmation Required",
+        "helperText": ""
+    },
+    "confirmationValidity": {
+        "name": "Confirmation duration (seconds)",
+        "helperText": ""
+    },
+    "resource": {
+        "name": "Resource",
+        "helperText": ""
+    },
+    "usermode": {
+        "name": "UserMode",
+        "helperText": ""
+    },
+    "maxSessionDuration": {
+        "name": "Max session duration",
+        "helperText": "Session Management"
+    },
+    "displayAsButton": {
+        "name": "Show as button",
+        "helperText": "Display Management"
+    },
+    "allowUntrustedAttestation": {
+        "name": "Allow untrusted Attestation",
+        "helperText": "Credentials Management"
+    },
+    "requireResidentKey": {
+        "name": "Resident key",
+        "helperText": "User verification"
+    },
+    "registrationTimeout": {
+        "name": "Registration timeout (seconds)",
+        "helperText": "Operation Management"
+    },
+    "loginTimeout": {
+        "name": "Login timeout (seconds)",
+        "helperText": "Operation Management"
+    },
+    "requireAccountConfirmation": {
+        "name": "Require account confirmation",
+        "helperText": "User Management"
+    },
+    "enablePasswordReset": {
+        "name": "Reset Enabled",
+        "helperText": "Password Management"
+    },
+    "passwordResetValidity": {
+        "name": "Reset duration (seconds)",
+        "helperText": "Password Management"
+    },
+    "passwordMinLength": {
+        "name": "Min length",
+        "helperText": "Password Policies"
+    },
+    "passwordMaxLength": {
+        "name": "Max length",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireAlpha": {
+        "name": "Require letters",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireSpecial": {
+        "name": "Require special characters",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireUppercaseAlpha": {
+        "name": "Require uppercase letters",
+        "helperText": "Password Policies"
+    },
+    "passwordRequireNumber": {
+        "name": "Require numbers",
+        "helperText": "Password Policies"
+    },
+    "passwordSupportWhitespace": {
+        "name": "Support whitespace",
+        "helperText": "Password Policies"
+    },
+    "passwordMaxDays": {
+        "name": "Max duration (days)",
+        "helperText": "Password Security"
+    },
+    "passwordKeepNumber": {
+        "name": "Old passwords to keep (reuse protection)",
+        "helperText": "Password Security"
+    },
+    "teamId": {
+        "name": "Team ID",
+        "helperText": ""
+    },
+    "keyId": {
+        "name": "Key ID",
+        "helperText": ""
+    },
+    "privateKey": {
+        "name": "Client Private Key (PEM)",
+        "helperText": ""
+    },
+    "askNameScope": {
+        "name": "Full name",
+        "helperText": "User Attributes"
+    },
+    "askEmailScope": {
+        "name": "Email",
+        "helperText": "User Attributes"
+    },
+    "clientJwks": {
+        "name": "Client Private Key (JWK)",
+        "helperText": ""
+    },
+    "federationJwks": {
+        "name": "Federation Key (JWK)",
+        "helperText": ""
+    },
+    "claims": {
+        "name": "Claims",
+        "helperText": ""
+    },
+    "organizationName": {
+        "name": "Organization Name",
+        "helperText": ""
+    },
+    "contacts": {
+        "name": "Contacts",
+        "helperText": ""
+    },
+    "trustAnchor": {
+        "name": "Trust Anchors",
+        "helperText": ""
+    },
+    "trustMarks": {
+        "name": "Trust Marks",
+        "helperText": ""
+    },
+    "authorityHints": {
+        "name": "Authority Hints",
+        "helperText": ""
+    },
+    "acrValues": {
+        "name": "acrValues",
+        "helperText": "Advanced Configuration"
+    },
+    "userInfoJWEAlg": {
+        "name": "userInfoJWEAlg",
+        "helperText": "Advanced Configuration"
+    },
+    "userInfoJWEEnc": {
+        "name": "userInfoJWEEnc",
+        "helperText": "Advanced Configuration"
+    },
+    "entityId": {
+        "name": "Entity ID",
+        "helperText": ""
+    },
+    "signingKey": {
+        "name": "Signing Key",
+        "helperText": "Signing"
+    },
+    "signingCertificate": {
+        "name": "Signing Certificate",
+        "helperText": "Signing"
+    },
+    "organizationDisplayName": {
+        "name": "Organization Display Name",
+        "helperText": "Organization information"
+    },
+    "organizationUrl": {
+        "name": "Organization Url",
+        "helperText": "Organization information"
+    },
+    "contactPerson_EmailAddress": {
+        "name": "Contact person email",
+        "helperText": "Contact person information"
+    },
+    "contactPerson_IPACode": {
+        "name": "Contact person IPAcode",
+        "helperText": "Contact person information"
+    },
+    "contactPerson_Type": {
+        "name": "Contact person phone",
+        "helperText": "Contact person information"
+    },
+    "contactPerson_Public": {
+        "name": "Contact person Public",
+        "helperText": "Contact person information"
+    },
+    "idps": {
+        "name": "Identity Providers",
+        "helperText": "IdP Configuration"
+    },
+    "idpMetadataUrl": {
+        "name": "IdP Metadata Discovery URL",
+        "helperText": "IdP Configuration"
+    },
+    "spidAttributes": {
+        "name": "Identity Providers",
+        "helperText": "SPID IdP Configuration"
+    },
+    "spidLevel": {
+        "name": "Spid level",
+        "helperText": "SPID Advanced Configuration"
+    },
+    "usernameAttributeName": {
+        "name": "Spid username attribute",
+        "helperText": "SAML Advanced Configuration"
+    }
+}

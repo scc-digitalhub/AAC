@@ -30,3 +30,6 @@ aac.log
 *.jar
 /test/
 node_modules
+
+src/main/resources/application-local.yaml
+src/main/resources/bootstrap-local.yaml

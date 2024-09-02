@@ -138,6 +138,7 @@ public class DevUsersController extends BaseUserController {
         // filter roles, make sure they belong to the current realm
         Set<String> values = roles
             .stream()
+            .filter(a -> a.getRole() != null )
             .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
             .map(a -> a.getRole())
             .collect(Collectors.toSet());
@@ -284,7 +285,7 @@ public class DevUsersController extends BaseUserController {
     ) throws NoSuchRealmException, NoSuchUserException {
         Collection<ConnectedApp> result = userManager.getConnectedApps(realm, userId);
         return ResponseEntity.ok(result);
-    }
+    }  
 
     @DeleteMapping("/users/{realm}/{userId}/apps/{clientId}")
     public ResponseEntity<Void> revokeRealmUserApps(
@@ -295,6 +296,32 @@ public class DevUsersController extends BaseUserController {
         userManager.deleteConnectedApp(realm, userId, clientId);
         return ResponseEntity.ok(null);
     }
+    
+    @GetMapping("/connectedapps/{realm}")
+    public ResponseEntity<Collection<ConnectedApp>> getRealmConnectedApps(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId
+    ) throws NoSuchRealmException, NoSuchUserException {
+        Collection<ConnectedApp> result = userManager.getConnectedApps(realm, subjectId);
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/connectedapps/{realm}/{connectionId}")
+    public ResponseEntity<Void>  deleteRealmUserApps(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.RESOURCE_PATTERN) String connectionId
+    ) throws NoSuchRealmException, NoSuchUserException, NoSuchClientException {
+        String[] ids = connectionId.split(":");
+        if(ids.length != 2) {
+            throw new IllegalArgumentException("invalid connection id");
+        }
+        String userId = ids[0];
+        String clientId = ids[1];
+        
+        userManager.deleteConnectedApp(realm, userId, clientId);
+        return ResponseEntity.ok(null);
+    }
+
 
     /*
      * Audit

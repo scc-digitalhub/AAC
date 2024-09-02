@@ -4,8 +4,8 @@ angular.module('aac.controllers.realmgroups', [])
         var service = {};
 
         service.getGroups = function (realm) {
-            return $http.get('console/dev/groups/' + realm).then(function (data) {
-                return data.data;
+            return $http.get('console/dev/groups/' + realm + '?page=0&size=200').then(function (data) {
+                return data.data.content;
             });
         }
         service.getGroup = function (realm, groupId) {

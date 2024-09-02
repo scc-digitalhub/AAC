@@ -59,6 +59,10 @@ public class Subject implements AuthenticatedPrincipal, Serializable {
         return subjectId;
     }
 
+    public String getId() {
+        return getSubjectId();
+    }
+
     public String getRealm() {
         return realm;
     }

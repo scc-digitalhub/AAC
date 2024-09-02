@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
@@ -84,6 +86,9 @@ public class RealmRoleManager {
     /*
      * Realm roles
      */
+    public Page<RealmRole> searchRoles(String realm, String keywords,  Pageable pageRequest) throws NoSuchRealmException {
+        return rolesService.searchRoles(realm, keywords, pageRequest);
+    }
 
     public Collection<RealmRole> getRealmRoles(String realm) {
         return rolesService.listRoles(realm);

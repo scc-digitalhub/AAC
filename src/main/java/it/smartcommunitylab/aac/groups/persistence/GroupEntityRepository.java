@@ -37,4 +37,14 @@ public interface GroupEntityRepository
     Page<GroupEntity> findByRealm(String realm, Pageable pageRequest);
 
     List<GroupEntity> findByRealmAndParentGroup(String realm, String parentGroup);
+
+    Page<GroupEntity> findByRealmAndNameContainingIgnoreCaseOrRealmAndGroupContainingIgnoreCaseOrRealmAndIdContainingIgnoreCase(
+        String realmn,
+        String name,
+        String realmg,
+        String groupId,
+        String realmu,
+        String uuid,
+        Pageable page
+    );
 }

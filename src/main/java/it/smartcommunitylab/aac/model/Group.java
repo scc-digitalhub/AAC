@@ -69,7 +69,7 @@ public class Group {
     private Long size;
 
     // roles
-    private Set<String> roles;
+    private Set<RealmRole> roles;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Date createDate;
@@ -145,11 +145,11 @@ public class Group {
         this.size = size;
     }
 
-    public Set<String> getRoles() {
+    public Set<RealmRole> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<String> roles) {
+    public void setRoles(Set<RealmRole> roles) {
         this.roles = roles;
     }
 
@@ -167,6 +167,10 @@ public class Group {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+    
+    public String getId() {
+    	return this.groupId;
     }
 
     @Override

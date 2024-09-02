@@ -188,7 +188,7 @@ public class SubjectService {
                 realm,
                 q
             )
-            : Collections.emptyList();
+            : subjectRepository.findByRealm(realm);
 
         return subjects.stream().map(s -> toSubject(s)).collect(Collectors.toList());
     }
@@ -379,7 +379,7 @@ public class SubjectService {
         List<SubjectAuthorityEntity> oldRoles = authorityRepository.findBySubjectAndRealm(uuid, realm);
 
         // unpack roles
-        Set<SubjectAuthorityEntity> newRoles = roles
+        Set<SubjectAuthorityEntity> newRoles = roles == null ? Collections.emptySet() : roles
             .stream()
             .map(r -> {
                 SubjectAuthorityEntity re = new SubjectAuthorityEntity(uuid);

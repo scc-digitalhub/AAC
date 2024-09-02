@@ -38,9 +38,13 @@ public class TemplateProviderSettingsMap extends AbstractSettingsMap {
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_SETTINGS + SystemKeys.ID_SEPARATOR + SystemKeys.RESOURCE_TEMPLATE_PROVIDER;
 
+    @Deprecated
     private Set<Language> languages;
+
+    @Deprecated
     private String customStyle;
 
+    @Deprecated
     public Set<Language> getLanguages() {
         return languages;
     }
@@ -49,6 +53,7 @@ public class TemplateProviderSettingsMap extends AbstractSettingsMap {
         this.languages = languages;
     }
 
+    @Deprecated
     public String getCustomStyle() {
         return customStyle;
     }

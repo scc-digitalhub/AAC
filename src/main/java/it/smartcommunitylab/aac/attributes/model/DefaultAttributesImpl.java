@@ -80,6 +80,10 @@ public class DefaultAttributesImpl implements AttributeSet, Serializable {
         return identifier;
     }
 
+    public String getId() {
+        return identifier;
+    }
+
     public String getName() {
         return name;
     }

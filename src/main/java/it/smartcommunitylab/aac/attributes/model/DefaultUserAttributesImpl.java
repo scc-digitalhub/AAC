@@ -81,6 +81,20 @@ public class DefaultUserAttributesImpl extends AbstractAttributes {
         return identifier;
     }
 
+    // local attributes identifier, for this set for this user
+    @Override
+    public String getId() {
+        if (getIdentifier() == null || getUserId() == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(getUserId()).append(SystemKeys.URN_SEPARATOR);
+        sb.append(getIdentifier());
+
+        return sb.toString();
+    }    
+
     public Collection<Attribute> getAttributes() {
         return attributes;
     }

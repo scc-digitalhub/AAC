@@ -68,7 +68,7 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
     // openid-fed
     private String trustAnchor;
 
-    private Set<EntityID> providers;
+    private Set<String> providers;
 
     private String federationJwks;
     private Set<String> acrValues;
@@ -179,11 +179,11 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.trustAnchor = trustAnchor;
     }
 
-    public Set<EntityID> getProviders() {
+    public Set<String> getProviders() {
         return providers;
     }
 
-    public void setProviders(Set<EntityID> providers) {
+    public void setProviders(Set<String> providers) {
         this.providers = providers;
     }
 

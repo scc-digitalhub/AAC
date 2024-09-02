@@ -82,6 +82,12 @@ public class RealmEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> localizationConfigurationMap;
 
+    // TODO move to templatesConfigProvider
+    @Lob
+    @Column(name = "templates_configuration_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> templatesConfigurationMap;    
+
     public String getName() {
         return name;
     }
@@ -161,4 +167,13 @@ public class RealmEntity {
     public void setLocalizationConfigurationMap(Map<String, Serializable> localizationConfigurationMap) {
         this.localizationConfigurationMap = localizationConfigurationMap;
     }
+
+    public Map<String, Serializable> getTemplatesConfigurationMap() {
+        return templatesConfigurationMap;
+    }
+
+    public void setTemplatesConfigurationMap(Map<String, Serializable> templatesConfigurationMap) {
+        this.templatesConfigurationMap = templatesConfigurationMap;
+    }
+    
 }

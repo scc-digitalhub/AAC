@@ -141,10 +141,15 @@ public class TemplateHandlerInterceptor implements HandlerInterceptor {
                             .getProviderByRealm(realm)
                             .getTemplate(name, locale);
 
-                    // fetch custom style from config
-                    customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();
+                    // // fetch custom style from config
+                    // customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();
                 } catch (NoSuchAuthorityException | NoSuchProviderException | NoSuchTemplateException e) {
                     // skip templates on error
+                }
+
+                // fetch custom style from config
+                if(r.getTemplatesConfiguration() != null && r.getTemplatesConfiguration().getCustomStyle() != null) {
+                    customStyle = r.getTemplatesConfiguration().getCustomStyle();
                 }
 
                 modelAndView.addObject("template", template);
