@@ -31,6 +31,6 @@ COPY --chown=aac:aac --from=builder dependencies/ ${USER_HOME}
 COPY --chown=aac:aac --from=builder snapshot-dependencies/ ${USER_HOME}
 COPY --chown=aac:aac --from=builder spring-boot-loader/ ${USER_HOME}
 COPY --chown=aac:aac --from=builder application/ ${USER_HOME}
-USER aac
+USER 805
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
 
