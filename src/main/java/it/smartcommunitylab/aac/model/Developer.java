@@ -16,14 +16,21 @@
 
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
+
 import java.util.Collections;
 import java.util.Set;
-import javax.validation.constraints.NotBlank;
-import org.springframework.security.core.GrantedAuthority;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
+@Valid
 @JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Developer {
 
     @NotBlank
@@ -36,7 +43,11 @@ public class Developer {
 
     // authorities in AAC
     // these are either global or realm scoped
-    private Set<GrantedAuthority> authorities;
+    private Set<RealmGrantedAuthority> authorities;
+
+    public Developer() {
+        this.authorities = Collections.emptySet();
+    }
 
     public Developer(String subjectId, String realm) {
         this.subjectId = subjectId;
@@ -46,6 +57,10 @@ public class Developer {
 
     public String getSubjectId() {
         return subjectId;
+    }
+
+    public String getId() {
+        return getSubjectId();
     }
 
     public void setSubjectId(String subjectId) {
@@ -76,11 +91,11 @@ public class Developer {
         this.email = email;
     }
 
-    public Set<GrantedAuthority> getAuthorities() {
+    public Set<RealmGrantedAuthority> getAuthorities() {
         return authorities;
     }
 
-    public void setAuthorities(Set<GrantedAuthority> authorities) {
+    public void setAuthorities(Set<RealmGrantedAuthority> authorities) {
         this.authorities = authorities;
     }
 

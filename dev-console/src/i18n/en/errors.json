@@ -1,0 +1,29 @@
+{
+    "already_registered": "Already registered",
+    "authentication_service": "Authentication problem. Please try again later",
+    "bad_credentials": "Invalid user or password",
+    "internal_error": "Internal error. Please try again",
+    "invalid_data": "Invalid data",
+    "invalid": {
+        "contains_whitespace": "Invalid password: contains whitespaces",
+        "empty": "Invalid password: empty password",
+        "max_length": "Invalid password: too long",
+        "min_length": "Invalid password: too short",
+        "password_reuse": "Invalid password: password reuse",
+        "require_alpha": "Invalid password: alpha char required",
+        "require_number": "Invalid password: number required",
+        "require_uppercase_alpha": "Invalid password: uppercase alpha char required",
+        "require_special": "Invalid password: special character required",
+        "not_match": "Invalid password: the passwords do not match",
+        "policy": "Invalid password: the password does not satisfy the policy"
+    },
+    "missing_data": "Missing data",
+    "not_editable": "Not editable",
+    "invalid_field": "Invalid field",
+    "unsupported_operation": "Unsupported operation",
+    "registration": {
+        "invalid": "Invalid registration",
+        "error": "Registration error"
+    },
+    "provider_is_enabled": "Provider is not editable when enabled"
+}

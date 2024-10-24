@@ -65,6 +65,10 @@ public class RealmRole {
         return roleId;
     }
 
+    public String getId() {
+        return roleId;
+    }    
+
     public void setRoleId(String roleId) {
         this.roleId = roleId;
     }

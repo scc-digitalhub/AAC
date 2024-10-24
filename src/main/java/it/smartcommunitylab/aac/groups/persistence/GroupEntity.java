@@ -44,8 +44,8 @@ public class GroupEntity {
      */
     @Id
     @NotNull
-    @Column(length = 128, unique = true)
-    private String uuid;
+    @Column(name = "uuid", length = 128, unique = true)
+    private String id;
 
     @NotNull
     @Column(length = 128)
@@ -75,12 +75,12 @@ public class GroupEntity {
     @Column(name = "last_modified_date")
     private Date modifiedDate;
 
-    public String getUuid() {
-        return uuid;
+    public String getId() {
+        return id;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getRealm() {

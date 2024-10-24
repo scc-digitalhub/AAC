@@ -17,17 +17,16 @@
 package it.smartcommunitylab.aac.templates;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.internal.templates.InternalRegisterAccountTemplate;
+import it.smartcommunitylab.aac.model.Realm;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.templates.model.LoginTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,13 +35,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
@@ -59,6 +55,10 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
     static {
         WHITELIST_VIEWS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(WHITELIST_VIEWS_VALUES)));
     }
+
+    @Autowired
+    private RealmService realmService;
+
 
     @Autowired
     private TemplateAuthority templateAuthority;
@@ -99,7 +99,7 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
             // realm
             Object slug = modelAndView.getModel().get("realm");
             if (slug != null && slug instanceof String) {
-                String realm = (String) slug;
+                Realm realm = realmService.getRealm((String) slug);
                 Locale locale = LocaleContextHolder.getLocale();
                 String language = locale.getLanguage();
 
@@ -110,13 +110,18 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                 builder.query(request.getQueryString());
 
                 List<LanguageValue> languages = new ArrayList<>();
-                try {
-                    // load realm languages
-                    templateAuthority
-                        .getProviderByRealm(realm)
-                        .getLanguages()
+                // try {
+                    // load realm languages from templates
+                    //DEPRECATED
+                    // templateAuthority
+                    //     .getProviderByRealm(realm)
+                    //     .getLanguages()
+
+                    //load realm languages from config
+                    if(realm.getLocalizationConfiguration() != null && realm.getLocalizationConfiguration().getLanguages() != null) {
+                    realm.getLocalizationConfiguration().getLanguages()
                         .forEach(l -> {
-                            Locale loc = StringUtils.parseLocale(l);
+                            Locale loc = StringUtils.parseLocale(l.getValue());
                             if (loc == null) {
                                 return;
                             }
@@ -126,15 +131,16 @@ public class LanguageHandlerInterceptor implements HandlerInterceptor {
                             String url = builder.build().toString();
                             String label = loc.getDisplayLanguage(locale);
                             LanguageValue lv = new LanguageValue();
-                            lv.setCode(l);
+                            lv.setCode(l.getValue());
                             lv.setLabel(label);
                             lv.setUrl(url);
 
                             languages.add(lv);
                         });
-                } catch (NoSuchProviderException e) {
-                    // skip on error
-                }
+                    }
+                // } catch (NoSuchProviderException e) {
+                //     // skip on error
+                // }
 
                 modelAndView.addObject("languages", languages);
 

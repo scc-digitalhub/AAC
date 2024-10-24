@@ -631,7 +631,13 @@ public class DevManager {
         }
 
         // get custom style
-        String customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();
+        // String customStyle = templateAuthority.getProviderByRealm(realm).getConfig().getCustomStyle();
+        String customStyle = null;
+        // fetch custom style from config
+        if(r.getTemplatesConfiguration() != null && r.getTemplatesConfiguration().getCustomStyle() != null) {
+            customStyle = r.getTemplatesConfiguration().getCustomStyle();
+        }
+
         model.put("customStyle", customStyle);
 
         // Create the HTML body using Thymeleaf

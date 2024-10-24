@@ -95,6 +95,10 @@ public class DefaultAttributesSet implements AttributeSet {
     public void setAttributes(Collection<DefaultAttribute> attributes) {
         this.attributes = attributes;
     }
+    
+    public String getId() {
+    	return this.identifier;
+    }
 
     public void addAttributes(Collection<Attribute> attributes) {
         this.attributes = new HashSet<>();

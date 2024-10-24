@@ -34,23 +34,25 @@ import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.dto.RealmConfig;
 import it.smartcommunitylab.aac.dto.UserSubject;
+import it.smartcommunitylab.aac.groups.GroupManager;
 import it.smartcommunitylab.aac.identity.IdentityProviderManager;
 import it.smartcommunitylab.aac.model.Developer;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.Subject;
 import it.smartcommunitylab.aac.realms.RealmManager;
+import it.smartcommunitylab.aac.roles.RealmRoleManager;
 import it.smartcommunitylab.aac.services.ServicesManager;
 import it.smartcommunitylab.aac.templates.TemplatesManager;
 import it.smartcommunitylab.aac.templates.model.ConfigurableTemplateProvider;
-import it.smartcommunitylab.aac.templates.provider.RealmTemplateProviderConfig;
 import it.smartcommunitylab.aac.templates.service.LanguageService;
+import it.smartcommunitylab.aac.users.UserManager;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.ServletOutputStream;
@@ -104,6 +106,15 @@ public class DevRealmController {
 
     @Autowired
     private TemplatesManager templatesManager;
+
+    @Autowired
+    private UserManager userManager;
+
+    @Autowired
+    private GroupManager groupManager;
+    
+    @Autowired
+    private RealmRoleManager roleManager;
 
     //    @Autowired
     //    private AuditManager auditManager;
@@ -213,7 +224,7 @@ public class DevRealmController {
     /*
      * Dev console users
      */
-    @GetMapping("/realms/{realm}/developers")
+    @GetMapping(value = {"/realms/{realm}/developers", "/developers/{realm}"})
     @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
     public Collection<Developer> getDevelopers(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
@@ -221,7 +232,7 @@ public class DevRealmController {
         return realmManager.getDevelopers(realm);
     }
 
-    @PostMapping("/realms/{realm}/developers")
+    @PostMapping(value = {"/realms/{realm}/developers", "/developers/{realm}"})
     public Developer inviteDeveloper(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull UserSubject bean
@@ -229,8 +240,19 @@ public class DevRealmController {
         return realmManager.inviteDeveloper(realm, bean.getSubjectId(), bean.getEmail());
     }
 
+    @GetMapping(value = {"/realms/{realm}/developers/{subjectId}", "/developers/{realm}/{subjectId}"})
+    @PreAuthorize("hasAuthority('" + Config.R_ADMIN + "') or hasAuthority(#realm+':ROLE_ADMIN')")
+    public Developer getDeveloper(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId
+    ) throws NoSuchRealmException, NoSuchSubjectException {
+        return realmManager.getDevelopers(realm).stream()
+            .filter(d -> d.getSubjectId().equals(subjectId))
+            .findFirst().orElseThrow(NoSuchSubjectException::new);
+    }
+
     @PutMapping("/realms/{realm}/developers/{subjectId}")
-    public Developer updateDeveloper(
+    public Developer updateDeveloperRoles(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
         @RequestBody @Valid @NotNull Collection<String> roles
@@ -238,7 +260,20 @@ public class DevRealmController {
         return realmManager.updateDeveloper(realm, subjectId, roles);
     }
 
-    @DeleteMapping("/realms/{realm}/developers/{subjectId}")
+    @PutMapping("/developers/{realm}/{subjectId}")
+    public Developer updateDeveloper(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId,
+        @RequestBody @Valid @NotNull Developer developer
+    ) throws NoSuchRealmException, NoSuchUserException {
+        Set<String> roles = Collections.emptySet();
+        if(developer.getAuthorities() != null) {
+            roles = new HashSet<>(developer.getAuthorities().stream().filter(a -> realm.equals(a.getRealm())).map(a -> a.getRole()).toList());
+        }        
+        
+        return realmManager.updateDeveloper(realm, subjectId, roles);
+    }
+    @DeleteMapping(value = {"/realms/{realm}/developers/{subjectId}", "/developers/{realm}/{subjectId}"})
     public void removeDeveloper(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String subjectId
@@ -253,7 +288,9 @@ public class DevRealmController {
     public Collection<Subject> getRealmSubjects(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false) String q,
-        @RequestParam(required = false) String t
+        @RequestParam(required = false) String t,
+        @RequestParam(required = false) String group,
+        @RequestParam(required = false) String role
     ) throws NoSuchRealmException {
         Set<String> types = StringUtils.hasText(t) ? StringUtils.commaDelimitedListToSet(t) : null;
         return subjectManager.searchSubjects(realm, q, types);

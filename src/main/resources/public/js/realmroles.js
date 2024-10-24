@@ -4,8 +4,8 @@ angular.module('aac.controllers.realmroles', [])
         var service = {};
 
         service.getRoles = function (realm) {
-            return $http.get('console/dev/roles/' + realm).then(function (data) {
-                return data.data;
+            return $http.get('console/dev/roles/' + realm + '?page=0&size=200').then(function (data) {
+                return data.data.content;
             });
         }
         service.getRole = function (realm, roleId) {

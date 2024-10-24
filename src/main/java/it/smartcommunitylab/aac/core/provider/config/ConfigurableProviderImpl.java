@@ -269,6 +269,10 @@ public abstract class ConfigurableProviderImpl<S extends ConfigMap> implements C
     public void setVersion(Integer version) {
         this.version = version;
     }
+    
+    public String getId() {
+    	return this.provider;
+    }
 
     @Override
     public String toString() {

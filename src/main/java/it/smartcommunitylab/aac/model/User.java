@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -384,8 +385,13 @@ public class User {
         this.tosAccepted = tosAccepted;
     }
 
+    @JsonGetter("tos")
     public boolean isTosAccepted() {
         return tosAccepted != null ? tosAccepted.booleanValue() : false;
+    }
+    
+    public String getId() {
+    	return this.subjectId;
     }
     //    public void addSpaceRoles(Collection<SpaceRole> rr) {
     //        if (rr != null) {
