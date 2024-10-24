@@ -250,7 +250,7 @@ public class RealmManager {
             // validate style
             // TODO add css validator
             String customStyle = r.getTemplatesConfiguration().getCustomStyle();
-            if ("null".equals(customStyle)) {
+            if (customStyle == null || "null".equals(customStyle)) {
                 customStyle = "";
             }
             // use wholetext to avoid escaping ><& etc.
