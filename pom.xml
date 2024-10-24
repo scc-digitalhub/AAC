@@ -512,6 +512,30 @@
 						</configuration>
 					</execution>
 
+					<execution>
+						<id>admin-console-yarn-install</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<arguments>install</arguments>
+							<workingDirectory>${project.basedir}/admin-console</workingDirectory>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>admin console build</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>compile</phase>
+						<configuration>
+							<arguments>build</arguments>
+							<workingDirectory>${project.basedir}/admin-console</workingDirectory>
+						</configuration>
+					</execution>
+
 				</executions>
 			</plugin>
 			<plugin>
@@ -549,6 +573,22 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>admin console package</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>process-classes</phase>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/console/admin</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/admin-console/build</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>					
 				</executions>
 			</plugin>
 			<!-- <plugin> -->
