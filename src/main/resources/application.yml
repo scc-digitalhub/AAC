@@ -59,7 +59,7 @@ security:
         origins: "*"
    console: 
       cors: 
-        origins:
+        origins: ${CORS_CONSOLE_ORIGINS:}
    webauthn:
       id:
       origins:
