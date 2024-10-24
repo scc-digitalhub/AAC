@@ -19,11 +19,12 @@ package it.smartcommunitylab.aac.dto;
 import it.smartcommunitylab.aac.model.Realm;
 import java.util.List;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-/**
- * @author raman
- *
- */
+@JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RealmStats {
 
     private Realm realm;
@@ -39,6 +40,9 @@ public class RealmStats {
 
     private Long registrationCount;
     private List<AuditEvent> registrationEvents;
+
+    private Long tokenCount;
+    private List<AuditEvent> tokenEvents;
 
     public Realm getRealm() {
         return realm;
@@ -126,5 +130,21 @@ public class RealmStats {
 
     public void setRegistrationEvents(List<AuditEvent> registrationEvents) {
         this.registrationEvents = registrationEvents;
+    }
+
+    public Long getTokenCount() {
+        return tokenCount;
+    }
+
+    public void setTokenCount(Long tokenCount) {
+        this.tokenCount = tokenCount;
+    }
+
+    public List<AuditEvent> getTokenEvents() {
+        return tokenEvents;
+    }
+
+    public void setTokenEvents(List<AuditEvent> tokenEvents) {
+        this.tokenEvents = tokenEvents;
     }
 }

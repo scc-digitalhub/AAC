@@ -77,6 +77,7 @@ public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap
     }
 
     @Override
+    @Deprecated
     public Set<Language> getLanguages() {
         return !CollectionUtils.isEmpty(settingsMap.getLanguages())
             ? settingsMap.getLanguages()
@@ -84,6 +85,7 @@ public abstract class AbstractTemplateProviderConfig<M extends AbstractConfigMap
     }
 
     @Override
+    @Deprecated
     public String getCustomStyle() {
         return StringUtils.hasText(settingsMap.getCustomStyle()) ? settingsMap.getCustomStyle() : "";
     }

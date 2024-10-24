@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package it.smartcommunitylab.aac.oauth.model;
+package it.smartcommunitylab.aac.templates.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -31,42 +31,20 @@ import javax.validation.Valid;
 @Valid
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OAuth2ConfigurationMap implements ConfigurableProperties {
+public class TemplatesConfigurationMap implements ConfigurableProperties {
 
     private static ObjectMapper mapper = new ObjectMapper();
     private static final TypeReference<HashMap<String, Serializable>> typeRef =
         new TypeReference<HashMap<String, Serializable>>() {};
 
-    private Boolean enableClientRegistration;
-    private Boolean openClientRegistration;
+    private String customStyle;
 
-    public OAuth2ConfigurationMap() {
-        enableClientRegistration = false;
-        openClientRegistration = false;
+    public String getCustomStyle() {
+        return customStyle;
     }
 
-    public boolean getEnableClientRegistration() {
-        if (enableClientRegistration != null) {
-            return enableClientRegistration;
-        }
-
-        return false;
-    }
-
-    public void setEnableClientRegistration(Boolean enableClientRegistration) {
-        this.enableClientRegistration = enableClientRegistration;
-    }
-
-    public boolean getOpenClientRegistration() {
-        if (openClientRegistration != null) {
-            return openClientRegistration;
-        }
-
-        return false;
-    }
-
-    public void setOpenClientRegistration(Boolean openClientRegistration) {
-        this.openClientRegistration = openClientRegistration;
+    public void setCustomStyle(String customStyle) {
+        this.customStyle = customStyle;
     }
 
     @Override
@@ -82,9 +60,8 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
     public void setConfiguration(Map<String, Serializable> props) {
         // use mapper
         mapper.setSerializationInclusion(Include.NON_EMPTY);
-        OAuth2ConfigurationMap map = mapper.convertValue(props, OAuth2ConfigurationMap.class);
+        TemplatesConfigurationMap map = mapper.convertValue(props, TemplatesConfigurationMap.class);
 
-        this.enableClientRegistration = map.getEnableClientRegistration();
-        this.openClientRegistration = map.getOpenClientRegistration();
+        this.customStyle = map.getCustomStyle();
     }
 }
