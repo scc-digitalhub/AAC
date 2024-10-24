@@ -139,5 +139,11 @@ public class Realm {
         this.templatesConfiguration = templatesConfiguration;
     }
 
+    public void clearConfig() {
+        this.oauthConfiguration= null;
+        this.tosConfiguration= null;
+        this.localizationConfiguration= null;
+        this.templatesConfiguration= null;
+    }
     
 }

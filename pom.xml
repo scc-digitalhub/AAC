@@ -601,10 +601,10 @@
 
 
 	<repositories>
-		<repository>
+		<!-- <repository>
 			<id>SmartCommunity</id>
 			<url>https://repository.smartcommunitylab.it/content/groups/public</url>
-		</repository>
+		</repository> -->
 		<repository>
 			<id>Shibboleth</id>
 			<url>https://build.shibboleth.net/maven/releases</url>
