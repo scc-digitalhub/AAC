@@ -47,6 +47,10 @@ public class ServiceClaim extends AbstractClaim {
 
     private boolean multiple = false;
 
+    public String getId() {
+        return getKey();
+    }
+
     public String getServiceId() {
         return serviceId;
     }
