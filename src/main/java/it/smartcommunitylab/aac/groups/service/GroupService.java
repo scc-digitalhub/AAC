@@ -25,6 +25,8 @@ import it.smartcommunitylab.aac.groups.persistence.GroupMemberEntity;
 import it.smartcommunitylab.aac.groups.persistence.GroupMemberEntityRepository;
 import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Subject;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -108,7 +111,7 @@ public class GroupService {
 
         // create group
         g = new GroupEntity();
-        g.setUuid(s.getSubjectId());
+        g.setId(s.getSubjectId());
         g.setRealm(realm);
         g.setGroup(group);
         g.setParentGroup(parentGroup);
@@ -208,6 +211,24 @@ public class GroupService {
             });
         }
         return groups;
+    }
+
+
+    @Transactional(readOnly = true)
+    public Page<Group> searchGroups(String realm,  String q, Pageable pageRequest) {
+        List<Group> result = new ArrayList<>();
+        Page<GroupEntity> page =StringUtils.hasText(q) 
+        ? groupRepository.findByRealmAndNameContainingIgnoreCaseOrRealmAndGroupContainingIgnoreCaseOrRealmAndIdContainingIgnoreCase(realm, q, realm, q,realm, q, pageRequest)
+         : groupRepository.findByRealm(realm, pageRequest);
+
+
+        page.getContent().forEach(e -> {
+            long size = groupMemberRepository.countByRealmAndGroup(e.getRealm(), e.getGroup());
+            Group g = toGroup(e, size);
+            result.add(g);
+        });         
+
+        return PageableExecutionUtils.getPage(result, pageRequest, () -> page.getTotalElements());
     }
 
     @Transactional(readOnly = true)
@@ -361,7 +382,7 @@ public class GroupService {
     public void deleteGroup(String realm, String group) {
         GroupEntity g = groupRepository.findByRealmAndGroup(realm, group);
         if (g != null) {
-            deleteGroup(g.getUuid());
+            deleteGroup(g.getId());
         }
     }
 
@@ -615,7 +636,7 @@ public class GroupService {
      */
     private Group toGroup(GroupEntity ge, Long size) {
         Group g = new Group();
-        g.setGroupId(ge.getUuid());
+        g.setGroupId(ge.getId());
 
         g.setRealm(ge.getRealm());
         g.setGroup(ge.getGroup());
