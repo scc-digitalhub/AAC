@@ -24,7 +24,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 @Valid
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(Include.NON_NULL)
 public class Scope {
 
     @Pattern(regexp = SystemKeys.SCOPE_PATTERN)
@@ -48,12 +54,12 @@ public class Scope {
     }
 
     public String getId() {
-        return scope;
+        return getScope();
     }
 
-    public void setId(String id) {
-        this.scope = id;
-    }
+    // public void setId(String id) {
+    //     this.scope = id;
+    // }
 
     public String getScope() {
         return scope;
