@@ -1,0 +1,66 @@
+{
+    "name": "admin-console",
+    "version": "1.0.0",
+    "private": true,
+    "license": "Apache-2.0",
+    "homepage": "/console/admin",
+    "dependencies": {
+        "@mui/icons-material": "^5.11.0",
+        "@mui/material": "^5.11.7",
+        "@testing-library/jest-dom": "^5.14.1",
+        "@testing-library/react": "^13.0.0",
+        "@testing-library/user-event": "^13.2.1",
+        "@types/jest": "^27.0.1",
+        "@types/node": "^16.7.13",
+        "@types/react": "^18.0.27",
+        "@types/react-dom": "^18.0.10",
+        "querystring": "^0.2.1",
+        "ra-data-json-server": "^4.7.2",
+        "react": "^18.2.0",
+        "react-admin": "^4.7.2",
+        "react-dom": "^18.2.0",
+        "react-scripts": "5.0.1",
+        "typeface-roboto-mono": "^1.1.13",
+        "typeface-titillium-web": "^1.1.13",
+        "typescript": "^4.4.2",
+        "web-vitals": "^2.1.0"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "start:dev": "env-cmd -f .env.development react-scripts start",
+        "start:local": "env-cmd -f .env.local react-scripts start",
+        "build": "react-scripts build",
+        "dist": "react-scripts build && gzipper c --gzip --brotli --remove-larger --skip-compressed ./build",
+        "lint": "eslint --ext .js,.ts,.tsx \"./src/**/*.{js,ts,tsx}\" ",
+        "prettier": "prettier --config ./.prettierrc.js --write --list-different \"src/**/*.{js,ts,tsx,css}\"",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app",
+            "react-app/jest"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "devDependencies": {
+        "eslint": "^8.33.0",
+        "eslint-config-prettier": "^8.6.0",
+        "eslint-config-react-app": "^7.0.1",
+        "eslint-plugin-prettier": "^4.2.1",
+        "env-cmd": "^10.1.0",
+        "gzipper": "^7.2.0",
+        "prettier": "^2.8.3"
+    }
+}
