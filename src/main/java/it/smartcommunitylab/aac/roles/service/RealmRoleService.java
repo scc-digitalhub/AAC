@@ -27,11 +27,16 @@ import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.RealmRoleEntityRepository;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntity;
 import it.smartcommunitylab.aac.roles.persistence.SubjectRoleEntityRepository;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -164,6 +169,24 @@ public class RealmRoleService {
         }
 
         return rr;
+    }
+
+
+    @Transactional(readOnly = true)
+    public Page<RealmRole> searchRoles(String realm,  String q, Pageable pageRequest) {
+        List<RealmRole> result = new ArrayList<>();
+        Page<RealmRoleEntity> page =StringUtils.hasText(q) 
+        ? roleRepository.findByRealmAndNameContainingIgnoreCaseOrRealmAndRoleContainingIgnoreCaseOrRealmAndIdContainingIgnoreCase(realm, q, realm, q,realm, q, pageRequest)
+         : roleRepository.findByRealm(realm, pageRequest);
+
+
+        page.getContent().forEach(e -> {
+            long size = rolesRepository.countByRealmAndRole(e.getRealm(), e.getRole());
+            RealmRole g = toRole(e, size);
+            result.add(g);
+        });         
+
+        return PageableExecutionUtils.getPage(result, pageRequest, () -> page.getTotalElements());
     }
 
     @Transactional(readOnly = true)
