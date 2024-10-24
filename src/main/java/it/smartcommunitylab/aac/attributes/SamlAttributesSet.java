@@ -16,8 +16,8 @@
 
 package it.smartcommunitylab.aac.attributes;
 
+import it.smartcommunitylab.aac.attributes.base.BaseAttributeSet;
 import it.smartcommunitylab.aac.attributes.model.Attribute;
-import it.smartcommunitylab.aac.attributes.model.AttributeSet;
 import it.smartcommunitylab.aac.attributes.model.BooleanAttribute;
 import it.smartcommunitylab.aac.attributes.model.StringAttribute;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SamlAttributesSet implements AttributeSet {
+public class SamlAttributesSet extends BaseAttributeSet {
 
     public static final String IDENTIFIER = "aac.saml";
     private static final List<String> keys;
