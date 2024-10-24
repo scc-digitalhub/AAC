@@ -190,7 +190,17 @@ public class AdminController {
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String slug,
         @RequestBody @Valid @NotNull Realm reg
     ) throws NoSuchRealmException, RegistrationException {
-        Realm realm = realmManager.updateRealm(slug, reg);
+
+        Realm realm = realmManager.getRealm(slug);
+
+        //keep config, not modifiable via admin console
+        reg.setOAuthConfiguration(realm.getOAuthConfiguration());
+        reg.setLocalizationConfiguration(realm.getLocalizationConfiguration());
+        reg.setTemplatesConfiguration(realm.getTemplatesConfiguration());
+        reg.setTosConfiguration(realm.getTosConfiguration());
+
+        //update
+        realm = realmManager.updateRealm(slug, reg);
         // make sure config is clear
         realm.clearConfig();
 
