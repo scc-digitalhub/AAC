@@ -30,9 +30,11 @@ import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.auth.RealmGrantedAuthority;
 import it.smartcommunitylab.aac.core.model.Client;
 import it.smartcommunitylab.aac.core.service.SubjectService;
+import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.model.ClientApp;
+import it.smartcommunitylab.aac.model.Group;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.SpaceRole;
@@ -106,6 +108,9 @@ public class ClientManager {
     private SubjectRoleService subjectRoleService;
 
     @Autowired
+    private GroupService groupService;    
+
+    @Autowired
     private SubjectService subjectService;
 
     @Autowired
@@ -171,6 +176,9 @@ public class ClientManager {
                         Collection<RealmRole> roles = loadClientRoles(realm, app.getClientId());
                         app.setRealmRoles(roles);
 
+                        Collection<Group> groups = loadClientGroups(realm, app.getClientId());
+                        app.setGroups(groups);
+
                         // load authorities
                         Collection<RealmGrantedAuthority> authorities = loadClientAuthorities(realm, app.getClientId());
                         app.setAuthorities(authorities);
@@ -214,6 +222,9 @@ public class ClientManager {
                     // load realm roles
                     Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
                     clientApp.setRealmRoles(roles);
+
+                    Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
+                    clientApp.setGroups(groups);
 
                     // load authorities
                     Collection<RealmGrantedAuthority> authorities = loadClientAuthorities(
@@ -263,6 +274,9 @@ public class ClientManager {
             // load realm roles
             Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
             clientApp.setRealmRoles(roles);
+
+            Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
+            clientApp.setGroups(groups);
         } catch (NoSuchClientException e) {}
 
         return clientApp;
@@ -304,6 +318,9 @@ public class ClientManager {
         // load realm roles
         Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
         clientApp.setRealmRoles(roles);
+
+        Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
+        clientApp.setGroups(groups);
 
         Collection<SpaceRole> spaceRoles = loadClientSpaceRoles(realm, clientApp.getClientId());
         clientApp.setSpaceRoles(spaceRoles);
@@ -361,6 +378,9 @@ public class ClientManager {
                 // load realm roles
                 Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
                 clientApp.setRealmRoles(roles);
+
+                Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
+                clientApp.setGroups(groups);
             } catch (NoSuchClientException e) {}
 
             return clientApp;
@@ -410,9 +430,27 @@ public class ClientManager {
             throw new IllegalArgumentException("invalid client type");
         }
 
-        // load realm roles
-        Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
-        clientApp.setRealmRoles(roles);
+        //update roles if defined
+        if(app.getRealmRoles() != null) {
+            //replace roles
+            Collection<RealmRole> roles = realmRoleService.setRoles(clientId, realm, app.getRealmRoles().stream().map(RealmRole::getRole).toList());
+            clientApp.setRealmRoles(new HashSet<>(roles));
+        } else {
+            // load realm roles
+            Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+            clientApp.setRealmRoles(roles);
+        }
+
+        //update groups if defined
+        if(app.getGroups() != null) {
+            //replace groups
+            Collection<Group> groups = groupService.setSubjectGroups(clientId, realm, app.getGroups().stream().map(Group::getGroup).toList());
+            clientApp.setGroups(groups);        
+        } else {
+            //load groups
+            Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
+            clientApp.setGroups(groups);
+        }
 
         return clientApp;
     }
@@ -918,6 +956,11 @@ public class ClientManager {
         //                .map(r -> new RealmRole(r.getRealm(), r.getRole()))
         //                .collect(Collectors.toSet());
     }
+
+    private Collection<Group> loadClientGroups(String realm, String clientId) throws NoSuchClientException {
+        return groupService.getSubjectGroups(clientId, realm);
+    }
+
 
     private Collection<SpaceRole> loadClientSpaceRoles(String realm, String clientId) throws NoSuchClientException {
         return spaceRoleService.getRoles(clientId);
