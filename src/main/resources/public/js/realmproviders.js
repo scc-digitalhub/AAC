@@ -34,8 +34,8 @@ angular.module('aac.controllers.realmproviders', [])
         }
 
         service.getIdentityProviders = function (slug) {
-            return $http.get('console/dev/idps/' + slug).then(function (data) {
-                return data.data;
+            return $http.get('console/dev/idps/' + slug+ '?page=0&size=200').then(function (data) {
+                return data.data.content;
             });
         }
 

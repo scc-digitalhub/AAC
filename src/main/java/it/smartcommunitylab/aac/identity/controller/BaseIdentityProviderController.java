@@ -45,6 +45,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -112,19 +114,23 @@ public class BaseIdentityProviderController implements InitializingBean {
      */
     @GetMapping("/idps/{realm}")
     @Operation(summary = "list identity providers from a given realm")
-    public Collection<ConfigurableIdentityProvider> listIdps(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    public Page<ConfigurableIdentityProvider> listIdps(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list idp for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return providerManager
-            .listProviders(realm)
+        Page<ConfigurableIdentityProvider> page = providerManager
+            .searchProviders(realm, q, pageRequest);
+
+        page.getContent()
             .stream()
-            .map(cp -> {
+            .forEach(cp -> {
                 cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
-                return cp;
-            })
-            .collect(Collectors.toList());
+            });
+
+        return page;
     }
 
     @PostMapping("/idps/{realm}")
@@ -218,14 +224,18 @@ public class BaseIdentityProviderController implements InitializingBean {
 
         // check if active
         ConfigurableIdentityProvider provider = providerManager.getProvider(realm, providerId);
-
+        boolean registered = providerManager.isProviderRegistered(realm, provider);
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
-        if (forceRegistration && providerManager.isProviderRegistered(realm, provider)) {
-            try {
-                provider = providerManager.unregisterProvider(realm, providerId);
-            } catch (NoSuchAuthorityException e) {
-                // skip
+        if (registered) {
+            if(forceRegistration) {
+                try {
+                    provider = providerManager.unregisterProvider(realm, providerId);
+                } catch (NoSuchAuthorityException e) {
+                    // skip
+                }
+            } else {
+                throw new IllegalArgumentException("active providers can not be updated, disable or force");
             }
         }
 
