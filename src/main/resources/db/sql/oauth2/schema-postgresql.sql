@@ -23,6 +23,8 @@ CREATE TABLE
         authentication_id VARCHAR(256),
         user_name VARCHAR(256),
         client_id VARCHAR(256),
+        issued_at timestamp DEFAULT NULL,
+        expires_at timestamp DEFAULT NULL,        
         authentication bytea,
         refresh_token VARCHAR(256)
     );
@@ -31,6 +33,11 @@ CREATE TABLE
     IF NOT EXISTS oauth_refresh_token (
         token_id VARCHAR(64) NOT NULL PRIMARY KEY,
         token bytea NOT NULL,
+        authentication_id VARCHAR(256),
+        user_name VARCHAR(256),
+        client_id VARCHAR(256),
+        issued_at timestamp DEFAULT NULL,
+        expires_at timestamp DEFAULT NULL,                
         authentication bytea NOT NULL
     );
 
@@ -40,3 +47,5 @@ CREATE INDEX oauth_access_token_token_client_index ON public.oauth_access_token 
 CREATE INDEX oauth_access_token_token_refresh_token_index ON public.oauth_access_token (refresh_token);
 
 CREATE INDEX oauth_refresh_token_token_id_index ON public.oauth_refresh_token (token_id);
+CREATE INDEX oauth_refresh_token_token_user_index ON public.oauth_refresh_token (user_name);
+CREATE INDEX oauth_refresh_token_token_client_index ON public.oauth_refresh_token (client_id);

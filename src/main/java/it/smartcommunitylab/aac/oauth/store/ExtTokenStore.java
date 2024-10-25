@@ -43,8 +43,30 @@ public interface ExtTokenStore extends TokenStore {
     public OAuth2RefreshToken readRefreshTokenForAccessToken(String tokenValue);
 
     /**
+     * Read refresh token FOR update
+     *
+     * @param tokenValue
+     * @return
+     */
+    public OAuth2RefreshToken readRefreshTokenForUpdate(String token);
+
+
+    /**
      * @param clientId the client id to search
      * @return a collection of access tokens
      */
     Collection<OAuth2AccessToken> findTokensByUserName(String userName);
+
+
+    /**
+     * Delete tokens expired since interval
+     * @param interval
+     */
+    public void deleteExpiredAccessTokens(long interval);
+
+    /**
+     * Delete tokens expired since interval
+     * @param interval
+     */
+    public void deleteExpiredRefreshTokens(long interval);
 }

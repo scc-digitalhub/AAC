@@ -20,6 +20,8 @@ import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import it.smartcommunitylab.aac.oauth.model.AuthorizationGrantType;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
@@ -36,15 +38,25 @@ public class ClientRefreshAuthenticationConverter extends OAuth2ClientAuthentica
         }
 
         // fetch and validate parameters
+        // if client provides a secret we'll skip and prioritize form auth
         Map<String, String[]> parameters = request.getParameterMap();
         if (
             !parameters.containsKey(OAuth2ParameterNames.CLIENT_ID) ||
             !parameters.containsKey(OAuth2ParameterNames.REFRESH_TOKEN) ||
-            !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE)
+            !parameters.containsKey(OAuth2ParameterNames.GRANT_TYPE) ||
+            parameters.containsKey(OAuth2ParameterNames.CLIENT_SECRET)
         ) {
             // not a valid request
             return null;
         }
+
+       // if client provides a auth header we'll skip and prioritize basic auth      
+       if (
+           request.getHeader(HttpHeaders.AUTHORIZATION) != null
+       ) {
+           // not a valid request
+           return null;
+       }
 
         // support refresh flow without secret for public clients
         // requires refresh token rotation set

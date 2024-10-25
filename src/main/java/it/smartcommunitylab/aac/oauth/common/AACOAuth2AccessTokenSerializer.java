@@ -23,6 +23,7 @@ import com.nimbusds.jwt.JWT;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class AACOAuth2AccessTokenSerializer extends StdSerializer<AACOAuth2Acces
         gen.writeStringField(AACOAuth2AccessToken.SCOPE, StringUtils.collectionToDelimitedString(scope, " "));
 
         // add additional fields as presented in map
-        Map<String, Object> additionalInformation = token.getAdditionalInformation();
+        Map<String, Serializable> additionalInformation = token.getAdditionalInformation();
         for (String key : additionalInformation.keySet()) {
             gen.writeObjectField(key, additionalInformation.get(key));
         }
