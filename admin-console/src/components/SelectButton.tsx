@@ -20,11 +20,13 @@ export const SelectButton = (props: ShowButtonProps) => {
     const record = useRecordContext(props);
 
     const path = DEV_URL + '/-/' + record.id;
-
+    const handleClick = () => {
+        window.location.href = path;
+        return;
+    };
     return (
         <Button
-            component={Link}
-            to={path}
+            onClick={handleClick}
             className={className}
             label={label}
             variant={variant}
