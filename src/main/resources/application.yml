@@ -87,8 +87,10 @@ oauth2:
       allowRefresh: ${OAUTH2_RESOURCEOWNERPASSWORD_ALLOW_REFRESH:true}
    accesstoken:
       validity: ${ACCESS_TOKEN_VALIDITY:43200}
+      cleanup: ${ACCESS_TOKEN_VALIDITY:2592000}
    refreshtoken:
       validity: ${REFRESH_TOKEN_VALIDITY:2592000}
+      cleanup: ${ACCESS_TOKEN_VALIDITY:2592000}
    authcode:
       validity: ${AUTH_CODE_VALIDITY:600}          
             

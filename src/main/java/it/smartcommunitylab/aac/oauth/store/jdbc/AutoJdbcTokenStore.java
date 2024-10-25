@@ -197,7 +197,7 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
         //interval in seconds
         long timestamp = System.currentTimeMillis()- (interval*1000);
 
-        jdbcTemplate.update(deleteExpiredAccessTokenSql, new java.sql.Timestamp(timestamp), new int[] {Types.TIMESTAMP});
+        jdbcTemplate.update(deleteExpiredAccessTokenSql, new Object[] {new java.sql.Timestamp(timestamp)}, new int[] {Types.TIMESTAMP});
     }
 
 
@@ -206,7 +206,7 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
           //interval in seconds
           long timestamp = System.currentTimeMillis()- (interval*1000);
 
-          jdbcTemplate.update(deleteExpiredRefreshTokenSql, new java.sql.Timestamp(timestamp), new int[] {Types.TIMESTAMP});
+          jdbcTemplate.update(deleteExpiredRefreshTokenSql, new Object[] {new java.sql.Timestamp(timestamp)}, new int[] {Types.TIMESTAMP});
       }
    
 }
