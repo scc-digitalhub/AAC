@@ -56,4 +56,17 @@ public interface ExtTokenStore extends TokenStore {
      * @return a collection of access tokens
      */
     Collection<OAuth2AccessToken> findTokensByUserName(String userName);
+
+
+    /**
+     * Delete tokens expired since interval
+     * @param interval
+     */
+    public void deleteExpiredAccessTokens(long interval);
+
+    /**
+     * Delete tokens expired since interval
+     * @param interval
+     */
+    public void deleteExpiredRefreshTokens(long interval);
 }

@@ -23,6 +23,8 @@ CREATE TABLE
         authentication_id VARCHAR(256),
         user_name VARCHAR(256),
         client_id VARCHAR(256),
+        issuet_at datetime DEFAULT NULL,
+        expires_at datetime DEFAULT NULL,
         authentication BLOB,
         refresh_token VARCHAR(256)
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC;
@@ -33,7 +35,9 @@ CREATE TABLE
         token BLOB NOT NULL,
         authentication_id VARCHAR(256),
         user_name VARCHAR(256),
-        client_id VARCHAR(256),        
+        client_id VARCHAR(256),
+        issuet_at datetime DEFAULT NULL,
+        expires_at datetime DEFAULT NULL,                
         authentication BLOB NOT NULL
     ) ENGINE = InnoDB ROW_FORMAT = DYNAMIC;
 

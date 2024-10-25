@@ -23,6 +23,8 @@ CREATE TABLE
         authentication_id VARCHAR(256),
         user_name VARCHAR(256),
         client_id VARCHAR(256),
+        issued_at timestamp DEFAULT NULL,
+        expires_at timestamp DEFAULT NULL,        
         authentication bytea,
         refresh_token VARCHAR(256)
     );
@@ -33,7 +35,9 @@ CREATE TABLE
         token bytea NOT NULL,
         authentication_id VARCHAR(256),
         user_name VARCHAR(256),
-        client_id VARCHAR(256),        
+        client_id VARCHAR(256),
+        issued_at timestamp DEFAULT NULL,
+        expires_at timestamp DEFAULT NULL,                
         authentication bytea NOT NULL
     );
 

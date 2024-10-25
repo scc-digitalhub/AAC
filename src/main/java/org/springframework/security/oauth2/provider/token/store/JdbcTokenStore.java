@@ -59,7 +59,7 @@ public class JdbcTokenStore implements TokenStore {
 
 	private static final String DEFAULT_ACCESS_TOKEN_DELETE_FROM_REFRESH_TOKEN_STATEMENT = "delete from oauth_access_token where refresh_token = ?";
 
-	private static final String DEFAULT_REFRESH_TOKEN_INSERT_STATEMENT = "insert into oauth_refresh_token (token_id, token, authentication_id, user_name, client_id, authentication) values (?, ?, ?, ?, ?, ?)";
+	private static final String DEFAULT_REFRESH_TOKEN_INSERT_STATEMENT = "insert into oauth_refresh_token (token_id, token, authentication) values (?, ?, ?)";
 
 	private static final String DEFAULT_REFRESH_TOKEN_SELECT_STATEMENT = "select token_id, token from oauth_refresh_token where token_id = ?";
 
@@ -145,10 +145,9 @@ public class JdbcTokenStore implements TokenStore {
 			refreshToken = token.getRefreshToken().getValue();
 		}
 		
-		//DISABLED: store should store *new* tokens, not update!
-		// if (readAccessToken(token.getValue())!=null) {
-		// 	removeAccessToken(token.getValue());
-		// }
+		if (readAccessToken(token.getValue())!=null) {
+			removeAccessToken(token.getValue());
+		}
 
 		jdbcTemplate.update(insertAccessTokenSql, new Object[] { extractTokenKey(token.getValue()),
 				new SqlLobValue(serializeAccessToken(token)), authenticationKeyGenerator.extractKey(authentication),
@@ -219,11 +218,9 @@ public class JdbcTokenStore implements TokenStore {
 
 	public void storeRefreshToken(OAuth2RefreshToken refreshToken, OAuth2Authentication authentication) {
 		jdbcTemplate.update(insertRefreshTokenSql, new Object[] { extractTokenKey(refreshToken.getValue()),
-				new SqlLobValue(serializeRefreshToken(refreshToken)),authenticationKeyGenerator.extractKey(authentication),
-				authentication.isClientOnly() ? null : authentication.getName(),
-				authentication.getOAuth2Request().getClientId(),
-				new SqlLobValue(serializeAuthentication(authentication)) }, new int[] { 
-					Types.VARCHAR, Types.BLOB, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BLOB });
+				new SqlLobValue(serializeRefreshToken(refreshToken)),
+				new SqlLobValue(serializeAuthentication(authentication)) }, new int[] { Types.VARCHAR, Types.BLOB,
+				Types.BLOB });
 	}
 
 	public OAuth2RefreshToken readRefreshToken(String token) {
