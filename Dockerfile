@@ -3,6 +3,7 @@ FROM ${CACHE} AS cache
 
 FROM maven:3-openjdk-17 AS build
 ARG VER=SNAPSHOT
+ARG SKIP_TESTS=false
 COPY ./src /tmp/src
 COPY ./pom.xml /tmp/pom.xml
 COPY ./user-console /tmp/user-console
@@ -14,7 +15,7 @@ RUN --mount=type=cache,target=/root/.m2,source=/cache/.m2,from=cache \
     --mount=type=cache,target=/tmp/user-console/node_modules,source=/cache/user-console/node_modules,from=cache \ 
     --mount=type=cache,target=/tmp/dev-console/node_modules,source=/cache/dev-console/node_modules,from=cache \ 
     --mount=type=cache,target=/tmp/admin-console/node_modules,source=/cache/admin-console/node_modules,from=cache \ 
-    mvn -Drevision=${VER} package
+    mvn -Drevision=${VER} package -DskipTests=${SKIP_TESTS}
 
 FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /tmp
