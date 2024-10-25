@@ -1,4 +1,4 @@
-FROM maven:3-openjdk-17 AS mvn
+FROM maven:3-openjdk-17 AS cache
 RUN mkdir -p /build/src /build/user-console /build/dev-console /build/admin-console
 COPY ./pom.xml /build/pom.xml
 COPY ./user-console/package.json /build/user-console
@@ -10,7 +10,7 @@ COPY ./admin-console/yarn.lock /build/admin-console
 
 WORKDIR /build
 RUN mvn dependency:go-offline
-RUN mvn clean generate-resources -pl frontend
+RUN mvn clean generate-resources
 
 FROM scratch
 LABEL org.opencontainers.image.source=https://github.com/scc-digitalhub/digitalhub-core
