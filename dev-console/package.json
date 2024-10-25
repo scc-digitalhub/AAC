@@ -35,6 +35,7 @@
         "start": "env-cmd -f .env.development vite",
         "start:local": "env-cmd -f .env.local vite",
         "build": "env-cmd -f .env vite build",
+        "dist": "env-cmd -f .env vite build && gzipper c --gzip --brotli --remove-larger --skip-compressed ./dist",
         "serve": "env-cmd -f .env vite preview",
         "lint": "eslint --ext .js,.ts,.tsx \"./src/**/*.{js,ts,tsx}\" ",
         "prettier": "prettier --config ./.prettierrc.js --write --list-different \"src/**/*.{js,ts,tsx,css}\"",
@@ -58,6 +59,7 @@
         "eslint-plugin-react": "^7.32.2",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-react-refresh": "^0.4.5",
+        "gzipper": "^7.2.0",        
         "prettier": "^2.8.8",
         "typescript": "^5.2.2",
         "vite": "^5.1.4"

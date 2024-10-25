@@ -466,7 +466,7 @@
 						</goals>
 						<phase>generate-resources</phase>
 						<configuration>
-							<arguments>install</arguments>
+							<arguments>install --frozen-lockfile</arguments>
 							<workingDirectory>${project.basedir}/user-console</workingDirectory>
 						</configuration>
 					</execution>
@@ -490,7 +490,7 @@
 						</goals>
 						<phase>generate-resources</phase>
 						<configuration>
-							<arguments>install</arguments>
+							<arguments>install --frozen-lockfile</arguments>
 							<workingDirectory>${project.basedir}/dev-console</workingDirectory>
 						</configuration>
 					</execution>
@@ -514,7 +514,7 @@
 						</goals>
 						<phase>generate-resources</phase>
 						<configuration>
-							<arguments>install</arguments>
+							<arguments>install --frozen-lockfile</arguments>
 							<workingDirectory>${project.basedir}/admin-console</workingDirectory>
 						</configuration>
 					</execution>
@@ -526,7 +526,7 @@
 						</goals>
 						<phase>compile</phase>
 						<configuration>
-							<arguments>build</arguments>
+							<arguments>dist</arguments>
 							<workingDirectory>${project.basedir}/admin-console</workingDirectory>
 						</configuration>
 					</execution>
