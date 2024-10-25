@@ -25,10 +25,15 @@ import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.groups.persistence.GroupEntity;
 import it.smartcommunitylab.aac.groups.service.GroupService;
 import it.smartcommunitylab.aac.model.Group;
+import it.smartcommunitylab.aac.model.RealmRole;
 import it.smartcommunitylab.aac.model.Subject;
+import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -65,6 +70,10 @@ public class GroupManager {
     @Autowired
     private SubjectService subjectService;
 
+
+    @Autowired
+    private SubjectRoleService realmRoleService;
+
     /*
      * Realm groups
      */
@@ -80,6 +89,9 @@ public class GroupManager {
         if (!realm.equals(g.getRealm())) {
             throw new IllegalArgumentException("realm mismatch");
         }
+
+        Set<RealmRole> roles = loadGroupRoles(realm, groupId);
+        g.setRoles(roles);
 
         return g;
     }
@@ -112,6 +124,10 @@ public class GroupManager {
             res.setMembers(new ArrayList<>(members));
         }
 
+        //add roles if defined
+        if(g.getRoles() != null) {
+            realmRoleService.setRoles(groupId, realm, g.getRoles().stream().map(r -> r.getRole()).toList());
+        }
         return res;
     }
 
@@ -140,6 +156,12 @@ public class GroupManager {
             res.setMembers(new ArrayList<>(members));
         }
 
+        //update roles if defined
+        if(g.getRoles() != null) {
+            Collection<RealmRole> roles = realmRoleService.setRoles(groupId, realm, g.getRoles().stream().map(r -> r.getRole()).toList());
+            res.setRoles(new HashSet<>(roles));
+        }
+
         return res;
     }
 
@@ -164,6 +186,11 @@ public class GroupManager {
 
             groupService.deleteGroup(groupId);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Group> searchGroups(String realm, String keywords,  Pageable pageRequest) throws NoSuchRealmException {
+        return groupService.searchGroups(realm, keywords, pageRequest);
     }
 
     @Transactional(readOnly = true)
@@ -273,5 +300,14 @@ public class GroupManager {
 
     public void deleteSubjectFromGroups(String realm, String subject) throws NoSuchSubjectException {
         groupService.deleteSubjectFromGroups(subject, realm);
+    }
+
+
+    /*
+     * Helpers
+     */
+
+    private Set<RealmRole> loadGroupRoles(String realm, String groupId) throws NoSuchGroupException {
+        return new HashSet<>(realmRoleService.getRoles(groupId, realm));     
     }
 }

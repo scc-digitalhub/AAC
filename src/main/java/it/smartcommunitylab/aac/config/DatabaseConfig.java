@@ -105,6 +105,21 @@ public class DatabaseConfig {
         return new HikariDataSource(config);
     }
 
+    @Bean(name = "jdbcAuditDataSource")
+    public DataSource jdbcAuditDataSource(
+        @Qualifier("auditJdbcProperties") JdbcProperties auditJdbcProperties,
+        @Qualifier("jdbcProperties") JdbcProperties jdbcProperties,
+        @Qualifier("jdbcDataSource") DataSource jdbcDataSource
+    ) throws PropertyVetoException {
+        if (auditJdbcProperties.equals(jdbcProperties)) {
+            return jdbcDataSource;
+        }
+
+        HikariConfig config = buildDataSourceConfig(auditJdbcProperties);
+        config.setPoolName("jdbcAuditConnectionPool");
+        return new HikariDataSource(config);
+    }
+
     @Primary
     @Bean(name = "jpaDataSource")
     public HikariDataSource jpaDataSource(@Qualifier("jdbcProperties") JdbcProperties properties)
@@ -177,7 +192,7 @@ public class DatabaseConfig {
     @Bean(name = "coreJdbcDataSourceInitializer")
     public JdbcDataSourceInitializer jdbcDataSourceInitializer(
         @Qualifier("jdbcDataSource") DataSource dataSource,
-        JdbcProperties properties
+        @Qualifier("jdbcProperties") JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties);
     }
@@ -185,7 +200,7 @@ public class DatabaseConfig {
     @Bean(name = "oauth2JdbcDataSourceInitializer")
     public JdbcDataSourceInitializer oauth2DataSourceInitializer(
         @Qualifier("jdbcDataSource") DataSource dataSource,
-        JdbcProperties properties
+        @Qualifier("jdbcProperties") JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/oauth2/schema-@@platform@@.sql");
     }
@@ -193,8 +208,8 @@ public class DatabaseConfig {
     //TODO add optional ObjectProvider<DataSource> to support separated dataSource for audit
     @Bean(name = "auditJdbcDataSourceInitializer")
     public JdbcDataSourceInitializer auditDataSourceInitializer(
-        @Qualifier("jdbcDataSource") DataSource dataSource,
-        JdbcProperties properties
+        @Qualifier("jdbcAuditDataSource") DataSource dataSource,
+        @Qualifier("auditJdbcProperties") JdbcProperties properties
     ) {
         return new JdbcDataSourceInitializer(dataSource, properties, "classpath:db/sql/audit/schema-@@platform@@.sql");
     }

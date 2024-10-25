@@ -16,10 +16,12 @@
 
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
+import it.smartcommunitylab.aac.templates.model.TemplatesConfigurationMap;
 import it.smartcommunitylab.aac.tos.TosConfigurationMap;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -27,6 +29,7 @@ import javax.validation.constraints.Size;
 
 @Valid
 @JsonInclude(Include.ALWAYS)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Realm {
 
     private String name;
@@ -43,11 +46,13 @@ public class Realm {
     private OAuth2ConfigurationMap oauthConfiguration;
     private TosConfigurationMap tosConfiguration;
     private LocalizationConfigurationMap localizationConfiguration;
+    private TemplatesConfigurationMap templatesConfiguration;
 
     public Realm() {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
+        this.templatesConfiguration = new TemplatesConfigurationMap();
     }
 
     public Realm(String slug) {
@@ -55,6 +60,7 @@ public class Realm {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
+        this.templatesConfiguration = new TemplatesConfigurationMap();
     }
 
     public String getName() {
@@ -71,6 +77,10 @@ public class Realm {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getId() {
+        return getSlug();
     }
 
     public String getSlug() {
@@ -120,4 +130,20 @@ public class Realm {
     public void setLocalizationConfiguration(LocalizationConfigurationMap localizationConfiguration) {
         this.localizationConfiguration = localizationConfiguration;
     }
+
+    public TemplatesConfigurationMap getTemplatesConfiguration() {
+        return templatesConfiguration;
+    }
+
+    public void setTemplatesConfiguration(TemplatesConfigurationMap templatesConfiguration) {
+        this.templatesConfiguration = templatesConfiguration;
+    }
+
+    public void clearConfig() {
+        this.oauthConfiguration= null;
+        this.tosConfiguration= null;
+        this.localizationConfiguration= null;
+        this.templatesConfiguration= null;
+    }
+    
 }

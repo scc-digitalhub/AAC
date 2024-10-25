@@ -59,7 +59,7 @@ security:
         origins: "*"
    console: 
       cors: 
-        origins:
+        origins: ${CORS_CONSOLE_ORIGINS:}
    webauthn:
       id:
       origins:
@@ -87,8 +87,10 @@ oauth2:
       allowRefresh: ${OAUTH2_RESOURCEOWNERPASSWORD_ALLOW_REFRESH:true}
    accesstoken:
       validity: ${ACCESS_TOKEN_VALIDITY:43200}
+      cleanup: ${ACCESS_TOKEN_VALIDITY:2592000}
    refreshtoken:
       validity: ${REFRESH_TOKEN_VALIDITY:2592000}
+      cleanup: ${ACCESS_TOKEN_VALIDITY:2592000}
    authcode:
       validity: ${AUTH_CODE_VALIDITY:600}          
             
@@ -108,6 +110,20 @@ audit:
    kid:
       sig: ${AUDIT_KID_SIG:}         
       enc: ${AUDIT_KID_ENC:}
+   jdbc:
+     dialect: ${AUDIT_JDBC_DIALECT:${jdbc.dialect}}
+     driver: ${AUDIT_JDBC_DRIVER:${jdbc.driver}}
+     url: ${AUDIT_JDBC_URL:${jdbc.url}}
+     user: ${AUDIT_JDBC_USER:${jdbc.user}}
+     password: ${AUDIT_JDBC_PASS:${jdbc.password}}
+     show-sql: false
+     initialize-schema: always
+     max-pool-size: ${AUDIT_JDBC_MAX_POOL_SIZE:${jdbc.maxpoolsize}}
+     min-pool-size: ${AUDIT_JDBC_MIN_POOL_SIZE:${jdbc.minpoolsize}}
+     idle-timeout: ${AUDIT_JDBC_IDLE_TIMEOUT:${jdbc.idletimeout}}
+     keep-alive-timeout: ${AUDIT_JDBC_KEEP_ALIVE_TIMEOUT:${jdbc.keepalivetimeout}}
+     connection-timeout: ${AUDIT_JDBC_CONNECTION_TIMEOUT:${jdbc.connectiontimeout}}
+     data-source-properties: {}
 
 #EXTERNAL PROVIDERS
 authorities:
@@ -291,11 +307,6 @@ spid:
         entityLabel: timid
         metadataUrl: https://login.id.tim.it/spid-services/MetadataBrowser/idp
         iconUrl: /spid/img/spid-idp-timid.svg
-      - entityName: Spid Validator
-        entityId: https://localhost:8443
-        entityLabel: spidvalidator
-        metadataUrl: https://localhost:8443/metadata.xml
-        iconUrl: /spid/img/spid-ico-circle-bb.svg
 
 attributesets:
   sets:
@@ -372,12 +383,15 @@ management:
       enabled-by-default: false
       web:
         base-path:
-        exposure.include: "health,info" 
+        exposure:
+         include: "health,info,metrics" 
     endpoint:
       info:
         enabled: true
       health:
         enabled: true
+      metrics:
+         enabled: true
 
 
 # Open API

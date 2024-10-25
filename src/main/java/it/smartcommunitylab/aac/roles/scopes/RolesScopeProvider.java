@@ -72,4 +72,8 @@ public class RolesScopeProvider implements ScopeProvider {
     public ScopeApprover getApprover(String scope) {
         return approvers.get(scope);
     }
+    
+    public String getId() {
+    	return this.getResourceId();
+    }
 }

@@ -1,0 +1,17 @@
+{
+    "name": "AAC",
+    "version": "5.x",
+    "private": true,
+    "scripts": {
+      "prettier": "prettier --config ./.prettierrc.yml --write --list-different  \"src/**/*.java\"",
+      "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1 --skip-unstable"
+    },
+    "devDependencies": {
+      "conventional-changelog-cli": "^5.0.0",
+      "prettier": "^3.2.5",
+      "prettier-plugin-java": "^2.5.0"
+    },
+    "dependencies": {},
+    "eslintConfig": {}
+  }
+  

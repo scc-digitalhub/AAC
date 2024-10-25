@@ -23,6 +23,8 @@ CREATE TABLE
         authentication_id VARCHAR(256),
         user_name VARCHAR(256),
         client_id VARCHAR(256),
+        issued_at datetime DEFAULT NULL,
+        expires_at datetime DEFAULT NULL,        
         authentication BLOB,
         refresh_token VARCHAR(256)
     );
@@ -31,5 +33,10 @@ CREATE TABLE
     IF NOT EXISTS oauth_refresh_token (
         token_id VARCHAR(64) NOT NULL PRIMARY KEY,
         token BLOB NOT NULL,
+        authentication_id VARCHAR(256),
+        user_name VARCHAR(256),
+        client_id VARCHAR(256),
+        issued_at datetime DEFAULT NULL,
+        expires_at datetime DEFAULT NULL,
         authentication BLOB NOT NULL
     );

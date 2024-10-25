@@ -35,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.provider.approval.Approval;
 import org.springframework.util.Assert;
@@ -78,12 +80,14 @@ public class BaseRealmRolesController implements InitializingBean {
 
     @GetMapping("/roles/{realm}")
     @Operation(summary = "list roles for realm")
-    public Collection<RealmRole> getRealmRoles(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    public Page<RealmRole> getRealmRoles(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list roles for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        return roleManager.getRealmRoles(realm);
+        return roleManager.searchRoles(realm, q, pageRequest);
     }
 
     @PostMapping("/roles/{realm}")
@@ -104,6 +108,8 @@ public class BaseRealmRolesController implements InitializingBean {
         r.setRole(role);
         r.setName(name);
         r.setDescription(description);
+        r.setSubjects(reg.getSubjects());
+        r.setPermissions(reg.getPermissions());
 
         if (logger.isTraceEnabled()) {
             logger.trace("role bean: {}", StringUtils.trimAllWhitespace(r.toString()));
@@ -154,7 +160,9 @@ public class BaseRealmRolesController implements InitializingBean {
         r.setRole(role);
         r.setName(name);
         r.setDescription(description);
-
+        r.setSubjects(reg.getSubjects());
+        r.setPermissions(reg.getPermissions());
+        
         if (logger.isTraceEnabled()) {
             logger.trace("role bean: {}", StringUtils.trimAllWhitespace(r.toString()));
         }

@@ -21,7 +21,7 @@ angular.module('aac.controllers.realmaudit', [])
             return $http.get('console/dev/audit/' + slug, {
                 params: params
             }).then(function (data) {
-                return data.data;
+                return data.data.content;
             });
         }
 
@@ -51,7 +51,7 @@ angular.module('aac.controllers.realmaudit', [])
                 params.size = 20;
             }
 
-            return $http.get('console/dev/audit/' + slug + '/search', {
+            return $http.get('console/dev/audit/' + slug , {
                 params: params
             }).then(function (data) {
                 return data.data;

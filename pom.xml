@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.smartcommunitylab</groupId>
 	<artifactId>aac</artifactId>
-	<version>5.0.3-SNAPSHOT</version>
+	<version>${revision}</version>
 	<name>aac</name>
 
 	<parent>
@@ -14,14 +14,15 @@
 	</parent>
 
 	<properties>
+		<revision>5.2.0-SNAPSHOT</revision>
 		<java.version>17</java.version>
 		<bouncycastle.version>1.74</bouncycastle.version>
 		<springdoc.version>1.6.15</springdoc.version>
 		<jsoup.version>1.17.2</jsoup.version>
 		<yubico.version>2.0.0</yubico.version>
 		<jsonschema.version>4.33.1</jsonschema.version>
-		<node.version>v16.15.0</node.version>
-		<yarn.version>v1.21.1</yarn.version>
+		<node.version>v18.17.1</node.version>
+		<yarn.version>v1.22.19</yarn.version>
 		<postgresql.version>42.7.1</postgresql.version>
 		<mysql.version>8.3.0</mysql.version>
 		<mariadb.version>3.3.2</mariadb.version>
@@ -131,11 +132,6 @@
 			<artifactId>spring-session-jdbc</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.security.oauth</groupId>
-			<artifactId>spring-security-oauth2</artifactId>
-			<version>2.6.0.SNAPSHOT</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -470,7 +466,7 @@
 						</goals>
 						<phase>generate-resources</phase>
 						<configuration>
-							<arguments>install</arguments>
+							<arguments>install --frozen-lockfile</arguments>
 							<workingDirectory>${project.basedir}/user-console</workingDirectory>
 						</configuration>
 					</execution>
@@ -484,6 +480,54 @@
 						<configuration>
 							<arguments>dist</arguments>
 							<workingDirectory>${project.basedir}/user-console</workingDirectory>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>dev-console-yarn-install</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<arguments>install --frozen-lockfile</arguments>
+							<workingDirectory>${project.basedir}/dev-console</workingDirectory>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>dev console build</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>compile</phase>
+						<configuration>
+							<arguments>build</arguments>
+							<workingDirectory>${project.basedir}/dev-console</workingDirectory>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>admin-console-yarn-install</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>generate-resources</phase>
+						<configuration>
+							<arguments>install --frozen-lockfile</arguments>
+							<workingDirectory>${project.basedir}/admin-console</workingDirectory>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>admin console build</id>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<phase>compile</phase>
+						<configuration>
+							<arguments>dist</arguments>
+							<workingDirectory>${project.basedir}/admin-console</workingDirectory>
 						</configuration>
 					</execution>
 
@@ -508,6 +552,38 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>dev console package</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>process-classes</phase>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/console/dev</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/dev-console/dist</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>admin console package</id>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<phase>process-classes</phase>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/console/admin</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/admin-console/build</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>					
 				</executions>
 			</plugin>
 			<!-- <plugin> -->
@@ -560,10 +636,10 @@
 
 
 	<repositories>
-		<repository>
+		<!-- <repository>
 			<id>SmartCommunity</id>
 			<url>https://repository.smartcommunitylab.it/content/groups/public</url>
-		</repository>
+		</repository> -->
 		<repository>
 			<id>Shibboleth</id>
 			<url>https://build.shibboleth.net/maven/releases</url>

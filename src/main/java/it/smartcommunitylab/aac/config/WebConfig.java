@@ -157,5 +157,23 @@ public class WebConfig implements WebMvcConfigurer {
             .resourceChain(true)
             .addResolver(new EncodedResourceResolver())
             .addResolver(new PathResourceResolver());
+
+        // dev console
+        registry
+        .addResourceHandler("/console/dev/**")
+        .addResourceLocations("classpath:/console/dev/")
+        .setCachePeriod(60 * 60 * 24 * 365)/* one year */
+        .resourceChain(true)
+        .addResolver(new EncodedResourceResolver())
+        .addResolver(new PathResourceResolver());
+        
+        // admin console
+        registry
+        .addResourceHandler("/console/admin/**")
+        .addResourceLocations("classpath:/console/admin/")
+        .setCachePeriod(60 * 60 * 24 * 365)/* one year */
+        .resourceChain(true)
+        .addResolver(new EncodedResourceResolver())
+        .addResolver(new PathResourceResolver());
     }
 }

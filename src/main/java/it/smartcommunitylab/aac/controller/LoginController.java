@@ -240,10 +240,15 @@ public class LoginController {
         // TODO refactor with proper provider + model
         List<LoginProvider> authorities = new ArrayList<>();
         for (IdentityProvider<? extends UserIdentity, ?, ?, ?, ?> idp : providers) {
-            LoginProvider a = idp.getLoginProvider(clientDetails, authorizationRequest);
-            // lp is optional
-            if (a != null) {
-                authorities.add(a);
+            try {
+                LoginProvider a = idp.getLoginProvider(clientDetails, authorizationRequest);
+                // lp is optional
+                if (a != null) {
+                    authorities.add(a);
+                }
+            } catch (RuntimeException e) {
+                //skip problematic provider 
+                logger.error("error with login provider {}: {}",idp.getProvider(), e.getMessage());
             }
         }
 

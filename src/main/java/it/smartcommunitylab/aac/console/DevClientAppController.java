@@ -313,6 +313,7 @@ public class DevClientAppController extends BaseClientAppController {
         // filter roles, make sure they belong to the current realm
         Set<String> values = roles
             .stream()
+            .filter(a -> a.getRole() != null )
             .filter(a -> a.getRealm() == null || realm.equals(a.getRealm()))
             .map(a -> a.getRole())
             .collect(Collectors.toSet());

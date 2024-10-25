@@ -53,13 +53,16 @@ public class HomeController {
     @RolesAllowed("ROLE_USER")
     @GetMapping("/console/dev")
     public ModelAndView devConsole() {
-        return new ModelAndView("redirect:/dev");
+        // return new ModelAndView("redirect:/dev");
+        return new ModelAndView("redirect:/console/dev/");
     }
 
     @RolesAllowed("ROLE_USER")
     @GetMapping("/console/admin")
     public ModelAndView adminConsole() {
-        return new ModelAndView("redirect:/dev#/admin");
+        // return new ModelAndView("redirect:/dev#/admin");
+        // return new ModelAndView("forward:/console/admin/index.html");
+        return new ModelAndView("redirect:/console/admin/");
     }
 
     /*

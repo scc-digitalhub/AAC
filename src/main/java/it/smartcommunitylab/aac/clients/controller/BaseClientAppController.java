@@ -27,8 +27,12 @@ import it.smartcommunitylab.aac.common.NoSuchClientException;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.model.ClientApp;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -37,6 +41,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -46,6 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /*
  * Base controller for client app
@@ -77,12 +85,27 @@ public class BaseClientAppController implements InitializingBean {
 
     @GetMapping("/apps/{realm}")
     @Operation(summary = "list client apps from a given realm")
-    public Collection<ClientApp> listClientApp(
-        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    public Page<ClientApp> listClientApp(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false) String q,
+        @RequestParam(required = false) String[] providers,
+        Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list client apps for realm {}", StringUtils.trimAllWhitespace(realm));
-
-        return clientManager.listClientApps(realm);
+        
+        if(providers == null || providers.length == 0) {
+            return clientManager.searchClientApps(realm, q, pageRequest);
+        } else {
+            //manually filter, breaks pagination
+            Set<String> ps = new HashSet<>(Arrays.asList(providers));
+            Page<ClientApp> page = clientManager.searchClientApps(realm, q, pageRequest);
+            return PageableExecutionUtils.getPage(
+                page.getContent().stream().filter(a -> Arrays.asList(a.getProviders()).stream().anyMatch(p -> ps.contains(p))).toList(),
+                pageRequest,
+                () -> page.getTotalElements()
+            );
+           
+        }
     }
 
     @GetMapping("/apps/{realm}/{clientId}")

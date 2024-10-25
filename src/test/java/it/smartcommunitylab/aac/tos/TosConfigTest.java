@@ -85,7 +85,8 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null
+            realm.getLocalizationConfiguration().getConfiguration(),
+            realm.getTemplatesConfiguration().getConfiguration()
         );
 
         //updated model shows 'enabled'
@@ -110,7 +111,8 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null
+            realm.getLocalizationConfiguration().getConfiguration(),
+            realm.getTemplatesConfiguration().getConfiguration()
         );
 
         //updated model shows 'disabled'
@@ -150,7 +152,8 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null
+            realm.getLocalizationConfiguration().getConfiguration(),
+            realm.getTemplatesConfiguration().getConfiguration()
         );
 
         //updated model shows 'enabled'
@@ -175,7 +178,8 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
-            null
+            realm.getLocalizationConfiguration().getConfiguration(),
+            realm.getTemplatesConfiguration().getConfiguration()
         );
 
         //updated model shows 'disabled'
@@ -249,7 +253,8 @@ public class TosConfigTest {
             realm.isPublic(),
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
-            null
+            realm.getLocalizationConfiguration().getConfiguration(),
+            realm.getTemplatesConfiguration().getConfiguration()
         );
     }
 

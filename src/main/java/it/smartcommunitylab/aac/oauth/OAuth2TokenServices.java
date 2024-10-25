@@ -180,7 +180,7 @@ public class OAuth2TokenServices
         throws AuthenticationException {
         logger.debug("refresh access token for token " + refreshTokenValue);
 
-        OAuth2RefreshToken refreshToken = tokenStore.readRefreshToken(refreshTokenValue);
+        OAuth2RefreshToken refreshToken = tokenStore.readRefreshTokenForUpdate(refreshTokenValue);
         if (refreshToken == null) {
             throw new InvalidGrantException("Invalid refresh token: " + refreshTokenValue);
         }
@@ -229,9 +229,9 @@ public class OAuth2TokenServices
         // newly created access tokens
         // TODO rework with a keyed lock (per client/per user?) to improve performance
         // also note that AuthorizationEndpoint has a similar approach
-        AACOAuth2AccessToken accessToken;
+        // AACOAuth2AccessToken accessToken;
 
-        synchronized (this.refreshLock) {
+        // synchronized (this.refreshLock) {
             // remove old access tokens, we enforce a single refresh -> accessToken
             // this way clients will be able to invalidate old tokens by asking refresh
             // for the same reason we build each time a new accessToken
@@ -272,7 +272,7 @@ public class OAuth2TokenServices
             // build a new accessToken
             logger.debug("create access token for authentication " + refreshedAuthentication.getName());
 
-            accessToken = createAccessToken(refreshedAuthentication, accessValiditySeconds);
+            AACOAuth2AccessToken accessToken = createAccessToken(refreshedAuthentication, accessValiditySeconds);
             if (accessToken == null || !StringUtils.hasText(accessToken.getValue())) {
                 throw new OAuth2Exception("token error");
             }
@@ -302,7 +302,7 @@ public class OAuth2TokenServices
             }
 
             tokenStore.storeAccessToken(accessToken, refreshedAuthentication);
-        }
+        // }
 
         //        traceUserLogger.info(String.format("'type':'new','user':'%s','scope':'%s','token':'%s'",
         //                authentication.getName(), String.join(" ", accessToken.getScope()), accessToken.getValue()));
