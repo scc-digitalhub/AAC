@@ -1,10 +1,24 @@
-FROM maven:3-openjdk-17 as mvn
-COPY ./src /tmp/src
-COPY ./user-console /tmp/user-console
-COPY ./pom.xml /tmp/pom.xml
-WORKDIR /tmp
-RUN mvn install -DskipTests
+FROM maven:3-openjdk-17 AS mvn
+RUN mkdir -p /build/src /build/user-console /build/dev-console /build/admin-console
+COPY ./pom.xml /build/pom.xml
+COPY ./user-console/package.json /build/user-console
+COPY ./user-console/yarn.lock /build/user-console
+COPY ./dev-console/package.json /build/dev-console
+COPY ./dev-console/yarn.lock /build/dev-console
+COPY ./admin-console/package.json /build/admin-console
+COPY ./admin-console/yarn.lock /build/admin-console
+
+WORKDIR /build
+RUN mvn dependency:go-offline
+RUN mvn clean generate-resources -pl frontend
 
 FROM scratch
-COPY --from=mvn /root/.m2 /root/.m2
-COPY --from=mvn /tmp/user-console/node_modules /root/node_modules
+LABEL org.opencontainers.image.source=https://github.com/scc-digitalhub/digitalhub-core
+WORKDIR /cache
+COPY --from=cache /root/.m2 /cache/.m2
+COPY --from=cache /build/target /cache/target
+COPY --from=cache /build/user-console/node_modules /cache/user-console/node_modules
+COPY --from=cache /build/dev-console/node_modules /cache/dev-console/node_modules
+COPY --from=cache /build/admin-console/node_modules /cache/admin-console/node_modules
+
+
