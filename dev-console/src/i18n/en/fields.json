@@ -514,6 +514,18 @@
         "name": "Contacts",
         "helperText": ""
     },
+    "logoUri": {
+        "name": "(Optional) Logo URI",
+        "helperText": ""
+    },
+    "policyUri": {
+        "name": "(Optional) Policy URI",
+        "helperText": ""
+    },
+    "homepageUri": {
+        "name": "(Optional) Homepage Uri",
+        "helperText": ""
+    },
     "trustAnchor": {
         "name": "Trust Anchors",
         "helperText": ""
