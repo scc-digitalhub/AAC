@@ -221,6 +221,10 @@ export const uiSchemaOpenidfedIdp: UiSchema = {
 
         'organizationName',
         'contacts',
+        'logoUri',
+        'policyUri',
+        'homepageUri',
+      
         'trustAnchor',
         'providers',
         'authorityHints',

@@ -176,18 +176,26 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
             FederationEntityMetadata federation = new FederationEntityMetadata();
             federation.setOrganizationName(map.getOrganizationName());
             federation.setContacts(map.getContacts());
-
-            if (realmAwareUriBuilder != null) {
-                String loginUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "login");
-                String logoUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "logo");
-                String termsUrl = realmAwareUriBuilder.buildUrl(config.getRealm(), "terms");
-
-                // set realm login as homepage
-                federation.setHomepageURI(URI.create(loginUrl));
-                // set realm logo
-                federation.setLogoURI(URI.create(logoUrl));
-                // set terms as policy
-                federation.setPolicyURI(URI.create(termsUrl));
+            String homepageURI = evaluateOptionalParam(
+                map.getHomepageUri(),
+                buildRealmAwareParameter(config.getRealm(), "login")
+            );
+            String logoURI = evaluateOptionalParam(
+                map.getLogoUri(),
+                buildRealmAwareParameter(config.getRealm(), "logo")
+            );
+            String policyURI = evaluateOptionalParam(
+                map.getPolicyUri(),
+                buildRealmAwareParameter(config.getRealm(), "terms")
+            );
+            if (StringUtils.hasText(logoURI)) {
+                federation.setLogoURI(URI.create(logoURI));
+            }
+            if (StringUtils.hasText(homepageURI)) {
+                federation.setHomepageURI(URI.create(homepageURI));
+            }
+            if (StringUtils.hasText(policyURI)) {
+                federation.setPolicyURI(URI.create(policyURI));
             }
 
             federation.setFederationResolveEndpointURI(expandRedirectUri(baseUrl, config.getRedirectUrl(), "resolve"));
@@ -218,5 +226,19 @@ public class DefaultOpenIdRpMetadataResolver implements OpenIdRpMetadataResolver
         uriVariables.put("action", (action != null) ? action : "");
 
         return UriComponentsBuilder.fromUriString(redirectUri).buildAndExpand(uriVariables).toUri();
+    }
+
+    private String evaluateOptionalParam(String optionalValue, String fallbackValue) {
+        if (StringUtils.hasText(optionalValue)) {
+            return optionalValue;
+        }
+        return fallbackValue;
+    }
+
+    private String buildRealmAwareParameter(String realm, String pathComponent) {
+        if (realmAwareUriBuilder == null) {
+            return null;
+        }
+        return realmAwareUriBuilder.buildUrl(realm, pathComponent);
     }
 }
