@@ -61,7 +61,22 @@
                 <tags-input name="contacts" type="text" placeholder="contacts" ng-model="openidfedContacts">
                 </tags-input>
             </div>
-        </div>   
+        </div>
+        <div class="form-group col ">
+            <label for="logoUri">Logo URI</label>
+            <input type="text" name="logoUri" class="form-control form-control-sm" id="logoUri"
+                   ng-model="idp.configuration.logoUri">
+        </div>
+        <div class="form-group col ">
+            <label for="policyUri">Policy URI</label>
+            <input type="text" name="policyUri" class="form-control form-control-sm" id="policyUri"
+                   ng-model="idp.configuration.policyUri">
+        </div>
+        <div class="form-group col ">
+            <label for="homepageUri">Homepage URI</label>
+            <input type="text" name="homepageUri" class="form-control form-control-sm" id="homepageUri"
+                   ng-model="idp.configuration.homepageUri">
+        </div>
         <div class="form-group col ">
             <label for="trustAnchor">Trust Anchor*</label>
             <input type="text" required name="trustAnchor" class="form-control form-control-sm" id="trustAnchor"
