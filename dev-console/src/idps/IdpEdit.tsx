@@ -44,6 +44,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_LANGUAGES } from '../App';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
 import RegisteredIcon from '@mui/icons-material/VerifiedUser';
+import { ClaimMappingEditor } from '../components/ClaimMappingEditor';
 
 export const IdpEdit = () => {
     return (
@@ -124,6 +125,30 @@ const IdpEditForm = () => {
         }
     }, [dataProvider, realmId]);
 
+    const handleTestClaimMapping = (record, code) => {
+        return dataProvider.invoke({
+            path: 'idps/' + realmId + '/' + record.id + '/claims',
+            body: JSON.stringify({
+                code,
+                name: 'attributeMapping',
+            }),
+            options: {
+                method: 'POST',
+            },
+        });
+    };
+    const handleTestAuthz = (record, code) => {
+        return dataProvider.invoke({
+            path: 'idps/' + realmId + '/' + record.id + '/authz',
+            body: JSON.stringify({
+                code,
+                name: 'authorize',
+            }),
+            options: {
+                method: 'POST',
+            },
+        });
+    };
     if (!record) return null;
 
     return (
@@ -208,22 +233,22 @@ const IdpEditForm = () => {
                     secondaryText="page.idps.hooks.attributeDesc"
                 />
                 <Box>
-                    <AceEditorInput
+                    <ClaimMappingEditor
                         source="settings.hookFunctions.attributeMapping"
-                        mode="yaml"
-                        theme="github"
-                    ></AceEditorInput>
+                        defaultValue={claimMappingDefaultValue}
+                        onTest={handleTestClaimMapping}
+                    />
                 </Box>
                 <SectionTitle
                     text="page.idps.hooks.authFunction"
                     secondaryText="page.idps.hooks.authFunctionDesc"
                 />
                 <Box>
-                    <AceEditorInput
+                    <ClaimMappingEditor
                         source="settings.hookFunctions.authorize"
-                        mode="yaml"
-                        theme="github"
-                    ></AceEditorInput>
+                        defaultValue={authzDefaultValue}
+                        onTest={handleTestAuthz}
+                    />
                 </Box>
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.apps">
@@ -369,3 +394,9 @@ export const ToggleIdpButton = () => {
         </>
     );
 };
+
+export const claimMappingDefaultValue =
+    'LyoqCiAqIERFRklORSBZT1VSIE9XTiBBVFRSSUJVVEUgTUFQUElORyBIRVJFCioqLwpmdW5jdGlvbiBhdHRyaWJ1dGVNYXBwaW5nKGF0dHJpYnV0ZXMpIHsKICAgcmV0dXJuIGF0dHJpYnV0ZXM7Cn0';
+
+export const authzDefaultValue =
+    'LyoqCiAqIERFRklORSBZT1VSIE9XTiBBVVRIT1JJWkFUSU9OIEZVTkNUSU9OIEhFUkUKKiovCmZ1bmN0aW9uIGF1dGhvcml6ZShwcmluY2lwYWwsIGNvbnRleHQpIHsKICAgcmV0dXJuIHRydWU7Cn0';
