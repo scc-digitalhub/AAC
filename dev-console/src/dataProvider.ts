@@ -281,6 +281,10 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             } else {
                 body = JSON.stringify(params?.data);
             }
+            if (params.meta?.method) {
+                method = params.meta.method;
+            }
+
             return httpClient(url, {
                 method: method,
                 headers: new Headers(headers),
