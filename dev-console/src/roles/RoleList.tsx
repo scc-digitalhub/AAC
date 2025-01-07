@@ -19,6 +19,7 @@ import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
 import { RoleIcon } from './RoleIcon';
 import { useRootSelector } from '@dslab/ra-root-selector';
+import { ImportButton } from '../components/ImportButton';
 
 export const RoleList = () => {
     const translate = useTranslate();
@@ -93,6 +94,7 @@ const RoleListActions = () => {
             >
                 <RoleCreateForm />
             </CreateInDialogButton>
+            <ImportButton variant="contained" idField="roleId" />
             <ExportButton
                 variant="contained"
                 meta={{ flatten: [] }}

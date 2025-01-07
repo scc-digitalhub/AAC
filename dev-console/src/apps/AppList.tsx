@@ -21,6 +21,7 @@ import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { TagsField } from '../components/TagsField';
 import { getAppIcon } from './utils';
+import { ImportButton } from '../components/ImportButton';
 
 export const AppList = () => {
     const translate = useTranslate();
@@ -110,6 +111,7 @@ const ListActions = () => {
             >
                 <AppCreateForm />
             </CreateInDialogButton>
+            <ImportButton variant="contained" idField="clientId" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

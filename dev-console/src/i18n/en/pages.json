@@ -379,5 +379,13 @@
     },
     "authorities": {
         "helperText": "Assign authorities to the user"
+    },
+    "importer": {
+        "title": "Import %{resource}",
+        "helperText": "Import a resource from a valid yaml definition",
+        "resetOnImport": {
+            "label": "Reset identifiers",
+            "helperText": "Clear identifiers on import. Enable to avoid ID collisions"
+        }
     }
 }

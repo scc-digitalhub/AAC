@@ -27,6 +27,7 @@ import EnabledIcon from '@mui/icons-material/CheckCircleOutlined';
 import DisabledIcon from '@mui/icons-material/CancelOutlined';
 import RegisteredIcon from '@mui/icons-material/VerifiedUser';
 import WarningIcon from '@mui/icons-material/WarningOutlined';
+import { ImportButton } from '../components/ImportButton';
 
 export const IdpList = () => {
     const translate = useTranslate();
@@ -152,6 +153,7 @@ const ListActions = () => {
             >
                 <IdpCreateForm />
             </CreateInDialogButton>
+            <ImportButton variant="contained" idField="provider" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

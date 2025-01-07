@@ -20,6 +20,7 @@ import { IdField } from '../components/IdField';
 import { GroupIcon } from './GroupIcon';
 import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
+import { ImportButton } from '../components/ImportButton';
 
 export const GroupList = () => {
     const translate = useTranslate();
@@ -95,6 +96,7 @@ const GroupListActions = () => {
             >
                 <GroupCreateForm />
             </CreateInDialogButton>
+            <ImportButton variant="contained" idField="groupId" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

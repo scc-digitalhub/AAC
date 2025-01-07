@@ -12,5 +12,6 @@
     "lock": "Lock",
     "verify": "Verify",
     "reset": "Unconfirm",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "import_one": "Import"
 }

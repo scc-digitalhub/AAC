@@ -23,6 +23,7 @@ import { IdField } from '../components/IdField';
 import { ServiceIcon } from './ServiceIcon';
 import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
+import { ImportButton } from '../components/ImportButton';
 
 export const ServiceList = () => {
     const translate = useTranslate();
@@ -103,6 +104,7 @@ const ServiceListActions = () => {
             >
                 <ServiceCreateForm />
             </CreateInDialogButton>
+            <ImportButton variant="contained" idField="serviceId" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );
