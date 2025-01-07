@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import {
     AutocompleteArrayInput,
     CheckboxGroupInput,
@@ -38,6 +38,10 @@ import { AppResources } from './AppResources';
 import { AppTitle } from './AppShow';
 import { ClaimMappingEditor } from '../components/ClaimMappingEditor';
 import { useRootSelector } from '@dslab/ra-root-selector';
+import { IdField } from '../components/IdField';
+import { ConfirmDialogButton } from '../components/ConfirmDialog';
+import LockResetIcon from '@mui/icons-material/LockReset';
+import { PasswordField } from '../components/PasswordField';
 
 export const AppEdit = () => {
     //fetch related to resolve relations
@@ -78,7 +82,7 @@ export const AppEdit = () => {
 const AppEditForm = () => {
     const dataProvider = useDataProvider();
     const { root: realmId } = useRootSelector();
-
+    const refresh = useRefresh();
     const { isLoading, record } = useEditContext<any>();
     if (isLoading || !record) return null;
     if (!record) return null;
@@ -97,6 +101,44 @@ const AppEditForm = () => {
         });
     };
 
+    const resetCredentials = type => {
+        return dataProvider
+            .invoke({
+                path:
+                    'apps/' +
+                    realmId +
+                    '/' +
+                    record.id +
+                    '/credentials/' +
+                    record.id +
+                    '_' +
+                    type,
+                body: JSON.stringify({}),
+                options: {
+                    method: 'PUT',
+                },
+            })
+            .then(r => {
+                refresh();
+            });
+    };
+
+    const resetClientSecret = () => resetCredentials('credentials_secret');
+    const resetClientJwks = () => resetCredentials('credentials_jwks');
+
+    const hasClientSecret =
+        record.configuration.clientSecret ||
+        record.configuration?.authenticationMethods?.includes(
+            'client_secret_post'
+        ) ||
+        record.configuration?.authenticationMethods?.includes(
+            'client_secret_basic'
+        );
+    const hasClientJwks =
+        record.configuration.jwks ||
+        record.configuration?.authenticationMethods?.includes(
+            'private_key_jwt'
+        );
     return (
         <TabbedForm toolbar={<TabToolbar />} syncWithLocation={false}>
             <TabbedForm.Tab label="tab.overview">
@@ -131,7 +173,76 @@ const AppEditForm = () => {
                     helperText="field.description.helperText"
                 />
             </TabbedForm.Tab>
-
+            <TabbedForm.Tab label="tab.credentials">
+                <SectionTitle
+                    text="page.apps.credentials.header.title"
+                    secondaryText="page.apps.credentials.header.subtitle"
+                />
+                <Grid container gap={1}>
+                    <Grid item xs={12}>
+                        <Labeled>
+                            <IdField
+                                source="clientId"
+                                label="field.clientId.name"
+                            />
+                        </Labeled>
+                    </Grid>
+                    {hasClientSecret && (
+                        <Grid item xs={12}>
+                            <Labeled>
+                                <PasswordField
+                                    source="configuration.clientSecret"
+                                    label="field.clientSecret.name"
+                                >
+                                    <ConfirmDialogButton
+                                        onConfirm={resetClientSecret}
+                                        icon={<LockResetIcon />}
+                                        title={'page.credentials.reset.title'}
+                                        label={''}
+                                        helperText="page.credentials.reset.helperText"
+                                        color="error"
+                                    />
+                                </PasswordField>
+                            </Labeled>
+                        </Grid>
+                    )}
+                    {hasClientJwks && (
+                        <Grid item xs={12}>
+                            <Labeled>
+                                <IdField
+                                    source="configuration.jwks"
+                                    label="field.jwks.name"
+                                    format={value =>
+                                        value && value.length > 120
+                                            ? value.substring(0, 120) + '...'
+                                            : value
+                                    }
+                                >
+                                    <ConfirmDialogButton
+                                        onConfirm={resetClientJwks}
+                                        icon={<LockResetIcon />}
+                                        title={'page.credentials.reset.title'}
+                                        label={''}
+                                        helperText="page.credentials.reset.helperText"
+                                        color="error"
+                                    />
+                                </IdField>
+                            </Labeled>
+                        </Grid>
+                    )}
+                </Grid>
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.configuration">
+                <SectionTitle
+                    text="page.apps.configuration.header.title"
+                    secondaryText="page.apps.configuration.header.subtitle"
+                />
+                <JsonSchemaInput
+                    source="configuration"
+                    schema={schemaOAuthClient}
+                    uiSchema={uiSchemaOAuthClient}
+                />
+            </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.providers">
                 <SectionTitle
                     text="page.apps.providers.header.title"
@@ -154,19 +265,6 @@ const AppEditForm = () => {
                     />
                 </ReferenceArrayInput>
             </TabbedForm.Tab>
-
-            <TabbedForm.Tab label="tab.configuration">
-                <SectionTitle
-                    text="page.apps.configuration.header.title"
-                    secondaryText="page.apps.configuration.header.subtitle"
-                />
-                <JsonSchemaInput
-                    source="configuration"
-                    schema={schemaOAuthClient}
-                    uiSchema={uiSchemaOAuthClient}
-                />
-            </TabbedForm.Tab>
-
             <TabbedForm.Tab label="tab.api_access">
                 <SectionTitle
                     text="page.apps.scopes.header.title"

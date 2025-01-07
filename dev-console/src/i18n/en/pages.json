@@ -387,5 +387,14 @@
             "label": "Reset identifiers",
             "helperText": "Clear identifiers on import. Enable to avoid ID collisions"
         }
+    },
+    "confirm": {
+        "helperText": "Confirm to perform the requested action?"
+    },
+    "credentials": {
+        "reset": {
+            "title": "Reset credentials",
+            "helperText": "Do you want to reset the selected credentials?"
+        }
     }
 }

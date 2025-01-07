@@ -293,7 +293,7 @@ export const ToggleConfirmButton = (props: { reference: string }) => {
                         handleClick('DELETE');
                         e.stopPropagation();
                     }}
-                    label="action.reset"
+                    label="action.unconfirm"
                     color="warning"
                     startIcon={<GppBadIcon />}
                 ></Button>
