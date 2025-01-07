@@ -272,7 +272,7 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             }
             let url = `${apiUrl}/${resource}${suffix}`;
 
-            if (params.meta.import) {
+            if (params.meta?.import) {
                 method = `PUT`;
                 let formData = new FormData();
                 formData.append('yaml', String(params.data));
