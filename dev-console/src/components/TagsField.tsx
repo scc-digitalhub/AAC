@@ -3,16 +3,18 @@ import { Chip, Stack } from '@mui/material';
 import { RoleIcon } from '../roles/RoleIcon';
 import { GroupIcon } from '../group/GroupIcon';
 import { AdminIcon, DeveloperIcon } from '../developers/DeveloperIcon';
+import { useRootSelector } from '@dslab/ra-root-selector';
 
 export const TagsField = () => {
     const record = useRecordContext();
+    const { root: realmId } = useRootSelector();
     if (!record) return null;
 
     return (
         <Stack direction={'row'} spacing={1}>
             {record.authorities &&
                 record.authorities
-                    .filter(a => a.role)
+                    .filter(a => a.role && a.realm == realmId)
                     .map(a =>
                         a.role === 'ROLE_ADMIN' ? (
                             <Chip
