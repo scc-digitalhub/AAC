@@ -376,5 +376,8 @@
             "subtitle": "Manage Terms of service for the current user",
             "title": "Terms of service"
         }
+    },
+    "authorities": {
+        "helperText": "Assign authorities to the user"
     }
 }

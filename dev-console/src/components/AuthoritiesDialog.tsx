@@ -210,7 +210,7 @@ const AuthoritiesEditDialog = (props: {
             <DialogContent>
                 <FormControl component="fieldset" fullWidth>
                     <FormLabel component="legend" sx={{ mb: 2 }}>
-                        {translate('dialog.authorities.helperText')}
+                        {translate('page.authorities.helperText')}
                     </FormLabel>
                     <FormGroup>
                         {roles.map(r => {

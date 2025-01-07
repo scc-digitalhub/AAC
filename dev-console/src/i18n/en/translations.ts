@@ -10,6 +10,16 @@ export const translations = {
     menu: {
         configuration: 'Configuration',
     },
+    authorities: {
+        ROLE_DEVELOPER: {
+            name: 'ROLE_DEVELOPER',
+            description: 'Developers manage applications',
+        },
+        ROLE_ADMIN: {
+            name: 'ROLE_ADMIN',
+            description: 'Admins manage config and users',
+        },
+    },
 };
 
 export default translations;
