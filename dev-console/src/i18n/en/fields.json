@@ -44,12 +44,12 @@
         "helperText": ""
     },
     "subjectType": {
-        "name": "Subject attribute (if different from sub)",
-        "helperText": ""
+        "name": "Subject attribute",
+        "helperText": "Specify if different from sub"
     },
     "subAttributeName": {
-        "name": "Subject attribute (if different from sub)",
-        "helperText": ""
+        "name": "Subject attribute",
+        "helperText": "Specify if different from sub"
     },
     "trustEmailAddress": {
         "name": "trustEmailAddress",
@@ -544,11 +544,11 @@
     },
     "signingKey": {
         "name": "Signing Key",
-        "helperText": "Signing"
+        "helperText": "Key (PEM)"
     },
     "signingCertificate": {
         "name": "Signing Certificate",
-        "helperText": "Signing"
+        "helperText": "Certificate (PEM) "
     },
     "organizationDisplayName": {
         "name": "Organization Display Name",
@@ -583,15 +583,15 @@
         "helperText": "IdP Configuration"
     },
     "spidAttributes": {
-        "name": "Identity Providers",
-        "helperText": "SPID IdP Configuration"
+        "name": "Spid user attributes",
+        "helperText": "List of attribute names to be requested to Idp"
     },
     "spidLevel": {
         "name": "Spid level",
-        "helperText": "SPID Advanced Configuration"
+        "helperText": "SPID authentication level"
     },
     "usernameAttributeName": {
         "name": "Spid username attribute",
-        "helperText": "SAML Advanced Configuration"
+        "helperText": "Name of the SPID attribute used as username"
     }
 }
