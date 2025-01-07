@@ -1,3 +1,5 @@
+import myrealms from '../../myrealms';
+
 export const translations = {
     admin: 'Admin',
     developer: 'Developer',
@@ -10,6 +12,7 @@ export const translations = {
     menu: {
         configuration: 'Configuration',
     },
+    myrealms: 'My Realms',
     authorities: {
         ROLE_DEVELOPER: {
             name: 'ROLE_DEVELOPER',

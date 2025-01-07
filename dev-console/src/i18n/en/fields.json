@@ -34,7 +34,7 @@
     "clientAuthenticationMethod": {
         "name": "Client Authentication Method",
         "helperText": ""
-    }, 
+    },
     "enablePkce": {
         "name": "Enable PKCE",
         "helperText": ""
@@ -98,7 +98,7 @@
     "template_override": {
         "name": "Template Override",
         "helperText": ""
-    },    
+    },
     "authorization_endpoint": "Authorization Endpoint",
     "token_endpoint": "Token Endpoint",
     "jwks_uri": "JWKS endpoint",
@@ -106,7 +106,7 @@
     "introspection_endpoint": "Introspection endpoint",
     "revocation_endpoint": "Revocation endpoint",
     "registration_endpoint": "Registration endpoint",
-    "end_session_endpoint": "Endsession endpoint",   
+    "end_session_endpoint": "Endsession endpoint",
     "slug": {
         "name": "Slug",
         "helperText": "Path-style (unique) identifier"
@@ -549,6 +549,62 @@
     "signingCertificate": {
         "name": "Signing Certificate",
         "helperText": "Certificate (PEM) "
+    },
+    "cryptKey": {
+        "name": "Encryption Key",
+        "helperText": "Key (PEM)"
+    },
+    "cryptCertificate": {
+        "name": "Encryption Certificate",
+        "helperText": "Certificate (PEM) "
+    },
+    "idpEntityId": {
+        "name": "Idp Entity Id",
+        "helperText": "EntityId"
+    },
+    "webSsoUrl": {
+        "name": "Web SSO Url",
+        "helperText": "Http(s) url for SSO"
+    },
+    "webLogoutUrl": {
+        "name": "Web Logout Url",
+        "helperText": "Http(s) url for Logout"
+    },
+    "signAuthNRequest": {
+        "name": "Sign AuthN request",
+        "helperText": "Enable to always sign authN requests"
+    },
+    "ssoServiceBinding": {
+        "name": "Service Binding",
+        "helperText": ""
+    },
+    "verificationCertificate": {
+        "name": "Verification Certificate",
+        "helperText": "Certificate (PEM) "
+    },
+    "forceAuthn": {
+        "name": "Force AuthN request",
+        "helperText": "Enable to set force to authN requests"
+    },
+    "isPassive": {
+        "name": "AuthN passive",
+        "helperText": "Enable to make passive authN requests"
+    },
+    "nameIDFormat": {
+        "name": "NameID Format",
+        "helperText": "Set to specify nameID format"
+    },
+    "nameIDAllowCreate": {
+        "name": "Allow Create nameID",
+        "helperText": "Enable to let IdP create new nameID"
+    },
+    "authnContextClasses": {
+        "name": "AuthN Context Classes",
+        "helperText": "Specify requested AuthN Context Classes"
+    },
+    "authnContextComparison": {
+        "name": "AuthN Context Comparison",
+        "helperText": ""
     },
     "organizationDisplayName": {
         "name": "Organization Display Name",
