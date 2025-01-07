@@ -44,8 +44,8 @@
         "helperText": ""
     },
     "subjectType": {
-        "name": "Subject attribute",
-        "helperText": "Specify if different from sub"
+        "name": "Subject Type",
+        "helperText": "Specify if different from default"
     },
     "subAttributeName": {
         "name": "Subject attribute",
