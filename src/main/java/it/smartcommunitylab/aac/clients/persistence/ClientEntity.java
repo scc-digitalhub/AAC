@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.clients.persistence;
 
 import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
+import it.smartcommunitylab.aac.repository.SafeString;
 import java.util.Date;
 import java.util.Map;
 import javax.persistence.Column;
@@ -28,8 +29,6 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
-import it.smartcommunitylab.aac.repository.SafeString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -57,6 +56,7 @@ public class ClientEntity {
     // base
     private String name;
     private String description;
+
     @SafeString
     private String notes;
 
