@@ -73,7 +73,7 @@ public class BaseTemplatesController implements InitializingBean {
      * Realm templates
      */
 
-    @GetMapping("/templates/{realm}/models")
+    @GetMapping(path = { "/templates/{realm}/models", "/templatemodels/{realm}" })
     @Operation(summary = "list templates for realm")
     public Collection<TemplateModel> getTemplateModels(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
@@ -83,7 +83,7 @@ public class BaseTemplatesController implements InitializingBean {
         return templatesManager.listTemplateModels(realm);
     }
 
-    @PostMapping("/templates/{realm}/models")
+    @PostMapping(path = { "/templates/{realm}/models", "/templatemodels/{realm}" })
     @Operation(summary = "add a new template for realm")
     public TemplateModel createTemplateModel(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -101,7 +101,7 @@ public class BaseTemplatesController implements InitializingBean {
         return m;
     }
 
-    @GetMapping("/templates/{realm}/models/{templateId}")
+    @GetMapping(path = { "/templates/{realm}/models/{templateId}", "/templatemodels/{realm}/{templateId}" })
     @Operation(summary = "fetch a specific template from realm")
     public TemplateModel getTemplateModel(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -118,7 +118,7 @@ public class BaseTemplatesController implements InitializingBean {
         return r;
     }
 
-    @PutMapping("/templates/{realm}/models/{templateId}")
+    @PutMapping(path = { "/templates/{realm}/models/{templateId}", "/templatemodels/{realm}/{templateId}" })
     @Operation(summary = "update a specific template in the realm")
     public TemplateModel updateTemplateModel(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -143,7 +143,7 @@ public class BaseTemplatesController implements InitializingBean {
         return m;
     }
 
-    @DeleteMapping("/templates/{realm}/models/{templateId}")
+    @DeleteMapping(path = { "/templates/{realm}/models/{templateId}", "/templatemodels/{realm}/{templateId}" })
     @Operation(summary = "remove a specific template from realm")
     public void removeTemplateModel(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

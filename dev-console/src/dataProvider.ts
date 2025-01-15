@@ -19,6 +19,7 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
 
     return {
         apiUrl: async () => apiUrl,
+        client: (url, opts) => httpClient(`${apiUrl}/${url}`, opts),
         invoke: ({
             path,
             params,

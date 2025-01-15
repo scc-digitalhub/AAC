@@ -119,6 +119,10 @@
         "name": "Languages",
         "helperText": "List of languages (codes) enabled"
     },
+    "language": {
+        "name": "Language",
+        "helperText": "Selected language"
+    },
     "applicationType": {
         "name": "Application type",
         "helperText": "Type of (OAuth2) application"
@@ -250,7 +254,8 @@
         "helperText": ""
     },
     "keys": {
-        "name": "keys.name"
+        "name": "Keys",
+        "helperText": ""
     },
     "": "",
     "events": {
@@ -649,5 +654,9 @@
     "usernameAttributeName": {
         "name": "Spid username attribute",
         "helperText": "Name of the SPID attribute used as username"
+    },
+    "template": {
+        "name": "Template",
+        "helperText": "Template identifier"
     }
 }

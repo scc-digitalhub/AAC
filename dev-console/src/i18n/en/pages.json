@@ -396,5 +396,23 @@
             "title": "Reset credentials",
             "helperText": "Do you want to reset the selected credentials?"
         }
+    },
+    "templates": {
+        "list": {
+            "title": "Templates",
+            "subtitle": "Add and manage custom render templates to personalize the UI."
+        },
+        "preview": {
+            "title": "Preview",
+            "subtitle": "View a preview of the rendered template"
+        },
+        "settings": {
+            "title": "Settings",
+            "subtitle": "Configure the template properties"
+        },
+        "key": {
+            "title": "Edit key",
+            "subtitle": "Customize the template by editing the key. Supports HTML tags for basic formatting"
+        }
     }
 }
