@@ -307,7 +307,6 @@ public class ClientApp {
         this.spaceRoles = new HashSet<>();
         spaceRoles.addAll(rr);
     }
-    
 
     /**
      * Groups
@@ -320,8 +319,8 @@ public class ClientApp {
         this.groups = new HashSet<>();
         groups.addAll(gg);
     }
-    
+
     public String getId() {
-    	return this.clientId;
+        return this.clientId;
     }
 }
