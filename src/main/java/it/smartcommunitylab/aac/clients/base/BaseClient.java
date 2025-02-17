@@ -28,6 +28,8 @@ public abstract class BaseClient extends AbstractClient {
 
     private String description;
 
+    private String notes;
+
     private Set<String> providers;
 
     private Set<String> scopes;
@@ -56,6 +58,14 @@ public abstract class BaseClient extends AbstractClient {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Set<String> getScopes() {

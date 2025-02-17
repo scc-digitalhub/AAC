@@ -363,6 +363,7 @@ public class OAuth2Client extends BaseClient implements ConfigurableProperties {
         OAuth2Client c = new OAuth2Client(client.getRealm(), client.getClientId());
         c.setName(client.getName());
         c.setDescription(client.getDescription());
+        c.setNotes(client.getNotes());
 
         c.setProviders(StringUtils.commaDelimitedListToSet(client.getProviders()));
 
