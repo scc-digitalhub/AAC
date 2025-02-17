@@ -1,6 +1,6 @@
 import { Stack, Typography } from '@mui/material';
 import get from 'lodash/get';
-import { MouseEvent } from 'react';
+import { MouseEvent, useEffect, useState } from 'react';
 
 import {
     TextFieldProps,
@@ -11,9 +11,10 @@ import {
     useTranslate,
 } from 'react-admin';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { grey } from '@mui/material/colors';
 
-export const IdField = <
+export const PasswordField = <
     RecordType extends Record<string, any> = Record<string, any>
 >(
     props: TextFieldProps<RecordType> & {
@@ -26,7 +27,7 @@ export const IdField = <
         source,
         emptyText,
         copy = true,
-        format = v => v,
+        format = v => '*****',
         label,
         children,
         ...rest
@@ -35,9 +36,13 @@ export const IdField = <
     const notify = useNotify();
     const translate = useTranslate();
 
-    const value = get(record, source);
+    const value = get(record, source) || null;
+    const [displayValue, setDisplayValue] = useState(format(value));
 
-    const displayValue = format(value);
+    useEffect(() => {
+        setDisplayValue(format(value));
+    }, [value]);
+
     const displayLabel =
         label && typeof label === 'string'
             ? translate(label)
@@ -57,6 +62,21 @@ export const IdField = <
             >
                 {displayValue}
             </Typography>
+
+            <IconButtonWithTooltip
+                label="action.show_hide"
+                onClick={(event: MouseEvent<HTMLElement>) => {
+                    event.stopPropagation();
+
+                    //toggle display
+                    setDisplayValue(
+                        value != displayValue ? value : format(value)
+                    );
+                }}
+            >
+                <VisibilityOffIcon fontSize="small" />
+            </IconButtonWithTooltip>
+
             {copy && (
                 <IconButtonWithTooltip
                     label="action.click_to_copy"

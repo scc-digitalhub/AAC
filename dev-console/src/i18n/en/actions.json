@@ -7,10 +7,16 @@
     "register": "Register",
     "select": "Select",
     "show": "Show",
+    "hide": "Hide",
+    "show_hide": "Show/Hide",
     "test": "Test",
     "disable": "Block",
     "lock": "Lock",
     "verify": "Verify",
-    "reset": "Unconfirm",
-    "confirm": "Confirm"
+    "unconfirm": "Unconfirm",
+    "confirm": "Confirm",
+    "import_one": "Import",
+    "reset": "Reset",
+    "invite": "Invite",
+    "preview": "Preview"
 }

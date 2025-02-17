@@ -35,6 +35,9 @@ export const resources = {
     scopes: {
         name: 'Scope |||| Scopes',
     },
+    templatemodels: {
+        name: 'Template |||| Templates',
+    },
 };
 
 export default resources;

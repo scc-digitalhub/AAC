@@ -30,6 +30,7 @@ import auditDefinition from './audit';
 import serviceDefinition from './service';
 import attributeSetDefinition from './attributeset';
 import scopesDefinition from './scopes';
+import templatesDefinition from './templates';
 
 import { RealmSelectorList } from './myrealms/RealmList';
 
@@ -81,6 +82,7 @@ const DevApp = () => {
                 <Resource {...apiResourcesDefinition} />
                 <Resource {...scopesDefinition} />
                 <Resource {...attributeSetDefinition} />
+                <Resource {...templatesDefinition} />
                 <Resource name="subjects" />
                 <Resource name="connectedapps" />
                 <Resource name="developers" />

@@ -142,13 +142,12 @@ const AuthoritiesEditDialog = (props: {
     const dataProvider = useDataProvider();
     const notify = useNotify();
     const { root: realmId } = useRootSelector();
-    const [authorities, setAuthorities] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [authorities, setAuthorities] = useState<any[] | null>(null);
     //hard-coded
     const roles = ['ROLE_DEVELOPER', 'ROLE_ADMIN'];
 
     useEffect(() => {
-        if (record) {
+        if (dataProvider && record) {
             dataProvider
                 .invoke({
                     path:
@@ -160,19 +159,18 @@ const AuthoritiesEditDialog = (props: {
                         '/authorities',
                 })
                 .then(data => {
-                    if (data) {
-                        setAuthorities(data);
-                    }
+                    setAuthorities(data);
                 });
         }
-        return () => {
-            setIsLoading(false);
-        };
     }, [dataProvider, record]);
 
     const handleSwitch = role => {
         return (event: React.ChangeEvent<HTMLInputElement>) => {
             setAuthorities(list => {
+                if (list == null) {
+                    return null;
+                }
+
                 const keep = list.filter(e => e.role !== role);
                 const edit = event.target.checked
                     ? [{ realm: realmId, role: role }]
@@ -202,6 +200,8 @@ const AuthoritiesEditDialog = (props: {
         handleClose(e);
     };
 
+    const isLoading = authorities == null;
+
     if (!record || !resource) return null;
     if (isLoading) return <LoadingIndicator />;
 
@@ -210,7 +210,7 @@ const AuthoritiesEditDialog = (props: {
             <DialogContent>
                 <FormControl component="fieldset" fullWidth>
                     <FormLabel component="legend" sx={{ mb: 2 }}>
-                        {translate('dialog.authorities.helperText')}
+                        {translate('page.authorities.helperText')}
                     </FormLabel>
                     <FormGroup>
                         {roles.map(r => {

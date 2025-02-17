@@ -4,47 +4,52 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    NumberField,
     ExportButton,
+    ArrayField,
+    ChipField,
+    SingleFieldList,
+    FunctionField,
 } from 'react-admin';
 import { Box } from '@mui/material';
 import { YamlExporter } from '../components/YamlExporter';
 
-import React, { isValidElement, ReactElement } from 'react';
+import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
-import { GroupCreateForm } from './GroupCreate';
+import { TemplateCreateForm } from './TemplateCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
 import { PageTitle } from '../components/PageTitle';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { IdField } from '../components/IdField';
-import { GroupIcon } from './GroupIcon';
+import { TemplateIcon } from './TemplateIcon';
 import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
 import { ImportButton } from '../components/ImportButton';
 
-export const GroupList = () => {
+export const TemplateList = () => {
     const translate = useTranslate();
     return (
         <Page>
             <PageTitle
-                text={translate('page.groups.list.title')}
-                secondaryText={translate('page.groups.list.subtitle')}
+                text={translate('page.templates.list.title')}
+                secondaryText={translate('page.templates.list.subtitle')}
             />
             <List
                 exporter={YamlExporter}
-                actions={<GroupListActions />}
-                filters={GroupFilters}
+                actions={<TemplateListActions />}
+                filters={TemplateFilters}
                 sort={{ field: 'name', order: 'ASC' }}
                 component={Box}
                 empty={false}
             >
-                <GroupListView />
+                <TemplateListView />
             </List>
         </Page>
     );
 };
 
-export const GroupListView = (props: { actions?: ReactElement | boolean }) => {
+export const TemplateListView = (props: {
+    actions?: ReactElement | boolean;
+}) => {
     const { actions: actionProps = true } = props;
 
     const actions = !actionProps ? (
@@ -58,26 +63,26 @@ export const GroupListView = (props: { actions?: ReactElement | boolean }) => {
     return (
         <Datagrid bulkActionButtons={false} rowClick="edit">
             <NameField
-                text="name"
-                secondaryText="group"
-                source="name"
+                text="template"
+                secondaryText="authority"
+                source="template"
                 label="field.name.name"
-                icon={<GroupIcon color={'secondary'} />}
+                icon={<TemplateIcon color={'secondary'} />}
             />
-            <IdField source="groupId" label="field.id.name" />
-            <NumberField
-                source="size"
-                label="field.members.name"
-                sortable={false}
+            <IdField source="id" label="field.id.name" />
+            <ChipField
+                source="language"
+                label="field.language.name"
+                size="small"
             />
             {actions !== false && actions}
         </Datagrid>
     );
 };
 
-const GroupFilters = [<SearchInput source="q" alwaysOn />];
+const TemplateFilters = [<SearchInput source="q" alwaysOn />];
 
-const GroupListActions = () => {
+const TemplateListActions = () => {
     const { root: realmId } = useRootSelector();
     const transform = (data: any) => {
         return {
@@ -94,9 +99,9 @@ const GroupListActions = () => {
                 variant="contained"
                 transform={transform}
             >
-                <GroupCreateForm />
+                <TemplateCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="groupId" />
+            <ImportButton variant="contained" idField="templateId" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

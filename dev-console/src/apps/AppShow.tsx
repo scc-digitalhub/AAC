@@ -27,6 +27,7 @@ import { AuditListView } from '../audit/AuditList';
 import { getAppIcon } from './utils';
 import { AppIcon } from './AppIcon';
 import { AdminIcon, DeveloperIcon } from '../developers/DeveloperIcon';
+import { PasswordField } from '../components/PasswordField';
 
 export const AppShow = () => {
     return (
@@ -130,7 +131,7 @@ const AppView = () => {
                     {record.configuration.clientSecret && (
                         <Grid item xs={12}>
                             <Labeled>
-                                <IdField
+                                <PasswordField
                                     source="configuration.clientSecret"
                                     label="field.clientSecret.name"
                                 />
@@ -159,7 +160,11 @@ const AppView = () => {
                     text="page.apps.scopes.header.title"
                     secondaryText="page.apps.scopes.header.subtitle"
                 />
-                <ReferenceArrayField source="scopes" reference="scopes" label="field.scopes.name"/>
+                <ReferenceArrayField
+                    source="scopes"
+                    reference="scopes"
+                    label="field.scopes.name"
+                />
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.endpoints">
                 <SectionTitle

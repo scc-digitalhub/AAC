@@ -82,6 +82,9 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
 
     private String organizationName;
     private List<String> contacts;
+    private String logoUri;
+    private String policyUri;
+    private String homepageUri;
 
     public String getClientId() {
         return clientId;
@@ -259,6 +262,30 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
         this.contacts = contacts;
     }
 
+    public String getLogoUri() {
+        return logoUri;
+    }
+
+    public void setLogoUri(String logoUri) {
+        this.logoUri = logoUri;
+    }
+
+    public String getPolicyUri() {
+        return policyUri;
+    }
+
+    public void setPolicyUri(String policyUri) {
+        this.policyUri = policyUri;
+    }
+
+    public String getHomepageUri() {
+        return homepageUri;
+    }
+
+    public void setHomepageUri(String homepageUri) {
+        this.homepageUri = homepageUri;
+    }
+
     @JsonIgnore
     public void setConfiguration(final OpenIdFedIdentityProviderConfigMap map) {
         this.clientId = map.getClientId();
@@ -289,6 +316,9 @@ public class OpenIdFedIdentityProviderConfigMap extends AbstractConfigMap {
 
         this.organizationName = map.getOrganizationName();
         this.contacts = map.getContacts();
+        this.logoUri = map.getLogoUri();
+        this.policyUri = map.getPolicyUri();
+        this.homepageUri = map.getHomepageUri();
     }
 
     @Override

@@ -8,7 +8,7 @@ import {
     ExportButton,
 } from 'react-admin';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
-import { UserCreateForm } from './UserCreate';
+import { UserInviteForm } from './UserCreate';
 import { Page } from '../components/Page';
 import { PageTitle } from '../components/PageTitle';
 import { YamlExporter } from '../components/YamlExporter';
@@ -73,20 +73,15 @@ const UserListActions = () => {
     return (
         <TopToolbar>
             <CreateInDialogButton
+                label="action.invite"
                 fullWidth
                 maxWidth={'md'}
                 variant="contained"
-                transform={transform}
+                mutationOptions={{ meta: { method: 'PUT' } }}
             >
-                <UserCreateForm />
+                <UserInviteForm />
             </CreateInDialogButton>
             <ExportButton variant="contained" />
         </TopToolbar>
     );
-};
-
-const transform = (data: any) => {
-    return {
-        ...data,
-    };
 };

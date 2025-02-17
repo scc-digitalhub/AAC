@@ -15,7 +15,7 @@ import { AceEditorField } from '@dslab/ra-ace-editor';
 
 export const ClaimMappingEditor = (props: {
     source: string;
-    onTest: (record, code) => Promise<any>;
+    onTest?: (record, code) => Promise<any>;
     defaultValue: string;
     label?: string;
     helperText?: string;
@@ -50,7 +50,7 @@ export const ClaimMappingEditor = (props: {
     }, [code]);
 
     const handleTest = e => {
-        if (code && record) {
+        if (code && record && onTest) {
             onTest(record, code)
                 .then(json => {
                     if (json) {
@@ -91,18 +91,19 @@ export const ClaimMappingEditor = (props: {
                 format={utils.encodeBase64}
                 minLines={25}
             />
-            <Button
-                disabled={!code}
-                onClick={handleTest}
-                autoFocus
-                variant="contained"
-                size="large"
-                color="success"
-                startIcon={<TestIcon />}
-                label={translate('action.test')}
-                sx={{ mb: 3 }}
-            />
-
+            {onTest && (
+                <Button
+                    disabled={!code}
+                    onClick={handleTest}
+                    autoFocus
+                    variant="contained"
+                    size="large"
+                    color="success"
+                    startIcon={<TestIcon />}
+                    label={translate('action.test')}
+                    sx={{ mb: 3 }}
+                />
+            )}
             <Grid container gap={1} mb={2}>
                 <Grid item xs={12} md={5}>
                     {result?.context && (

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import it.smartcommunitylab.aac.SystemKeys;
 import java.util.Collection;
 import java.util.Collections;
@@ -135,6 +136,11 @@ public class TemplateModel implements Template {
     @JsonGetter("keys")
     public Collection<String> keys() {
         return content != null ? content.keySet() : Collections.emptyList();
+    }
+
+    @JsonSetter("keys")
+    public void setKeys(Collection<String> content) {
+        //no-op
     }
 
     @Override

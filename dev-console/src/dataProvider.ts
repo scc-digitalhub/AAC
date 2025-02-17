@@ -19,6 +19,7 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
 
     return {
         apiUrl: async () => apiUrl,
+        client: (url, opts) => httpClient(`${apiUrl}/${url}`, opts),
         invoke: ({
             path,
             params,
@@ -272,7 +273,7 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             }
             let url = `${apiUrl}/${resource}${suffix}`;
 
-            if (params.meta.import) {
+            if (params.meta?.import) {
                 method = `PUT`;
                 let formData = new FormData();
                 formData.append('yaml', String(params.data));
@@ -281,6 +282,10 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
             } else {
                 body = JSON.stringify(params?.data);
             }
+            if (params.meta?.method) {
+                method = params.meta.method;
+            }
+
             return httpClient(url, {
                 method: method,
                 headers: new Headers(headers),

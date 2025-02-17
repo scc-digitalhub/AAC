@@ -376,5 +376,43 @@
             "subtitle": "Manage Terms of service for the current user",
             "title": "Terms of service"
         }
+    },
+    "authorities": {
+        "helperText": "Assign authorities to the user"
+    },
+    "importer": {
+        "title": "Import %{resource}",
+        "helperText": "Import a resource from a valid yaml definition",
+        "resetOnImport": {
+            "label": "Reset identifiers",
+            "helperText": "Clear identifiers on import. Enable to avoid ID collisions"
+        }
+    },
+    "confirm": {
+        "helperText": "Confirm to perform the requested action?"
+    },
+    "credentials": {
+        "reset": {
+            "title": "Reset credentials",
+            "helperText": "Do you want to reset the selected credentials?"
+        }
+    },
+    "templates": {
+        "list": {
+            "title": "Templates",
+            "subtitle": "Add and manage custom render templates to personalize the UI."
+        },
+        "preview": {
+            "title": "Preview",
+            "subtitle": "View a preview of the rendered template"
+        },
+        "settings": {
+            "title": "Settings",
+            "subtitle": "Configure the template properties"
+        },
+        "key": {
+            "title": "Edit key",
+            "subtitle": "Customize the template by editing the key. Supports HTML tags for basic formatting"
+        }
     }
 }

@@ -1,0 +1,13 @@
+{
+    "apple": "Apple",
+    "facebook": "Facebook",
+    "github": "Github",
+    "google": "Google",
+    "internal": "Internal",
+    "oidc": "OpenId Connect",
+    "openidfed": "OpenId Federation",
+    "password": "Password",
+    "saml": "SAML 2.0",
+    "spid": "SPID",
+    "webauthn": "WebAuthn"
+}

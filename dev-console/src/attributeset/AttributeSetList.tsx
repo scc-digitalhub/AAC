@@ -19,6 +19,7 @@ import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
 import { AttributeSetIcon } from './AttributeSetIcon';
 import { AttributeSetCreateForm } from './AttributeSetCreate';
+import { ImportButton } from '../components/ImportButton';
 
 export const AttributeSetList = () => {
     const translate = useTranslate();
@@ -92,6 +93,7 @@ const AttributeSetListActions = () => {
             >
                 <AttributeSetCreateForm />
             </CreateInDialogButton>
+            <ImportButton variant="contained" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

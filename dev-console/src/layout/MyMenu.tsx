@@ -79,6 +79,7 @@ export const MyMenu = () => {
                 <Menu.ResourceItem name="attributeset" />
                 <Menu.ResourceItem name="aps" />
 
+                <Menu.ResourceItem name="templatemodels" />
                 <Menu.ResourceItem name="audit" />
                 <Divider />
                 <MenuItemLink
