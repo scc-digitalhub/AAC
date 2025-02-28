@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.oidc.auth.OIDCAuthenticationException;
 import it.smartcommunitylab.aac.saml.auth.SamlAuthenticationException;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.util.Assert;
 
 public class LoginException extends AuthenticationException {
@@ -80,6 +81,10 @@ public class LoginException extends AuthenticationException {
 
         if (e instanceof SpidAuthenticationException) {
             return translate((SpidAuthenticationException) e);
+        }
+
+        if (e instanceof OAuth2AuthenticationException) {
+            return translate(new OIDCAuthenticationException(((OAuth2AuthenticationException) e).getError()));
         }
 
         String error = "error." + e.getClass().getSimpleName().replaceAll(R_REGEX, R_REPL).toLowerCase();
