@@ -12,9 +12,12 @@
       <a class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login" th:classAppend="${authority.cssClass}"
          th:href="${authority.loginUrl}">
          <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
-            <svg class="icon icon-black icon-sm">
+            <svg th:if="${authority.logoUrl == null}" class="icon icon-black icon-sm">
                <use th:xlink:href="@{/}+${authority.iconUrl}"></use>
             </svg>
+            <span th:if="${authority.logoUrl != null}" class="icon icon-black icon-sm">
+               <img th:src="${authority.logoUrl}" width="24" />
+            </span>      
          </span>
          <span class="text-black btn-login-text" th:text="${authority.getTitle(#locale.language)}"></span>
       </a>

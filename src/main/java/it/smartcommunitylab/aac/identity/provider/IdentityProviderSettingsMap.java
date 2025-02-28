@@ -49,6 +49,8 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     private String events;
     private Integer position;
     private String template;
+    //TODO replace with persisted file
+    private String logo;
 
     @SafeString
     private String notes;
@@ -135,20 +137,27 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
     @JsonProperty("hookFunctions")
     public void setHookFunctionsBase64(Map<String, String> hookFunctions) {
         if (hookFunctions != null) {
-            this.hookFunctions =
-                hookFunctions
-                    .entrySet()
-                    .stream()
-                    .filter(e -> StringUtils.hasText(e.getValue()))
-                    .collect(
-                        Collectors.toMap(
-                            e -> e.getKey(),
-                            e -> {
-                                return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
-                            }
-                        )
-                    );
+            this.hookFunctions = hookFunctions
+                .entrySet()
+                .stream()
+                .filter(e -> StringUtils.hasText(e.getValue()))
+                .collect(
+                    Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> {
+                            return new String(Base64.getDecoder().decode(e.getValue().getBytes()));
+                        }
+                    )
+                );
         }
+    }
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
     }
 
     @JsonIgnore
@@ -163,6 +172,7 @@ public class IdentityProviderSettingsMap extends AbstractSettingsMap {
         this.position = map.getPosition();
         this.hookFunctions = map.getHookFunctions();
         this.notes = map.getNotes();
+        this.logo = map.getLogo();
     }
 
     @Override

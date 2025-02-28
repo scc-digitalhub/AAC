@@ -670,5 +670,9 @@
     "template": {
         "name": "Template",
         "helperText": "Template identifier"
-    }
+    },
+    "logo": {
+        "name": "Logo",
+        "helperText": "Logo (URL)"
+    }    
 }

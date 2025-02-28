@@ -46,5 +46,7 @@ public interface LoginProvider {
 
     public String getIconUrl();
 
+    public String getLogoUrl();
+
     public String getCssClass();
 }

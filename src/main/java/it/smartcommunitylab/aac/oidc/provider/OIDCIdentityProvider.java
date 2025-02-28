@@ -27,6 +27,8 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserIdentity;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,13 @@ import org.springframework.util.StringUtils;
 
 @Transactional
 public class OIDCIdentityProvider
-    extends AbstractIdentityProvider<OIDCUserIdentity, OIDCUserAccount, OIDCUserAuthenticatedPrincipal, OIDCIdentityProviderConfigMap, OIDCIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        OIDCUserIdentity,
+        OIDCUserAccount,
+        OIDCUserAuthenticatedPrincipal,
+        OIDCIdentityProviderConfigMap,
+        OIDCIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -72,19 +80,34 @@ public class OIDCIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         OIDCAccountServiceConfigConverter configConverter = new OIDCAccountServiceConfigConverter();
-        this.accountService =
-            new OIDCAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
+        this.accountService = new OIDCAccountService(
+            authority,
+            providerId,
+            userAccountService,
+            configConverter.convert(config),
+            realm
+        );
 
         this.principalConverter = new OIDCAccountPrincipalConverter(authority, providerId, userAccountService, realm);
         this.principalConverter.setTrustEmailAddress(config.trustEmailAddress());
         this.principalConverter.setAlwaysTrustEmailAddress(config.alwaysTrustEmailAddress());
 
         this.attributeProvider = new OIDCAttributeProvider(authority, providerId, realm);
-        this.authenticationProvider =
-            new OIDCAuthenticationProvider(authority, providerId, userAccountService, config, realm);
+        this.authenticationProvider = new OIDCAuthenticationProvider(
+            authority,
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
 
-        this.subjectResolver =
-            new OIDCSubjectResolver(authority, providerId, userAccountService, config.getRepositoryId(), realm);
+        this.subjectResolver = new OIDCSubjectResolver(
+            authority,
+            providerId,
+            userAccountService,
+            config.getRepositoryId(),
+            realm
+        );
         this.subjectResolver.setLinkable(config.isLinkable());
 
         // function hooks from config
@@ -173,6 +196,21 @@ public class OIDCIdentityProvider
         //TODO validate against supported
         if (StringUtils.hasText(config.getSettingsMap().getTemplate())) {
             lp.setTemplate(config.getSettingsMap().getTemplate());
+        }
+
+        //logo override icons
+        if (StringUtils.hasText(config.getSettingsMap().getLogo())) {
+            //try to parse as url
+            try {
+                URL url = new URL(config.getSettingsMap().getLogo());
+                lp.setLogoUrl(url.toString());
+            } catch (MalformedURLException e) {}
+
+            //check if data blob
+            if (config.getSettingsMap().getLogo().startsWith("data:image/")) {
+                //embed
+                lp.setLogoUrl(config.getSettingsMap().getLogo());
+            }
         }
 
         return lp;

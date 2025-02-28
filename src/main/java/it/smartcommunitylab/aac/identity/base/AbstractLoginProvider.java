@@ -41,6 +41,7 @@ public abstract class AbstractLoginProvider implements LoginProvider, Comparable
     private Map<String, String> descriptionMap;
     private String icon;
     private String iconUrl;
+    private String logoUrl;
 
     private String cssClass;
 
@@ -160,6 +161,14 @@ public abstract class AbstractLoginProvider implements LoginProvider, Comparable
 
     public void setIconUrl(String iconUrl) {
         this.iconUrl = iconUrl;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public String getCssClass() {
