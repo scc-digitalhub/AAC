@@ -84,11 +84,27 @@ export const schemaOAuthClient: RJSFSchema = {
             type: ['number', 'null'],
             default: null,
         },
+        idTokenValidity: {
+            title: 'field.oauth2.idTokenValidity.name',
+            description: 'field.oauth2.idTokenValidity.helperText',
+            type: ['number', 'null'],
+            default: null,
+        },
         refreshTokenValidity: {
             title: 'field.oauth2.refreshTokenValidity.name',
             description: 'field.oauth2.refreshTokenValidity.helperText',
             type: ['number', 'null'],
             default: null,
+        },
+        response_types: {
+            title: 'field.oauth2.responseTypes.name',
+            description: 'field.oauth2.responseTypes.helperText',
+            type: 'array',
+            uniqueItems: true,
+            items: {
+                type: 'string',
+                enum: ['code', 'token', 'id_token', 'none'],
+            },
         },
     },
 };
@@ -99,15 +115,17 @@ export const uiSchemaOAuthClient: UiSchema = {
         'authenticationMethods',
         'authorizedGrantTypes',
         'redirectUris',
+        'response_types',
         'firstParty',
         'idTokenClaims',
         'refreshTokenRotation',
         'subjectType',
         'tokenType',
         'accessTokenValidity',
+        'idTokenValidity',
         'refreshTokenValidity',
     ],
-    'ui:layout': [12, 12, 12, 12, 4, 4, 4, 6, 6, 6, 6],
+    'ui:layout': [12, 12, 12, 12, 12, 4, 4, 4, 6, 6, 4, 4, 4],
     redirectUris: {
         items: {
             'ui:label': false,

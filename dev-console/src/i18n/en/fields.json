@@ -275,6 +275,14 @@
             "helperText": "",
             "name": "Access token validity (sec)"
         },
+        "idTokenValidity": {
+            "helperText": "",
+            "name": "ID token validity (sec)"
+        },
+        "responseTypes": {
+            "helperText": "Set to configure response types, or leave empty to use default",
+            "name": "Response type"
+        },
         "applicationType": {
             "helperText": "",
             "name": "Application type"
@@ -674,5 +682,5 @@
     "logo": {
         "name": "Logo",
         "helperText": "Logo (URL)"
-    }    
+    }
 }
