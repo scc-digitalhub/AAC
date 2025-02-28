@@ -56,6 +56,11 @@ export const schemaIdpSettings: RJSFSchema = {
             title: 'field.template_override.name',
             description: 'field.template_override.helperText',
         },
+        logo: {
+            type: 'string',
+            title: 'field.logo.name',
+            description: 'field.logo.helperText',
+        },        
         events: {
             type: 'string',
             enum: ['none', 'minimal', 'details', 'full'],

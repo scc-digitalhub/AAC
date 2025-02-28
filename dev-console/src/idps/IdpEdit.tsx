@@ -4,6 +4,7 @@ import {
     Edit,
     IconButtonWithTooltip,
     Labeled,
+    RecordContextProvider,
     ReferenceManyField,
     SaveButton,
     TabbedForm,
@@ -24,7 +25,7 @@ import { InspectButton } from '@dslab/ra-inspect-button';
 import { DeleteWithDialogButton } from '@dslab/ra-delete-dialog-button';
 import { Page } from '../components/Page';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
-import { Alert, Box, Typography } from '@mui/material';
+import { Alert, Box, Stack, Typography } from '@mui/material';
 import { SectionTitle } from '../components/SectionTitle';
 import { AceEditorInput } from '@dslab/ra-ace-editor';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
@@ -112,6 +113,8 @@ const IdpEditForm = () => {
     const [availableLocales, setAvailableLocales] =
         useState<string[]>(DEFAULT_LANGUAGES);
 
+    const [config, setConfig] = useState<any | null>(null);
+
     useEffect(() => {
         if (dataProvider && realmId) {
             dataProvider.getOne('myrealms', { id: realmId }).then(data => {
@@ -123,7 +126,27 @@ const IdpEditForm = () => {
                 }
             });
         }
-    }, [dataProvider, realmId]);
+        if (dataProvider && realmId && record) {
+            if (record.enabled) {
+                //fetch config
+                dataProvider
+                    .invoke({
+                        path: 'idps/' + realmId + '/' + record.id + '/config',
+                    })
+                    .then(res => {
+                        if (res && res.provider && res.version) {
+                            setConfig({
+                                ...res,
+                                id: res.provider + ':' + res.version,
+                            });
+                        }
+                    });
+            } else {
+                //reset
+                setConfig(null);
+            }
+        }
+    }, [dataProvider, realmId, record]);
 
     const handleTestClaimMapping = (record, code) => {
         return dataProvider.invoke({
@@ -181,6 +204,7 @@ const IdpEditForm = () => {
                     label="field.name.name"
                     helperText="field.name.helperText"
                     fullWidth
+                    readOnly={record.enabled}
                 />
 
                 <SectionTitle
@@ -193,12 +217,14 @@ const IdpEditForm = () => {
                             source="titleMap"
                             label="field.title.name"
                             helperText="field.title.helperText"
+                            readOnly={record.enabled}
                         />
                         <TextInput
                             source="descriptionMap"
                             label="field.description.name"
                             helperText="field.description.helperText"
                             multiline
+                            readOnly={record.enabled}
                         />
                     </TranslatableInputs>
                 )}
@@ -213,6 +239,7 @@ const IdpEditForm = () => {
                     uiSchema={uiSchemaIdpSettings}
                 />
             </TabbedForm.Tab>
+
             <TabbedForm.Tab label="tab.configuration">
                 <SectionTitle
                     text="page.idps.configuration.title"
@@ -273,6 +300,23 @@ const IdpEditForm = () => {
                     </Datagrid>
                 </ReferenceManyField>
             </TabbedForm.Tab>
+            {config && config.statusMap && (
+                <TabbedForm.Tab label="tab.status">
+                    <SectionTitle
+                        text="page.idps.status.title"
+                        secondaryText="page.idps.status.subtitle"
+                    />
+                    <RecordContextProvider value={config}>
+                        <Stack direction={'column'}>
+                            {Object.keys(config.statusMap).map(e => (
+                                <Labeled>
+                                    <IdField source={'statusMap.' + e} />
+                                </Labeled>
+                            ))}
+                        </Stack>
+                    </RecordContextProvider>
+                </TabbedForm.Tab>
+            )}
         </TabbedForm>
     );
 };
@@ -297,12 +341,46 @@ const TabToolbar = () => {
 
 const EditToolBarActions = () => {
     const record = useRecordContext();
+    const { root: realmId } = useRootSelector();
+    const dataProvider = useDataProvider();
+    const [config, setConfig] = useState<any | null>(null);
+
+    useEffect(() => {
+        if (dataProvider && realmId && record) {
+            if (record.enabled) {
+                //fetch config
+                dataProvider
+                    .invoke({
+                        path: 'idps/' + realmId + '/' + record.id + '/config',
+                    })
+                    .then(res => {
+                        if (res && res.provider && res.version) {
+                            setConfig({
+                                ...res,
+                                id: res.provider + ':' + res.version,
+                            });
+                        }
+                    });
+            } else {
+                //reset
+                setConfig(null);
+            }
+        }
+    }, [dataProvider, realmId, record]);
+
     if (!record) return null;
 
     return (
         <TopToolbar>
             <ToggleIdpButton />
             <InspectButton />
+            {config && (
+                <InspectButton
+                    record={config}
+                    color="success"
+                    label="page.idps.configuration.title"
+                />
+            )}
             <DeleteWithDialogButton disabled={record?.registered} />
             <RefreshingExportButton />
         </TopToolbar>

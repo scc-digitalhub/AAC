@@ -27,6 +27,9 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProvider;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserIdentity;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +37,13 @@ import org.springframework.security.oauth2.provider.AuthorizationRequest;
 import org.springframework.util.StringUtils;
 
 public class SamlIdentityProvider
-    extends AbstractIdentityProvider<SamlUserIdentity, SamlUserAccount, SamlUserAuthenticatedPrincipal, SamlIdentityProviderConfigMap, SamlIdentityProviderConfig> {
+    extends AbstractIdentityProvider<
+        SamlUserIdentity,
+        SamlUserAccount,
+        SamlUserAuthenticatedPrincipal,
+        SamlIdentityProviderConfigMap,
+        SamlIdentityProviderConfig
+    > {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -66,13 +75,28 @@ public class SamlIdentityProvider
 
         // build resource providers, we use our providerId to ensure consistency
         SamlAccountServiceConfigConverter configConverter = new SamlAccountServiceConfigConverter();
-        this.accountService =
-            new SamlAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
-        this.principalConverter =
-            new SamlAccountPrincipalConverter(authority, providerId, userAccountService, config, realm);
+        this.accountService = new SamlAccountService(
+            authority,
+            providerId,
+            userAccountService,
+            configConverter.convert(config),
+            realm
+        );
+        this.principalConverter = new SamlAccountPrincipalConverter(
+            authority,
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
         this.attributeProvider = new SamlAttributeProvider(authority, providerId, config, realm);
-        this.authenticationProvider =
-            new SamlAuthenticationProvider(authority, providerId, userAccountService, config, realm);
+        this.authenticationProvider = new SamlAuthenticationProvider(
+            authority,
+            providerId,
+            userAccountService,
+            config,
+            realm
+        );
         this.subjectResolver = new SamlSubjectResolver(authority, providerId, userAccountService, config, realm);
 
         // function hooks from config
@@ -160,6 +184,21 @@ public class SamlIdentityProvider
         //TODO validate against supported
         if (StringUtils.hasText(config.getSettingsMap().getTemplate())) {
             lp.setTemplate(config.getSettingsMap().getTemplate());
+        }
+
+        //logo override icons
+        if (StringUtils.hasText(config.getSettingsMap().getLogo())) {
+            //try to parse as url
+            try {
+                URL url = new URL(config.getSettingsMap().getLogo());
+                lp.setLogoUrl(url.toString());
+            } catch (MalformedURLException e) {}
+
+            //check if data blob
+            if (config.getSettingsMap().getLogo().startsWith("data:image/")) {
+                //embed
+                lp.setLogoUrl(config.getSettingsMap().getLogo());
+            }
         }
 
         return lp;

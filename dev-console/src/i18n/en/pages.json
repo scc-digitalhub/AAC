@@ -129,6 +129,10 @@
             "title": "Configuration",
             "subtitle": ""
         },
+        "status": {
+            "title": "Status",
+            "subtitle": "Current configuration and status details"
+        },
         "hooks": {
             "attribute": "Custom attribute mapping",
             "attributeDesc": "Provide a function to transform principal attributes during login. Return a valid map with all the attributes",

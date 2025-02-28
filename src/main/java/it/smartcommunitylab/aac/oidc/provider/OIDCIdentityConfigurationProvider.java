@@ -63,10 +63,16 @@ public class OIDCIdentityConfigurationProvider
 
     @Override
     protected OIDCIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new OIDCIdentityProviderConfig(
+        OIDCIdentityProviderConfig p = new OIDCIdentityProviderConfig(
             cp,
             getSettingsMap(cp.getSettings()),
             getConfigMap(cp.getConfiguration())
         );
+
+        if (applicationProperties != null) {
+            p.setBaseUrl(applicationProperties.getUrl());
+        }
+
+        return p;
     }
 }

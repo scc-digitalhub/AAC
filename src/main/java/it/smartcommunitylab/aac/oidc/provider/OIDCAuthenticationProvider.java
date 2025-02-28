@@ -60,6 +60,8 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthor
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -171,11 +173,15 @@ public class OIDCAuthenticationProvider
         // we don't use the account repository to fetch user details,
         // use oidc userinfo to provide user details
         // TODO add jwt handling from id_token or access token
-        this.oidcProvider =
-            new OidcAuthorizationCodeAuthenticationProvider(accessTokenResponseClient, new OidcUserService());
+        this.oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(
+            accessTokenResponseClient,
+            new OidcUserService()
+        );
         // oauth userinfo comes from oidc userinfo..
-        this.oauthProvider =
-            new OAuth2LoginAuthenticationProvider(accessTokenResponseClient, new DefaultOAuth2UserService());
+        this.oauthProvider = new OAuth2LoginAuthenticationProvider(
+            accessTokenResponseClient,
+            new DefaultOAuth2UserService()
+        );
 
         // use a custom authorities mapper to cleanup authorities spring injects
         // default impl translates the whole oauth response as an authority..
@@ -248,14 +254,13 @@ public class OIDCAuthenticationProvider
                     );
                 }
 
-                auth =
-                    new OIDCAuthenticationToken(
-                        subject,
-                        authenticationToken.getPrincipal(),
-                        authenticationToken.getAccessToken(),
-                        authenticationToken.getRefreshToken(),
-                        Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
-                    );
+                auth = new OIDCAuthenticationToken(
+                    subject,
+                    authenticationToken.getPrincipal(),
+                    authenticationToken.getAccessToken(),
+                    authenticationToken.getRefreshToken(),
+                    Collections.singleton(new SimpleGrantedAuthority(Config.R_USER))
+                );
             }
 
             return auth;
@@ -268,6 +273,21 @@ public class OIDCAuthenticationProvider
             );
             throw new OIDCAuthenticationException(
                 e.getError(),
+                e.getMessage(),
+                authorizationRequestUri,
+                authorizationResponseUri,
+                null,
+                null
+            );
+        } catch (OAuth2Exception e) {
+            logger.debug(
+                "exception occurred when authenticating with OIDC provider {}, error information {}, {}",
+                getProvider(),
+                e.getOAuth2ErrorCode(),
+                e.getMessage()
+            );
+            throw new OIDCAuthenticationException(
+                new OAuth2Error(e.getOAuth2ErrorCode()),
                 e.getMessage(),
                 authorizationRequestUri,
                 authorizationResponseUri,
@@ -341,14 +361,15 @@ public class OIDCAuthenticationProvider
 
                     if (authResult != null) {
                         if (authResult.booleanValue() == false) {
-                            throw new OIDCAuthenticationException(
-                                new OAuth2Error("unauthorized"),
-                                "unauthorized",
-                                null,
-                                null,
-                                null,
-                                null
-                            );
+                            throw new UnauthorizedUserException("unauthorized");
+                            // throw new OIDCAuthenticationException(
+                            //     new UnauthorizedUserException("unauthorized"),
+                            //     "unauthorized",
+                            //     null,
+                            //     null,
+                            //     null,
+                            //     null
+                            // );
                         }
                     }
                 } catch (SystemException | InvalidDefinitionException ex) {
@@ -404,10 +425,9 @@ public class OIDCAuthenticationProvider
         }
 
         // read username from attributes, mapper can replace it
-        username =
-            StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
-                ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
-                : user.getUsername();
+        username = StringUtils.hasText(oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME))
+            ? oidcAttributes.get(OpenIdAttributesSet.PREFERRED_USERNAME)
+            : user.getUsername();
 
         // update principal
         user.setUsername(username);

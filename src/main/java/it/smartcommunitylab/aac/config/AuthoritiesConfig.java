@@ -65,6 +65,9 @@ public class AuthoritiesConfig {
     private DataSource jdbcDataSource;
 
     @Autowired
+    private ApplicationProperties applicationProperties;
+
+    @Autowired
     private ProviderConfigEntityService providerConfigEntityService;
 
     @Autowired
@@ -81,7 +84,19 @@ public class AuthoritiesConfig {
 
     @Bean
     public IdentityProviderAuthorityService identityProviderAuthorityService(
-        Collection<IdentityProviderAuthority<? extends IdentityProvider<? extends UserIdentity, ? extends UserAccount, ? extends UserAuthenticatedPrincipal, ? extends ConfigMap, ? extends IdentityProviderConfig<? extends ConfigMap>>, ? extends IdentityProviderConfig<? extends ConfigMap>, ? extends ConfigMap>> authorities,
+        Collection<
+            IdentityProviderAuthority<
+                ? extends IdentityProvider<
+                    ? extends UserIdentity,
+                    ? extends UserAccount,
+                    ? extends UserAuthenticatedPrincipal,
+                    ? extends ConfigMap,
+                    ? extends IdentityProviderConfig<? extends ConfigMap>
+                >,
+                ? extends IdentityProviderConfig<? extends ConfigMap>,
+                ? extends ConfigMap
+            >
+        > authorities,
         IdentityAuthoritiesProperties authsProps
     ) {
         // build a service with default from autowiring
@@ -112,6 +127,8 @@ public class AuthoritiesConfig {
                             authsProps.getSettings(),
                             configMap
                         );
+
+                        configProvider.setApplicationProperties(applicationProperties);
 
                         // instantiate authority
                         OIDCIdentityAuthority auth = new OIDCIdentityAuthority(

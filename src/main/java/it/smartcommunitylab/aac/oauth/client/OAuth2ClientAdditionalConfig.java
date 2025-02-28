@@ -69,7 +69,7 @@ public class OAuth2ClientAdditionalConfig implements Serializable {
     private EncryptionMethod idTokenEncMethod;
 
     // refresh token config
-    @JsonProperty("refresh_token_rotation")
+    // @JsonProperty("refresh_token_rotation")
     private Boolean refreshTokenRotation;
 
     // userinfo jwt config

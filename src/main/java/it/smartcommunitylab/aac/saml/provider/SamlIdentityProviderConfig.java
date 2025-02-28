@@ -26,6 +26,7 @@ import java.io.StringReader;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.Set;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -39,6 +40,7 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<SamlIdentityProviderConfigMap> {
 
@@ -47,6 +49,8 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + SamlIdentityProviderConfigMap.RESOURCE_TYPE;
 
     private transient RelyingPartyRegistration relyingPartyRegistration;
+    private transient SamlIdentityProviderStatusMap statusMap;
+    private String baseUrl;
 
     public SamlIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_SAML, provider, realm);
@@ -77,6 +81,10 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         super();
     }
 
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
     public String getRepositoryId() {
         // not configurable, always isolate saml providers
         return getProvider();
@@ -99,7 +107,7 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     private RelyingPartyRegistration toRelyingPartyRegistration() throws IOException, CertificateException {
         // set base parameters
         String entityId = getEntityId();
-        String assertionConsumerServiceLocation = getAssertionConsumerUrl();
+        String assertionConsumerServiceLocation = assertionConsumerUrlTemplate();
 
         // read rp parameters from map
         // note: only RSA keys supported
@@ -126,8 +134,9 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
         if (StringUtils.hasText(idpMetadataLocation)) {
             // read metadata to autoconfigure
-            builder =
-                RelyingPartyRegistrations.fromMetadataLocation(idpMetadataLocation).registrationId(registrationId);
+            builder = RelyingPartyRegistrations.fromMetadataLocation(idpMetadataLocation).registrationId(
+                registrationId
+            );
         } else {
             // set manually
             builder.assertingPartyDetails(party ->
@@ -187,17 +196,35 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return builder.build();
     }
 
-    public String getMetadataUrl() {
+    public String metadataUrlTemplate() {
         return "{baseUrl}/auth/" + getAuthority() + "/metadata/{registrationId}";
     }
 
-    public String getAssertionConsumerUrl() {
+    public String getMetadataUrl() {
+        if (baseUrl != null) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(metadataUrlTemplate());
+            return builder.buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", getProvider())).toUriString();
+        }
+        return null;
+    }
+
+    public String assertionConsumerUrlTemplate() {
         return "{baseUrl}/auth/" + getAuthority() + "/sso/{registrationId}";
+    }
+
+    public String getAssertionConsumerUrl() {
+        if (baseUrl != null) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(assertionConsumerUrlTemplate());
+            return builder.buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", getProvider())).toUriString();
+        }
+        return null;
     }
 
     public String getEntityId() {
         // let config override, this breaks some standards but saml...
-        return configMap.getEntityId() != null ? configMap.getEntityId() : getMetadataUrl();
+        return configMap.getEntityId() != null
+            ? configMap.getEntityId()
+            : (getMetadataUrl() != null ? getMetadataUrl() : getProvider());
     }
 
     // export additional properties not supported by stock model
@@ -232,6 +259,16 @@ public class SamlIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     public String getSubAttributeName() {
         String subAttributeName = configMap.getSubAttributeName();
         return StringUtils.hasText(subAttributeName) ? subAttributeName : null;
+    }
+
+    public SamlIdentityProviderStatusMap getStatusMap() {
+        if (statusMap == null) {
+            statusMap = new SamlIdentityProviderStatusMap();
+            statusMap.setMetadataUrl(getMetadataUrl());
+            statusMap.setAssertionConsumerUrl(getAssertionConsumerUrl());
+        }
+
+        return statusMap;
     }
 
     //

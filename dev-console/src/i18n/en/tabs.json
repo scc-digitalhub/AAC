@@ -25,5 +25,6 @@
     "localization": "Localization",
     "templates": "Templates",
     "oauth2": "OAuth2",
-    "developers": "Developers"
+    "developers": "Developers",
+    "status": "Status"
 }
