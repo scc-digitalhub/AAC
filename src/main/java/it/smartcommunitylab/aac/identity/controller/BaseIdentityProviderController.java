@@ -31,6 +31,7 @@ import it.smartcommunitylab.aac.identity.IdentityProviderAuthority;
 import it.smartcommunitylab.aac.identity.IdentityProviderManager;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProvider;
+import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderAuthorityService;
 import java.io.Serializable;
 import java.util.Collection;
@@ -121,10 +122,10 @@ public class BaseIdentityProviderController implements InitializingBean {
     ) throws NoSuchRealmException {
         logger.debug("list idp for realm {}", StringUtils.trimAllWhitespace(realm));
 
-        Page<ConfigurableIdentityProvider> page = providerManager
-            .searchProviders(realm, q, pageRequest);
+        Page<ConfigurableIdentityProvider> page = providerManager.searchProviders(realm, q, pageRequest);
 
-        page.getContent()
+        page
+            .getContent()
             .stream()
             .forEach(cp -> {
                 cp.setRegistered(providerManager.isProviderRegistered(realm, cp));
@@ -228,7 +229,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         // if force disable provider
         boolean forceRegistration = force.orElse(false);
         if (registered) {
-            if(forceRegistration) {
+            if (forceRegistration) {
                 try {
                     provider = providerManager.unregisterProvider(realm, providerId);
                 } catch (NoSuchAuthorityException e) {
@@ -348,12 +349,12 @@ public class BaseIdentityProviderController implements InitializingBean {
 
     @GetMapping("/idps/{realm}/{providerId}/config")
     @Operation(summary = "get an identity provider active configuration")
-    public ConfigurableIdentityProvider getIdpConfiguration(
+    public IdentityProviderConfig<?> getIdpConfiguration(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId
     ) throws NoSuchProviderException, NoSuchRealmException, NoSuchAuthorityException {
         logger.debug(
-            "get idp config schema for {} for realm {}",
+            "get idp config for {} for realm {}",
             StringUtils.trimAllWhitespace(providerId),
             StringUtils.trimAllWhitespace(realm)
         );
@@ -371,7 +372,6 @@ public class BaseIdentityProviderController implements InitializingBean {
             throw new NoSuchProviderException();
         }
 
-        //        return authority.getConfigurationProvider().getConfigurable(idp.getConfig());
-        return null;
+        return idp.getConfig();
     }
 }

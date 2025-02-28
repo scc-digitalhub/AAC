@@ -63,10 +63,16 @@ public class SamlIdentityConfigurationProvider
 
     @Override
     protected SamlIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new SamlIdentityProviderConfig(
+        SamlIdentityProviderConfig p = new SamlIdentityProviderConfig(
             cp,
             getSettingsMap(cp.getSettings()),
             getConfigMap(cp.getConfiguration())
         );
+
+        if (applicationProperties != null) {
+            p.setBaseUrl(applicationProperties.getUrl());
+        }
+
+        return p;
     }
 }

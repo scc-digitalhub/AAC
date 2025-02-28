@@ -19,10 +19,12 @@ package it.smartcommunitylab.aac.identity.base;
 import com.fasterxml.jackson.databind.JavaType;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.base.provider.AbstractConfigurationProvider;
+import it.smartcommunitylab.aac.config.ApplicationProperties;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderConfigurationProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractIdentityConfigurationProvider<
     P extends AbstractIdentityProviderConfig<M>, M extends AbstractConfigMap
@@ -30,12 +32,19 @@ public abstract class AbstractIdentityConfigurationProvider<
     extends AbstractConfigurationProvider<P, ConfigurableIdentityProvider, IdentityProviderSettingsMap, M>
     implements IdentityProviderConfigurationProvider<P, M> {
 
+    protected ApplicationProperties applicationProperties;
+
     protected AbstractIdentityConfigurationProvider(
         String authority,
         ProviderConfigRepository<P> registrationRepository
     ) {
         super(authority, registrationRepository);
         setDefaultSettingsMap(new IdentityProviderSettingsMap());
+    }
+
+    @Autowired
+    public void setApplicationProperties(ApplicationProperties applicationProperties) {
+        this.applicationProperties = applicationProperties;
     }
 
     @Override

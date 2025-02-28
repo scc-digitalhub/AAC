@@ -79,6 +79,7 @@ public class SystemKeys {
     public static final String RESOURCE_PROVIDER = "provider";
     public static final String RESOURCE_REALM = "realm";
     public static final String RESOURCE_CONFIG = "config";
+    public static final String RESOURCE_STATUS = "status";
     public static final String RESOURCE_LOGIN = "login";
     public static final String RESOURCE_IDENTITY_PROVIDER = "identity_provider";
     public static final String RESOURCE_ATTRIBUTE_PROVIDER = "attribute_provider";

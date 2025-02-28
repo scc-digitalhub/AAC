@@ -24,12 +24,14 @@ import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.oauth.model.AuthenticationMethod;
 import java.text.ParseException;
+import java.util.Map;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<OIDCIdentityProviderConfigMap> {
 
@@ -40,6 +42,9 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
     private static final String WELL_KNOWN_CONFIGURATION_OPENID = "/.well-known/openid-configuration";
 
     private transient ClientRegistration clientRegistration;
+    private transient OIDCIdentityProviderStatusMap statusMap;
+
+    private String baseUrl;
 
     public OIDCIdentityProviderConfig(String provider, String realm) {
         this(SystemKeys.AUTHORITY_OIDC, provider, realm);
@@ -68,6 +73,10 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
     @SuppressWarnings("unused")
     private OIDCIdentityProviderConfig() {
         super();
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     public String getRepositoryId() {
@@ -157,7 +166,7 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
         // TODO check PKCE
         builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
         // add our redirect template
-        builder.redirectUri(getRedirectUrl());
+        builder.redirectUri(redirectUrlTemplate());
 
         // set client
         builder.clientId(configMap.getClientId());
@@ -302,6 +311,25 @@ public class OIDCIdentityProviderConfig extends AbstractIdentityProviderConfig<O
     //    }
 
     public String getRedirectUrl() {
+        if (baseUrl != null) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUrlTemplate());
+            return builder
+                .buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", getProvider(), "action", "login"))
+                .toUriString();
+        }
+        return null;
+    }
+
+    public String redirectUrlTemplate() {
         return "{baseUrl}/auth/" + getAuthority() + "/{action}/{registrationId}";
+    }
+
+    public OIDCIdentityProviderStatusMap getStatusMap() {
+        if (statusMap == null) {
+            statusMap = new OIDCIdentityProviderStatusMap();
+            statusMap.setRedirectUrl(getRedirectUrl());
+        }
+
+        return statusMap;
     }
 }
