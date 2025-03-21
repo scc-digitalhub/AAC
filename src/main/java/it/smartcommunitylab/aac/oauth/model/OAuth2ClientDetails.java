@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.oauth.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -342,6 +343,7 @@ public class OAuth2ClientDetails implements ClientDetails {
         this.firstParty = firstParty;
     }
 
+    @JsonIgnore
     public boolean isRefreshTokenRotation() {
         return refreshTokenRotation;
     }

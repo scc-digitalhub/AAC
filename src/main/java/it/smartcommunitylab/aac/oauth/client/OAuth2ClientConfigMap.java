@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.oauth.client;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -46,8 +47,9 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
     private static final long serialVersionUID = SystemKeys.AAC_OAUTH2_SERIAL_VERSION;
 
     private static ObjectMapper mapper = new ObjectMapper();
-    private static final TypeReference<HashMap<String, Serializable>> typeRef =
-        new TypeReference<HashMap<String, Serializable>>() {};
+    private static final TypeReference<HashMap<String, Serializable>> typeRef = new TypeReference<
+        HashMap<String, Serializable>
+    >() {};
 
     private Set<AuthorizationGrantType> authorizedGrantTypes;
     private Set<String> redirectUris;
@@ -159,6 +161,7 @@ public class OAuth2ClientConfigMap implements ConfigurableProperties, Serializab
         this.firstParty = firstParty;
     }
 
+    @JsonGetter("refresh_token_rotation")
     public boolean isRefreshTokenRotation() {
         if (additionalConfig == null) {
             return false;
