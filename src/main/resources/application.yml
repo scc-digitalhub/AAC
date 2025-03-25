@@ -107,6 +107,7 @@ jwt:
 # AUDIT
 audit:
    issuer: ${AUDIT_ISSUER:${application.url}}
+   retention: ${AUDIT_RETENTION:}
    kid:
       sig: ${AUDIT_KID_SIG:}         
       enc: ${AUDIT_KID_ENC:}
