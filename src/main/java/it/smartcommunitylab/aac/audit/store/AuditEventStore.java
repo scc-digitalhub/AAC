@@ -37,4 +37,6 @@ public interface AuditEventStore extends AuditEventRepository {
     public List<AuditEvent> findByTx(String realm, String type);
 
     public List<AuditEvent> findByPrincipal(String principal, Instant after, Instant before, String type);
+
+    public void cleanupAuditEvents(Instant before);
 }

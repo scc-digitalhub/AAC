@@ -61,7 +61,7 @@ export const schemaOAuthClient: RJSFSchema = {
             description: 'field.oauth2.idTokenClaims.helperText',
             type: 'boolean',
         },
-        refreshTokenRotation: {
+        refresh_token_rotation: {
             title: 'field.oauth2.refreshTokenRotation.name',
             description: 'field.oauth2.refreshTokenRotation.helperText',
             type: 'boolean',
@@ -118,7 +118,7 @@ export const uiSchemaOAuthClient: UiSchema = {
         'response_types',
         'firstParty',
         'idTokenClaims',
-        'refreshTokenRotation',
+        'refresh_token_rotation',
         'subjectType',
         'tokenType',
         'accessTokenValidity',
