@@ -61,6 +61,8 @@ public class ClientApp {
 
     private String description;
 
+    private String notes;
+
     // configuration, type-specific
     private Map<String, Serializable> configuration;
 
@@ -115,6 +117,7 @@ public class ClientApp {
         this.hookWebUrls = new HashMap<>();
         this.name = "";
         this.description = "";
+        this.notes = "";
         this.authorities = Collections.emptySet();
         this.realmRoles = new HashSet<>();
         this.spaceRoles = new HashSet<>();
@@ -169,6 +172,14 @@ public class ClientApp {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Map<String, Serializable> getConfiguration() {
@@ -296,7 +307,6 @@ public class ClientApp {
         this.spaceRoles = new HashSet<>();
         spaceRoles.addAll(rr);
     }
-    
 
     /**
      * Groups
@@ -309,8 +319,8 @@ public class ClientApp {
         this.groups = new HashSet<>();
         groups.addAll(gg);
     }
-    
+
     public String getId() {
-    	return this.clientId;
+        return this.clientId;
     }
 }

@@ -172,6 +172,12 @@ const AppEditForm = () => {
                     label="field.description.name"
                     helperText="field.description.helperText"
                 />
+                <TextInput
+                    source="notes"
+                    fullWidth
+                    label="field.notes.name"
+                    helperText="field.notes.helperText"
+                />
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.credentials">
                 <SectionTitle

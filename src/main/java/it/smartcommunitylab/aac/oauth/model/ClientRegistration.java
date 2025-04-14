@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import it.smartcommunitylab.aac.repository.ArrayOrStringDeserializer;
 import it.smartcommunitylab.aac.repository.StringArraySerializer;
 import java.util.Set;
+
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientRegistration {
@@ -44,6 +44,12 @@ public class ClientRegistration {
 
     @JsonProperty("client_name")
     private String name;
+
+    @JsonProperty("client_description")
+    private String description;
+
+    @JsonProperty("client_notes")
+    private String notes;
 
     @JsonProperty("redirect_uris")
     private Set<String> redirectUris;
@@ -190,6 +196,22 @@ public class ClientRegistration {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Set<String> getScope() {

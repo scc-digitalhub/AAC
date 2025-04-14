@@ -175,6 +175,7 @@ public class ClientEntityService {
         String clientId,
         String name,
         String description,
+        String notes,
         Collection<String> scopes,
         Collection<String> resourceIds,
         Collection<String> providers,
@@ -189,6 +190,7 @@ public class ClientEntityService {
 
         c.setName(name);
         c.setDescription(description);
+        c.setNotes(notes);
 
         c.setScopes(StringUtils.collectionToCommaDelimitedString(scopes));
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));

@@ -18,6 +18,7 @@ package it.smartcommunitylab.aac.clients.persistence;
 
 import it.smartcommunitylab.aac.repository.HashMapBase64Converter;
 import it.smartcommunitylab.aac.repository.HashMapConverter;
+import it.smartcommunitylab.aac.repository.SafeString;
 import java.util.Date;
 import java.util.Map;
 import javax.persistence.Column;
@@ -55,6 +56,9 @@ public class ClientEntity {
     // base
     private String name;
     private String description;
+
+    @SafeString
+    private String notes;
 
     @Column(name = "client_type", length = 32)
     private String type;
@@ -137,6 +141,14 @@ public class ClientEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public String getType() {
