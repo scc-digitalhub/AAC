@@ -317,7 +317,6 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return builder.build();
     }
 
-    @JsonIgnore
     public List<Credential> getRelyingPartySigningCredentials() {
         List<Credential> credentials = new ArrayList<>();
         RelyingPartyRegistration rp = getRelyingPartyRegistrations().stream().findFirst().orElse(null);
@@ -386,7 +385,6 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
      * This is required for cases where the registration does not require any asserting party details,
      * such as SPID metadata.
      */
-    @JsonIgnore
     public RelyingPartyRegistration getRelyingPartyRegistration() {
         return getRelyingPartyRegistrations()
             .stream()
