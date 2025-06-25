@@ -62,6 +62,7 @@ public class SpidIdentityConfigurationProvider
         //  Check architecture and relationship with IdentityAuthority
         if (this.localRegistry != null) {
             spidConfig.setIdentityProviders(this.localRegistry);
+            spidConfig.setBaseUrl(applicationProperties.getUrl());
         }
         return spidConfig;
     }
