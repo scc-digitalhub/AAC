@@ -105,7 +105,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         if (statusMap == null) {
             statusMap = new SpidIdentityProviderStatusMap();
             statusMap.setMetadataUrl(getMetadataUrl());
-            statusMap.setAssertionConsumerUrl(getAssertionConsumerUrl());
+            statusMap.setIdentityProvidersUrl(getIdentityProvidersUrl());
         }
         return statusMap;
     }
@@ -113,34 +113,32 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     public String getMetadataUrl() {
         if (baseUrl != null) {
             UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(metadataUrlTemplate());
-            return builder.buildAndExpand(Map.of("baseUrl", baseUrl, "metadataRegistrationId", getMetadataRegistrationId())).toUriString();
+            return builder.buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", getMetadataRegistrationId())).toUriString();
         }
         return null;
     }
 
     public String metadataUrlTemplate() {
-        return "{baseUrl}/auth/" + getAuthority() + "/metadata/{metadataRegistrationId}";
+        return "{baseUrl}/auth/" + getAuthority() + "/metadata/{registrationId}";
     }
 
-    public String getAssertionConsumerUrl() {
+    public Map<String, String> getIdentityProvidersUrl(){
         if (baseUrl != null) {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(assertionConsumerUrlTemplate());
-            return builder.buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", getProvider())).toUriString();
+            Map<String, String> identityProvidersUrl = new HashMap<>();
+            for(RelyingPartyRegistration relyingPartyRegistration : getUpstreamRelyingPartyRegistrations()){
+                identityProvidersUrl.put(
+                        relyingPartyRegistration.getProviderDetails().getEntityId(),
+                        UriComponentsBuilder.fromUriString(identityProviderUrlTemplate()).buildAndExpand(Map.of("baseUrl", baseUrl, "relyingPartyRegistrationId",  relyingPartyRegistration.getRegistrationId())).toUriString());
+            }
+            return identityProvidersUrl;
         }
         return null;
     }
 
-    public String assertionConsumerUrlTemplate() {
-        return "{baseUrl}/auth/" + getAuthority() + "/sso/{registrationId}";
+    public String identityProviderUrlTemplate() {
+        return "{baseUrl}/auth/" + getAuthority() + "/authenticate/{relyingPartyRegistrationId}";
     }
 
-    public String getConsumerUrl() {
-        return baseUrl + SpidIdentityAuthority.AUTHORITY_URL + "sso/" + getMetadataRegistrationId();
-    }
-
-    public String getLogoutUrl() {
-        return baseUrl + SpidIdentityAuthority.AUTHORITY_URL + "slo/" + getMetadataRegistrationId();
-    }
     /*
      * Extract a provider from a registration with pattern either {providerId}
      * or {providerId}|{idpKey} where idpKey is the key of the upstream
@@ -282,6 +280,14 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return getProvider() + "|" + idpKeyIdentifier;
     }
 
+    public String getConsumerUrl() {
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/" + getMetadataRegistrationId();
+    }
+
+    public String getLogoutUrl() {
+        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/" + getMetadataRegistrationId();
+    }
+
     // create a relying party registration for an upstream idp; only ap autoconfiguration
     // is supported, hence function parameters require an idp metadata url
     private RelyingPartyRegistration toRelyingPartyRegistration(String idpMetadataUrl)
@@ -317,6 +323,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return builder.build();
     }
 
+    @JsonIgnore
     public List<Credential> getRelyingPartySigningCredentials() {
         List<Credential> credentials = new ArrayList<>();
         RelyingPartyRegistration rp = getRelyingPartyRegistrations().stream().findFirst().orElse(null);
@@ -385,6 +392,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
      * This is required for cases where the registration does not require any asserting party details,
      * such as SPID metadata.
      */
+    @JsonIgnore
     public RelyingPartyRegistration getRelyingPartyRegistration() {
         return getRelyingPartyRegistrations()
             .stream()
