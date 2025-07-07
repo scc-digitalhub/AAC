@@ -42,14 +42,14 @@ public class SpidIdentityProviderStatusMap extends AbstractStatusMap {
         SystemKeys.AUTHORITY_SPID;
 
     private String metadataUrl;
-    private Map<String, String> identityProvidersUrl;
+    private Map<String, String> assertionConsumerUrls;
 
-    public Map<String, String> getIdentityProvidersUrl() {
-        return identityProvidersUrl;
+    public Map<String, String> getAssertionConsumerUrls() {
+        return assertionConsumerUrls;
     }
 
-    public void setIdentityProvidersUrl(Map<String, String> identityProvidersUrl) {
-        this.identityProvidersUrl = identityProvidersUrl;
+    public void setAssertionConsumerUrls(Map<String, String> assertionConsumerUrls) {
+        this.assertionConsumerUrls = assertionConsumerUrls;
     }
 
     public String getMetadataUrl() {
@@ -65,7 +65,7 @@ public class SpidIdentityProviderStatusMap extends AbstractStatusMap {
     @JsonIgnore
     public void setConfiguration(SpidIdentityProviderStatusMap map) {
         this.metadataUrl = map.getMetadataUrl();
-        this.identityProvidersUrl = map.getIdentityProvidersUrl();
+        this.assertionConsumerUrls = map.getAssertionConsumerUrls();
     }
 
     @Override

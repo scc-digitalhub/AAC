@@ -103,9 +103,10 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
 
     public SpidIdentityProviderStatusMap getStatusMap() {
         if (statusMap == null) {
+
             statusMap = new SpidIdentityProviderStatusMap();
             statusMap.setMetadataUrl(getMetadataUrl());
-            statusMap.setIdentityProvidersUrl(getIdentityProvidersUrl());
+            statusMap.setAssertionConsumerUrls(getAssertionConsumerUrls());
         }
         return statusMap;
     }
@@ -122,21 +123,23 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return "{baseUrl}/auth/" + getAuthority() + "/metadata/{registrationId}";
     }
 
-    public Map<String, String> getIdentityProvidersUrl(){
+    public Map<String, String> getAssertionConsumerUrls(){
         if (baseUrl != null) {
-            Map<String, String> identityProvidersUrl = new HashMap<>();
+            Map<String, String> assertionConsumerUrls = new HashMap<>();
             for(RelyingPartyRegistration relyingPartyRegistration : getUpstreamRelyingPartyRegistrations()){
-                identityProvidersUrl.put(
-                        relyingPartyRegistration.getProviderDetails().getEntityId(),
-                        UriComponentsBuilder.fromUriString(identityProviderUrlTemplate()).buildAndExpand(Map.of("baseUrl", baseUrl, "relyingPartyRegistrationId",  relyingPartyRegistration.getRegistrationId())).toUriString());
-            }
-            return identityProvidersUrl;
+                if(relyingPartyRegistration.getProviderDetails().getEntityId() != null) {
+                    assertionConsumerUrls.put(
+                            relyingPartyRegistration.getProviderDetails().getEntityId(),
+                            UriComponentsBuilder.fromUriString(identityProviderUrlTemplate()).buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", relyingPartyRegistration.getRegistrationId())).toUriString());
+                    }
+                }
+            return assertionConsumerUrls;
         }
         return null;
     }
 
     public String identityProviderUrlTemplate() {
-        return "{baseUrl}/auth/" + getAuthority() + "/authenticate/{relyingPartyRegistrationId}";
+        return "{baseUrl}/auth/" + getAuthority() + "/authenticate/{registrationId}";
     }
 
     /*

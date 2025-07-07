@@ -308,34 +308,11 @@ const IdpEditForm = () => {
                     />
                     <RecordContextProvider value={config}>
                         <Stack direction={'column'}>
-                            {/*{Object.keys(config.statusMap).map(e => (
+                            {Object.keys(config.statusMap).map(e => (
                                 <Labeled>
                                     <IdField source={'statusMap.' + e} />
                                 </Labeled>
-                            ))}*/}
-                            {Object.entries(config.statusMap).map(([key, value]) => {
-                                if (key === 'identityProvidersUrl') return null;
-                                return (
-                                    <Labeled>
-                                         <IdField source={'statusMap.' + ([key, value])} />
-                                    </Labeled>
-                                );
-                            })}
-                            {config.statusMap.identityProvidersUrl &&
-                                Object.entries(config.statusMap.identityProvidersUrl).map(([key, value]) => (
-                                    <Labeled>
-                                        <IdField source={'statusMap.identityProvidersUrl:  ' + ([key, value])}/>
-                                    </Labeled>
-                                ))
-                            }
-                            {config.statusMap.identityProvidersUrl &&
-                                Object.entries(config.statusMap.identityProvidersUrl).map(([key, value]) => (
-                                    <div>
-                                        <p>Identity Provider:  {key}</p>
-                                        <p>URL:  {value}</p>
-                                    </div>
-                                ))
-                            }
+                            ))}
                         </Stack>
                     </RecordContextProvider>
                 </TabbedForm.Tab>
