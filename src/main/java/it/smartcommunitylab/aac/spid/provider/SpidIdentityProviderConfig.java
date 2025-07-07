@@ -127,10 +127,10 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         if (baseUrl != null) {
             Map<String, String> assertionConsumerUrls = new HashMap<>();
             for(RelyingPartyRegistration relyingPartyRegistration : getUpstreamRelyingPartyRegistrations()){
-                if(relyingPartyRegistration.getProviderDetails().getEntityId() != null) {
+                if(relyingPartyRegistration.getProviderDetails() != null) {
                     assertionConsumerUrls.put(
                             relyingPartyRegistration.getProviderDetails().getEntityId(),
-                            UriComponentsBuilder.fromUriString(identityProviderUrlTemplate()).buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", relyingPartyRegistration.getRegistrationId())).toUriString());
+                            UriComponentsBuilder.fromUriString(assertionConsumerUrlTemplate()).buildAndExpand(Map.of("baseUrl", baseUrl, "registrationId", relyingPartyRegistration.getRegistrationId())).toUriString());
                     }
                 }
             return assertionConsumerUrls;
@@ -138,7 +138,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return null;
     }
 
-    public String identityProviderUrlTemplate() {
+    public String assertionConsumerUrlTemplate() {
         return "{baseUrl}/auth/" + getAuthority() + "/authenticate/{registrationId}";
     }
 
