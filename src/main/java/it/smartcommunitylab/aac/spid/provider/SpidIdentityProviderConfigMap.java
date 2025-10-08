@@ -27,6 +27,7 @@ import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.validation.Valid;
@@ -49,10 +50,8 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     // core
     private String entityId;
 
-    // <Signature> options
-    private String signingKey;
-
-    private String signingCertificate; // for <KeyDescriptor use="signing"><KeyInfo>
+    private List<SpidIdentityProviderConfigMap.SigningCredential> signingCredentials;
+    private String activeSigningCredentialId;
 
     // <Organization> options (suggested but not mandatory)
     private String organizationDisplayName;
@@ -93,20 +92,20 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.entityId = entityId;
     }
 
-    public String getSigningKey() {
-        return signingKey;
+    public String getActiveSigningCredentialId() {
+        return activeSigningCredentialId;
     }
 
-    public void setSigningKey(String signingKey) {
-        this.signingKey = signingKey;
+    public void setActiveSigningCredentialId(String activeSigningCredentialId) {
+        this.activeSigningCredentialId = activeSigningCredentialId;
     }
 
-    public String getSigningCertificate() {
-        return signingCertificate;
+    public List<SpidIdentityProviderConfigMap.SigningCredential> getSigningCredentials() {
+        return signingCredentials;
     }
 
-    public void setSigningCertificate(String signingCertificate) {
-        this.signingCertificate = signingCertificate;
+    public void setSigningCredentials(List<SpidIdentityProviderConfigMap.SigningCredential> signingCredentials) {
+        this.signingCredentials = signingCredentials;
     }
 
     public String getContactPerson_EmailAddress() {
@@ -216,8 +215,8 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     @JsonIgnore
     public void setConfiguration(SpidIdentityProviderConfigMap map) {
         this.entityId = map.getEntityId();
-        this.signingKey = map.getSigningKey();
-        this.signingCertificate = map.getSigningKey();
+        this.signingCredentials = map.getSigningCredentials();
+        this.activeSigningCredentialId = map.getActiveSigningCredentialId();
         this.contactPerson_EmailAddress = map.getContactPerson_EmailAddress();
         this.contactPerson_IPACode = map.getContactPerson_IPACode();
         this.contactPerson_Public = map.getContactPerson_Public();
@@ -247,5 +246,44 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
         return schemaGen.generateSchema(SpidIdentityProviderConfigMap.class);
+    }
+
+    public static class SigningCredential implements Serializable {
+
+        private String credentialId;
+        private String signingKey;
+        private String signingCertificate;
+
+        public SigningCredential() { }
+
+        public SigningCredential(String credentialId, String signingKey, String signingCertificate){
+            this.credentialId = credentialId;
+            this.signingKey = signingKey;
+            this.signingCertificate = signingCertificate;
+        }
+
+        public String getCredentialId() {
+            return this.credentialId;
+        }
+
+        public void setCredentialId(String credentialId){
+            this.credentialId = credentialId;
+        }
+
+        public String getSigningKey() {
+            return this.signingKey;
+        }
+
+        public void setSigningKey(String signingKey){
+            this.signingKey = signingKey;
+        }
+
+        public String getSigningCertificate() {
+            return this.signingCertificate;
+        }
+
+        public void setSigningCertificate(String signingCertificate){
+            this.signingCertificate = signingCertificate;
+        }
     }
 }

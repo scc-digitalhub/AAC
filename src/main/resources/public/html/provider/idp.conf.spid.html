@@ -26,18 +26,27 @@
             </div>
         </div>
         <div class="py-3">Signing</div>
-        <div class="row">
-            <div class="form-group col ">
-                <label for="signingKey">Signing Key</label>
-                <textarea rows="5" id="signingKey" name="signingKey"
-                    ng-model="idp.configuration.signingKey"
-                    ng-style="!idp.configuration.signingKey && {'border':'1px solid #d9364f'}"></textarea>
+        <div class="row" ng-repeat="credential in idp.configuration.signingCredentials track by $index">
+            <div class="form-group col-12">
+                <label for="credentialId{{$index}}">Credential ID</label>
+                <input type="text" class="form-control form-control-sm" id="credentialId{{$index}}"
+                       ng-model="credential.credentialId">
             </div>
             <div class="form-group col ">
-                <label for="signingCertificate">Signing Certificate</label>
-                <textarea rows="5" id="signingCertificate" name="signingCertificate"
-                    ng-model="idp.configuration.signingCertificate"
-                    ng-style="!idp.configuration.signingCertificate && {'border':'1px solid #d9364f'}"></textarea>
+                <label for="signingKey{{$index}}">Signing Key</label>
+                <textarea rows="5" name="signingKey{{$index}}" id="signingKey{{$index}}" ng-model="credential.signingKey"></textarea>
+            </div>
+            <div class="form-group col ">
+                <label for="signingCertificate{{$index}}">Signing Certificate</label>
+                <textarea rows="5" id="signingCertificate{{$index}}" name="signingCertificate{{$index}}"
+                          ng-model="credential.signingCertificate"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col ">
+                <label for="activeSigningCredentialId">Active Signing Credential Id</label>
+                <input type="text" name="activeSigningCredentialId" class="form-control form-control-sm" id="activeSigningCredentialId"
+                       ng-model="idp.configuration.activeSigningCredentialId">
             </div>
         </div>
     </fieldset>

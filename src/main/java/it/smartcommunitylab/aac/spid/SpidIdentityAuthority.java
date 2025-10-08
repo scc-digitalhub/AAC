@@ -51,6 +51,7 @@ public class SpidIdentityAuthority
     private final UserAccountService<SamlUserAccount> accountService;
     private final SpidRelyingPartyRegistrationRepository registrationRepository;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
+    private final SpidMetadataRelyingPartyRegistrationRepository metadataRelyingPartyRegistrationRepository;
     private final SpidFilterProvider filterProvider;
     private ScriptExecutionService executionService;
     private ResourceEntityService resourceService;
@@ -86,7 +87,8 @@ public class SpidIdentityAuthority
         this.accountService = accountService;
         this.providerConfigRepository = providerConfigRepository;
         this.registrationRepository = new SpidRelyingPartyRegistrationRepository(providerConfigRepository);
-        this.filterProvider = new SpidFilterProvider(registrationRepository, providerConfigRepository);
+        this.metadataRelyingPartyRegistrationRepository = new SpidMetadataRelyingPartyRegistrationRepository(providerConfigRepository);
+        this.filterProvider = new SpidFilterProvider(registrationRepository, metadataRelyingPartyRegistrationRepository, providerConfigRepository);
     }
 
     @Autowired

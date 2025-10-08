@@ -22,10 +22,8 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
 import it.smartcommunitylab.aac.saml.service.HttpSessionSaml2AuthenticationRequestRepository;
-import it.smartcommunitylab.aac.spid.auth.SpidMetadataFilter;
-import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
-import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationFilter;
-import it.smartcommunitylab.aac.spid.auth.SpidWebSsoAuthenticationRequestFilter;
+import it.smartcommunitylab.aac.spid.auth.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,12 +49,14 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
     private static final String authorityId = SystemKeys.AUTHORITY_SPID;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
     private final SpidRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
+    private final SpidMetadataRelyingPartyRegistrationRepository metadataRelyingPartyRegistrationRepository;
 
     private ApplicationEventPublisher eventPublisher;
     private AuthenticationManager authManager;
 
     public SpidFilterProvider(
         SpidRelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+        SpidMetadataRelyingPartyRegistrationRepository metadataRelyingPartyRegistrationRepository,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
         Assert.notNull(providerConfigRepository, "registration repository is mandatory");
@@ -64,6 +64,7 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
 
         this.providerConfigRepository = providerConfigRepository;
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
+        this.metadataRelyingPartyRegistrationRepository = metadataRelyingPartyRegistrationRepository;
     }
 
     @Override
@@ -100,7 +101,7 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
 
         SpidMetadataFilter metadataFilter = new SpidMetadataFilter(
             providerConfigRepository,
-            relyingPartyRegistrationRepository
+            metadataRelyingPartyRegistrationRepository
         );
 
         filters.add(requestFilter);

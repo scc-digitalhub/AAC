@@ -251,11 +251,11 @@ export const uiSchemaOpenidfedIdp: UiSchema = {
     },
 };
 export const uiSchemaSpidIdp: UiSchema = {
-    'ui:layout': [12, 6, 6, 6, 6, 12, 6, 6, 6, 6, 12, 12, 12, 12, 6, 6],
+    'ui:layout': [12, 12, 12, 6, 6, 12, 6, 6, 6, 6, 12, 12, 12, 12, 6, 6],
     'ui:order': [
         'entityId',
-        'signingKey',
-        'signingCertificate',
+        'signingCredentials',
+        'activeSigningCredentialId',
         'organizationDisplayName',
         'organizationName',
         'organizationUrl',
@@ -270,12 +270,6 @@ export const uiSchemaSpidIdp: UiSchema = {
         'subAttributeName',
         'usernameAttributeName',
     ],
-    signingKey: {
-        'ui:widget': 'textarea',
-    },
-    signingCertificate: {
-        'ui:widget': 'textarea',
-    },
     spidAttributes: {
         items: {
             'ui:label': false,
@@ -284,6 +278,26 @@ export const uiSchemaSpidIdp: UiSchema = {
     authnContext: {
         'ui:title': 'field.spidLevel.name',
         'ui:description': 'field.spidLevel.helperText',
+    },
+    signingCredentials: {
+        items: {
+            'ui:layout': [12, 6, 6],
+            'ui:order': ['credentialId', 'signingKey', 'signingCertificate'],
+            credentialId: {
+                'ui:title': 'field.credentialId.name',
+                'ui:description': 'field.credentialId.helperText',
+            },
+            signingKey: {
+                "ui:widget": "textarea",
+                'ui:title': 'field.signingKey.name',
+                'ui:description': 'field.signingKey.helperText',
+            },
+            signingCertificate: {
+                "ui:widget": "textarea",
+                'ui:title': 'field.signingCertificate.name',
+                'ui:description': 'field.signingCertificate.helperText',
+            },
+        },
     },
 };
 //list

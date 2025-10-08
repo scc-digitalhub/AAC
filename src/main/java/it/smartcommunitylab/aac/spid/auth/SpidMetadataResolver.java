@@ -233,21 +233,22 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
         spSsoDescriptor.setWantAssertionsSigned(true);
 
         // Add signing key (only one supported) to <SPSSODescriptor>
-        Saml2X509Credential credential = registration.getSigningX509Credentials().stream().findFirst().orElse(null);
-        KeyDescriptor signingKey = keyDescriptorBuilder.buildObject();
-        KeyInfo keyInfo = keyInfoBuilder.buildObject();
-        X509Certificate x509Certificate = x509CertificateBuilder.buildObject();
-        X509Data x509Data = x509DataBuilder.buildObject();
-        try {
-            x509Certificate.setValue(new String(Base64.getEncoder().encode(credential.getCertificate().getEncoded())));
-        } catch (CertificateEncodingException ex) {
-            throw new Saml2Exception("Cannot encode certificate " + credential.getCertificate().toString());
+        for(Saml2X509Credential credential: registration.getSigningX509Credentials()){
+            KeyDescriptor signingKey = keyDescriptorBuilder.buildObject();
+            KeyInfo keyInfo = keyInfoBuilder.buildObject();
+            X509Certificate x509Certificate = x509CertificateBuilder.buildObject();
+            X509Data x509Data = x509DataBuilder.buildObject();
+            try {
+                x509Certificate.setValue(new String(Base64.getEncoder().encode(credential.getCertificate().getEncoded())));
+            } catch (CertificateEncodingException ex) {
+                throw new Saml2Exception("Cannot encode certificate " + credential.getCertificate().toString());
+            }
+            x509Data.getX509Certificates().add(x509Certificate);
+            keyInfo.getX509Datas().add(x509Data);
+            signingKey.setUse(UsageType.SIGNING);
+            signingKey.setKeyInfo(keyInfo);
+            spSsoDescriptor.getKeyDescriptors().add(signingKey);
         }
-        x509Data.getX509Certificates().add(x509Certificate);
-        keyInfo.getX509Datas().add(x509Data);
-        signingKey.setUse(UsageType.SIGNING);
-        signingKey.setKeyInfo(keyInfo);
-        spSsoDescriptor.getKeyDescriptors().add(signingKey);
 
         // Add assertion consumer service to <SPSSODescriptor>
         AssertionConsumerService assertionConsumerService = assertionConsumerServiceBuilder.buildObject();
@@ -359,7 +360,7 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
     }
 
     private SignatureSigningParameters getSigningParams(SpidIdentityProviderConfig providerConfig) {
-        List<Credential> credentials = providerConfig.getRelyingPartySigningCredentials();
+        List<Credential> credentials = providerConfig.getMetadataRelyingPartySigningCredentials();
         List<String> algorithms = Collections.singletonList(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256);
         List<String> digests = Collections.singletonList(SignatureConstants.ALGO_ID_DIGEST_SHA256);
         String canonicalization = SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS;
