@@ -87,9 +87,14 @@ public class AuthorizationEndpointFilter extends OncePerRequestFilter {
                 // TODO remove prompt to avoid looping..
                 // we need a way to bind reauth to requests, to avoid messing with context
                 // disabled for now
-//                this.requestCache.saveRequest(request, response);
-//                this.authenticationEntryPoint.commence(request, response, null);
-//                return;
+                //WORKAROUND:
+                //check session age, if less than 60 seconds we can skip reauth, otherwise we ask for relogin
+                UserAuthentication userAuth = getUserAuthentication();
+                if (userAuth != null && userAuth.getAge() > 60) {                 
+                    this.requestCache.saveRequest(request, response);
+                    this.authenticationEntryPoint.commence(request, response, null);
+                    return;
+                }
             }
 
             UserAuthentication userAuth = getUserAuthentication();
