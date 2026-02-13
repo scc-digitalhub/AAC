@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:experimental
 FROM maven:3-openjdk-17 as mvn
 COPY src /tmp/src
+COPY libs /tmp/libs
 COPY pom.xml /tmp/pom.xml
 WORKDIR /tmp
 #RUN --mount=type=bind,target=/root/.m2,source=/root/.m2,from=smartcommunitylab/aac:cache-alpine mvn package -DskipTests
+RUN mvn install:install-file -Dfile=libs/spring-security-oauth2-2.6.0.20210513.134657-1.jar -DgroupId=org.springframework.security.oauth -DartifactId=spring-security-oauth2 -Dversion=2.6.0.SNAPSHOT -Dpackaging=jar
 RUN mvn package -DskipTests
 
 FROM eclipse-temurin:17-jdk-alpine as builder
