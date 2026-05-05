@@ -66,6 +66,7 @@ public class SpidAccountService
         ea.setEmail(account.getEmail());
         ea.setName(account.getName());
         ea.setSurname(account.getSurname());
+        ea.setAttributes(account.getAttributes());
 
         return ea;
     }

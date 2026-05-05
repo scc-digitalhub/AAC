@@ -80,6 +80,7 @@ public class OpenIdFedAccountService
         ea.setGivenName(account.getGivenName());
         ea.setFamilyName(account.getFamilyName());
         ea.setLang(account.getLang());
+        ea.setAttributes(account.getAttributes());
 
         return ea;
     }

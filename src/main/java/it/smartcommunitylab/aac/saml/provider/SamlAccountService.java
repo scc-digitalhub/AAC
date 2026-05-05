@@ -80,6 +80,7 @@ public class SamlAccountService
         ea.setName(account.getName());
         ea.setSurname(account.getSurname());
         ea.setLang(account.getLang());
+        ea.setAttributes(account.getAttributes());
 
         return ea;
     }
