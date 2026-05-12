@@ -1,0 +1,484 @@
+package it.smartcommunitylab.aac.spid;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
+import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
+import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.spid.setup.AbstractSpidIdentityProviderWebSsoTest;
+import it.smartcommunitylab.aac.spid.setup.SpidRequest;
+import it.smartcommunitylab.aac.spid.utils.HackerUtils;
+import it.smartcommunitylab.aac.spid.utils.SpidRequestFlow;
+import it.smartcommunitylab.aac.spid.utils.SpidResponseBuilder;
+import it.smartcommunitylab.aac.spid.utils.UserUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.io.IOException;
+
+import javax.transaction.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Test suite for verifying the security and validity of SPID SAML Responses
+ * during the authentication phase.
+ * It ensures that the Identity Provider correctly validates signatures,
+ * audience restrictions, and prevents common vulnerabilities like Replay Attacks.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+// Loads the base profile ("test") and then applies SPID overrides ("test-spid")
+@ActiveProfiles({"test", "test-spid"})
+@EnableWireMock({
+        // Setup two fixed-port WireMock servers, mapping them to their respective YAML configuration properties
+        @ConfigureWireMock(port = 58838, name = "idp-server-redirect", property = "wiremock.idp.redirect.url"),
+        @ConfigureWireMock(port = 58839, name = "idp-server-post", property = "wiremock.idp.post.url")
+})
+// Add @Transactional to clean up the DB automatically between @Test methods within this class
+@Transactional
+public class SpidIdentityProviderSecurityTest extends AbstractSpidIdentityProviderWebSsoTest {
+
+    @Autowired
+    private Environment env;
+
+    @Autowired
+    private BootstrapConfig config;
+
+    // Inject Redirect WireMock
+    @InjectWireMock("idp-server-redirect")
+    private WireMockServer mockIdPServerRedirect;
+
+    // Inject Post WireMock
+    @InjectWireMock("idp-server-post")
+    private WireMockServer mockIdPServerPost;
+
+    /* =========================================================================
+     * SPID Utility Components
+     * ========================================================================= */
+    protected UserUtils userUtils = new UserUtils();
+    protected HackerUtils hackerUtils = new HackerUtils();
+
+    @BeforeEach
+    public void setupConfigurationAndMocks() throws IOException {
+        initMockMvc();
+        mockMetadataIDP.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+
+        config.getRealms().forEach(realm -> {
+            if ("spid-test".equals(realm.getRealm().getSlug())) {
+                initReamlByBoostrap(realm);
+
+                // Compute the SPID Relying Party Registration IDs (Base64 of "providerId|entityId")
+                initRegistrationIdBinding(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST);
+
+                // Second IdentityProviders
+                initSecondReamlByBoostrap(realm);
+                initSecondRegistrationIdBinding(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST);
+            }
+        });
+    }
+
+    @Test
+    @DisplayName("Autenticazione con successo: HTTP-Redirect Binding")
+    public void testAuthenticationSuccedsWithRedirectBinding() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect) // REDIRECT
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+                .withIdpConfig(signingIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, signingIdpEntityId) // REDIRECT
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .withSignature()
+                .buildResponse();
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", spidRequest.getRelayState())
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(USER_DESTINATION_URL));
+    }
+
+    @Test
+    @DisplayName("Autenticazione con successo: HTTP-POST Binding")
+    public void testAuthenticationSuccedsWithPostBinding() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdPost) // POST
+                .withPostBinding(true)
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+                .withIdpConfig(signingIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST, signingIdpEntityId) // POST
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .withSignature()
+                .buildResponse();
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", spidRequest.getRelayState())
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(USER_DESTINATION_URL));
+    }
+
+    @Test
+    @DisplayName("Autenticazione errata con SetAttribute Specifico: HTTP-POST Binding")
+    public void testAuthenticationSuccedsSetAttributeWithPostBinding() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationSecondIdPost) // POST
+                .withPostBinding(true)
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+                .withIdpConfig(signingSecondIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST, signingSecondIdpEntityId) // POST
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .withSetSpidAttributes(signingSecondSetSpidAttributes) // SPECIFIC SET ATTRIBUTE
+                .withSignature()
+                .buildResponse();
+
+        this.mockMvc.perform(post(signingSecondIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", spidRequest.getRelayState())
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // spidCode - fiscalNumber MISSING
+    }
+
+    /**
+     * Security Test: Ensures authentication fails and the payload is rejected
+     * if the SAML Response lacks a valid cryptographic signature.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso se la SAML Response NON è firmata")
+    public void testAuthenticationFailsOnUnsignedSamlResponseNew() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+                .withIdpConfig(signingIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, signingIdpEntityId)
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .buildResponse();
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response) // UNSIGNED Payload (Rejected by SP)
+                        .param("RelayState", spidRequest.getRelayState())     // Valid State
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL))
+                .andReturn();
+
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getMessage()).contains("1000"); // Cryptographic validation error code
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the RelayState parameter
+     * is missing, unexpected, or has been manipulated during the flow.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso se il RelayState è inesistente o manipolato")
+    public void testAuthenticationFailsOnMissingOrManipulatedRelayState() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+                .withIdpConfig(signingIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, signingIdpEntityId)
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .withSignature()
+                .buildResponse();
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", "SSdfMklR7My_NohjAY72i57SfjumEOEhIXnEYVVMIew=") // MANIPULATED RelayState (Invalid CSRF)
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                )
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL))
+                .andReturn();
+
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getMessage()).contains("No relying party registration found");
+    }
+
+    /**
+     * Security Test: Verifies protection against Replay Attacks.
+     * The system must reject a SAML Response that has already been processed.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Attacco di Replay (SAML Response riutilizzata da un utente terzo)")
+    public void testAuthenticationFailsOnReplayAttack() throws Exception {
+        SpidRequest victimSpidResponse = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, victimSpidResponse.getRequestId())
+                .withIdpConfig(signingIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, signingIdpEntityId)
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .withSignature()
+                .buildResponse();
+
+        // FIRST USE (Victim completes login successfully)
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", victimSpidResponse.getRelayState())
+                        .session(victimSpidResponse.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(USER_DESTINATION_URL));
+
+        // ATTACK: attacker intercepts the signed SAMLResponse and attempts to replay it.
+        MockHttpSession hackerSession = userUtils.createSessionWithSavedClientRequest(BASE_URL);
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response) // REPLAYED Payload (Intercepted from victim)
+                        .param("RelayState", victimSpidResponse.getRelayState())     // REPLAYED RelayState
+                        .session(hackerSession) // DIFFERENT Session (The Hacker's session)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andReturn();
+
+        Exception hackerException = (Exception) hackerSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(hackerException).isNotNull();
+        assertThat(hackerException.getMessage()).contains("No relying party registration found");
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the 'InResponseTo' attribute
+     * in the SAML Response does not match the ID of the original AuthnRequest.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per InResponseTo errato (Risposta non corrispondente alla richiesta)")
+    public void testAuthenticationFailsOnInvalidInResponseTo() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        // InResponseTo errato (Mismatch Request ID)
+        String response = hackerUtils.prepareForSimulationNotValidRequestId(
+                XML_RESPONSE_TEMPLATE,
+                signingIdpSsoUrl,
+                mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+                signingIdpEntityId,
+                mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
+                mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response) // MALICIOUS Payload (Signed, but mismatched InResponseTo)
+                        .param("RelayState", spidRequest.getRelayState())   // Valid State
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the SAML Response is intended
+     * for a different Service Provider (Audience Restriction validation).
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Audience errata (Risposta destinata a un altro Service Provider)")
+    public void testAuthenticationFailsOnInvalidAudience() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        // Audience errata (Invalid EntityID)
+        String response = hackerUtils.prepareForSimulationNotValidEntityId(
+                spidRequest,
+                XML_RESPONSE_TEMPLATE,
+                signingIdpSsoUrl,
+                mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+                mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
+                mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response) // MALICIOUS Payload (Signed, but wrong Audience)
+                        .param("RelayState", spidRequest.getRelayState())   // Valid State
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the Identity Provider
+     * returns a SPID security level lower than the one requested.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso se il livello SPID restituito (L1) è inferiore a quello richiesto (L2)")
+    public void testAuthenticationFailsOnLowerSpidLevel() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        // Downgrade Livello SPID (L2 -> L1)
+        String response = hackerUtils.prepareForSimulationNotValidChangeSpidLevel(
+                spidRequest,
+                XML_RESPONSE_TEMPLATE,
+                signingIdpSsoUrl,
+                mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+                signingIdpEntityId,
+                mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
+                mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", spidRequest.getRelayState())
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // Verify error is 1000 (errore di validazione del payload)
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getMessage()).contains("1000");
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the SAML Assertion
+     * has expired (NotOnOrAfter condition is in the past).
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Assertion scaduta")
+    public void testAuthenticationFailsOnExpiredAssertion() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        // Assertion Scaduta (NotOnOrAfter nel passato)
+        String response = hackerUtils.prepareForSimulationNotValidNotOnOrAfter(
+                spidRequest,
+                XML_RESPONSE_TEMPLATE,
+                signingIdpSsoUrl,
+                mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+                signingIdpEntityId,
+                mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
+                mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", spidRequest.getRelayState())
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // Verify that Spring Security rejected the Assertion due to time restrictions
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getMessage()).containsIgnoringCase("is no longer valid");
+    }
+
+    /**
+     * Security Concept: Open Redirect Vulnerability Mitigation.
+     * * In a classic Open Redirect attack against SAML SSO, an attacker crafts a malicious link
+     * and attempts to inject an external URL (e.g., "https://phishing-site.com") into the RelayState
+     * or the initial login request. If the Service Provider blindly trusts this input post-authentication,
+     * the user is automatically redirected to the malicious site after a successful SPID login.
+     * 1. It uses an opaque, securely generated identifier for the RelayState (not a raw URL).
+     * 2. The actual intended destination URL is safely stored in the HttpSession (via HttpSessionRequestCache)
+     * and never transmitted in clear text to the IdP.
+     * 3. Any attempt to pass a raw URL as the RelayState during the SAML Response phase will fail
+     * the cryptographic context lookup, resulting in a safe authentication failure instead of a redirect.
+     */
+    @Test
+    @DisplayName("Sicurezza: Mitigazione nativa contro attacchi di Open Redirect")
+    public void testOpenRedirectVulnerabilityIsMitigated() throws Exception {
+        // 1. Attacker crafts a malicious URL intended for an Open Redirect payload
+        String maliciousRelayStateUrl = "https://hacker-phishing-site.invalid/steal-credentials";
+
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        String response = new SpidResponseBuilder(XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+                .withIdpConfig(signingIdpSsoUrl)
+                .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, signingIdpEntityId)
+                .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+                .withSignature()
+                .buildResponse();
+
+        // 2. Attacker submits a legitimate SAML Response but injects the malicious URL into the RelayState,
+        // hoping the Service Provider will blindly redirect the user to it upon success.
+        this.mockMvc.perform(post(signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", maliciousRelayStateUrl) // Injected malicious URL
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                )
+                .andExpect(status().is3xxRedirection())
+                // 3. Spring Security completely ignores the malicious URL. Instead of redirecting to it,
+                // the flow breaks gracefully because the RelayState does not match the internal session context.
+                // The user is safely redirected back to the local login/error page.
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+    }
+}
