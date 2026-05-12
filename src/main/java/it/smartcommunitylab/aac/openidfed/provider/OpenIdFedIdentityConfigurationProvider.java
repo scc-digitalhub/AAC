@@ -41,10 +41,16 @@ public class OpenIdFedIdentityConfigurationProvider
 
     @Override
     protected OpenIdFedIdentityProviderConfig buildConfig(ConfigurableIdentityProvider cp) {
-        return new OpenIdFedIdentityProviderConfig(
+        OpenIdFedIdentityProviderConfig p = new OpenIdFedIdentityProviderConfig(
             cp,
             getSettingsMap(cp.getSettings()),
             getConfigMap(cp.getConfiguration())
         );
+
+        if (applicationProperties != null) {
+            p.setBaseUrl(applicationProperties.getUrl());
+        }
+
+        return p;
     }
 }

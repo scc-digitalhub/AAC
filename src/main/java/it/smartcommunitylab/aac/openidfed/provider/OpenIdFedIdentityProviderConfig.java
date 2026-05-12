@@ -40,9 +40,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class OpenIdFedIdentityProviderConfig
     extends AbstractIdentityProviderConfig<OpenIdFedIdentityProviderConfigMap> {
@@ -56,6 +58,9 @@ public class OpenIdFedIdentityProviderConfig
 
     @JsonIgnore
     private transient OpenIdProviderDiscoveryService providerService;
+
+    private transient OpenIdFedIdentityProviderStatusMap statusMap;
+    private String baseUrl;
 
     @JsonIgnore
     private transient OpenIdFedClientRegistrationRepository clientRegistrationRepository;
@@ -86,6 +91,20 @@ public class OpenIdFedIdentityProviderConfig
     @SuppressWarnings("unused")
     private OpenIdFedIdentityProviderConfig() {
         super();
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    public OpenIdFedIdentityProviderStatusMap getStatusMap() {
+        if (statusMap == null) {
+            statusMap = new OpenIdFedIdentityProviderStatusMap();
+            statusMap.setRedirectUrl(getRedirectUrl());
+            statusMap.setClientId(getClientId());
+        }
+
+        return statusMap;
     }
 
     public EntityStatementResolver getEntityStatementResolver() {
@@ -130,6 +149,16 @@ public class OpenIdFedIdentityProviderConfig
     }
 
     public String getClientId() {
+        if (baseUrl != null) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(clientIdTemplate());
+            return builder
+                .buildAndExpand(Map.of("baseUrl", baseUrl))
+                .toUriString();
+        }
+        return null;
+    }
+
+    public String clientIdTemplate() {
         //if set use configMap value - note: should match urls
         if (StringUtils.hasText(configMap.getClientId())) {
             return configMap.getClientId();
@@ -255,6 +284,16 @@ public class OpenIdFedIdentityProviderConfig
     }
 
     public String getRedirectUrl() {
+        if (baseUrl != null) {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUrlTemplate());
+            return builder
+                .buildAndExpand(Map.of("baseUrl", baseUrl, "action", "login"))
+                .toUriString();
+        }
+        return null;
+    }
+
+    public String redirectUrlTemplate() {
         return "{baseUrl}/auth/" + getAuthority() + "/{action}/" + getProvider();
     }
 }
