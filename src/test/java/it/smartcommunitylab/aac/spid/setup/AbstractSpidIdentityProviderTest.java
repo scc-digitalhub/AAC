@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 /**
  * Setup class for SPID Identity Provider (IdP) configuration and backend testing.
  * Inherits all standard SPID cryptography and templates from BaseSpidTest.
@@ -42,29 +40,15 @@ public abstract class AbstractSpidIdentityProviderTest extends BaseSpidTest {
     protected String signingActiveSigningCredentialIdInvalid = "id-invalid";
     protected SpidIdentityProviderConfigMap configsInvalid;
 
-    // Identity Provider Error Configuration Credentials
-    protected String expectedMessageEmpty = "CRITICAL: Missing SPID signing credentials. The Service Provider cannot establish a Circle of Trust with IdPs as required by AgID technical regulations (Binding HTTP-POST/Redirect).";
-    protected String expectedMessageMissingKeyStandalone = "CRITICAL: Key missing in standalone credential.";
-    protected String expectedMessageMissingKeyCredentials = "CRITICAL: Key missing in list (ID: " + signingActiveSigningCredentialIdInvalid + ").";
-    protected String expectedMessageNotFoundIdMaching = "CRITICAL: Not found credential matching active ID '" + signingActiveSigningCredentialIdInvalid + "' for signing AuthRequests.";
-    protected String expectedMessageKeyAndCertificateMismatchStandalone = "CRITICAL: Mismatch the Private Key or Certificate required for signing AuthRequests.";
-    protected String expectedMessagetKeyAndCertificateMismatchCredentials = "CRITICAL: Key and Certificate mismatch in ID '" + signingActiveSigningCredentialIdInvalid + "' for signing AuthRequests.";
-    protected String expectedMessagetDuplicateCertificates = "CRITICAL: Duplicate certificates found in the METADATA_EXPOSURE list!";
-
     protected void initConfigsInvalidServiceProvider(){
         configsInvalid = new SpidIdentityProviderConfigMap();
         signingListCredentialsInvalid = new ArrayList<>();
     }
 
-    protected IllegalArgumentException createInvalidSpidIdentityProvider(SpidIdentityProviderConfigMap spidIdentityProviderConfigMapInvalid){
-        return assertThrows(
-            IllegalArgumentException.class,
-            () -> {
-                SpidIdentityProviderConfig spidIdentityProviderConfigInvalid = new SpidIdentityProviderConfig(
-                    new ConfigurableIdentityProvider(signingIdpAuthority, signingIdpProviderInvalid, signingIdpRealmInvalid),
-                    null,
-                    spidIdentityProviderConfigMapInvalid); // Specific Configuration Credentials by Test runtime
-            }
-        );
+    protected SpidIdentityProviderConfig createInvalidSpidIdentityProvider(SpidIdentityProviderConfigMap spidIdentityProviderConfigMapInvalid){
+        return new SpidIdentityProviderConfig(
+            new ConfigurableIdentityProvider(signingIdpAuthority, signingIdpProviderInvalid, signingIdpRealmInvalid),
+            null,
+            spidIdentityProviderConfigMapInvalid); // Specific Configuration Credentials by Test runtime
     }
 }

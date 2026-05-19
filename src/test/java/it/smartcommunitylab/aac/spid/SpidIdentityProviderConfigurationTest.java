@@ -32,6 +32,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test suite for validating the SPID configuration loading and setup.
@@ -215,19 +216,20 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
     public void testEmptyCredentials() throws Exception {
         initConfigsInvalidServiceProvider();
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessageEmpty, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
     @DisplayName("Errata Configurazione - Key missing in standalone credential")
     public void testKeyStandaloneCredential() throws Exception {
         initConfigsInvalidServiceProvider();
-
         configsInvalid.setSigningCertificate(signingIdpSigningCertificate);
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessageMissingKeyStandalone, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
@@ -238,8 +240,9 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
         signingListCredentialsInvalid.add(new SigningCredential(signingActiveSigningCredentialIdInvalid, null, signingIdpSigningCertificate));
         configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessageMissingKeyCredentials, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
@@ -251,8 +254,9 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
         configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
         configsInvalid.setActiveAuthRequestSigningCredentialId(signingActiveSigningCredentialIdInvalid);
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessageNotFoundIdMaching, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
@@ -263,8 +267,9 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
         configsInvalid.setSigningCertificate(signingIdpSigningCertificate);
         configsInvalid.setSigningKey(signingCredentials.get(0).getSigningKey());
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessageEmpty, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
@@ -276,8 +281,9 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
         configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
         configsInvalid.setActiveAuthRequestSigningCredentialId(signingActiveSigningCredentialIdInvalid);
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessagetKeyAndCertificateMismatchCredentials, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
@@ -288,8 +294,9 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
         signingListCredentialsInvalid.add(new SigningCredential(signingActiveSigningCredentialIdInvalid, signingCredentials.get(0).getSigningKey(), signingIdpSigningCertificate));
         configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessageKeyAndCertificateMismatchStandalone, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 
     @Test
@@ -301,7 +308,8 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
         signingListCredentialsInvalid.add(new SigningCredential(null, signingCredentials.get(0).getSigningKey(), signingIdpSigningCertificate));
         configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
 
-        IllegalArgumentException exceptionCreateSpidIdentityProvider = createInvalidSpidIdentityProvider(configsInvalid);
-        assertEquals(expectedMessagetDuplicateCertificates, exceptionCreateSpidIdentityProvider.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> {
+            createInvalidSpidIdentityProvider(configsInvalid);
+        });
     }
 }

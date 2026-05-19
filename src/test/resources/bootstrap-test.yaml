@@ -516,6 +516,11 @@ realms:
           type: config:identity_provider:spid
           authnContext: https://www.spid.gov.it/SpidL2
           subAttributeName: fiscalNumber
+          organizationName: "TN Provincia Test"
+          organizationDisplayName: "Provincia Test"
+          organizationUrl: "https://www.tn-provincia-test.it"
+          contactPersonEmailAddress: "tecnico@provincia-test.it"
+          contactPersonIPACode: "codice_ipa_test"
           signingCredentials:
             - credentialId: active_request
               signingKey: |-
