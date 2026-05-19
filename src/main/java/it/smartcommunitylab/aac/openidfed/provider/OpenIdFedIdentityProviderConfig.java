@@ -100,8 +100,8 @@ public class OpenIdFedIdentityProviderConfig
     public OpenIdFedIdentityProviderStatusMap getStatusMap() {
         if (statusMap == null) {
             statusMap = new OpenIdFedIdentityProviderStatusMap();
-            statusMap.setRedirectUrl(getRedirectUrl());
-            statusMap.setClientId(getClientId());
+            statusMap.setEntityConfigurationUrl(populateBaseUrl(getEntityConfigurationUrl()));
+            statusMap.setClientId(populateBaseUrl(getClientId()));
         }
 
         return statusMap;
@@ -148,9 +148,9 @@ public class OpenIdFedIdentityProviderConfig
         return clientRegistrationRepository;
     }
 
-    public String getClientId() {
+    private String populateBaseUrl(String template) {
         if (baseUrl != null) {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(clientIdTemplate());
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(template);
             return builder
                 .buildAndExpand(Map.of("baseUrl", baseUrl))
                 .toUriString();
@@ -158,7 +158,7 @@ public class OpenIdFedIdentityProviderConfig
         return null;
     }
 
-    public String clientIdTemplate() {
+    public String getClientId() {
         //if set use configMap value - note: should match urls
         if (StringUtils.hasText(configMap.getClientId())) {
             return configMap.getClientId();
@@ -166,6 +166,10 @@ public class OpenIdFedIdentityProviderConfig
 
         //build url as base to be inflated
         return "{baseUrl}/auth/" + getAuthority() + "/metadata/" + getProvider();
+    }
+
+    public String getEntityConfigurationUrl() {
+        return "{baseUrl}/auth/" + getAuthority() + "/metadata/" + getProvider() + "/.well-known/openid-federation";
     }
 
     public String getRepositoryId() {
@@ -284,16 +288,6 @@ public class OpenIdFedIdentityProviderConfig
     }
 
     public String getRedirectUrl() {
-        if (baseUrl != null) {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectUrlTemplate());
-            return builder
-                .buildAndExpand(Map.of("baseUrl", baseUrl, "action", "login"))
-                .toUriString();
-        }
-        return null;
-    }
-
-    public String redirectUrlTemplate() {
         return "{baseUrl}/auth/" + getAuthority() + "/{action}/" + getProvider();
     }
 }

@@ -41,16 +41,14 @@ public class OpenIdFedIdentityProviderStatusMap extends AbstractStatusMap {
                     SystemKeys.ID_SEPARATOR +
                     SystemKeys.AUTHORITY_OPENIDFED;
 
-    private String redirectUrl;
+    private String entityConfigurationUrl;
     private String clientId;
 
-    public String getRedirectUrl() {
-        return redirectUrl;
+    public String getEntityConfigurationUrl() {
+        return entityConfigurationUrl;
     }
 
-    public void setRedirectUrl(String redirectUrl) {
-        this.redirectUrl = redirectUrl;
-    }
+    public void setEntityConfigurationUrl(String entityConfigurationUrl) { this.entityConfigurationUrl = entityConfigurationUrl; }
 
     public String getClientId() { return clientId; }
 
@@ -60,7 +58,8 @@ public class OpenIdFedIdentityProviderStatusMap extends AbstractStatusMap {
 
     @JsonIgnore
     public void setConfiguration(OpenIdFedIdentityProviderStatusMap map) {
-        this.redirectUrl = map.getRedirectUrl();
+        this.entityConfigurationUrl = map.getEntityConfigurationUrl();
+        this.clientId = map.getClientId();
     }
 
     @Override
