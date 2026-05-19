@@ -101,6 +101,7 @@ public class OpenIdFedIdentityProviderConfig
         if (statusMap == null) {
             statusMap = new OpenIdFedIdentityProviderStatusMap();
             statusMap.setEntityConfigurationUrl(populateBaseUrl(getEntityConfigurationUrl()));
+            // we process the clientid as url to support the baseurl substitution
             statusMap.setClientId(populateBaseUrl(getClientId()));
         }
 
