@@ -56,18 +56,18 @@ public class AgidUtils {
 
         // 1. Build the context for a successful flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
-                .withEndpoints(baseUrlAac, userDestinationUrl, authenticatePath)
-                .withIdpConfig(registrationId)
-                .withPostBinding(activePostBinding)
-                .withSession()
-                .executeRequest();
+            .withEndpoints(baseUrlAac, userDestinationUrl, authenticatePath)
+            .withIdpConfig(registrationId)
+            .withPostBinding(activePostBinding)
+            .withSession()
+            .executeRequest();
 
         String response = new SpidResponseBuilder(xmlTemplate, spidRequest.getRequestId())
-                .withIdpConfig(signingIdpSsoUrl)
-                .withEntityIds(assertingPartyEntityId, entityIdAac)
-                .withCertificates(idpPrivateKey, idpCertificate)
-                .withSignature()
-                .buildResponse();
+            .withIdpConfig(signingIdpSsoUrl)
+            .withEntityIds(assertingPartyEntityId, entityIdAac)
+            .withCertificates(idpPrivateKey, idpCertificate)
+            .withSignature()
+            .buildResponse();
 
         // 2. Perform the SAML POST
         MvcResult result = performSamlPost(mockMvc, spidRequest, response, signingIdpSsoUrl);
@@ -117,18 +117,18 @@ public class AgidUtils {
 
         // 1. Build the context for the anomaly flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
-                .withEndpoints(baseUrlAac, userDestinationUrl, authenticatePath)
-                .withIdpConfig(registrationId)
-                .withSession()
-                .executeRequest();
+            .withEndpoints(baseUrlAac, userDestinationUrl, authenticatePath)
+            .withIdpConfig(registrationId)
+            .withSession()
+            .executeRequest();
 
         String response = new SpidResponseBuilder(xmlTemplate, spidRequest.getRequestId())
-                .withIdpConfig(signingIdpSsoUrl)
-                .withEntityIds(assertingPartyEntityId, entityIdAac)
-                .withCertificates(idpPrivateKey, idpCertificate)
-                .withAnomaly(scenario, xmlAgidErrorTemplate)
-                .withSignature()
-                .buildResponse();
+            .withIdpConfig(signingIdpSsoUrl)
+            .withEntityIds(assertingPartyEntityId, entityIdAac)
+            .withCertificates(idpPrivateKey, idpCertificate)
+            .withAnomaly(scenario, xmlAgidErrorTemplate)
+            .withSignature()
+            .buildResponse();
 
         // 2. Perform the SAML POST
         MvcResult result = performSamlPost(mockMvc, spidRequest, response, signingIdpSsoUrl);
@@ -154,14 +154,14 @@ public class AgidUtils {
      */
     private MvcResult performSamlPost(MockMvc mockMvc, SpidRequest ctx, String samlResponse, String ssoUrl) throws Exception {
         return mockMvc.perform(post(ssoUrl)
-                        .secure(true)
-                        .param("SAMLResponse", samlResponse)
-                        .param("RelayState", ctx.getRelayState())
-                        .session(ctx.getSession())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                )
-                .andExpect(status().is3xxRedirection())
-                .andReturn();
+                .secure(true)
+                .param("SAMLResponse", samlResponse)
+                .param("RelayState", ctx.getRelayState())
+                .session(ctx.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            )
+            .andExpect(status().is3xxRedirection())
+            .andReturn();
     }
 
     /**
@@ -230,8 +230,8 @@ public class AgidUtils {
 
         // 2. Frontend Validation & HTML Extraction: Verify the login page correctly renders the SPID anomaly banner
         mockMvc.perform(get(loginDestinationUrl).flashAttr("error", spidEx.getErrorMessage()))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString(expectedLocalizedMessage)))
-                .andReturn();
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString(expectedLocalizedMessage)))
+            .andReturn();
     }
 }

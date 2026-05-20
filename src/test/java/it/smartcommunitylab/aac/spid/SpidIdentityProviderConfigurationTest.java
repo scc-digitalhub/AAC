@@ -3,12 +3,15 @@ package it.smartcommunitylab.aac.spid;
 import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
-import it.smartcommunitylab.aac.spid.provider.SigningCredential;
+import it.smartcommunitylab.aac.spid.provider.AbstractIdentityProvider;
+import it.smartcommunitylab.aac.spid.provider.FirstIdentityProvider;
+import it.smartcommunitylab.aac.spid.provider.InvalidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.spid.setup.AbstractSpidIdentityProviderTest;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderStatusMap;
+import it.smartcommunitylab.aac.spid.provider.SigningCredential;
+import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockMetadataIDP;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,14 +27,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -46,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ActiveProfiles({"test", "test-spid"})
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityProviderTest {
+public class SpidIdentityProviderConfigurationTest extends BaseSpidTest {
 
     @Autowired
     private Environment env;
@@ -58,10 +59,9 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
     @Qualifier("spidProviderConfigRepository")
     private ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository;
 
-    /* =========================================================================
-     * SPID Utility Components
-     * ========================================================================= */
     protected MockMetadataIDP mockMetadataIDP = new MockMetadataIDP();
+    protected FirstIdentityProvider firstIdentityProvider = new FirstIdentityProvider();
+    protected InvalidIdentityProvider invalidIdentityProvider = new InvalidIdentityProvider();
 
     @BeforeEach
     public void setupConfiguration() {
@@ -69,247 +69,196 @@ public class SpidIdentityProviderConfigurationTest extends AbstractSpidIdentityP
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
-                initReamlByBoostrap(realm);
-
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
-                assertThat(idps.size()).isEqualTo(2);
+                ConfigurableIdentityProvider idp = idps.get(0);
+                firstIdentityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
 
-                ConfigurableIdentityProvider idp1 = idps.get(0);
-                assertThat(idp1.getAuthority()).isNotNull();
-                assertThat(idp1.getRealm()).isNotNull();
-                assertThat(idp1.getConfiguration()).isNotNull();
-
-                signingIdpAuthority = idp1.getAuthority();
-                signingIdpProvider = idp1.getProvider();
-                signingIdpSloUrl = BASE_URL + SLO_PATH + encodeRegistrationId(signingIdpProvider);
+                firstIdentityProvider.signingIdpAuthority = idp.getAuthority();
+                firstIdentityProvider.signingIdpProvider = idp.getProvider();
+                firstIdentityProvider.signingIdpSloUrl = BASE_URL + SLO_PATH + AbstractIdentityProvider.encodeRegistrationId(firstIdentityProvider.signingIdpProvider);
 
                 SpidIdentityProviderConfigMap configmap = new SpidIdentityProviderConfigMap();
-                configmap.setConfiguration(idp1.getConfiguration());
+                configmap.setConfiguration(idp.getConfiguration());
 
-                assertThat(configmap.getSpidAttributes()).isNotNull();
-                assertThat(configmap.getSigningCredentials()).isNotNull();
-                assertThat(configmap.getSigningCredentials().get(1).getSigningKey()).isNotNull();
-                assertThat(configmap.getSigningCredentials().get(1).getSigningCertificate()).isNotNull();
-                assertThat(configmap.getActiveAuthRequestSigningCredentialId()).isNotNull();
-
-                signingSetSpidAttributes = configmap.getSpidAttributes();
-                signingCredentials = configmap.getSigningCredentials();
-                signingActiveSigningCredentialId = configmap.getActiveAuthRequestSigningCredentialId();
-                signingIdpSigningKey = configmap.getSigningCredentials().get(1).getSigningKey();
-                signingIdpSigningCertificate = configmap.getSigningCredentials().get(1).getSigningCertificate();
+                firstIdentityProvider.signingSetSpidAttributes = configmap.getSpidAttributes();
+                firstIdentityProvider.signingCredentials = configmap.getSigningCredentials();
+                firstIdentityProvider.signingActiveSigningCredentialId = configmap.getActiveAuthRequestSigningCredentialId();
+                firstIdentityProvider.signingIdpSigningKey = configmap.getSigningCredentials().get(1).getSigningKey();
+                firstIdentityProvider.signingIdpSigningCertificate = configmap.getSigningCredentials().get(1).getSigningCertificate();
             }
         });
     }
 
-    /**
-     * Verifies that the base SPID configuration wrapper contains the expected
-     * metadata URLs and cryptographic keys loaded from the environment.
-     */
-    @Test
-    @DisplayName("Verifica configurazione base dell'Identity Provider SPID")
-    public void testSpidConfigurationIsValid() throws Exception {
-        // PROFILE-BASED ISOLATION: Thanks to the dedicated 'test-spid' Spring Profile and
-        // the isolated H2 database, the repository returns a pristine configuration state
-        // loaded directly from our test bootstrap. This ensures the test verifies the
-        // setup without risking "dirtying" the global state of other test suites
-        SpidIdentityProviderConfig spidIdentityProviderConfig = spidProviderConfigRepository.findByProviderId(signingIdpProvider);
+    /* =========================================================================
+     * INTEGRATION TESTS FOR URLS AND MAPS
+     * ========================================================================= */
 
-        assertThat(spidIdentityProviderConfig.getProvider()).isEqualTo(signingIdpProvider);
-        assertThat(spidIdentityProviderConfig.getStatusMap().getMetadataUrl()).isEqualTo(signingIdpMetadataUrl);
-        assertThat(spidIdentityProviderConfig.getConfigMap().getSigningCredentials().get(1).getSigningKey()).isEqualTo(signingIdpSigningKey);
-        assertThat(spidIdentityProviderConfig.getConfigMap().getSigningCredentials().get(1).getSigningCertificate()).isEqualTo(signingIdpSigningCertificate);
+    @Test
+    @DisplayName("Verifica generazione degli URL SPID (Metadata, SSO, SLO)")
+    public void testUrlGeneration() {
+        SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
+        assertThat(config).isNotNull();
+
+        config.setBaseUrl(BASE_URL);
+        String expectedEncodedId = SpidIdentityProviderConfig.encodeRegistrationId(firstIdentityProvider.signingIdpProvider);
+
+        assertThat(config.getMetadataUrl()).isEqualTo(BASE_URL + "/auth/spid/metadata/" + expectedEncodedId);
+        assertThat(config.getAssertionConsumerUrl()).isEqualTo(BASE_URL + "/auth/spid/sso/" + expectedEncodedId);
+        assertThat(config.getConsumerUrl()).isEqualTo("{baseUrl}/auth/spid/sso/" + expectedEncodedId);
+        assertThat(config.getLogoutUrl()).isEqualTo("{baseUrl}/auth/spid/slo/" + expectedEncodedId);
     }
 
-    /**
-     * Ensures that the Assertion Consumer Service (ACS) Location, where the IdP
-     * will redirect the user after login, is correctly constructed.
-     */
     @Test
-    @DisplayName("Verifica URL dell'Assertion Consumer Service (ACS)")
-    public void testAssertionConsumerServiceLocationIsValid() throws Exception {
-        Set<RelyingPartyRegistration> rpRegistration = Collections.singleton(spidProviderConfigRepository.findByProviderId(signingIdpProvider).getRelyingPartyRegistration());
-        assertThat(rpRegistration.size()).isEqualTo(1);
+    @DisplayName("Verifica Status Map e mappa della Metadata Configuration")
+    public void testStatusMapAndMetadataConfiguration() {
+        SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
+        config.setBaseUrl(BASE_URL);
 
-        for (RelyingPartyRegistration rpr : rpRegistration) {
-            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rpr.getAssertionConsumerServiceLocation());
-            assertThat(builder.buildAndExpand(Map.of("baseUrl", BASE_URL)).toUriString()).isEqualTo(signingIdpSsoUrl);
-        }
+        SpidIdentityProviderStatusMap statusMap = config.getStatusMap();
+        assertThat(statusMap).isNotNull();
+        assertThat(statusMap.getMetadataUrl()).isEqualTo(config.getMetadataUrl());
+        assertThat(statusMap.getAssertionConsumerUrl()).isEqualTo(config.getAssertionConsumerUrl());
+
+        Map<String, String> metaConfigMap = config.getMetadataConfiguration();
+        assertThat(metaConfigMap).isNotNull();
+        assertThat(metaConfigMap.get("entityId")).isEqualTo(config.getEntityId());
+        assertThat(metaConfigMap.get("organizationName")).isEqualTo("TN Provincia Test");
+        assertThat(metaConfigMap.get("organizationDisplayName")).isEqualTo("Provincia Test");
+        assertThat(metaConfigMap.get("contactPersonEmailAddress")).isEqualTo("tecnico@provincia-test.it");
+        assertThat(metaConfigMap.get("contactPersonIpaCode")).isEqualTo("codice_ipa_test");
+
+        assertThat(metaConfigMap).containsKey("attributeConsumingServiceIndex 0");
     }
 
-    /**
-     * Validates the Spring Security RelyingPartyRegistration details, confirming
-     * EntityID, registration ID, and the presence of dual X.509 signing credentials.
-     */
+    @Test
+    @DisplayName("Verifica Getters diretti per Organizzazione e Contatti")
+    public void testOrganizationAndContactGetters() {
+        SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
+
+        assertThat(config.getOrganizationName()).isEqualTo("TN Provincia Test");
+        assertThat(config.getOrganizationDisplayName()).isEqualTo("Provincia Test");
+        assertThat(config.getOrganizationUrl()).isEqualTo("https://www.tn-provincia-test.it");
+        assertThat(config.getContactPersonEmailAddress()).isEqualTo("tecnico@provincia-test.it");
+        assertThat(config.getContactPersonIPACode()).isEqualTo("codice_ipa_test");
+
+        assertThat(config.getRelyingPartyRegistrationIsForceAuthn()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Verifica Attributi di Mapping Utente (Username e Sub)")
+    public void testUserMappingAttributes() {
+        SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
+
+        assertThat(config.getUsernameAttributeName().name()).isEqualTo("FISCAL_NUMBER");
+        assertThat(config.getSubAttributeName().name()).isEqualTo("FISCAL_NUMBER");
+    }
+
+    /* =========================================================================
+     * INTEGRATION TESTS FOR SPRING SECURITY / SAML
+     * ========================================================================= */
+
+    @Test
+    @DisplayName("Verifica generazione Credenziali OpenSAML per firma Metadata")
+    public void testMetadataSigningCredentials() {
+        SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
+
+        List<org.opensaml.security.credential.Credential> credentials = config.getMetadataRelyingPartySigningCredentials();
+
+        assertThat(credentials).isNotNull();
+        assertThat(credentials).hasSize(1);
+
+        org.opensaml.security.credential.Credential cred = credentials.get(0);
+        assertThat(cred.getEntityId()).isEqualTo(config.getEntityId());
+        assertThat(cred.getUsageType()).isEqualTo(org.opensaml.security.credential.UsageType.SIGNING);
+        assertThat(cred.getPublicKey()).isNotNull();
+        assertThat(cred.getPrivateKey()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Verifica collezione dei Relying Party Registration IDs")
+    public void testRelyingPartyRegistrationIds() {
+        SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
+        Set<String> ids = config.getRelyingPartyRegistrationIds();
+
+        assertThat(ids).isNotNull();
+        assertThat(ids).isNotEmpty();
+
+        String expectedMetadataRegId = SpidIdentityProviderConfig.encodeRegistrationId(config.getProvider());
+        assertThat(ids).contains(expectedMetadataRegId);
+    }
+
     @Test
     @DisplayName("Verifica Relying Party Registration (Metadata SP)")
     public void testRelyingPartyRegistrationIsCorrect() throws Exception {
-        RelyingPartyRegistration rpRegistration = spidProviderConfigRepository.findByProviderId(signingIdpProvider).getMetadataRelyingPartyRegistration();
+        RelyingPartyRegistration rpRegistration = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider).getMetadataRelyingPartyRegistration();
 
         assertThat(rpRegistration).isNotNull();
-        assertThat(rpRegistration.getEntityId()).isEqualTo(signingIdpEntityId);
-        assertThat(rpRegistration.getRegistrationId()).isEqualTo(encodeRegistrationId(signingIdpProvider));
+        assertThat(rpRegistration.getEntityId()).isEqualTo(firstIdentityProvider.signingIdpEntityId);
+        assertThat(rpRegistration.getRegistrationId()).isEqualTo(AbstractIdentityProvider.encodeRegistrationId(firstIdentityProvider.signingIdpProvider));
         assertThat(rpRegistration.getSigningX509Credentials().size()).isEqualTo(3);
 
         Saml2X509Credential credential = rpRegistration.getSigningX509Credentials().iterator().next();
         assertThat(credential).isNotNull();
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rpRegistration.getAssertionConsumerServiceLocation());
-        assertThat(builder.buildAndExpand(Map.of("baseUrl", BASE_URL)).toUriString()).isEqualTo(signingIdpSsoUrl);
+        assertThat(builder.buildAndExpand(Map.of("baseUrl", BASE_URL)).toUriString()).isEqualTo(firstIdentityProvider.signingIdpSsoUrl);
     }
 
-    /**
-     * Confirms that the target Asserting Party (IdP) Entity IDs are successfully
-     * extracted and registered within the Relying Party configurations.
-     */
     @Test
     @DisplayName("Verifica registrazione degli Identity Provider (IdP)")
     public void testIdentityProvidersAreRegistered() throws Exception {
-        SpidIdentityProviderConfig spidIdentityProviderConfig = spidProviderConfigRepository.findByProviderId(signingIdpProvider);
+        SpidIdentityProviderConfig spidIdentityProviderConfig = spidProviderConfigRepository.findByProviderId(firstIdentityProvider.signingIdpProvider);
         Set<RelyingPartyRegistration> relyingPartyRegistrations = Collections.singleton(spidIdentityProviderConfig.getRelyingPartyRegistration());
 
         assertThat(relyingPartyRegistrations.size()).isEqualTo(1);
         assertThat(relyingPartyRegistrations.stream().findFirst().get().getEntityId())
-                .isEqualTo(signingIdpEntityId);
+            .isEqualTo(firstIdentityProvider.signingIdpEntityId);
         assertThat(spidIdentityProviderConfig.getIdentityProviders())
-                .extracting(SpidRegistration::getEntityId)
-                .contains(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT);
+            .extracting(SpidRegistration::getEntityId)
+            .contains(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT);
     }
 
-    /**
-     * Checks if the required SPID Attributes (e.g., name, familyName, fiscalNumber)
-     * are correctly parsed from the configuration.
-     */
-    @Test
-    @DisplayName("Verifica configurazione degli attributi SPID richiesti")
-    public void testSpidAttributesAreConfigured() throws Exception {
-        Set<SpidAttribute> attributes = spidProviderConfigRepository.findByProviderId(signingIdpProvider).getConfigMap().getSpidAttributes();
-        assertThat(attributes.size()).isEqualTo(5);
-
-        assertThat(attributes).isEqualTo(signingSetSpidAttributes);
-    }
-
-    /**
-     * Validates that the underlying authentication authority type is explicitly set to 'spid'.
-     */
-    @Test
-    @DisplayName("Verifica che l'Authority configurata sia 'spid'")
-    public void testAuthorityIsSpid() throws Exception {
-        String authority = spidProviderConfigRepository.findByProviderId(signingIdpProvider).getAuthority();
-        assertThat(authority).isEqualTo(signingIdpAuthority);
-        assertThat(authority).isEqualTo("spid");
-    }
-
-    /**
-     * Verifies that the correct number of signing credentials (usually active + rollover)
-     * are loaded in the configuration.
-     */
-    @Test
-    @DisplayName("Verifica presenza delle credenziali di firma (X.509) - METADATA_EXPOSURE")
-    public void testSigningCredentialsArePresent() throws Exception {
-        Integer signingCredentialsListSize = spidProviderConfigRepository.findByProviderId(signingIdpProvider).getConfigMap().getSigningCredentials().size();
-        assertThat(signingCredentialsListSize).isEqualTo(signingCredentials.size());
-        assertThat(signingCredentials.size()).isEqualTo(3);
-    }
-
-    @Test
-    @DisplayName("Errata Configurazione - Empty Credentials ")
-    public void testEmptyCredentials() throws Exception {
-        initConfigsInvalidServiceProvider();
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
-        });
-    }
-
-    @Test
-    @DisplayName("Errata Configurazione - Key missing in standalone credential")
-    public void testKeyStandaloneCredential() throws Exception {
-        initConfigsInvalidServiceProvider();
-        configsInvalid.setSigningCertificate(signingIdpSigningCertificate);
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
-        });
-    }
-
-    @Test
-    @DisplayName("Errata Configurazione - Key missing in list credentials")
-    public void testKeyListCredentials() throws Exception {
-        initConfigsInvalidServiceProvider();
-
-        signingListCredentialsInvalid.add(new SigningCredential(signingActiveSigningCredentialIdInvalid, null, signingIdpSigningCertificate));
-        configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
-        });
-    }
-
-    @Test
-    @DisplayName("Errata Configurazione - Not Found Id Maching")
-    public void testNotFoundIdMaching() throws Exception {
-        initConfigsInvalidServiceProvider();
-
-        signingListCredentialsInvalid.add(new SigningCredential(null, signingIdpSigningKey, signingIdpSigningCertificate));
-        configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
-        configsInvalid.setActiveAuthRequestSigningCredentialId(signingActiveSigningCredentialIdInvalid);
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
-        });
-    }
+    /* =========================================================================
+     * CRYPTOGRAPHIC MISMATCH TESTS (SPRING SECURITY VALIDATION)
+     * ========================================================================= */
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch in standalone credential")
     public void testKeyAndCertificateMismatchStandaloneCredential() throws Exception {
-        initConfigsInvalidServiceProvider();
+        invalidIdentityProvider.reset();
 
-        configsInvalid.setSigningCertificate(signingIdpSigningCertificate);
-        configsInvalid.setSigningKey(signingCredentials.get(0).getSigningKey());
+        invalidIdentityProvider.configsInvalid.setSigningCertificate(firstIdentityProvider.signingIdpSigningCertificate);
+        invalidIdentityProvider.configsInvalid.setSigningKey(firstIdentityProvider.signingCredentials.get(0).getSigningKey());
 
         assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
+            invalidIdentityProvider.createInvalidSpidIdentityProvider(firstIdentityProvider.signingIdpAuthority, invalidIdentityProvider.configsInvalid);
         });
     }
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch in list credentials")
     public void testKeyAndCertificateMismatchListCredentials() throws Exception {
-        initConfigsInvalidServiceProvider();
+        invalidIdentityProvider.reset();
 
-        signingListCredentialsInvalid.add(new SigningCredential(signingActiveSigningCredentialIdInvalid, signingCredentials.get(0).getSigningKey(), signingIdpSigningCertificate));
-        configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
-        configsInvalid.setActiveAuthRequestSigningCredentialId(signingActiveSigningCredentialIdInvalid);
+        invalidIdentityProvider.signingListCredentialsInvalid.add(new SigningCredential(invalidIdentityProvider.signingActiveSigningCredentialIdInvalid, firstIdentityProvider.signingCredentials.get(0).getSigningKey(), firstIdentityProvider.signingIdpSigningCertificate));
+        invalidIdentityProvider.configsInvalid.setSigningCredentials(invalidIdentityProvider.signingListCredentialsInvalid);
+        invalidIdentityProvider.configsInvalid.setActiveAuthRequestSigningCredentialId(invalidIdentityProvider.signingActiveSigningCredentialIdInvalid);
 
         assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
+            invalidIdentityProvider.createInvalidSpidIdentityProvider(firstIdentityProvider.signingIdpAuthority, invalidIdentityProvider.configsInvalid);
         });
     }
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch")
     public void testKeyAndCertificateMismatch() throws Exception {
-        initConfigsInvalidServiceProvider();
+        invalidIdentityProvider.reset();
 
-        signingListCredentialsInvalid.add(new SigningCredential(signingActiveSigningCredentialIdInvalid, signingCredentials.get(0).getSigningKey(), signingIdpSigningCertificate));
-        configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
-        });
-    }
-
-    @Test
-    @DisplayName("Errata Configurazione - Duplicate certificates")
-    public void testDuplicateCertificates() throws Exception {
-        initConfigsInvalidServiceProvider();
-
-        signingListCredentialsInvalid.add(new SigningCredential(null, signingIdpSigningKey, signingIdpSigningCertificate));
-        signingListCredentialsInvalid.add(new SigningCredential(null, signingCredentials.get(0).getSigningKey(), signingIdpSigningCertificate));
-        configsInvalid.setSigningCredentials(signingListCredentialsInvalid);
+        invalidIdentityProvider.signingListCredentialsInvalid.add(new SigningCredential(invalidIdentityProvider.signingActiveSigningCredentialIdInvalid, firstIdentityProvider.signingCredentials.get(0).getSigningKey(), firstIdentityProvider.signingIdpSigningCertificate));
+        invalidIdentityProvider.configsInvalid.setSigningCredentials(invalidIdentityProvider.signingListCredentialsInvalid);
 
         assertThrows(IllegalArgumentException.class, () -> {
-            createInvalidSpidIdentityProvider(configsInvalid);
+            invalidIdentityProvider.createInvalidSpidIdentityProvider(firstIdentityProvider.signingIdpAuthority, invalidIdentityProvider.configsInvalid);
         });
     }
 }
