@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.spid.utils;
 
-import it.smartcommunitylab.aac.spid.setup.SpidRequest;
+import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;

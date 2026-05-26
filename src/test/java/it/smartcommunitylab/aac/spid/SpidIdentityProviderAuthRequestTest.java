@@ -10,8 +10,8 @@ import it.smartcommunitylab.aac.spid.provider.FirstIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockMetadataIDP;
-import it.smartcommunitylab.aac.spid.setup.SpidRequest;
-import it.smartcommunitylab.aac.spid.utils.SpidRequestFlow;
+import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
+import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
 import it.smartcommunitylab.aac.spid.utils.UserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.MessageSource;
-import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -47,12 +45,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
 public class SpidIdentityProviderAuthRequestTest extends BaseSpidTest {
-
-    @Autowired
-    private Environment env;
-
-    @Autowired
-    private MessageSource messageSource;
 
     @Autowired
     private BootstrapConfig config;

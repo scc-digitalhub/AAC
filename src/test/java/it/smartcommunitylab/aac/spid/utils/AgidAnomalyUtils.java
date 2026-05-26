@@ -1,6 +1,6 @@
 package it.smartcommunitylab.aac.spid.utils;
 
-import it.smartcommunitylab.aac.spid.setup.SpidAgidAnomalyScenario;
+import it.smartcommunitylab.aac.spid.setupflow.SpidAgidAnomalyScenario;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,7 +25,7 @@ import java.util.UUID;
  * to inject specific AgID error codes (Status, Sub-Status, and StatusMessage)
  * while dynamically updating session-specific attributes like IDs and timestamps.
  */
-public class AgidAnomalyFactory extends ResponseUtils {
+public class AgidAnomalyUtils extends ResponseUtils {
 
     /**
      * Constructs a tailored SAML Error Response based on the provided AgID scenario.

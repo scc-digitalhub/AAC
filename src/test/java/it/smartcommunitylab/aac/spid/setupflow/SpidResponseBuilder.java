@@ -1,7 +1,8 @@
-package it.smartcommunitylab.aac.spid.utils;
+package it.smartcommunitylab.aac.spid.setupflow;
 
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
-import it.smartcommunitylab.aac.spid.setup.SpidAgidAnomalyScenario;
+import it.smartcommunitylab.aac.spid.utils.AgidAnomalyUtils;
+import it.smartcommunitylab.aac.spid.utils.ResponseUtils;
 
 import java.util.Set;
 
@@ -33,7 +34,7 @@ public class SpidResponseBuilder {
 
     // Internal utilities to keep the builder logic clean
     private final ResponseUtils responseUtils = new ResponseUtils();
-    private final AgidAnomalyFactory anomalyFactory = new AgidAnomalyFactory();
+    private final AgidAnomalyUtils anomalyFactory = new AgidAnomalyUtils();
 
     // Flow execution flags and state
     private boolean applySignature = false;

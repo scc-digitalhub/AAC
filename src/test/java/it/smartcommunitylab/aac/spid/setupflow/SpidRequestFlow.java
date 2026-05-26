@@ -1,6 +1,7 @@
-package it.smartcommunitylab.aac.spid.utils;
+package it.smartcommunitylab.aac.spid.setupflow;
 
-import it.smartcommunitylab.aac.spid.setup.SpidRequest;
+import it.smartcommunitylab.aac.spid.utils.RequestUtils;
+import it.smartcommunitylab.aac.spid.utils.UserUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.mock.web.MockHttpSession;
@@ -112,7 +113,7 @@ public class SpidRequestFlow {
             if (this.usePostBinding) {
                 // --- HTTP-POST ---
                 if ( result.getResponse().getStatus() != 200 ){
-                    throw new IllegalArgumentException("Dismach status for HTTP-POST");
+                    throw new IllegalArgumentException("Mismatch status for HTTP-POST");
                 }
 
                 String html = result.getResponse().getContentAsString();
@@ -124,7 +125,7 @@ public class SpidRequestFlow {
             } else {
                 // --- HTTP-REDIRECT ---
                 if ( result.getResponse().getStatus() != 302 ){
-                    throw new IllegalArgumentException("Dismach status for HTTP-REDIRECT");
+                    throw new IllegalArgumentException("Mismatch status for HTTP-REDIRECT");
                 }
 
                 redirectedUrl = result.getResponse().getRedirectedUrl();

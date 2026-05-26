@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.transaction.Transactional;
@@ -41,9 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
 public class SpidIdentityProviderLoadBootStrapTest extends BaseSpidTest {
-
-    @Autowired
-    private Environment env;
 
     @Autowired
     private BootstrapConfig config;

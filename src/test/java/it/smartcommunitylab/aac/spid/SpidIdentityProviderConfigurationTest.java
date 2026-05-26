@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.test.context.ActiveProfiles;
@@ -48,9 +47,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
 public class SpidIdentityProviderConfigurationTest extends BaseSpidTest {
-
-    @Autowired
-    private Environment env;
 
     @Autowired
     private BootstrapConfig config;

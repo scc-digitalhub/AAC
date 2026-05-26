@@ -9,12 +9,8 @@ import it.smartcommunitylab.aac.spid.provider.FirstIdentityProvider;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.utils.MetadataUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.opensaml.core.config.ConfigurationService;
-import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
-import org.opensaml.core.xml.io.Unmarshaller;
 import org.opensaml.saml.saml2.metadata.AttributeConsumingService;
 import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.saml.saml2.metadata.ContactPerson;
@@ -30,25 +26,20 @@ import org.opensaml.saml.saml2.metadata.SingleLogoutService;
 import org.opensaml.saml.saml2.metadata.SPSSODescriptor;
 import org.opensaml.saml.saml2.metadata.RoleDescriptor;
 import org.opensaml.security.credential.UsageType;
-import org.opensaml.security.x509.BasicX509Credential;
 import org.opensaml.xmlsec.signature.Signature;
 import org.opensaml.xmlsec.signature.X509Certificate;
 import org.opensaml.xmlsec.signature.X509Data;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
-import org.opensaml.xmlsec.signature.support.SignatureValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.security.saml2.provider.service.registration.Saml2MessageBinding;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import javax.transaction.Transactional;
-import java.io.ByteArrayInputStream;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashSet;
 import java.util.List;
@@ -74,9 +65,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
 public class SpidIdentityProviderMetadataTest extends BaseSpidTest {
-
-    @Autowired
-    private Environment env;
 
     @Autowired
     private BootstrapConfig config;

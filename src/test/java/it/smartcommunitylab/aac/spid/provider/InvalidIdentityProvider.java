@@ -8,7 +8,7 @@ import java.util.List;
 public class InvalidIdentityProvider {
 
     /* =========================================================================
-     * Invalid Service Provider (Supporto ai Test di Integrazione)
+     * Invalid Service Provider (Integration Test Support)
      * ========================================================================= */
 
     protected String signingIdpProviderInvalid = "d098e3ef-e9b1-4d61-a288-2a04dd3d22e0";
@@ -17,7 +17,7 @@ public class InvalidIdentityProvider {
     public String signingActiveSigningCredentialIdInvalid = "id-invalid";
     public SpidIdentityProviderConfigMap configsInvalid;
 
-    // Aggiungo un metodo per resettare lo stato tra un test e l'altro
+    // Adding a method to reset the state between tests
     public void reset() {
         this.configsInvalid = new SpidIdentityProviderConfigMap();
         this.signingListCredentialsInvalid = new ArrayList<>();

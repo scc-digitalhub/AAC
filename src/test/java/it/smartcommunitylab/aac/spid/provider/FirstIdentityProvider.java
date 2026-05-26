@@ -7,8 +7,9 @@ import java.util.List;
 public class FirstIdentityProvider extends AbstractIdentityProvider {
 
     /* =========================================================================
-     * Campi Specifici del Primo SP
+     * First SP Specific Fields
      * ========================================================================= */
+
     public String signingIdpSigningCertificate;
     public String signingIdpSloUrl;
     public String signingIdpAuthority;
@@ -19,8 +20,7 @@ public class FirstIdentityProvider extends AbstractIdentityProvider {
 
     @Override
     public void initReamlByBoostrap(ConfigurableIdentityProvider idp, String BASE_URL, String METADATA_PATH, String SSO_PATH) {
-
-        // Inizializza URL, provider ed Entity ID tramite la classe base
+        // Initializes URLs, providers, and Entity IDs using the base class
         initCommonIdpFields(idp, BASE_URL, METADATA_PATH, SSO_PATH);
     }
 }

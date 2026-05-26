@@ -1,16 +1,16 @@
-package it.smartcommunitylab.aac.spid.setup;
+package it.smartcommunitylab.aac.spid.setupflow;
 
 /**
  * Enumeration of SPID Anomaly Codes as defined by AgID technical specifications (v1.4).
  */
 public enum SpidAgidAnomalyScenario {
 
-    // --- ANOMALIE RICHIESTA (Status: VersionMismatch) ---
+    // --- REQUEST ANOMALIES (Status: VersionMismatch) ---
 
     /** Error nr09: SAML version mismatch (not 2.0). */
     CODE_09("urn:oasis:names:tc:SAML:2.0:status:VersionMismatch", null, "ErrorCode nr09",  false),
 
-    // --- ANOMALIE RICHIESTA (Status: Requester) ---
+    // --- REQUEST ANOMALIES (Status: Requester) ---
 
     /** Error nr08: Signature of the AuthnRequest is missing or invalid. */
     CODE_08("urn:oasis:names:tc:SAML:2.0:status:Requester", null, "ErrorCode nr08", false),
@@ -39,7 +39,7 @@ public enum SpidAgidAnomalyScenario {
     /** Error nr18: AttributeConsumerServiceIndex error. */
     CODE_18("urn:oasis:names:tc:SAML:2.0:status:Requester", "urn:oasis:names:tc:SAML:2.0:status:RequestUnsupported", "ErrorCode nr18", false),
 
-    // --- ANOMALIE RISPOSTA (Status: Responder) ---
+    // --- RESPONSE ANOMALIES (Status: Responder) ---
 
     /** Error nr19: Authentication failed (wrong credentials multiple times). */
     CODE_19("urn:oasis:names:tc:SAML:2.0:status:Responder", "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed", "ErrorCode nr19", true),
@@ -62,7 +62,7 @@ public enum SpidAgidAnomalyScenario {
     /** Error nr30: Identity mismatch (e.g. Legal Person vs Natural Person). */
     CODE_30("urn:oasis:names:tc:SAML:2.0:status:Responder", "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed", "ErrorCode nr30", true),
 
-    // --- ANOMALIE RISPOSTA (Status: Responder) - Processi di Riuso Identità Pregresse ---
+    // --- RESPONSE ANOMALIES (Status: Responder) - Previous Identity Reuse Processes ---
 
     /** Error nr27: User already exists. */
     CODE_27("urn:oasis:names:tc:SAML:2.0:status:Responder", "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed", "ErrorCode nr27", false),

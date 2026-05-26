@@ -1,6 +1,5 @@
-package it.smartcommunitylab.aac.spid.setup;
+package it.smartcommunitylab.aac.spid.setupflow;
 
-import it.smartcommunitylab.aac.spid.utils.SpidRequestFlow;
 import org.springframework.mock.web.MockHttpSession;
 
 /**
