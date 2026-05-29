@@ -6,7 +6,13 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
-public class MockMetadataIDP {
+/**
+ * Utility class for mocking SPID Identity Providers (IdPs) using WireMock.
+ * Centralizes the test infrastructure by providing hardcoded cryptographic materials (RSA keys and X.509 certificates),
+ * SAML 2.0 XML response templates (for both successful authentications and AgID-specific anomaly errors),
+ * and dynamic generation of IdP Metadata for testing HTTP-Redirect and HTTP-POST bindings.
+ */
+public class MockIdpSpid {
 
     /* =========================================================================
      * Identity Provider (IdP) Identification
@@ -24,53 +30,54 @@ public class MockMetadataIDP {
      * Shared Cryptographic Materials (PKCS#8 Keys & Certs)
      * ========================================================================= */
 
-    public final String IDP_VERIFICATION_PRIVATE_KEY =
-        "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCrnfaliMBloASt\n" +
-        "LS/x7QfKC1L56h780wfnLSiriuv+6ogDziZIQc0O6BFN/y96ie2F5p67mNT8N3K5\n" +
-        "jaMbBwrImAizNtUNR7MWRWAS9AuH1f5xdZbCexIjpkbSC6eJ0AEfzLyRkTWHBqVy\n" +
-        "DFOad8ZscSHl80o2m8CPEa6Ynd3bsYjaYappaN9GCXsdEOUtn+gCtXk/gXosAFzN\n" +
-        "kOY/tgrRWNMXkF8M0+JPbPOqnvbXsjoA+Ki2EPMJL7/IP9Twd3lYAYJ+MIb9A8Ll\n" +
-        "dbpf/zZTOAtCKEoEeP0TCKHkExN9bAFEBIniwmi+6S0ttw2YsIWSHbUa+95D+q0C\n" +
-        "kESO3GcnAgMBAAECggEAC540AQd9pDjtrXOZAqholer9AQzdGtcxJRtPh4gYwIx2\n" +
-        "t3CQnY+m0X2FvmFU1izZjEO34edPc+D6aUlcuLWvVd5vqFeWm2w2hCl01D5P5trm\n" +
-        "e3PZyEILUP0utNredVvu14zwBG1vfDvySK2WSKdseBGTQ+fxJuVAZ0Rr13Ud0djZ\n" +
-        "of6l1dPGMdXU6Wy2aTGl7T/EoC62fTAnNY9y1oVuW3Syl51Jt5iZbIR/aVYWx5mH\n" +
-        "PSNZBgw6jfkbJHIMnMnh16mRRQD1e169vhSuEDRzjamq0BXGWr+HeqjL32alI6gO\n" +
-        "0NMOh5XIiXqseq9SvFA4kHdufOT+/VTNUkpzhIxf8QKBgQDxCs1wr78TUxWbSUjG\n" +
-        "VmyryF/q74LN4U/402MSp0afzH3iDtxlbXmo7fSPxSL4jcN7uALbPtlp4rpHBnEh\n" +
-        "6oSCRd0YMW+9JrKog/c86WxopxmJkuly/aa8ArwP0mJ4xcft8VM4vgOdw38kqhS2\n" +
-        "oPNTTGuEuWlbj8pYqnBDzikyDQKBgQC2REXM6YoFeu7ecmd2KrWTJpRhWNeNLWq0\n" +
-        "C1YAfRHGwDUHexybNgyTozcnW8L/TpHCBC9q1PdqGHAZTpshaiC+R+pGm4826Vhi\n" +
-        "2CQy8Hwy1bV2nsk4UZvFdRFM2uHtQDUvd/mOsVNFCwAil/TPAblMi1J3OBiJkhSO\n" +
-        "jyV58azVAwKBgAsscwWMQBFHQrMmHIeFLhhwe3HKlIeysCBavDb7Jhz2P8eg5LqW\n" +
-        "7pLUJQgdHVfkSnGLwCYlrbJo3jW4qLnnwyi+0Fb0w7dC+fkx1N4v++SGCnsEImpA\n" +
-        "M+B3R/x7xjDPCkuPakoxFL3VeClc8QTeRSlRW5KVfbrO2ZRuojGiduppAoGAEGUN\n" +
-        "vkPXhWysZdf2lHt8/7J9sE/0e591NKK8ZqjZW35Yhsa9KPzwnqsUv/aSELL5i3Ei\n" +
-        "7sIfSyzNkIkwjQ3lyhff69/8Pt04dROqFebp1QzCGNxpjyZQE6/XEYmyvsuCvTVW\n" +
-        "fk5XBiPaLEJs493s1ATIMy8Zje5U6QnZPiHOAQ8CgYAijpZW3Fz1cOs3/eMy3R5S\n" +
-        "CssFEnduMnYQz14xc9vDJnOq8Xyruus8/XZ8HVKY6cBIB/SZWO9eFixCYh5XlV8K\n" +
-        "WgfOl9zfrhNADBWsavSjVlyssxKIWJkg1adNq36p7dtGKkkDDE/HcMKwRKi5TzZx\n" +
-        "VCcWUmNSFqEM0cm4MMRNfg==";
+    public final String IDP_MOCK_PRIVATE_KEY = """
+        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC6N2rhDdh2NaYf
+        UtOi0PbXN2tiUZzs2/fbFhLCMjThmUn0ZOCIfWOF0ITYtELNN86d3knpd/KXW4mH
+        6qCH4r88sowhn/FoAK5F5BzbAuOYTcEfV4S4DkVqk1P+T1jzeJD7fvC+90kGvRMj
+        kQVOt9et7ydg64LDuXDpJBJiKehsMNn9SUQZKv8VbkFmfxXp2jBMSXA06oFwuxm/
+        JKGdcwjgLI98CmKyLyPbDYAEoo0+sC8W+oOYdn76GqP2hsabm3iEUo1K9WBXveHG
+        SE4B0TisIxKwwS/TNWkanGBuXuqm+fngcqWKK1BMxia+ZxLbvdXrvyvkuLjIhrjJ
+        zRcNuf1JAgMBAAECggEAGDBzse62VCCtnCW1DSd/hmm8tBsC5ffAT2rOHqtz7WxC
+        oZHAYv/av5AHJGPsxjNTeR6zfjWRGIfmVSFYH16ygHl3CjUjIDiaasTHhMxFcUwv
+        DoRes/lSm2tY6VDjA/mA59J6W8F2mylQxPl6dYUcagvbaH50pY+/XYxMgQji7WQF
+        sQKQwGgplbqzVn/W+hotuWQzcLirawwqC+MDMc4p1EqxBDICrWGdguwfJNWQoALJ
+        9V7lG53ZX/eSeAXpsIbaAeWKw54/V/ZOGdDnHqdhZzh2lHT+kvWfsSN2jE1aBski
+        3yVEorT+J5zOiftKxZNf8YCx3hsybdpyRply8L8fgwKBgQDk01ho2I0IV6TdcORQ
+        8xjl7lJoa1dnfp0nMAGz4UqKggD7a/HBQGALQ8IRpgE2UtNIpqFbYt+Zn51k8Zup
+        DhhO3LepR9EmEyZe3SEqLll9GN6YCC8l6WJK3XF+nCxWULDMF2nI8oQH0zpSmGur
+        BoYCxxBFTJ6dlMkgK58UrP/p3wKBgQDQVLBtJJ0KuhG/3E84uBzBwdF06FlbDuHq
+        9aq/R9pCe5BnA8qUe3AdZCZYtGv1qMHDDjIZtGfKMycidC9XHZoFTSUP+KqZ8BAH
+        gB6bURWmMluDujCbh2VoyEBluY/3HIJqFZdilG1OI9hGWsgqujmRfeeophKz5DYd
+        +1AmFhvN1wKBgCbbgOLlCyYEhBmahxr7/RlmnBXhTIllpdg2vcNHGbplkzcewIH5
+        pZWkHvuSPhh0fi6TJUl4g9H5mee/Y5iUrSoPLx0O9gRKMjTfxjb8gfPNWldk5GTC
+        ug9OhWxjpt/NegheXXdjP2p4wymtenMje3RTS38JINJPpsvQvIXtTtPvAoGADrB6
+        BCgZvqDiEYIqP9iThoHxD+o2KrqA6X1K/dPGKvvlca4Nwax2ekwOfCC0oAy3JNbC
+        Z5eV3eb/cml40Q6wRoFrBJZHCTWpG65H+jGcciyI0V/2f3DrkJjWGZYc9ZKYC3zc
+        QMIwdtsGK+fIx2J8HqsfA4A6P17vBewreZQDf98CgYAuYEo1NZvdB8x75B4Q+0nS
+        TjaoKf+1GzU8h0Lm+pYkb66NwiCJuUQ3dFEPg18E7bNpvnYsGSmbUnwL7H+klKIB
+        H3w4Eo+6k3sSjHnsT+ztG++ksCSrwx8K1Pxn4TEMmc0fIxeU30m+rOLDc3hW0ijF
+        j5ePfdDkG3IEKOr2Gqsp9Q==
+        """;
 
-    public final String IDP_VERIFICATION_CERTIFICATE =
-        "MIIDSTCCAjGgAwIBAgIUHl/XG9lSuDNExvxUnjyIGwhbybIwDQYJKoZIhvcNAQEL\n" +
-        "BQAwNDELMAkGA1UEBhMCSVQxETAPBgNVBAoMCFRlc3QgSWRQMRIwEAYDVQQDDAls\n" +
-        "b2NhbGhvc3QwHhcNMjYwMzE5MDk0NDMyWhcNMzYwMzE2MDk0NDMyWjA0MQswCQYD\n" +
-        "VQQGEwJJVDERMA8GA1UECgwIVGVzdCBJZFAxEjAQBgNVBAMMCWxvY2FsaG9zdDCC\n" +
-        "ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKud9qWIwGWgBK0tL/HtB8oL\n" +
-        "UvnqHvzTB+ctKKuK6/7qiAPOJkhBzQ7oEU3/L3qJ7YXmnruY1Pw3crmNoxsHCsiY\n" +
-        "CLM21Q1HsxZFYBL0C4fV/nF1lsJ7EiOmRtILp4nQAR/MvJGRNYcGpXIMU5p3xmxx\n" +
-        "IeXzSjabwI8Rrpid3duxiNphqmlo30YJex0Q5S2f6AK1eT+BeiwAXM2Q5j+2CtFY\n" +
-        "0xeQXwzT4k9s86qe9teyOgD4qLYQ8wkvv8g/1PB3eVgBgn4whv0DwuV1ul//NlM4\n" +
-        "C0IoSgR4/RMIoeQTE31sAUQEieLCaL7pLS23DZiwhZIdtRr73kP6rQKQRI7cZycC\n" +
-        "AwEAAaNTMFEwHQYDVR0OBBYEFHrVg5fygJ7DtkvNhxZ5cBdmsBSnMB8GA1UdIwQY\n" +
-        "MBaAFHrVg5fygJ7DtkvNhxZ5cBdmsBSnMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZI\n" +
-        "hvcNAQELBQADggEBAA0W4zRUYuWLCpJe7JqkijeFVu+ZlXVl/btC0GQz7S8dwLmp\n" +
-        "qVLs9GpH+MjQVEsl/M8D1scBCUmCJZ8srHvDDyhw1j4RMoqipUo98FsI8wU2Oiyy\n" +
-        "LUBQW3gJQehvkorcHnV/AQBXoSp/FKhtLjRqMNXTCj7b9Ebjj//MtLaLWxpzoxrF\n" +
-        "0kLHq7uF9FlabsS+nv1oeGgyvktlzn0QabNrOyn7AlJc67bh4eKqpHoNukEqc93c\n" +
-        "Zik3hdbJ56VPoKbr7lLz+rsNbKwq0dIfcRJUOGgEK4fs1MLDAMoJgiCf8iN8YnaK\n" +
-        "Y6QpmHEn6w3QEC+HDJpkxAbHo4yrI1JV8gQAZEA=";
+    public final String IDP_MOCK_CERTIFICATE = """
+        MIIDGjCCAgKgAwIBAgIUKtQ7+zSJ+cirIifmju+E2aAk7tgwDQYJKoZIhvcNAQEL
+        BQAwMDELMAkGA1UEBhMCSVQxDTALBgNVBAoMBFRlc3QxEjAQBgNVBAMMCWxvY2Fs
+        aG9zdDAeFw0yNjA1MjkxMjQ5NDhaFw0zNjA1MjYxMjQ5NDhaMDAxCzAJBgNVBAYT
+        AklUMQ0wCwYDVQQKDARUZXN0MRIwEAYDVQQDDAlsb2NhbGhvc3QwggEiMA0GCSqG
+        SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC6N2rhDdh2NaYfUtOi0PbXN2tiUZzs2/fb
+        FhLCMjThmUn0ZOCIfWOF0ITYtELNN86d3knpd/KXW4mH6qCH4r88sowhn/FoAK5F
+        5BzbAuOYTcEfV4S4DkVqk1P+T1jzeJD7fvC+90kGvRMjkQVOt9et7ydg64LDuXDp
+        JBJiKehsMNn9SUQZKv8VbkFmfxXp2jBMSXA06oFwuxm/JKGdcwjgLI98CmKyLyPb
+        DYAEoo0+sC8W+oOYdn76GqP2hsabm3iEUo1K9WBXveHGSE4B0TisIxKwwS/TNWka
+        nGBuXuqm+fngcqWKK1BMxia+ZxLbvdXrvyvkuLjIhrjJzRcNuf1JAgMBAAGjLDAq
+        MAkGA1UdEwQCMAAwHQYDVR0OBBYEFPaLPw/zz4vtQBFoZncG2ROFRIxSMA0GCSqG
+        SIb3DQEBCwUAA4IBAQCDzBQwG6zDGSTwve4/IMyzfdOzQ9qH11V2R6HJ5S6iVCJD
+        F52lJCO/Izfs7uv5Fi5v+b5hvfnSFQR/hnPHEpev1TYHarTHvlP8aNVSYDoDoWNv
+        rEGmtTog56dvzMSAqIfmuSP/VUhBhBZPJd5AulQ5eZrXXK4GkKHdyQHymvPSOsfa
+        ahEmwICCaWJdFcCF37vNHkIh+rwqy8jhX7vEhlyP1n80PggnYHyQL7IKFDKAk94V
+        vtP9Sw2idooJZzeC8S4idR3gZB2j7jbAYXi0jb8Zx2DF+lnWj5a/lr7VEBKkVGUk
+        hjpUThPMX7zV1J5oav29DQ4HX0Ea7vwC30U17tQI
+        """;
 
     /**
      * Baseline SAML Response by idp.
@@ -240,7 +247,7 @@ public class MockMetadataIDP {
             "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect", // SLO Binding
             ASSERTING_PARTY_ENTITY_ID_REDIRECT + SLO_PATH,
             ASSERTING_PARTY_KEY_USAGE,
-            IDP_VERIFICATION_CERTIFICATE
+                IDP_MOCK_CERTIFICATE
         );
     }
 
@@ -254,7 +261,7 @@ public class MockMetadataIDP {
             "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",     // SLO Binding
             ASSERTING_PARTY_ENTITY_ID_POST + SLO_PATH,
             ASSERTING_PARTY_KEY_USAGE,
-            IDP_VERIFICATION_CERTIFICATE
+                IDP_MOCK_CERTIFICATE
         );
     }
 

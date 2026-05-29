@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.spid.utils;
 
+import it.smartcommunitylab.aac.spid.provider.SigningCredential;
 import net.shibboleth.utilities.java.support.xml.ParserPool;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLObject;
@@ -112,7 +113,7 @@ public class MetadataUtils {
      * Strips the existing signature, resets the DOM to bypass serialization artifacts (e.g., pretty-printing),
      * and resigns the XML in memory to extract the pure cryptographic digest.
      */
-    public String resignAndExtractDigest(String originalXml, String privateKeyPem, String certBase64) throws Exception {
+    public String resignAndExtractDigest(String originalXml, SigningCredential signingCredential) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         Document doc = dbf.newDocumentBuilder().parse(new ByteArrayInputStream(originalXml.getBytes(StandardCharsets.UTF_8)));
@@ -134,7 +135,7 @@ public class MetadataUtils {
         descriptor.releaseChildrenDOM(true);
 
         // 4. Build the new Signature, enforcing SPID parameters (RSA-SHA256)
-        BasicX509Credential credential = buildTestCredential(privateKeyPem, certBase64);
+        BasicX509Credential credential = buildTestCredential(signingCredential.getSigningKey(), signingCredential.getSigningCertificate());
         Signature newSignature = (Signature) XMLObjectSupport.buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
         newSignature.setSigningCredential(credential);
         newSignature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256);

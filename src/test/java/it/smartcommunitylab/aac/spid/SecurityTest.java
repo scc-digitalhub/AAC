@@ -4,11 +4,10 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
 import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
 import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import it.smartcommunitylab.aac.spid.provider.FirstIdentityProvider;
+import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
-import it.smartcommunitylab.aac.spid.setup.MockMetadataIDP;
+import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.utils.HackerUtils;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
@@ -17,7 +16,6 @@ import it.smartcommunitylab.aac.spid.utils.UserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -36,14 +34,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test suite for verifying the security and validity of SPID SAML Responses
- * during the authentication phase.
- * It ensures that the Identity Provider correctly validates signatures,
- * audience restrictions, and prevents common vulnerabilities like Replay Attacks.
+ * Test suite for validating the security and resilience of the SPID SAML 2.0 authentication flow against malicious attacks.
+ * Verifies robust mitigation against replay attacks, CSRF (RelayState manipulation), open redirects, signature stripping, and assertion tampering.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-// Loads the base profile ("test") and then applies SPID overrides ("test-spid")
 @ActiveProfiles({"test", "test-spid"})
 @EnableWireMock({
     // Setup two fixed-port WireMock servers, mapping them to their respective YAML configuration properties
@@ -52,57 +47,54 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
-
-    @Autowired
-    private BootstrapConfig config;
+public class SecurityTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
-    private WireMockServer mockIdPServerRedirect;
+    protected WireMockServer mockIdPServerRedirect;
 
     // Inject Post WireMock
     @InjectWireMock("idp-server-post")
-    private WireMockServer mockIdPServerPost;
+    protected WireMockServer mockIdPServerPost;
 
     protected UserUtils userUtils = new UserUtils();
     protected HackerUtils hackerUtils = new HackerUtils();
-    protected MockMetadataIDP mockMetadataIDP = new MockMetadataIDP();
-    protected FirstIdentityProvider firstIdentityProvider = new FirstIdentityProvider();
+    protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
+    protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
     public void setupConfigurationAndMocks() throws IOException {
         initMockMvc();
-        mockMetadataIDP.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+        mockIdpSpid.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
                 ConfigurableIdentityProvider idp = idps.get(0);
 
-                firstIdentityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
-                firstIdentityProvider.initRegistrationIdBinding(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST);
+                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
     }
 
     @Test
     @DisplayName("Autenticazione con successo: HTTP-Redirect Binding")
-    public void testAuthenticationSuccedsWithRedirectBinding() throws Exception {
+    public void testAuthenticationSucceedsWithRedirectBinding() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect) // REDIRECT
+            .withIdpConfig(identityProvider.registrationIdRedirect) // REDIRECT
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockMetadataIDP.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
-            .withIdpConfig(firstIdentityProvider.signingIdpSsoUrl)
-            .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, firstIdentityProvider.signingIdpEntityId) // REDIRECT
-            .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId) // REDIRECT
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .withSignature()
             .buildResponse();
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", spidRequest.getRelayState())
@@ -115,22 +107,22 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Autenticazione con successo: HTTP-POST Binding")
-    public void testAuthenticationSuccedsWithPostBinding() throws Exception {
+    public void testAuthenticationSucceedsWithPostBinding() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdPost) // POST
+            .withIdpConfig(identityProvider.registrationIdPost) // POST
             .withPostBinding(true)
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockMetadataIDP.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
-            .withIdpConfig(firstIdentityProvider.signingIdpSsoUrl)
-            .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST, firstIdentityProvider.signingIdpEntityId) // POST
-            .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST, identityProvider.signingIdpEntityId) // POST
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .withSignature()
             .buildResponse();
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", spidRequest.getRelayState())
@@ -147,20 +139,20 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Sicurezza: Fallimento atteso se la SAML Response NON è firmata")
-    public void testAuthenticationFailsOnUnsignedSamlResponseNew() throws Exception {
+    public void testAuthenticationFailsOnUnsignedSamlResponse() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockMetadataIDP.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
-            .withIdpConfig(firstIdentityProvider.signingIdpSsoUrl)
-            .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, firstIdentityProvider.signingIdpEntityId)
-            .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .buildResponse();
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response) // UNSIGNED Payload (Rejected by SP)
                 .param("RelayState", spidRequest.getRelayState())     // Valid State
@@ -185,18 +177,18 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
     public void testAuthenticationFailsOnMissingOrManipulatedRelayState() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockMetadataIDP.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
-            .withIdpConfig(firstIdentityProvider.signingIdpSsoUrl)
-            .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, firstIdentityProvider.signingIdpEntityId)
-            .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .withSignature()
             .buildResponse();
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", "SSdfMklR7My_NohjAY72i57SfjumEOEhIXnEYVVMIew=") // MANIPULATED RelayState (Invalid CSRF)
@@ -221,19 +213,19 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
     public void testAuthenticationFailsOnReplayAttack() throws Exception {
         SpidRequest victimSpidResponse = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockMetadataIDP.XML_RESPONSE_TEMPLATE, victimSpidResponse.getRequestId())
-            .withIdpConfig(firstIdentityProvider.signingIdpSsoUrl)
-            .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, firstIdentityProvider.signingIdpEntityId)
-            .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, victimSpidResponse.getRequestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .withSignature()
             .buildResponse();
 
         // FIRST USE (Victim completes login successfully)
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", victimSpidResponse.getRelayState())
@@ -245,7 +237,7 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
         // ATTACK: attacker intercepts the signed SAMLResponse and attempts to replay it.
         MockHttpSession hackerSession = userUtils.createSessionWithSavedClientRequest(BASE_URL);
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response) // REPLAYED Payload (Intercepted from victim)
                 .param("RelayState", victimSpidResponse.getRelayState())     // REPLAYED RelayState
@@ -267,21 +259,21 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
     public void testAuthenticationFailsOnInvalidInResponseTo() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
         // InResponseTo errato (Mismatch Request ID)
         String response = hackerUtils.prepareForSimulationNotValidRequestId(
-            mockMetadataIDP.XML_RESPONSE_TEMPLATE,
-            firstIdentityProvider.signingIdpSsoUrl,
-            mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
-            firstIdentityProvider.signingIdpEntityId,
-            mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
-            mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
         );
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response) // MALICIOUS Payload (Signed, but mismatched InResponseTo)
                 .param("RelayState", spidRequest.getRelayState())   // Valid State
@@ -300,21 +292,21 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
     public void testAuthenticationFailsOnInvalidAudience() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
         // Audience errata (Invalid EntityID)
         String response = hackerUtils.prepareForSimulationNotValidEntityId(
             spidRequest,
-            mockMetadataIDP.XML_RESPONSE_TEMPLATE,
-            firstIdentityProvider.signingIdpSsoUrl,
-            mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
-            mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
-            mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
         );
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response) // MALICIOUS Payload (Signed, but wrong Audience)
                 .param("RelayState", spidRequest.getRelayState())   // Valid State
@@ -333,22 +325,22 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
     public void testAuthenticationFailsOnLowerSpidLevel() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
         // Downgrade Livello SPID (L2 -> L1)
         String response = hackerUtils.prepareForSimulationNotValidChangeSpidLevel(
             spidRequest,
-            mockMetadataIDP.XML_RESPONSE_TEMPLATE,
-            firstIdentityProvider.signingIdpSsoUrl,
-            mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
-            firstIdentityProvider.signingIdpEntityId,
-            mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
-            mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
         );
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", spidRequest.getRelayState())
@@ -372,22 +364,22 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
     public void testAuthenticationFailsOnExpiredAssertion() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
         // Assertion Scaduta (NotOnOrAfter nel passato)
         String response = hackerUtils.prepareForSimulationNotValidNotOnOrAfter(
             spidRequest,
-            mockMetadataIDP.XML_RESPONSE_TEMPLATE,
-            firstIdentityProvider.signingIdpSsoUrl,
-            mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
-            firstIdentityProvider.signingIdpEntityId,
-            mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY,
-            mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
         );
 
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", spidRequest.getRelayState())
@@ -416,26 +408,26 @@ public class SpidIdentityProviderSecurityTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Sicurezza: Mitigazione nativa contro attacchi di Open Redirect")
-    public void testOpenRedirectVulnerabilityIsMitigated() throws Exception {
+    public void testAuthenticationFailsOnOpenRedirectAttempt() throws Exception {
         // 1. Attacker crafts a malicious URL intended for an Open Redirect payload
         String maliciousRelayStateUrl = "https://hacker-phishing-site.invalid/steal-credentials";
 
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(firstIdentityProvider.registrationIdRedirect)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockMetadataIDP.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
-            .withIdpConfig(firstIdentityProvider.signingIdpSsoUrl)
-            .withEntityIds(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, firstIdentityProvider.signingIdpEntityId)
-            .withCertificates(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY, mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE)
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .withSignature()
             .buildResponse();
 
         // 2. Attacker submits a legitimate SAML Response but injects the malicious URL into the RelayState,
         // hoping the Service Provider will blindly redirect the user to it upon success.
-        this.mockMvc.perform(post(firstIdentityProvider.signingIdpSsoUrl)
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", maliciousRelayStateUrl) // Injected malicious URL

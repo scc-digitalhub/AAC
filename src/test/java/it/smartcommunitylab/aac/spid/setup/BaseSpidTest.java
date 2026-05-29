@@ -1,6 +1,10 @@
 package it.smartcommunitylab.aac.spid.setup;
 
+import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -23,7 +27,6 @@ public abstract class BaseSpidTest {
     protected final String BASE_URL = "http://localhost:8080";
     protected final String METADATA_PATH = "/auth/spid/metadata/";
     protected final String SSO_PATH = "/auth/spid/sso/";
-    protected final String SLO_PATH = "/auth/spid/slo/";
 
     /* =========================================================================
      * PEM Certificate standard delimiters
@@ -45,7 +48,15 @@ public abstract class BaseSpidTest {
      * ========================================================================= */
 
     @Autowired
-    private WebApplicationContext context;
+    protected BootstrapConfig config;
+
+    @Autowired
+    @Qualifier("spidProviderConfigRepository")
+    protected ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository;
+
+    @Autowired
+    protected WebApplicationContext context;
+
     @Autowired
     private Filter springSecurityFilterChain;
     protected MockMvc mockMvc;

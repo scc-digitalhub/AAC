@@ -4,13 +4,12 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
 import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
 import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
-import it.smartcommunitylab.aac.bootstrap.BootstrapConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
 import it.smartcommunitylab.aac.spid.model.SpidError;
-import it.smartcommunitylab.aac.spid.provider.FirstIdentityProvider;
+import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
-import it.smartcommunitylab.aac.spid.setup.MockMetadataIDP;
+import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidAgidAnomalyScenario;
 import it.smartcommunitylab.aac.spid.utils.AgidUtils;
 import it.smartcommunitylab.aac.spid.setupflow.SpidAgidErrorContextBuilder;
@@ -32,44 +31,49 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Test suite for SPID AgID anomaly scenarios and edge cases (Groups A, B, and C).
+ * Verifies correct SAML response validation, specific error code propagation, and UI/backend error handling.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "test-spid"})
 @EnableWireMock({
+    // Setup two fixed-port WireMock servers, mapping them to their respective YAML configuration properties
     @ConfigureWireMock(port = 58838, name = "idp-server-redirect", property = "wiremock.idp.redirect.url"),
     @ConfigureWireMock(port = 58839, name = "idp-server-post", property = "wiremock.idp.post.url")
 })
+// Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
+public class AgidAnomalyTest extends BaseSpidTest {
 
     @Autowired
     private MessageSource messageSource;
 
-    @Autowired
-    private BootstrapConfig config;
-
+    // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
-    private WireMockServer mockIdPServerRedirect;
+    protected WireMockServer mockIdPServerRedirect;
 
+    // Inject Post WireMock
     @InjectWireMock("idp-server-post")
-    private WireMockServer mockIdPServerPost;
+    protected WireMockServer mockIdPServerPost;
 
     protected AgidUtils agidUtils = new AgidUtils();
-    protected MockMetadataIDP mockMetadataIDP = new MockMetadataIDP();
-    protected FirstIdentityProvider firstIdentityProvider = new FirstIdentityProvider();
+    protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
+    protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
     public void setupConfigurationAndMocks() throws IOException {
         initMockMvc();
-        mockMetadataIDP.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+        mockIdpSpid.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
                 ConfigurableIdentityProvider idp = idps.get(0);
 
-                firstIdentityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
-                firstIdentityProvider.initRegistrationIdBinding(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST);
+                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
     }
@@ -83,9 +87,9 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     public void testAgidCode01SuccessfulAuthenticationWithHttpRedirectBinding() throws Exception {
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
-            .signingIdpSsoUrl(firstIdentityProvider.signingIdpSsoUrl)
-            .registrationId(firstIdentityProvider.registrationIdRedirect)
-            .assertingPartyEntityId(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
+            .signingIdpSsoUrl(identityProvider.signingIdpSsoUrl)
+            .registrationId(identityProvider.registrationIdRedirect)
+            .assertingPartyEntityId(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
             .build();
 
         agidUtils.executeSuccessfulSamlFlow(context);
@@ -96,9 +100,9 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     public void testAgidCode26SuccessfulIdentityProvisioning() throws Exception {
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
-            .signingIdpSsoUrl(firstIdentityProvider.signingIdpSsoUrl)
-            .registrationId(firstIdentityProvider.registrationIdRedirect)
-            .assertingPartyEntityId(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
+            .signingIdpSsoUrl(identityProvider.signingIdpSsoUrl)
+            .registrationId(identityProvider.registrationIdRedirect)
+            .assertingPartyEntityId(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
             .build();
 
         agidUtils.executeSuccessfulSamlFlow(context);
@@ -123,9 +127,9 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     public void testAgidTechnicalAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
-            .signingIdpSsoUrl(firstIdentityProvider.signingIdpSsoUrl)
-            .registrationId(firstIdentityProvider.registrationIdRedirect)
-            .assertingPartyEntityId(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
+            .signingIdpSsoUrl(identityProvider.signingIdpSsoUrl)
+            .registrationId(identityProvider.registrationIdRedirect)
+            .assertingPartyEntityId(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
             .build();
 
         SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
@@ -147,9 +151,9 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     public void testAgidUserAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
-            .signingIdpSsoUrl(firstIdentityProvider.signingIdpSsoUrl)
-            .registrationId(firstIdentityProvider.registrationIdRedirect)
-            .assertingPartyEntityId(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
+            .signingIdpSsoUrl(identityProvider.signingIdpSsoUrl)
+            .registrationId(identityProvider.registrationIdRedirect)
+            .assertingPartyEntityId(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
             .build();
 
         SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
@@ -185,9 +189,9 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     public void testAgidIdentityProvisioningAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
-            .signingIdpSsoUrl(firstIdentityProvider.signingIdpSsoUrl)
-            .registrationId(firstIdentityProvider.registrationIdRedirect)
-            .assertingPartyEntityId(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
+            .signingIdpSsoUrl(identityProvider.signingIdpSsoUrl)
+            .registrationId(identityProvider.registrationIdRedirect)
+            .assertingPartyEntityId(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT)
             .build();
 
         SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
@@ -204,9 +208,9 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     public void testAgidCode01SuccessfulAuthenticationWithHttpPostBinding() throws Exception {
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(true)
-            .signingIdpSsoUrl(firstIdentityProvider.signingIdpSsoUrl)
-            .registrationId(firstIdentityProvider.registrationIdPost)
-            .assertingPartyEntityId(mockMetadataIDP.ASSERTING_PARTY_ENTITY_ID_POST)
+            .signingIdpSsoUrl(identityProvider.signingIdpSsoUrl)
+            .registrationId(identityProvider.registrationIdPost)
+            .assertingPartyEntityId(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST)
             .build();
 
         agidUtils.executeSuccessfulSamlFlow(context);
@@ -219,14 +223,14 @@ public class SpidIdentityProviderAgidAnomalyTest extends BaseSpidTest {
     private SpidAgidErrorContextBuilder.Builder getBaseContextBuilder() {
         return SpidAgidErrorContextBuilder.builder()
             .mockMvc(mockMvc)
-            .xmlTemplate(mockMetadataIDP.XML_RESPONSE_TEMPLATE)
-            .xmlAgidErrorTemplate(mockMetadataIDP.XML_RESPONSE_AGID_ERROR_TEMPLATE)
+            .xmlTemplate(mockIdpSpid.XML_RESPONSE_TEMPLATE)
+            .xmlAgidErrorTemplate(mockIdpSpid.XML_RESPONSE_AGID_ERROR_TEMPLATE)
             .baseUrlAac(BASE_URL)
             .userDestinationUrl(USER_DESTINATION_URL)
             .authenticatePath(AUTHENTICATE_PATH)
             .loginDestinationUrl(LOGIN_DESTINATION_URL)
-            .entityIdAac(firstIdentityProvider.signingIdpEntityId)
-            .idpPrivateKey(mockMetadataIDP.IDP_VERIFICATION_PRIVATE_KEY)
-            .idpCertificate(mockMetadataIDP.IDP_VERIFICATION_CERTIFICATE);
+            .entityIdAac(identityProvider.signingIdpEntityId)
+            .idpPrivateKey(mockIdpSpid.IDP_MOCK_PRIVATE_KEY)
+            .idpCertificate(mockIdpSpid.IDP_MOCK_CERTIFICATE);
     }
 }

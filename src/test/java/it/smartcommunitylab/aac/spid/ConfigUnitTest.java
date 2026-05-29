@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * It exclusively tests from-scratch instantiation, static utilities, and
  * controlled failures (expected exceptions) within the internal business logic.
  */
-public class SpidIdentityProviderConfigUnitTest {
+public class ConfigUnitTest {
 
     @Test
     @DisplayName("Verifica codifica, decodifica ed estrazione del Registration ID")
