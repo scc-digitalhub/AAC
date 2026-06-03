@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test suite for verifying the behavior of the SPID Identity Provider under specific or edge-case configuration overrides.
+ * Test suite for verifying the behavior of the SPID Identity Provider under custom or edge-case configuration overrides.
  * Checks the correct handling of missing mandatory attributes (e.g., fiscalNumber/spidCode) leading to authentication failures,
  * and verifies custom setups for AssertionConsumerServiceURL and AttributeConsumingServiceIndex.
  */
@@ -51,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpecificSettingsProviderTest extends BaseSpidTest {
+public class CustomProviderTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -74,17 +74,18 @@ public class SpecificSettingsProviderTest extends BaseSpidTest {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
 
-                // SPECIFIC SETTING
-                ConfigurableIdentityProvider idp = idps.get(2);
+                ConfigurableIdentityProvider idpCustom = idps.stream().filter(
+                    idp -> "spid-test-custom".equals(idp.getName()))
+                    .findFirst().orElseThrow();
 
-                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initReamlByBoostrap(idpCustom, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
     }
 
     @Test
-    @DisplayName("Autenticazione Fallita con SetAttribute Specifico")
+    @DisplayName("Autenticazione Fallita con SetAttribute Custom")
     public void testAuthenticationFailsWithSetAttributeSpecified() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -98,7 +99,7 @@ public class SpecificSettingsProviderTest extends BaseSpidTest {
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST, identityProvider.signingIdpEntityId) // POST
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
             .withSetSpidAttributes(spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
-                .getConfigMap().getSpidAttributes()) // SPECIFIC SET ATTRIBUTE
+                .getConfigMap().getSpidAttributes()) // CUSTOM SET ATTRIBUTE
             .withSignature()
             .buildResponse();
 
@@ -114,8 +115,8 @@ public class SpecificSettingsProviderTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica che gli attributi SPID specifici nel Metadata")
-    public void testRequestedSpidAttributesAreSpecified() throws Exception {
+    @DisplayName("Verifica che gli attributi SPID custom nel Metadata")
+    public void testRequestedSpidAttributesCustom() throws Exception {
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
@@ -136,8 +137,8 @@ public class SpecificSettingsProviderTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica runtime AssertionConsumerServiceURL e AttributeConsumingServiceIndex Specifici")
-    public void testAuthnRequestWithAssertionURLAndAttributeIndexSpecified() throws Exception {
+    @DisplayName("Verifica runtime AssertionConsumerServiceURL e AttributeConsumingServiceIndex Custom")
+    public void testAuthnRequestWithAssertionURLAndAttributeIndexCustom() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -148,7 +149,7 @@ public class SpecificSettingsProviderTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Verify the SP is requesting the correct value SPECIFIED
+        // Verify the SP is requesting the correct value custom
         assertThat(xmlRequest).contains("AssertionConsumerServiceURL=\"" + identityProvider.signingIdpSsoUrl + "\"");
         assertThat(xmlRequest).contains("AttributeConsumingServiceIndex=\"" +
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex() + "\"");

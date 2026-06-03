@@ -5,6 +5,8 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -46,6 +48,9 @@ public abstract class BaseSpidTest {
     /* =========================================================================
      * SETUP TEST
      * ========================================================================= */
+
+    @MockBean
+    protected BuildProperties buildProperties;
 
     @Autowired
     protected BootstrapConfig config;

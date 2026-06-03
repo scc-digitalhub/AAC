@@ -70,7 +70,9 @@ public class AgidAnomalyTest extends BaseSpidTest {
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
-                ConfigurableIdentityProvider idp = idps.get(0);
+
+                // Any Identity Provider loaded from the bootstrap can be used here
+                ConfigurableIdentityProvider idp = idps.get(1);
 
                 identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);

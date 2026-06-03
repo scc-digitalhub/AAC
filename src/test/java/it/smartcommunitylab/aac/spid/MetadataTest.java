@@ -67,10 +67,12 @@ public class MetadataTest extends BaseSpidTest {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
 
-                // ORGANIZATION VALUES
-                ConfigurableIdentityProvider idp = idps.get(1);
+                // Retrieve the exhaustive test Identity Provider populated with all metadata fields
+                ConfigurableIdentityProvider idpOrganization = idps.stream().filter(
+                    idp -> "spid-test-organization".equals(idp.getName()))
+                    .findFirst().orElseThrow();
 
-                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initReamlByBoostrap(idpOrganization, BASE_URL, METADATA_PATH, SSO_PATH);
             }
         });
     }

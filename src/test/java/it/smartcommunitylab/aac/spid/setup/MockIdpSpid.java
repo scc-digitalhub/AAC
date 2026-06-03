@@ -28,6 +28,7 @@ public class MockIdpSpid {
 
     /* =========================================================================
      * Shared Cryptographic Materials (PKCS#8 Keys & Certs)
+     * See CheckLoadBootStrapTest.java for the certificate and private key generation command
      * ========================================================================= */
 
     public final String IDP_MOCK_PRIVATE_KEY = """

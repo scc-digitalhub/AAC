@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Test suite for verifying the correct initialization of SPID Identity Providers from bootstrap configurations.
  * Ensures that identity provider configurations, metadata, configuration maps, and cryptographic credentials are accurately loaded and mapped.
 
- # COMAND GENERATE CERTIFICATE AND PRIVATE KEY
+ # COMMAND GENERATE CERTIFICATE AND PRIVATE KEY
  # openssl req -x509 -config credential.cnf -days 3650 -keyout private.key -out public.crt
 
  credential.cnf:
@@ -44,9 +44,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles({"test", "test-spid"})
 public class CheckLoadBootStrapTest extends BaseSpidTest {
 
-    private String providerOneId;
-    private String providerTwoId;
-    private String providerThreeId;
+    private String providerDefaultId;
+    private String providerCredentialsId;
+    private String providerCustomId;
+    private String providerOrganizationId;
 
     @BeforeEach
     public void setupConfiguration() {
@@ -54,19 +55,20 @@ public class CheckLoadBootStrapTest extends BaseSpidTest {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
                 assertThat(idps).isNotNull();
-                assertThat(idps).hasSizeGreaterThanOrEqualTo(3);
+                assertThat(idps).hasSizeGreaterThanOrEqualTo(4);
 
-                providerOneId = idps.stream().filter(idp -> "spid-test-one".equals(idp.getName())).findFirst().orElseThrow().getProvider();
-                providerTwoId = idps.stream().filter(idp -> "spid-test-two".equals(idp.getName())).findFirst().orElseThrow().getProvider();
-                providerThreeId = idps.stream().filter(idp -> "spid-test-three".equals(idp.getName())).findFirst().orElseThrow().getProvider();
+                providerDefaultId = idps.stream().filter(idp -> "spid-test-default".equals(idp.getName())).findFirst().orElseThrow().getProvider();
+                providerCredentialsId = idps.stream().filter(idp -> "spid-test-credentials".equals(idp.getName())).findFirst().orElseThrow().getProvider();
+                providerCustomId = idps.stream().filter(idp -> "spid-test-custom".equals(idp.getName())).findFirst().orElseThrow().getProvider();
+                providerOrganizationId = idps.stream().filter(idp -> "spid-test-organization".equals(idp.getName())).findFirst().orElseThrow().getProvider();
             }
         });
     }
 
     @Test
-    @DisplayName("Verifica Provider 1 (spid-test-one)")
-    public void testCheckLoadProviderOne() {
-        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerOneId);
+    @DisplayName("Verifica Provider (spid-test-default)")
+    public void testCheckLoadProviderDefault() {
+        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerDefaultId);
         SpidIdentityProviderConfigMap configmap = checkCommonBaseProperties(configIdentityProvider);
 
         assertThat(configmap.getSpidAttributes()).isNotNull();
@@ -82,19 +84,13 @@ public class CheckLoadBootStrapTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica Provider 2 (spid-test-two)")
-    public void testCheckLoadProviderTwo() {
-        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerTwoId);
+    @DisplayName("Verifica Provider (spid-test-credentials)")
+    public void testCheckLoadProviderCredentials() {
+        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerCredentialsId);
         SpidIdentityProviderConfigMap configmap = checkCommonBaseProperties(configIdentityProvider);
 
         assertThat(configmap.getSpidAttributes()).isNotNull();
         assertThat(configmap.getSpidAttributes()).hasSize(5);
-
-        assertThat(configmap.getOrganizationName()).isNotNull();
-        assertThat(configmap.getOrganizationDisplayName()).isNotNull();
-        assertThat(configmap.getOrganizationUrl()).isNotNull();
-        assertThat(configmap.getContactPersonEmailAddress()).isNotNull();
-        assertThat(configmap.getContactPersonIPACode()).isNotNull();
 
         assertThat(configmap.getSigningKey()).isNotNull();
         assertThat(configmap.getSigningCertificate()).isNotNull();
@@ -123,9 +119,9 @@ public class CheckLoadBootStrapTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica Provider 3 (spid-test-three)")
-    public void testCheckLoadProviderThree() {
-        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerThreeId);
+    @DisplayName("Verifica Provider (spid-test-Custom)")
+    public void testCheckLoadProviderCustom() {
+        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerCustomId);
         SpidIdentityProviderConfigMap configmap = checkCommonBaseProperties(configIdentityProvider);
 
         assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNotNull();
@@ -148,6 +144,40 @@ public class CheckLoadBootStrapTest extends BaseSpidTest {
         assertThat(configmap.getSigningCredentials().get(0).getCredentialId()).isNull();
         assertThat(configmap.getSigningCredentials().get(0).getSigningKey()).isNotNull();
         assertThat(configmap.getSigningCredentials().get(0).getSigningCertificate()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Verifica Provider (spid-test-organization)")
+    public void testCheckLoadProviderOrganization() {
+        SpidIdentityProviderConfig configIdentityProvider = spidProviderConfigRepository.findByProviderId(providerOrganizationId);
+        SpidIdentityProviderConfigMap configmap = checkCommonBaseProperties(configIdentityProvider);
+
+        assertThat(configmap.getSpidAttributes()).isNotNull();
+        assertThat(configmap.getSpidAttributes()).hasSize(5);
+
+        assertThat(configmap.getOrganizationName()).isNotNull();
+        assertThat(configmap.getOrganizationDisplayName()).isNotNull();
+        assertThat(configmap.getOrganizationUrl()).isNotNull();
+        assertThat(configmap.getContactPersonEmailAddress()).isNotNull();
+        assertThat(configmap.getContactPersonIPACode()).isNotNull();
+
+        assertThat(configmap.getActiveAuthRequestSigningCredentialId()).isNotNull();
+        assertThat(configmap.getActiveMetadataSigningCredentialId()).isNotNull();
+        assertThat(configmap.getActiveAuthRequestSigningCredentialId()).isEqualTo("active_request");
+        assertThat(configmap.getActiveMetadataSigningCredentialId()).isEqualTo("active_metadata");
+
+        assertThat(configmap.getSigningCredentials()).isNotNull();
+        assertThat(configmap.getSigningCredentials()).hasSize(2);
+
+        assertThat(configmap.getSigningCredentials().get(0).getCredentialId()).isNotNull();
+        assertThat(configmap.getSigningCredentials().get(0).getCredentialId()).isEqualTo("active_request");
+        assertThat(configmap.getSigningCredentials().get(0).getSigningKey()).isNotNull();
+        assertThat(configmap.getSigningCredentials().get(0).getSigningCertificate()).isNotNull();
+
+        assertThat(configmap.getSigningCredentials().get(1).getCredentialId()).isNotNull();
+        assertThat(configmap.getSigningCredentials().get(1).getCredentialId()).isEqualTo("active_metadata");
+        assertThat(configmap.getSigningCredentials().get(1).getSigningKey()).isNotNull();
+        assertThat(configmap.getSigningCredentials().get(1).getSigningCertificate()).isNotNull();
     }
 
     private SpidIdentityProviderConfigMap checkCommonBaseProperties(SpidIdentityProviderConfig configIdentityProvider) {

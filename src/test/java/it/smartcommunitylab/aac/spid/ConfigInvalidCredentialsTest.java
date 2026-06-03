@@ -31,8 +31,9 @@ public class ConfigInvalidCredentialsTest extends BaseSpidTest {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
 
-                // ALL CREDENTIALS MUST BE PRESENT
-                spidProviderId = idps.get(1).getProvider();
+                spidProviderId = idps.stream().filter(
+                    idp -> "spid-test-credentials".equals(idp.getName()))
+                    .findFirst().orElseThrow().getProvider();
             }
         });
     }

@@ -496,11 +496,11 @@ realms:
     identityProviders:
       - type: identity
         authority: spid
-        provider: d8b5a341-b1e9-46c5-8406-932b79313204
+        provider: spid-test-default
         realm: spid-test
         enabled: true
         registered: true
-        name: spid-test-one
+        name: spid-test-default
         titleMap: { }
         descriptionMap: { }
         configuration:
@@ -566,11 +566,11 @@ realms:
         ssoServiceBinding: "HTTP-POST"
       - type: identity
         authority: spid
-        provider: 1d92b24e-c31e-4b08-ac62-415996d32b4c
+        provider: spid-test-credentials
         realm: spid-test
         enabled: true
         registered: true
-        name: spid-test-two
+        name: spid-test-credentials
         titleMap: { }
         descriptionMap: { }
         configuration:
@@ -584,11 +584,10 @@ realms:
           type: config:identity_provider:spid
           authnContext: https://www.spid.gov.it/SpidL2
           subAttributeName: fiscalNumber
-          organizationName: "Test Organization"
-          organizationDisplayName: "TestOrg"
-          organizationUrl: "https://www.test-organization.it"
-          contactPersonEmailAddress: "tecnico@test-organization.it"
-          contactPersonIPACode: "codice_ipa_test"
+          # Key configuration setup:
+          # - Standalone keys: Root-level 'signingCertificate' and 'signingKey' as default.
+          # - Credentials list: 'signingCredentials' array containing multiple keys,
+          #   identified by their 'credentialId' flags for targeted routing.
           activeAuthRequestSigningCredentialId: active_request
           activeMetadataSigningCredentialId: active_metadata
           signingCertificate: |-
@@ -793,19 +792,21 @@ realms:
         ssoServiceBinding: "HTTP-POST"
       - type: identity
         authority: spid
-        provider: 34a83a02-45f5-4112-b783-4085535c617a
+        provider: spid-test-custom
         realm: spid-test
         enabled: true
         registered: true
-        name: spid-test-three
+        name: spid-test-custom
         titleMap: { }
         descriptionMap: { }
         configuration:
           usernameAttributeName: fiscalNumber
+          # Define explicit routing parameters for the SAML response:
+          # Enable the use of a specific ACS URL and provide its target index
           useAssertionConsumerServiceUrl: true
           attributeConsumingServiceIndex: 3
+          # Requested attributes (excluding user principals: spidCode, fiscalNumber)
           spidAttributes:
-            # no principal for user from provider: spidCode - fiscalNumber
             - name
             - email
             - familyName
@@ -866,3 +867,133 @@ realms:
                 yxZPs5mnSRlmE3MfSLn9/qNwCqHCJxhexbGBrigP
                 -----END CERTIFICATE-----
         ssoServiceBinding: "HTTP-POST"
+      - type: identity
+        authority: spid
+        provider: spid-test-organization
+        realm: spid-test
+        enabled: true
+        registered: true
+        name: spid-test-organization
+        titleMap: { }
+        descriptionMap: { }
+        configuration:
+          usernameAttributeName: fiscalNumber
+          spidAttributes:
+            - name
+            - email
+            - fiscalNumber
+            - spidCode
+            - familyName
+          type: config:identity_provider:spid
+          authnContext: https://www.spid.gov.it/SpidL2
+          subAttributeName: fiscalNumber
+          # Define SAML metadata properties for the organization and technical contact
+          organizationName: "Test Organization"
+          organizationDisplayName: "TestOrg"
+          organizationUrl: "https://www.test-organization.it"
+          contactPersonEmailAddress: "tecnico@test-organization.it"
+          contactPersonIPACode: "codice_ipa_test"
+          activeAuthRequestSigningCredentialId: active_request
+          activeMetadataSigningCredentialId: active_metadata
+          signingCredentials:
+            - credentialId: active_request
+              signingKey: |-
+                -----BEGIN PRIVATE KEY-----
+                MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCroZY2nWOMoSF8
+                m2YnebHcD+pu6EZrOvmdonoLjYaKNsqBGkWT2P3cG3Lw/HbD5mR9xGbQV8kQDZGB
+                YtHb6EfprhrXSiNsbRk47DpdPfBsUzcBe63T9AslPTXG4XeL0Bn4xuRHNYfNT4Ip
+                G4xCBCqHsYM0iLtmcOaIXX4CguJmDR7qCmzNUlI0ayCjC8sIfiStM2TXgBWdLrBj
+                yXyo9l8hMJQVYw9SLtrKWk/4tCjP2gJ4AfY9WUrGoBKj6ZpGzE7qthc9eGJMIH26
+                GSZTPf+DCJlOAaarbFa5LDrTj+08h8dRolLTO/aeEd39RMWSXAliuIHjtof4DU2B
+                bsKH/nu9AgMBAAECggEAGM4W/2gyU8gS5qcv9asXK0qqk2JjEQraOi/aCzLmW7Ht
+                BQkmvqY5FFdsPouCX7A73FhnEpvpXXZUjfpaAboZsJp+2xgmM/y1jT5I9iJmTcWe
+                GMsG9a/a74Qf8lEyPaTzJ/sY0XjZWnEwCuBmHkFrYyai45QSX40YKGO4u0Su01g7
+                nIgpN9GNs+ecQr3zQBTGx24KRDDakTwO3IzSHCYkJ6tG7ajCpzSMBkG+h7rZeNFE
+                1ThTGlqZnT1c8ZAgche1CZoKyy1qBLyi/R5JT1upIOBgsf9pqIYDvzFuJS5zBRSj
+                7rOUAXsOPq7duATcXgCpd2ifkxqbOKKdfQKqWsc5qQKBgQDrcPBhIOibD39awT7g
+                MqNHPI4f4fHNwmStJaCpslVnXUO885A5FJsUhkvFFujZRsdMWtMDo7/8LFJZK7Z6
+                /KBeKsmv18t1vKwuIRqSN8wCtLBRgfK0lmvJumNIxd61zLy6GlNPa362syutTR4x
+                D3MgZ7TF1o232Bozzy0N5vq0BQKBgQC6njy8V0Lv0NYC3FCcNfi8A7+7Ibq4h+lz
+                OPqOFYIIevjtBryXY3HH6AUkgiVxV7bEBSNRJtcgic3FLK6qcWDE9pJGpaowYCpE
+                40QYiFBU43CYwxbJRZmg6nSORw5a/2TcALgVtUsvv5/w5GgcqRlmECCpVdbBNmTQ
+                9hXbUhkuWQKBgQC/+qyXlpz061MebprVd5T6Hl+JkdR4wf0Tzq3OEbNgAIWeikBc
+                uvelachY4lBl8zfJg/myaxC+EGnpeiJm8J3Xiy5AK0clLv568tVWyxaYUju/iqWc
+                KVek+02/5lCuj06ItbSe+vktArYnrs1ilcV7c/TMqSGP+i+LdXC4eFKO/QKBgQCT
+                Kmo3FJGC0SuUAe3H4oAOtN4kUosPLo8ZAFwGZEuxKFjZgrCCqjd2MDCuA7xHT6af
+                mnWpb3nC/Sk6TuxHGTX43YGpGMfHcm6i+J4gwo6nAt0uetqjSrHGRl44PSzC8hi1
+                rhN9ewSZ2QHmVBkOUQPoittW7ox2vdBvQUEnPe0BsQKBgQDKhu4zlkKDH+fU5RHk
+                +siAnKGL6VmnOuKslv3fH0a8BvfmeweWzrDKfxyCvvRCur38sMslVWnB5Oyj8du4
+                BABq3dPxzg1s0dMXLI+/CfjNEAzuzEFYO1MCCzLqs4b58mMQd9h/ClSgfJJHsVK1
+                vEm0i06qrNyOz0OnJ+V3g+lxBg==
+                -----END PRIVATE KEY-----
+              signingCertificate: |-
+                -----BEGIN CERTIFICATE-----
+                MIIDGjCCAgKgAwIBAgIUDkzQaCN3XJwpAngaWxVvRDtSvZ0wDQYJKoZIhvcNAQEL
+                BQAwMDELMAkGA1UEBhMCSVQxDTALBgNVBAoMBFRlc3QxEjAQBgNVBAMMCWxvY2Fs
+                aG9zdDAeFw0yNjA1MjkxMjQzNDlaFw0zNjA1MjYxMjQzNDlaMDAxCzAJBgNVBAYT
+                AklUMQ0wCwYDVQQKDARUZXN0MRIwEAYDVQQDDAlsb2NhbGhvc3QwggEiMA0GCSqG
+                SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCroZY2nWOMoSF8m2YnebHcD+pu6EZrOvmd
+                onoLjYaKNsqBGkWT2P3cG3Lw/HbD5mR9xGbQV8kQDZGBYtHb6EfprhrXSiNsbRk4
+                7DpdPfBsUzcBe63T9AslPTXG4XeL0Bn4xuRHNYfNT4IpG4xCBCqHsYM0iLtmcOaI
+                XX4CguJmDR7qCmzNUlI0ayCjC8sIfiStM2TXgBWdLrBjyXyo9l8hMJQVYw9SLtrK
+                Wk/4tCjP2gJ4AfY9WUrGoBKj6ZpGzE7qthc9eGJMIH26GSZTPf+DCJlOAaarbFa5
+                LDrTj+08h8dRolLTO/aeEd39RMWSXAliuIHjtof4DU2BbsKH/nu9AgMBAAGjLDAq
+                MAkGA1UdEwQCMAAwHQYDVR0OBBYEFMEKKqgflumOy5DoRk5gRUDY3Z1UMA0GCSqG
+                SIb3DQEBCwUAA4IBAQBq4vXvEBWbAuJR5ACuRYqMkbRoDsvh6HotFBwE3UN7+4Qm
+                72M3hhgabK2AbBbmrsg/Qw3pLmmgOyj/Hzm4iwlVm9EBsLkF5qGA4UqWGDn0wlMU
+                GKYL7aE4M2KayadPxM65QA+H4G9xbAhdOLlkiTxfYhpUM4iYhCORBQksv142vxSb
+                8tnQxYyC6xg1wnkhhucHOkzso+7r/gY8vD/MruKAnKP32/7CFuwsV/oifbKi9tOl
+                bt7yygIQvnhZGxWE6lgzaL7aH8CN56D/Ypp8x6kGULE9J3tNg7o2BVjJf43c9jxN
+                yxZPs5mnSRlmE3MfSLn9/qNwCqHCJxhexbGBrigP
+                -----END CERTIFICATE-----
+            - credentialId: active_metadata
+              signingKey: |-
+                -----BEGIN PRIVATE KEY-----
+                MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1wco1j5jqODLn
+                lHep8U9nLh8LKLxw8kuwt2mavy+6TwtT2IPoWag19UGxOVrmkWF+ltGfuqGgHZUh
+                dCz3BSmd/WlmzICq0EcgQg3Wl5cSddLdWFK83yZM6obu+7QMCVu3wasIaF+1t3Sw
+                waWxr3OlQjdluyop5y7RrgbpTIgOgyO08kyQ54JDOVtX/keadnN1HS9/BZculHyx
+                Fth3aX9De3zOI0q7BxG4YBY/LJj3GFbDV0W7QVkY7GJ6SJzcCSiOJoibIWz0KEUR
+                dG97uggGYVQ2fxS3cSErhlNMBWQ3QRPIWqKjZ+gDZgWfEsIC+hFrx4imoYXiM7q0
+                4moI1Uf9AgMBAAECggEAKPRp+zAoaWxw4fg1D4zBktMUaSgMcBnUntTxPY6Dc2Rw
+                vbudm2sqaUAihYvSNP6AvKzAvtBnr2PDEQbzw9R8uG4bxC9j9blZMYZYxmghgSYd
+                9cS7XfYdU/sLnQmH3Cd2rHz97DbSjChyqYp06skJUq1NPMXT/h2q0dH4GjUlujkF
+                gc3IuptXjGeOloG7enzoujqU49Uxv9K21V5Oqo1jYmh022YJyp1yplDy4hpR36V+
+                IcrR9908hmwMYCx7ae8PYlVar7w/beKzyGyYRTaf2DHw45MOJ7upQi+9b8yfxYfY
+                Qlx+kBeGgbJvqg7GFZoJ9LtCfQ3B0iYb46dCLVXTsQKBgQD9uoKvrAr4qLH0cbxj
+                kF21C3AmihEF6hr3KxKVt/CI5W4XSoXxDZgoJZUlOVDvXlJvt3TCt/6xYPEEc6Wc
+                L2BftnHxUD9gYbAXLZZeXgwL+KRF8gamScs12nLCn+hRQXPKbFMAsHFtDjw4ojRD
+                z/blAYAGc7XAed4T1zaMTwjZUQKBgQC3YlYnpoaKkfV843yesoO36fM5mimm8yLs
+                RCSd/OnZVFEYquu1YWUYh/ggtULU7GpkNHbOHcRy+xmXV6lm/a/HPsd0x63hAV0G
+                PKd14xmU6N1sndP7OB1NJhe6VoAYF9n4owK3Bf3TF7bYlvrXzP+i0lmnu900/paZ
+                ZVioa9yY7QKBgQDdlkxZxWOThChd9hJz1XmxCjs4vS1ev/Qq1kgVzx1XQR9jYecV
+                /SxcK25UovjHA9X00QA8qdnZ6XKz05fXjhyZmklqWQ3wS4AwzdRbt8DHl69HkrYx
+                9ZJuBshgpqyKgiHwr6fRm0aD2oHHaAlDC9VwbF31xIn/fa7wHuz5nnB48QKBgF8X
+                3xUwhRPWHDZmwHiKmUMFTdrQ1kh8S9+4dkR2oczQrDzeZNvpZUMTPte3JrDC52iO
+                zAyV4wi8rMiN7Io7gqsPIt6rrL7AtjxFt5Cp8toE5s0sCoB62LboyeUWddYIiD8m
+                SIIf2T9dTLODlw/Qfb8w1Mzl3g9c9TsWEqNDS2EBAoGBALPAL8NSpMsbyPOkSIex
+                qx+VENWHzChazY5NzU0tN/cTivZ3rzs3U8e2MUnnCr0iOQQ5rAXUGbojxGjkmUJ+
+                1avK5pV16dfZkm/FDUmMaBf7Zj9cO0EmDmo16F/50JlfJVUYr4xtR3uSNAvNMjB6
+                foFe+OLaONwZZSGa79Y1bhKl
+                -----END PRIVATE KEY-----
+              signingCertificate: |-
+                -----BEGIN CERTIFICATE-----
+                MIIDGjCCAgKgAwIBAgIUfhF0sfwtSHfO18Gjbye2C8X+ngIwDQYJKoZIhvcNAQEL
+                BQAwMDELMAkGA1UEBhMCSVQxDTALBgNVBAoMBFRlc3QxEjAQBgNVBAMMCWxvY2Fs
+                aG9zdDAeFw0yNjA1MjkxMjQ0NTFaFw0zNjA1MjYxMjQ0NTFaMDAxCzAJBgNVBAYT
+                AklUMQ0wCwYDVQQKDARUZXN0MRIwEAYDVQQDDAlsb2NhbGhvc3QwggEiMA0GCSqG
+                SIb3DQEBAQUAA4IBDwAwggEKAoIBAQC1wco1j5jqODLnlHep8U9nLh8LKLxw8kuw
+                t2mavy+6TwtT2IPoWag19UGxOVrmkWF+ltGfuqGgHZUhdCz3BSmd/WlmzICq0Ecg
+                Qg3Wl5cSddLdWFK83yZM6obu+7QMCVu3wasIaF+1t3SwwaWxr3OlQjdluyop5y7R
+                rgbpTIgOgyO08kyQ54JDOVtX/keadnN1HS9/BZculHyxFth3aX9De3zOI0q7BxG4
+                YBY/LJj3GFbDV0W7QVkY7GJ6SJzcCSiOJoibIWz0KEURdG97uggGYVQ2fxS3cSEr
+                hlNMBWQ3QRPIWqKjZ+gDZgWfEsIC+hFrx4imoYXiM7q04moI1Uf9AgMBAAGjLDAq
+                MAkGA1UdEwQCMAAwHQYDVR0OBBYEFJXn2VVBYnwlLonc/b2GsZp+ElkKMA0GCSqG
+                SIb3DQEBCwUAA4IBAQAJbPyS14CgiizmiA+Gm/TRY8R4sw+avB1kP7VYPAy524/b
+                lURJSEY519bxtDoAXV+2pYIfxdeaPDGlsK9co9372Zpgw7wkLnW0UKI3cClgfAMy
+                YaqKXIAteMHYhNGNadYNm2ei+cN+6m+2F5fmr9KfaA/W/qXEtt1fLl8b/wT3lt+z
+                udlYdSK9ieuataYmOVqOqMYu2Vz4RsxJ/+7Oesx1cJ+Lb/Xcxmimj98coM0HKDNq
+                2VjoNzD7xCsW2ZqVYOUdPPKstAHvQi1Usgcz2aPCFpgRPH73T5/pHB72iCqTSeEU
+                GeCQCtfmYt/vI/kHdRnFoYr7TEe72Fgzua06ZXe+
+                -----END CERTIFICATE-----
+          ssoServiceBinding: "HTTP-POST"
