@@ -24,18 +24,18 @@ public class IdentityProvider {
 
     public void initReamlByBoostrap(ConfigurableIdentityProvider idp, String BASE_URL, String METADATA_PATH, String SSO_PATH) {
         this.signingIdpProvider = idp.getProvider();
-        this.signingIdpMetadataUrl = BASE_URL + METADATA_PATH + encodeRegistrationId(this.signingIdpProvider);
-        this.signingIdpSsoUrl = BASE_URL + SSO_PATH + encodeRegistrationId(this.signingIdpProvider);
-        this.signingIdpEntityId = BASE_URL + METADATA_PATH + encodeRegistrationId(this.signingIdpProvider);
+        this.signingIdpMetadataUrl = BASE_URL + METADATA_PATH + encodeBase64(this.signingIdpProvider);
+        this.signingIdpSsoUrl = BASE_URL + SSO_PATH + encodeBase64(this.signingIdpProvider);
+        this.signingIdpEntityId = BASE_URL + METADATA_PATH + encodeBase64(this.signingIdpProvider);
     }
 
     // Compute the SPID Relying Party Registration IDs (Base64 of "providerId|entityId")
     public void initRegistrationIdBinding(String ASSERTING_PARTY_ENTITY_ID_REDIRECT, String ASSERTING_PARTY_ENTITY_ID_POST) {
-        this.registrationIdRedirect = encodeRegistrationId(signingIdpProvider + "|" + ASSERTING_PARTY_ENTITY_ID_REDIRECT);
-        this.registrationIdPost = encodeRegistrationId(signingIdpProvider + "|" + ASSERTING_PARTY_ENTITY_ID_POST);
+        this.registrationIdRedirect = encodeBase64(signingIdpProvider + "|" + ASSERTING_PARTY_ENTITY_ID_REDIRECT);
+        this.registrationIdPost = encodeBase64(signingIdpProvider + "|" + ASSERTING_PARTY_ENTITY_ID_POST);
     }
 
-    public static String encodeRegistrationId(String regId) {
+    public static String encodeBase64(String regId) {
         return Base64.getUrlEncoder().encodeToString(regId.getBytes());
     }
 }

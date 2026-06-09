@@ -563,7 +563,6 @@ realms:
             z2W7fraP4BGakCvWN6MSeS/ZS9WCW+sbU5sKX1+CI3S+yW5fRQJwp5v1Qx1nZnX6
             Ypr5eg6Ht9RVCUG0VRIZrHUg
             -----END PRIVATE KEY-----
-        ssoServiceBinding: "HTTP-POST"
       - type: identity
         authority: spid
         provider: spid-test-credentials
@@ -789,7 +788,6 @@ realms:
                 yoeKpYJBlP3wUTwG5e8H4K7zG7XHqg3QEpw0NMWDn5/2gOhbA1WeJQkIrLUT5xlW
                 aNJBV8ebDADUV9mxvlfEomPviIf5FkCetuYSGNIc
                 -----END CERTIFICATE-----
-        ssoServiceBinding: "HTTP-POST"
       - type: identity
         authority: spid
         provider: spid-test-custom
@@ -866,7 +864,6 @@ realms:
                 bt7yygIQvnhZGxWE6lgzaL7aH8CN56D/Ypp8x6kGULE9J3tNg7o2BVjJf43c9jxN
                 yxZPs5mnSRlmE3MfSLn9/qNwCqHCJxhexbGBrigP
                 -----END CERTIFICATE-----
-        ssoServiceBinding: "HTTP-POST"
       - type: identity
         authority: spid
         provider: spid-test-organization
@@ -996,4 +993,3 @@ realms:
                 2VjoNzD7xCsW2ZqVYOUdPPKstAHvQi1Usgcz2aPCFpgRPH73T5/pHB72iCqTSeEU
                 GeCQCtfmYt/vI/kHdRnFoYr7TEe72Fgzua06ZXe+
                 -----END CERTIFICATE-----
-          ssoServiceBinding: "HTTP-POST"

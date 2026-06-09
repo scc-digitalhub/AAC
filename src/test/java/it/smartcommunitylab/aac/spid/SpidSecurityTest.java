@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SecurityTest extends BaseSpidTest {
+public class SpidSecurityTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -332,7 +332,7 @@ public class SecurityTest extends BaseSpidTest {
             .executeRequest();
 
         // Downgrade Livello SPID (L2 -> L1)
-        String response = hackerUtils.prepareForSimulationNotValidChangeSpidLevel(
+        String response = hackerUtils.prepareForSimulationNotValidChangeSpidLevelLow(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -355,6 +355,40 @@ public class SecurityTest extends BaseSpidTest {
         Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getMessage()).contains("1000");
+    }
+
+    /**
+     * Security Test: Ensures authentication succeed if the Identity Provider
+     * returns a SPID security level higher than the one requested.
+     */
+    @Test
+    @DisplayName("Autenticazione con successo: livello SPID restituito (L3) è superiore a quello richiesto (L2)")
+    public void testAuthenticationSucceedOnHighSpidLevel() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // Downgrade Livello SPID (L2 -> L3)
+        String response = hackerUtils.prepareForSimulationNotValidChangeSpidLevelHigh(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(USER_DESTINATION_URL));
     }
 
     /**
@@ -441,5 +475,36 @@ public class SecurityTest extends BaseSpidTest {
             // the flow breaks gracefully because the RelayState does not match the internal session context.
             // The user is safely redirected back to the local login/error page.
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+    }
+
+    @Test
+    @DisplayName("Verifica runtime HTML Form (HTTP-POST)")
+    public void testRuntimeHtmlFormStructurePost() throws Exception {
+        // 1. Create an active session pre-populated with a protected resource request
+        // This ensures Spring Security will automatically generate a valid RelayState
+        MockHttpSession session = userUtils.createSessionWithSavedClientRequest(BASE_URL);
+
+        // 2. Execute the SSO initialization request directly and capture the raw HTML response
+        String htmlResponse = mockMvc.perform(post(BASE_URL + AUTHENTICATE_PATH + identityProvider.registrationIdPost)
+                .secure(true)
+                .session(session))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        // 3. Verify the HTML response contains a form intended for the IdP via POST
+        assertThat(htmlResponse).contains("<form");
+        assertThat(htmlResponse).containsIgnoringCase("method=\"post\"");
+
+        String action = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
+            .getRelyingPartyRegistration(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST)
+            .getAssertingPartyDetails()
+            .getSingleSignOnServiceLocation();
+
+        assertThat(htmlResponse).contains("action=\"" + action + "\"");
+
+        // 4. Verify the presence of the mandatory hidden SAML inputs
+        assertThat(htmlResponse).contains("name=\"SAMLRequest\"");
+        assertThat(htmlResponse).contains("name=\"RelayState\"");
     }
 }

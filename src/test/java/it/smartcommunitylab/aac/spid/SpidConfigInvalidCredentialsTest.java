@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
-public class ConfigInvalidCredentialsTest extends BaseSpidTest {
+public class SpidConfigInvalidCredentialsTest extends BaseSpidTest {
 
     private String spidProviderId;
     protected InvalidIdentityProvider invalidIdentityProvider = new InvalidIdentityProvider();
@@ -40,7 +40,7 @@ public class ConfigInvalidCredentialsTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch in list credentials")
-    public void testKeyAndCertificateMismatchInCredentialsList() throws Exception {
+    public void testCustomKeyAndCertificateMismatchInCredentialsList() throws Exception {
         invalidIdentityProvider.reset(spidProviderConfigRepository.findByProviderId(spidProviderId));
 
         // CORRECT CREDENTIAL
@@ -67,7 +67,7 @@ public class ConfigInvalidCredentialsTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch")
-    public void testKeyAndCertificateMismatch() throws Exception {
+    public void testKeyAndCertificateMismatchInCredentialsList() throws Exception {
         invalidIdentityProvider.reset(spidProviderConfigRepository.findByProviderId(spidProviderId));
 
         invalidIdentityProvider.signingListCredentialsInvalid.add(new SigningCredential(

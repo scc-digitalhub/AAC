@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class AgidAnomalyTest extends BaseSpidTest {
+public class SpidAgidAnomalyTest extends BaseSpidTest {
 
     @Autowired
     private MessageSource messageSource;

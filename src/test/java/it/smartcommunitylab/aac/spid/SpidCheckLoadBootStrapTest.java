@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
-public class CheckLoadBootStrapTest extends BaseSpidTest {
+public class SpidCheckLoadBootStrapTest extends BaseSpidTest {
 
     private String providerDefaultId;
     private String providerCredentialsId;

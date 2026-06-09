@@ -87,7 +87,7 @@ public class HackerUtils {
      * @return A signed SAML Response containing a lower AuthnContextClassRef than required.
      * @throws Exception if XML manipulation or signing fails.
      */
-    public String prepareForSimulationNotValidChangeSpidLevel(
+    public String prepareForSimulationNotValidChangeSpidLevelLow(
             SpidRequest ctx,
             String xmlTemplate,
             String idpSsoUrl,
@@ -104,6 +104,42 @@ public class HackerUtils {
         // RAW SUBSTITUTION: The original IdP sent SpidL2, we force SpidL1.
         // This happens BEFORE signing, so the resulting cryptographic hash will be valid.
         plainXml = plainXml.replace("https://www.spid.gov.it/SpidL2", "https://www.spid.gov.it/SpidL1");
+
+        String tamperedXmlBase64 = Base64.getEncoder().encodeToString(plainXml.getBytes(StandardCharsets.UTF_8));
+
+        // Sign the tampered payload. The signature is valid, but the logical content (SpidL1) should trigger a security block.
+        return responseUtils.createSignedSamlResponse(tamperedXmlBase64, privateKey, certificate);
+    }
+
+    /**
+     * Simulates a security level downgrade (e.g., L2 requested, L1 returned).
+     * @param ctx The current SPID test context.
+     * @param xmlTemplate The base XML response template.
+     * @param idpSsoUrl The mock IdP SSO endpoint.
+     * @param assertingPartyId The EntityID of the IdP.
+     * @param entityIdSp The EntityID of the Service Provider.
+     * @param privateKey The private key for signing.
+     * @param certificate The public certificate for the signature.
+     * @return A signed SAML Response containing a lower AuthnContextClassRef than required.
+     * @throws Exception if XML manipulation or signing fails.
+     */
+    public String prepareForSimulationNotValidChangeSpidLevelHigh(
+            SpidRequest ctx,
+            String xmlTemplate,
+            String idpSsoUrl,
+            String assertingPartyId,
+            String entityIdSp,
+            String privateKey,
+            String certificate) throws Exception {
+
+        String cleanXmlBase64 = responseUtils.modifyAndEncodeSamlResponse(
+                xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+
+        String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
+
+        // RAW SUBSTITUTION: The original IdP sent SpidL2, we force SpidL1.
+        // This happens BEFORE signing, so the resulting cryptographic hash will be valid.
+        plainXml = plainXml.replace("https://www.spid.gov.it/SpidL2", "https://www.spid.gov.it/SpidL3");
 
         String tamperedXmlBase64 = Base64.getEncoder().encodeToString(plainXml.getBytes(StandardCharsets.UTF_8));
 

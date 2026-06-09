@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
-public class ConfigProviderTest extends BaseSpidTest {
+public class SpidConfigProviderTest extends BaseSpidTest {
 
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
@@ -125,7 +125,7 @@ public class ConfigProviderTest extends BaseSpidTest {
 
         assertThat(rpRegistration).isNotNull();
         assertThat(rpRegistration.getEntityId()).isEqualTo(identityProvider.signingIdpEntityId);
-        assertThat(rpRegistration.getRegistrationId()).isEqualTo(IdentityProvider.encodeRegistrationId(identityProvider.signingIdpProvider));
+        assertThat(rpRegistration.getRegistrationId()).isEqualTo(IdentityProvider.encodeBase64(identityProvider.signingIdpProvider));
 
         List<SigningCredential> listSigningCredentials = SigningCredentialHelper.signingCredentialList(
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
@@ -160,8 +160,8 @@ public class ConfigProviderTest extends BaseSpidTest {
         assertThat(cred.getUsageType()).isEqualTo(UsageType.SIGNING);
 
         SigningCredential signingCredential = SigningCredentialHelper.signingCredentialList(
-                spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
-                SigningCredentialHelper.CredentialPurpose.METADATA_SIGNATURE).get(0);
+            spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
+            SigningCredentialHelper.CredentialPurpose.METADATA_SIGNATURE).get(0);
 
         assertThat(cred.getPublicKey()).isNotNull();
         assertThat(cred.getPrivateKey()).isNotNull();
@@ -191,7 +191,7 @@ public class ConfigProviderTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Verifica registrazione Identity Provider - AUTH_REQUEST")
-    public void testRelyingPartyRegistration() throws Exception {
+    public void testRelyingPartyRegistrationForAuthRequest() throws Exception {
         SpidIdentityProviderConfig spidIdentityProviderConfig = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider);
         RelyingPartyRegistration relyingPartyRegistration = spidIdentityProviderConfig.getRelyingPartyRegistration();
 

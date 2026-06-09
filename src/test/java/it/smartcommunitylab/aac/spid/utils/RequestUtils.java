@@ -40,7 +40,7 @@ public class RequestUtils {
                 return authnRequestElement.getAttribute("ID");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Impossible extract AuthnRequestId from AuthnRequest: " + e.getMessage(), e);
         }
         return null;
     }

@@ -51,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class CustomProviderTest extends BaseSpidTest {
+public class SpidCustomProviderTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -86,7 +86,7 @@ public class CustomProviderTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Autenticazione Fallita con SetAttribute Custom")
-    public void testAuthenticationFailsWithSetAttributeSpecified() throws Exception {
+    public void testAuthenticationFailsWithSetAttributeCustom() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdPost) // POST

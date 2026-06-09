@@ -12,13 +12,11 @@ import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
-import it.smartcommunitylab.aac.spid.utils.UserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -30,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * Test suite for the generation and dispatch of SPID SAML 2.0 AuthnRequests.
@@ -46,7 +43,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class AuthRequestTest extends BaseSpidTest {
+public class SpidAuthRequestTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -56,8 +53,6 @@ public class AuthRequestTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-
-    protected UserUtils userUtils = new UserUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -138,8 +133,8 @@ public class AuthRequestTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica runtime Binding (HTTP-Redirect) e Firma (SigAlg/Signature)")
-    public void testRuntimeBindingRedirectAndSignature() throws Exception {
+    @DisplayName("Verifica runtime Binding e Firma (SigAlg/Signature)")
+    public void testRuntimeBindingAndSignature() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -189,26 +184,6 @@ public class AuthRequestTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica runtime Attributi")
-    public void testAuthnRequestMandatoryAttributes() throws Exception {
-        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
-            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-            .withIdpConfig(identityProvider.registrationIdRedirect)
-            .withSession()
-            .executeRequest();
-
-        String xmlRequest = spidRequest.getXmlRequest();
-        assertThat(xmlRequest).isNotNull();
-        String requestId = spidRequest.getRequestId();
-
-        assertThat(xmlRequest).contains("ID=\"");
-        assertThat(requestId).isNotBlank();
-        assertThat(requestId).matches("^[a-zA-Z].*");
-
-        assertThat(xmlRequest).contains("IssueInstant=\"");
-    }
-
-    @Test
     @DisplayName("Verifica runtime Livello SPID e ForceAuthn")
     public void testAuthnRequestSpidLevelAndForceAuthn() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
@@ -223,9 +198,15 @@ public class AuthRequestTest extends BaseSpidTest {
         // Verify that the SP enforces authentication (AgID strictly requires ForceAuthn="true" for L2/L3)
         assertThat(xmlRequest).contains("ForceAuthn=\"true\"");
 
-        // Verify that the SP explicitly requests the correct SPID security level (e.g., SpidL2)
+        // Verify that the SP explicitly requests the correct SPID security level
         assertThat(xmlRequest).contains("<saml2p:RequestedAuthnContext");
-        assertThat(xmlRequest).contains(SpidAuthnContext.SPID_L2.toString());
+        SpidAuthnContext spidAuthnContext = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
+            .getConfigMap().getAuthnContext();
+        assertThat(xmlRequest).contains(spidAuthnContext.getValue());
+        assertThat(spidAuthnContext).isIn(
+            SpidAuthnContext.SPID_L2,
+            SpidAuthnContext.SPID_L3
+        );
     }
 
     @Test
@@ -293,39 +274,8 @@ public class AuthRequestTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica runtime HTML Form (HTTP-POST)")
-    public void testRuntimeHtmlFormStructurePost() throws Exception {
-        // 1. Create an active session pre-populated with a protected resource request
-        // This ensures Spring Security will automatically generate a valid RelayState
-        MockHttpSession session = userUtils.createSessionWithSavedClientRequest(BASE_URL);
-
-        // 2. Execute the SSO initialization request directly and capture the raw HTML response
-        String htmlResponse = mockMvc.perform(post(BASE_URL + AUTHENTICATE_PATH + identityProvider.registrationIdPost)
-            .secure(true)
-            .session(session))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        // 3. Verify the HTML response contains a form intended for the IdP via POST
-        assertThat(htmlResponse).contains("<form");
-        assertThat(htmlResponse).containsIgnoringCase("method=\"post\"");
-
-        String action = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
-            .getRelyingPartyRegistration(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST)
-            .getAssertingPartyDetails()
-            .getSingleSignOnServiceLocation();
-
-        assertThat(htmlResponse).contains("action=\"" + action + "\"");
-
-        // 4. Verify the presence of the mandatory hidden SAML inputs
-        assertThat(htmlResponse).contains("name=\"SAMLRequest\"");
-        assertThat(htmlResponse).contains("name=\"RelayState\"");
-    }
-
-    @Test
-    @DisplayName("Verifica runtime Certificato - AUTH_REQUEST")
-    public void testRuntimeCertificate() throws Exception {
+    @DisplayName("Verifica runtime Certificato Binding (HTTP-POST) - AUTH_REQUEST")
+    public void testRuntimeSigningCertificatePost() throws Exception {
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdPost)

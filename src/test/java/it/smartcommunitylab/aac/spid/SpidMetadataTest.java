@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
-public class MetadataTest extends BaseSpidTest {
+public class SpidMetadataTest extends BaseSpidTest {
 
     protected MetadataUtils metadataUtils = new MetadataUtils();
     protected IdentityProvider identityProvider = new IdentityProvider();
@@ -88,8 +88,6 @@ public class MetadataTest extends BaseSpidTest {
             .andReturn();
 
         assertThat(res.getResponse().getContentAsString()).isNotBlank();
-        assertThat(res.getResponse().getContentAsString()).isNotEmpty();
-        assertThat(res.getResponse().getContentAsString()).isNotNull();
     }
 
     /**
@@ -383,7 +381,7 @@ public class MetadataTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica validità crittografica: estrazione, rifirma (SHA-256) e confronto Digest")
-    public void testMetadataRefirmSignatureAlgorithmNew() throws Exception {
+    public void testResignedSignatureDigestMatch() throws Exception {
         // Retrieve the original XML
         MvcResult res = this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl))
                 .andExpect(status().isOk())
