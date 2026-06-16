@@ -22,7 +22,6 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -57,9 +56,9 @@ public class SpidAuthRequestTest extends BaseSpidTest {
     protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
-    public void setupConfigurationAndMocks() throws IOException {
+    public void setupConfigurationAndMocks() {
         initMockMvc();
-        mockIdpSpid.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+        mockIdpSpid.prepareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
@@ -68,7 +67,7 @@ public class SpidAuthRequestTest extends BaseSpidTest {
                 // Any Identity Provider loaded from the bootstrap can be used here
                 ConfigurableIdentityProvider idp = idps.get(0);
 
-                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
@@ -204,6 +203,7 @@ public class SpidAuthRequestTest extends BaseSpidTest {
             .getConfigMap().getAuthnContext();
         assertThat(xmlRequest).contains(spidAuthnContext.getValue());
         assertThat(spidAuthnContext).isIn(
+            SpidAuthnContext.SPID_L1,
             SpidAuthnContext.SPID_L2,
             SpidAuthnContext.SPID_L3
         );

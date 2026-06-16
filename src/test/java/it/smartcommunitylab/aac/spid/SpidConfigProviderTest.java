@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Test suite for verifying the internal configuration and setup of the SPID Identity Provider.
  * Validates accurate URL generation (SSO, SLO, Metadata), OpenSAML credential mapping, certificate extraction,
- * and the correct initialization of Spring Security's Relying Party and Identity Provider registrations.
+ * and the correct initialization of Spring Security's Relying on Party and Identity Provider registrations.
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
@@ -53,7 +53,7 @@ public class SpidConfigProviderTest extends BaseSpidTest {
                 // Every identity provider is supported
                 ConfigurableIdentityProvider idp = idps.get(2);
 
-                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });

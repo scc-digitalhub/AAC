@@ -64,8 +64,8 @@ public class RequestUtils {
                 int idx = pair.indexOf("=");
                 if (idx == -1) continue;
 
-                String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
-                String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+                String value = URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
 
                 if ("SAMLRequest".equals(key)) {
                     samlRequestEncoded = value;
@@ -95,8 +95,8 @@ public class RequestUtils {
                 int idx = pair.indexOf("=");
                 if (idx == -1) continue;
 
-                String key = URLDecoder.decode(pair.substring(0, idx), "UTF-8");
-                String value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
+                String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+                String value = URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
 
                 if ("RelayState".equals(key)) {
                     relayState = value;
@@ -132,9 +132,7 @@ public class RequestUtils {
             }
             inflater.end();
 
-            byte[] decompressedBytes = outputStream.toByteArray();
-
-            return new String(decompressedBytes, StandardCharsets.UTF_8);
+            return outputStream.toString(StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new RuntimeException("Impossibile decodificare/decomprimere SAMLRequest: " + e.getMessage(), e);
         }

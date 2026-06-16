@@ -50,7 +50,7 @@ public class AgidAnomalyUtils extends ResponseUtils {
         // 2. Update the root Response element attributes (ID, Destination, IssueInstant, InResponseTo)
         Element responseElement = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response").item(0);
         if (responseElement != null) {
-            responseElement.setAttribute("ID", "_" + UUID.randomUUID().toString()); // Generate a fresh unique ID
+            responseElement.setAttribute("ID", "_" + UUID.randomUUID()); // Generate a fresh unique ID
             responseElement.setAttribute("InResponseTo", inResponseToValue);
             responseElement.setAttribute("Destination", destinationUrl);
             responseElement.setAttribute("IssueInstant", formatter.format(now));
@@ -111,7 +111,7 @@ public class AgidAnomalyUtils extends ResponseUtils {
         Transformer transformer = ResponseUtils.TRANSFORMER_FACTORY.newTransformer();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(out));
-        String modifiedXmlString = out.toString(StandardCharsets.UTF_8.name());
+        String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
 
         return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
     }

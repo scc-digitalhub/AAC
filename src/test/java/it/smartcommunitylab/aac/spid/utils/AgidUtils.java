@@ -117,7 +117,6 @@ public class AgidUtils {
     }
 
     public void validateSpidAnomalyTechnicalAndSystem(
-            SpidAgidAnomalyScenario scenario,
             SpidAuthenticationException spidEx,
             MockMvc mockMvc,
             String loginDestinationUrl,

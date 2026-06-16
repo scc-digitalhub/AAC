@@ -50,6 +50,7 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -216,7 +217,7 @@ public class ResponseUtils {
         Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(out));
-        String modifiedXmlString = out.toString(StandardCharsets.UTF_8.name());
+        String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
 
         return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
     }
@@ -328,6 +329,7 @@ public class ResponseUtils {
 
         Element rootElement = doc.getDocumentElement();
         Unmarshaller unmarshaller = XMLObjectProviderRegistrySupport.getUnmarshallerFactory().getUnmarshaller(rootElement);
+        assert unmarshaller != null;
         Response response = (Response) unmarshaller.unmarshall(rootElement);
 
         // 1. Sign the inner Assertion
@@ -337,7 +339,7 @@ public class ResponseUtils {
             assertion.setSignature(assertionSignature);
 
             // Marshalling is strictly required by OpenSAML before actual signing occurs
-            XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(assertion).marshall(assertion);
+            Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(assertion)).marshall(assertion);
             Signer.signObject(assertionSignature);
         }
 
@@ -345,7 +347,7 @@ public class ResponseUtils {
         Signature responseSignature = buildSignatureObject(signingCredential);
         response.setSignature(responseSignature);
 
-        XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(response).marshall(response);
+        Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(response)).marshall(response);
         Signer.signObject(responseSignature);
 
         // Transform the final signed DOM back into an XML String

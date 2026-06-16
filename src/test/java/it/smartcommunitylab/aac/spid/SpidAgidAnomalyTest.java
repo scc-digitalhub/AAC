@@ -26,7 +26,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.context.MessageSource;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,9 +62,9 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
     protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
-    public void setupConfigurationAndMocks() throws IOException {
+    public void setupConfigurationAndMocks() {
         initMockMvc();
-        mockIdpSpid.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+        mockIdpSpid.prepareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
@@ -74,7 +73,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
                 // Any Identity Provider loaded from the bootstrap can be used here
                 ConfigurableIdentityProvider idp = idps.get(1);
 
-                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
@@ -136,7 +135,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
 
         SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
 
-        agidUtils.validateSpidAnomalyTechnicalAndSystem(scenario, spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
+        agidUtils.validateSpidAnomalyTechnicalAndSystem(spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
         assertThat(spidEx.getError().getErrorCode()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION.getErrorCode());
     }
 

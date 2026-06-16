@@ -39,6 +39,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,7 +61,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
-    public void setupConfiguration() throws Exception {
+    public void setupConfiguration() {
         initMockMvc();
 
         config.getRealms().forEach(realm -> {
@@ -72,7 +73,7 @@ public class SpidMetadataTest extends BaseSpidTest {
                     idp -> "spid-test-organization".equals(idp.getName()))
                     .findFirst().orElseThrow();
 
-                identityProvider.initReamlByBoostrap(idpOrganization, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBoostrap(idpOrganization, BASE_URL, METADATA_PATH, SSO_PATH);
             }
         });
     }
@@ -101,7 +102,7 @@ public class SpidMetadataTest extends BaseSpidTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        assertEquals(res.getResponse().getContentType(), "application/xml;charset=UTF-8");
+        assertEquals("application/xml;charset=UTF-8", res.getResponse().getContentType());
     }
 
     /**
@@ -234,9 +235,9 @@ public class SpidMetadataTest extends BaseSpidTest {
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
-        List<X509Data> keyDescriptors = descriptor
-            .getSignature()
-            .getKeyInfo()
+        List<X509Data> keyDescriptors = Objects.requireNonNull(Objects.requireNonNull(descriptor
+            .getSignature())
+            .getKeyInfo())
             .getX509Datas();
 
         assertThat(keyDescriptors.size()).isEqualTo(1);
@@ -244,7 +245,7 @@ public class SpidMetadataTest extends BaseSpidTest {
         List<X509Certificate> certificates = keyDescriptors.get(0).getX509Certificates();
         assertThat(certificates.size()).isEqualTo(1);
 
-        String metadataSignatureCertificate = certificates.get(0).getValue().replace("\n", "");
+        String metadataSignatureCertificate = Objects.requireNonNull(certificates.get(0).getValue()).replace("\n", "");
         assertThat(metadataSignatureCertificate).isNotNull();
 
         String idpSigningCertificate = SigningCredentialHelper.signingCredentialList(
@@ -291,10 +292,10 @@ public class SpidMetadataTest extends BaseSpidTest {
 
         List<String> actualCertificates = new ArrayList<>();
         for (KeyDescriptor keyDescriptor : keyDescriptors) {
-            String certValue = keyDescriptor.getKeyInfo()
+            String certValue = Objects.requireNonNull(keyDescriptor.getKeyInfo()
                 .getX509Datas().get(0)
                 .getX509Certificates().get(0)
-                .getValue().replace("\n", "");
+                .getValue()).replace("\n", "");
 
             actualCertificates.add(certValue);
         }
@@ -333,7 +334,7 @@ public class SpidMetadataTest extends BaseSpidTest {
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
                 this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
-        descriptor.getSignature().getSignatureAlgorithm();
+        Objects.requireNonNull(descriptor.getSignature()).getSignatureAlgorithm();
         Signature signature = descriptor.getSignature();
         assertThat(signature).isNotNull();
 

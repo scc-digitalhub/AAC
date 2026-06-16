@@ -28,6 +28,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -78,9 +79,8 @@ public class MetadataUtils {
      *
      * @param certificate The Base64 encoded X.509 certificate string.
      * @return The parsed X509Certificate instance, or null if the parsing fails.
-     * @throws Exception If the provided certificate string is null or decoding critically fails.
      */
-    public X509Certificate decodeBase64ToX509Certificate(String certificate) throws Exception {
+    public X509Certificate decodeBase64ToX509Certificate(String certificate) {
         assertThat(certificate).isNotNull();
 
         byte[] decodedBytes = Base64.getDecoder().decode(certificate.getBytes());
@@ -89,8 +89,7 @@ public class MetadataUtils {
             return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(stream);
         } catch (Exception e) {
             // Log fallback for invalid certificates
-            System.err.println("Certificato non è valido");
-            return null;
+            throw new IllegalArgumentException("Certificate not valid.");
         }
     }
 
@@ -128,6 +127,7 @@ public class MetadataUtils {
         // 2. Unmarshal into an EntityDescriptor
         Element rootElement = doc.getDocumentElement();
         Unmarshaller unmarshaller = XMLObjectProviderRegistrySupport.getUnmarshallerFactory().getUnmarshaller(rootElement);
+        assert unmarshaller != null;
         EntityDescriptor descriptor = (EntityDescriptor) unmarshaller.unmarshall(rootElement);
 
         // 3. Clear the DOM cache to force the Marshaller to rebuild a dense, whitespace-free XML matching the original pre-pretty-print state.
@@ -143,11 +143,12 @@ public class MetadataUtils {
         descriptor.setSignature(newSignature);
 
         // 5. Marshalling (recreates the clean DOM!) and actual signing
-        XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(descriptor).marshall(descriptor);
+        Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(descriptor)).marshall(descriptor);
         Signer.signObject(newSignature);
 
         // 6. Extract the newly calculated digest from the clean DOM
         Element newSignatureDom = newSignature.getDOM();
+        assert newSignatureDom != null;
         NodeList newDigestNodes = newSignatureDom.getElementsByTagNameNS(SignatureConstants.XMLSIG_NS, "DigestValue");
         return newDigestNodes.item(0).getTextContent();
     }

@@ -40,7 +40,7 @@ public class SpidConfigInvalidCredentialsTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch in list credentials")
-    public void testCustomKeyAndCertificateMismatchInCredentialsList() throws Exception {
+    public void testCustomKeyAndCertificateMismatchInCredentialsList() {
         invalidIdentityProvider.reset(spidProviderConfigRepository.findByProviderId(spidProviderId));
 
         // CORRECT CREDENTIAL
@@ -67,7 +67,7 @@ public class SpidConfigInvalidCredentialsTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch")
-    public void testKeyAndCertificateMismatchInCredentialsList() throws Exception {
+    public void testKeyAndCertificateMismatchInCredentialsList() {
         invalidIdentityProvider.reset(spidProviderConfigRepository.findByProviderId(spidProviderId));
 
         invalidIdentityProvider.signingListCredentialsInvalid.add(new SigningCredential(
@@ -84,7 +84,7 @@ public class SpidConfigInvalidCredentialsTest extends BaseSpidTest {
 
     @Test
     @DisplayName("Errata Configurazione - Key and Certificate mismatch in standalone credential")
-    public void testKeyAndCertificateMismatchInStandaloneCredential() throws Exception {
+    public void testKeyAndCertificateMismatchInStandaloneCredential() {
         invalidIdentityProvider.reset(spidProviderConfigRepository.findByProviderId(spidProviderId));
 
         invalidIdentityProvider.configsInvalid.setSigningCertificate(invalidIdentityProvider.signingIdpSigningCertificateByProviderId);

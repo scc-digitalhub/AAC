@@ -25,7 +25,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.transaction.Transactional;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -66,9 +65,9 @@ public class SpidCustomProviderTest extends BaseSpidTest {
     protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
-    public void setupConfigurationAndMocks() throws IOException {
+    public void setupConfigurationAndMocks() {
         initMockMvc();
-        mockIdpSpid.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+        mockIdpSpid.prepareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
@@ -78,7 +77,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
                     idp -> "spid-test-custom".equals(idp.getName()))
                     .findFirst().orElseThrow();
 
-                identityProvider.initReamlByBoostrap(idpCustom, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBoostrap(idpCustom, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });

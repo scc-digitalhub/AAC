@@ -26,10 +26,10 @@ public class MockIdpSpid {
     protected boolean ASSERTING_PARTY_WANT_AUTHN_SIGNED = true;
     protected final String ASSERTING_PARTY_KEY_USAGE = "signing";
 
-    /* =========================================================================
+    /**
      * Shared Cryptographic Materials (PKCS#8 Keys & Certs)
-     * See CheckLoadBootStrapTest.java for the certificate and private key generation command
-     * ========================================================================= */
+     * {@link it.smartcommunitylab.aac.spid.SpidCheckLoadBootStrapTest} for the certificate and private key generation command
+     */
 
     public final String IDP_MOCK_PRIVATE_KEY = """
         MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC6N2rhDdh2NaYf
@@ -83,136 +83,89 @@ public class MockIdpSpid {
     /**
      * Baseline SAML Response by idp.
      * This template acts as the foundational DOM structure before dynamic properties.
+     * Placeholders enclosed in {@code __XXX__} formatting are dynamically replaced
+     * Placeholders enclosed in {@code _xxx or SPID_xxx} formatting are statically replaced
+     * during the test execution or setup flow.
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#esempio-di-response-con-assertion">
+     *      Official AgID SPID Technical Rules - SAML Response & Assertion Example</a>
      */
     public String XML_RESPONSE_TEMPLATE =
-        "<saml2p:Response xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n" +
-        "                 xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n" +
-        "                 xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"\n" +
-        "                 Destination=\"http://localhost:8080/auth/spid/sso/registrationId\"\n" +
-        "                 ID=\"_125f62d9-b3d3-47a8-8c5b-6a4761483d96\"\n" +
-        "                 InResponseTo=\"ARQ4f2b078-5433-464c-9c4d-0702804f7195\"\n" +
-        "                 IssueInstant=\"2025-09-23T09:19:10.491Z\"\n" +
-        "                 Version=\"2.0\">\n" +
-        "    <saml2:Issuer xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\">https://idp.identityserver.invalid</saml2:Issuer>\n" +
-        "    <Signature xmlns=\"http://www.w3.org/2000/09/xml_sig#\">\n" +
-        "        <SignedInfo>\n" +
-        "            <CanonicalizationMethod Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\" />\n" +
-        "            <SignatureMethod Algorithm=\"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256\" />\n" +
-        "            <Reference URI=\"#_125f62d9-b3d3-47a8-8c5b-6a4761483d96\">\n" +
-        "                <Transforms>\n" +
-        "                    <Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" />\n" +
-        "                    <Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\" />\n" +
-        "                </Transforms>\n" +
-        "                <DigestMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\" />\n" +
-        "                <DigestValue>JJomN0gczJW8ectgSjm5NAnzU6YYBylqr853vyqo+F4=</DigestValue>\n" +
-        "            </Reference>\n" +
-        "        </SignedInfo>\n" +
-        "        <SignatureValue>...</SignatureValue>\n" +
-        "        <KeyInfo>\n" +
-        "            <X509Data>\n" +
-        "                <X509Certificate>...</X509Certificate>\n" +
-        "            </X509Data>\n" +
-        "        </KeyInfo>\n" +
-        "    </Signature>\n" +
-        "    <saml2p:Status>\n" +
-        "        <saml2p:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:Success\" />\n" +
-        "    </saml2p:Status>\n" +
-        "    <saml2:Assertion xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n" +
-        "                     ID=\"_5aff0ae5-b528-4adb-84e2-4fb6219a1749\"\n" +
-        "                     IssueInstant=\"2025-09-23T09:19:09.491Z\"\n" +
-        "                     Version=\"2.0\">\n" +
-        "        <saml2:Issuer Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:entity\">https://idp.identityserver.invalid</saml2:Issuer>\n" +
-        "        <Signature xmlns=\"http://www.w3.org/2000/09/xml_sig#\">\n" +
-        "            <SignedInfo>\n" +
-        "                <CanonicalizationMethod Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\" />\n" +
-        "                <SignatureMethod Algorithm=\"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256\" />\n" +
-        "                <Reference URI=\"#_5aff0ae5-b528-4adb-84e2-4fb6219a1749\">\n" +
-        "                    <Transforms>\n" +
-        "                        <Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" />\n" +
-        "                        <Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\" />\n" +
-        "                    </Transforms>\n" +
-        "                    <DigestMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\" />\n" +
-        "                    <DigestValue>ZxExmdALZ4lJwhadILmGCwHn/nyBwxm1mC6cb3aykns=</DigestValue>\n" +
-        "                </Reference>\n" +
-        "            </SignedInfo>\n" +
-        "            <SignatureValue>...</SignatureValue>\n" +
-        "            <KeyInfo>\n" +
-        "                <X509Data>\n" +
-        "                    <X509Certificate>...</X509Certificate>\n" +
-        "                </X509Data>\n" +
-        "            </KeyInfo>\n" +
-        "        </Signature>\n" +
-        "        <saml2:Subject>\n" +
-        "            <saml2:NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"\n" +
-        "                          NameQualifier=\"https://idp.identityserver.invalid\">SPID-a8c0c2e0-687b-4324-a4ba-1759d453397c</saml2:NameID>\n" +
-        "            <saml2:SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\">\n" +
-        "                <saml2:SubjectConfirmationData InResponseTo=\"ARQ4f2b078-5433-464c-9c4d-0702804f7195\"\n" +
-        "                                               NotOnOrAfter=\"2025-09-23T09:20:09.491Z\"\n" +
-        "                                               Recipient=\"http://localhost:8080/auth/spid/sso/registrationId\" />\n" +
-        "            </saml2:SubjectConfirmation>\n" +
-        "        </saml2:Subject>\n" +
-        "        <saml2:Conditions NotBefore=\"2025-09-23T09:19:09.491Z\"\n" +
-        "                          NotOnOrAfter=\"2025-09-23T09:20:09.491Z\">\n" +
-        "            <saml2:AudienceRestriction>\n" +
-        "                <saml2:Audience>http://localhost:8080/icar-lp/metadata</saml2:Audience>\n" +
-        "            </saml2:AudienceRestriction>\n" +
-        "        </saml2:Conditions>\n" +
-        "        <saml2:AuthnStatement AuthnInstant=\"2025-09-23T09:19:09.491Z\">\n" +
-        "            <saml2:AuthnContext>\n" +
-        "                <saml2:AuthnContextClassRef>https://www.spid.gov.it/SpidL2</saml2:AuthnContextClassRef>\n" +
-        "            </saml2:AuthnContext>\n" +
-        "        </saml2:AuthnStatement>\n" +
-        "        <saml2:AttributeStatement>\n" +
-        "            <saml2:Attribute Name=\"name\">\n" +
-        "                <saml2:AttributeValue xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"\n" +
-        "                                      xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-        "                                      xsi:type=\"xs:string\">ROSSI</saml2:AttributeValue>\n" +
-        "            </saml2:Attribute>\n" +
-        "        </saml2:AttributeStatement>\n" +
-        "    </saml2:Assertion>\n" +
-        "</saml2p:Response>";
+        """
+        <saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"
+                         xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
+                         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                         Destination="__SSO_REGISTRATION_ID__"
+                         ID="_response_test_id_value"
+                         InResponseTo="__REQUEST_ID__"
+                         IssueInstant="__ISSUE_INSTANT__"
+                         Version="2.0">
+            <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">__IDENTITY_PROVIDER__</saml2:Issuer>
+            <saml2p:Status>
+                <saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+            </saml2p:Status>
+            <saml2:Assertion xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
+                             ID="_assertion_test_id_value"
+                             IssueInstant="__ISSUE_INSTANT__"
+                             Version="2.0">
+                <saml2:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity">__IDENTITY_PROVIDER__</saml2:Issuer>
+                <saml2:Subject>
+                    <saml2:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient"
+                                  NameQualifier="__IDENTITY_PROVIDER__">SPID-mock-transient-id-123456</saml2:NameID>
+                    <saml2:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                        <saml2:SubjectConfirmationData InResponseTo="__REQUEST_ID__"
+                                                       NotOnOrAfter="__NOT_ON_OR_AFTER__"
+                                                       Recipient="__SSO_REGISTRATION_ID__" />
+                    </saml2:SubjectConfirmation>
+                </saml2:Subject>
+                <saml2:Conditions NotBefore="__NOT_BEFORE__"
+                                  NotOnOrAfter="__NOT_ON_OR_AFTER__">
+                    <saml2:AudienceRestriction>
+                        <saml2:Audience>__AUDIENCE_METADATA__</saml2:Audience>
+                    </saml2:AudienceRestriction>
+                </saml2:Conditions>
+                <saml2:AuthnStatement AuthnInstant="__AUTHN_INSTANT__">
+                    <saml2:AuthnContext>
+                        <saml2:AuthnContextClassRef>https://www.spid.gov.it/SpidL2</saml2:AuthnContextClassRef>
+                    </saml2:AuthnContext>
+                </saml2:AuthnStatement>
+                <saml2:AttributeStatement>
+                    <saml2:Attribute Name="name">
+                        <saml2:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                                              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                              xsi:type="xs:string">__ATTRIBUTE_VALUE__</saml2:AttributeValue>
+                    </saml2:Attribute>
+                </saml2:AttributeStatement>
+            </saml2:Assertion>
+        </saml2p:Response>""";
 
     /**
      * Baseline SAML Response containing an error.
      * This template acts as the foundational DOM structure before dynamic properties
      * (like specific AgID error codes and timestamps) are injected.
+     * Placeholders enclosed in {@code __XXX__} formatting are dynamically replaced
+     * during the test execution or setup flow.
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/messaggi-errore.html">
+ *          Official AgID SPID Technical Rules - Error Messages Mapping</a>
      */
     public String XML_RESPONSE_AGID_ERROR_TEMPLATE =
-        "<saml2p:Response xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\"\n" +
-        "                 xmlns:saml2=\"urn:oasis:names:tc:SAML:2.0:assertion\"\n" +
-        "                 ID=\"_9494dc2f8897e3b64d6adcd54e8c695a\"\n" +
-        "                 InResponseTo=\"s26cd2718a765d08ecd765551b7405b20d02ee65\"\n" +
-        "                 IssueInstant=\"2026-03-09T09:31:34.144Z\"\n" +
-        "                 Version=\"2.0\"\n" +
-        "                 Destination=\"http://localhost:8080/icar-lp/AssertionConsumerServiceProxy\">\n" +
-        "    <saml2:Issuer>https://idp.identityserver.invalid</saml2:Issuer>\n" +
-        "    <ds:Signature xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n" +
-        "        <ds:SignedInfo>\n" +
-        "            <ds:CanonicalizationMethod Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\" />\n" +
-        "            <ds:SignatureMethod Algorithm=\"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256\" />\n" +
-        "            <ds:Reference URI=\"#_9494dc2f8897e3b64d6adcd54e8c695a\">\n" +
-        "                <ds:Transforms>\n" +
-        "                    <ds:Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" />\n" +
-        "                    <ds:Transform Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\" />\n" +
-        "                </ds:Transforms>\n" +
-        "                <ds:DigestMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\" />\n" +
-        "                <ds:DigestValue>SBXL44s+ZiyMX2yTGJ6ehDJHCUmgJWhN39nOOs+zoFw=</ds:DigestValue>\n" +
-        "            </ds:Reference>\n" +
-        "        </ds:SignedInfo>\n" +
-        "        <ds:SignatureValue>lUs8o+DCANcUI9FQSW7x3..mrcIaA==</ds:SignatureValue>\n" +
-        "        <ds:KeyInfo>\n" +
-        "            <ds:X509Data>\n" +
-        "                <ds:X509Certificate>MIIDDCCA+SgAwI...TwIhEXyzknoiw1mGIEWZc6scnOAiwZeqTccTYVNHp+PFs9SD8l+2PO4Oh8Y3dYT+5ojv+S6T7vy5xE=</ds:X509Certificate>\n" +
-        "            </ds:X509Data>\n" +
-        "        </ds:KeyInfo>\n" +
-        "    </ds:Signature>\n" +
-        "    <saml2p:Status>\n" +
-        "        <saml2p:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:Responder\">\n" +
-        "            <saml2p:StatusCode Value=\"urn:oasis:names:tc:SAML:2.0:status:AuthnFailed\" />\n" +
-        "        </saml2p:StatusCode>\n" +
-        "        <saml2p:StatusMessage>ErrorCode nr25</saml2p:StatusMessage>\n" +
-        "    </saml2p:Status>\n" +
-        "</saml2p:Response>";
+        """
+        <saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"
+                         xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
+                         ID="_response_test_id_value"
+                         InResponseTo="__REQUEST_ID__"
+                         IssueInstant="__ISSUE_INSTANT__"
+                         Version="2.0"
+                         Destination="__SSO_REGISTRATION_ID__">
+            <saml2:Issuer>__IDENTITY_PROVIDER__</saml2:Issuer>
+            <saml2p:Status>
+                <saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Responder">
+                    <saml2p:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:AuthnFailed" />
+                </saml2p:StatusCode>
+                <saml2p:StatusMessage>__ERROR_CODE__</saml2p:StatusMessage>
+            </saml2p:Status>
+        </saml2p:Response>""";
 
 
     /* =========================================================================
@@ -220,22 +173,23 @@ public class MockIdpSpid {
      * ========================================================================= */
 
     private final String ASSERTING_PARTY_METADATA_TEMPLATE =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-        "<md:EntityDescriptor xmlns:md=\"urn:oasis:names:tc:SAML:2.0:metadata\" xmlns:alg=\"urn:oasis:names:tc:SAML:metadata:algsupport\" " +
-        "entityID=\"%s\" ID=\"_bf133aac099b99b3d81286e1a341f2d34188043a77fe15bf4bf1487dae9b2ea3\">\n" +
-        "<md:IDPSSODescriptor WantAuthnRequestsSigned=\"%s\" protocolSupportEnumeration=\"urn:oasis:names:tc:SAML:2.0:protocol\">\n" +
-        "<md:SingleSignOnService Binding=\"%s\" Location=\"%s\"/>\n" +
-        "<md:SingleLogoutService Binding=\"%s\" Location=\"%s\"/>\n" +
-        "<md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>\n" +
-        "<md:KeyDescriptor use=\"%s\">\n" +
-        "<ds:KeyInfo xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n" +
-        "<ds:X509Data>\n" +
-        "<ds:X509Certificate>%s</ds:X509Certificate>\n" +
-        "</ds:X509Data>\n" +
-        "</ds:KeyInfo>\n" +
-        "</md:KeyDescriptor>\n" +
-        "</md:IDPSSODescriptor>\n" +
-        "</md:EntityDescriptor>";
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" \
+        entityID="%s" ID="_bf133aac099b99b3d81286e1a341f2d34188043a77fe15bf4bf1487dae9b2ea3">
+        <md:IDPSSODescriptor WantAuthnRequestsSigned="%s" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:SingleSignOnService Binding="%s" Location="%s"/>
+        <md:SingleLogoutService Binding="%s" Location="%s"/>
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
+        <md:KeyDescriptor use="%s">
+        <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+        <ds:X509Certificate>%s</ds:X509Certificate>
+        </ds:X509Data>
+        </ds:KeyInfo>
+        </md:KeyDescriptor>
+        </md:IDPSSODescriptor>
+        </md:EntityDescriptor>""";
 
 
     private String getMetadataRedirect() {
@@ -266,7 +220,7 @@ public class MockIdpSpid {
         );
     }
 
-    public void preprareMockMetadata(WireMockServer mockIdPServerRedirect, WireMockServer mockIdPServerPost) {
+    public void prepareMockMetadata(WireMockServer mockIdPServerRedirect, WireMockServer mockIdPServerPost) {
         // CONFIGURE IDP SERVER REDIRECT
         mockIdPServerRedirect.stubFor(
             WireMock.get(urlEqualTo("/metadata"))

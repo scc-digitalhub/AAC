@@ -23,7 +23,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -63,9 +62,9 @@ public class SpidSecurityTest extends BaseSpidTest {
     protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
-    public void setupConfigurationAndMocks() throws IOException {
+    public void setupConfigurationAndMocks() {
         initMockMvc();
-        mockIdpSpid.preprareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
+        mockIdpSpid.prepareMockMetadata(mockIdPServerRedirect, mockIdPServerPost);
 
         config.getRealms().forEach(realm -> {
             if ("spid-test".equals(realm.getRealm().getSlug())) {
@@ -74,7 +73,7 @@ public class SpidSecurityTest extends BaseSpidTest {
                 // Any Identity Provider loaded from the bootstrap can be used here
                 ConfigurableIdentityProvider idp = idps.get(3);
 
-                identityProvider.initReamlByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
@@ -370,7 +369,7 @@ public class SpidSecurityTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        // Downgrade Livello SPID (L2 -> L3)
+        // Downgrade SPID level (L2 -> L3)
         String response = hackerUtils.prepareForSimulationNotValidChangeSpidLevelHigh(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
@@ -404,7 +403,7 @@ public class SpidSecurityTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        // Assertion Scaduta (NotOnOrAfter nel passato)
+        // Expired Assertion (NotOnOrAfter in the past)
         String response = hackerUtils.prepareForSimulationNotValidNotOnOrAfter(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
@@ -506,5 +505,153 @@ public class SpidSecurityTest extends BaseSpidTest {
         // 4. Verify the presence of the mandatory hidden SAML inputs
         assertThat(htmlResponse).contains("name=\"SAMLRequest\"");
         assertThat(htmlResponse).contains("name=\"RelayState\"");
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the SAML Response is unsolicited
+     * (missing the InResponseTo attribute that links it to a specific AuthnRequest).
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Unsolicited Response (InResponseTo assente)")
+    public void testAuthenticationFailsOnUnsolicitedResponse() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // Generates a payload without InResponseTo
+        String response = hackerUtils.prepareForSimulationUnsolicitedResponse(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the SAML Response Destination
+     * does not match the actual ACS endpoint of the Service Provider.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Recipient Mismatch (Destination errato)")
+    public void testAuthenticationFailsOnRecipientMismatch() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // Generates a payload with a fictitious Destination (Recipient Mismatch)
+        String response = hackerUtils.prepareForSimulationRecipientMismatch(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the SAML Response Issuer
+     * does not match any registered Identity Provider entity ID.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Issuer Mismatch (EntityID IdP non registrato)")
+    public void testAuthenticationFailsOnIssuerMismatch() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // Generates a signed payload but originating from an unknown Issuer
+        String response = hackerUtils.prepareForSimulationIssuerMismatch(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+    }
+
+    /**
+     * Security Test: Ensures authentication fails if the Assertion Conditions
+     * specify a NotBefore timestamp that is in the future.
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per NotBefore futuro (Assertion non ancora valida)")
+    public void testAuthenticationFailsOnNotBeforeFuture() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // Generates a response where the Assertion's validity begins in the future (e.g., tomorrow)
+        String response = hackerUtils.prepareForSimulationNotValidNotBeforeFuture(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // Verifies that Spring Security has raised a time-related authentication exception
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getMessage()).containsIgnoringCase("is not yet valid");
     }
 }
