@@ -5,6 +5,7 @@ import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SigningCredential;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.provider.SigningCredentialHelper;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.utils.MetadataUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -206,6 +207,11 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica che gli attributi SPID richiesti siano esposti nel Metadata")
     public void testRequestedSpidAttributesAreExposed() throws Exception {
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        assertThat(configmap.getSpidAttributes()).isNotEmpty();
+        assertThat(configmap.getSpidAttributes())
+            .contains(SpidAttribute.SPID_CODE, SpidAttribute.FISCAL_NUMBER);
+
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
@@ -215,14 +221,12 @@ public class SpidMetadataTest extends BaseSpidTest {
 
         assertThat(keyDescriptors.size()).isEqualTo(1);
 
-        Set<SpidAttribute> attributes = new HashSet<>();
+        Set<SpidAttribute> attributesInMetadata = new HashSet<>();
         for(RequestedAttribute attribute: keyDescriptors.get(0).getRequestedAttributes()){
-            attributes.add(SpidAttribute.parse(attribute.getName()));
+            attributesInMetadata.add(SpidAttribute.parse(attribute.getName()));
         }
 
-        assertThat(attributes).isEqualTo(
-            spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap().getSpidAttributes()
-        );
+        assertThat(attributesInMetadata).isEqualTo(configmap.getSpidAttributes());
     }
 
     /**
@@ -269,6 +273,9 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica presenza di tutti i cerificati - METADATA_EXPOSURE")
     public void testAllCertificatesExposure() throws Exception {
+        SpidIdentityProviderConfigMap configmap= spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        assertThat(configmap.getSigningCredentials()).hasSizeGreaterThanOrEqualTo(2);
+
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
@@ -279,6 +286,8 @@ public class SpidMetadataTest extends BaseSpidTest {
         List<SigningCredential> listSigningCredentials = SigningCredentialHelper.signingCredentialList(
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
             SigningCredentialHelper.CredentialPurpose.METADATA_EXPOSURE);
+
+        assertThat(listSigningCredentials).hasSizeGreaterThanOrEqualTo(2);
 
         List<String> expectedCertificates = new ArrayList<>();
         for (SigningCredential signingCredential: listSigningCredentials) {
@@ -334,9 +343,10 @@ public class SpidMetadataTest extends BaseSpidTest {
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
                 this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
-        Objects.requireNonNull(descriptor.getSignature()).getSignatureAlgorithm();
         Signature signature = descriptor.getSignature();
         assertThat(signature).isNotNull();
+        String algorithm = signature.getSignatureAlgorithm();
+        assertThat(algorithm).isNotBlank();
 
         String sigAlgorithm = signature.getSignatureAlgorithm();
         assertThat(sigAlgorithm).isIn(
@@ -477,6 +487,14 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica la presenza dell'elemento Organization e la localizzazione in italiano")
     public void testOrganizationElementsArePresentAndCorrect() throws Exception {
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+
+        assertThat(configmap.getOrganizationName()).isNotBlank();
+        assertThat(configmap.getOrganizationDisplayName()).isNotBlank();
+        assertThat(configmap.getOrganizationUrl()).isNotBlank();
+        assertThat(configmap.getContactPersonEmailAddress()).isNotBlank();
+        assertThat(configmap.getContactPersonIPACode()).isNotBlank();
+
         EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 

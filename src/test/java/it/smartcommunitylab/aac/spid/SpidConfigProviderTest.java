@@ -6,6 +6,7 @@ import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SigningCredentialHelper;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SigningCredential;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,7 @@ public class SpidConfigProviderTest extends BaseSpidTest {
                 List<ConfigurableIdentityProvider> idps = realm.getIdentityProviders();
 
                 // Every identity provider is supported
-                ConfigurableIdentityProvider idp = idps.get(2);
+                ConfigurableIdentityProvider idp = idps.get(1);
 
                 identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
@@ -88,7 +89,6 @@ public class SpidConfigProviderTest extends BaseSpidTest {
         SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider);
         Set<String> relyingPartyRegistrationIds = config.getRelyingPartyRegistrationIds();
 
-        assertThat(relyingPartyRegistrationIds).isNotNull();
         assertThat(relyingPartyRegistrationIds).isNotEmpty();
 
         Set<String> expectedRelyingPartyRegistrationIds = new HashSet<>();
@@ -105,8 +105,13 @@ public class SpidConfigProviderTest extends BaseSpidTest {
         SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider);
         Set<SpidRegistration> spidRegistrationSet = config.getIdentityProviders();
 
-        assertThat(spidRegistrationSet).isNotNull();
         assertThat(spidRegistrationSet).isNotEmpty();
+        assertThat(spidRegistrationSet)
+            .extracting(SpidRegistration::getEntityId)
+            .containsExactlyInAnyOrder(
+                    "https://idp.identityserver.redirect",
+                    "https://idp.identityserver.post"
+            );
 
         Set<String> expectedIdentityProviders = new HashSet<>();
         expectedIdentityProviders.add(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT);
@@ -126,6 +131,7 @@ public class SpidConfigProviderTest extends BaseSpidTest {
         assertThat(rpRegistration).isNotNull();
         assertThat(rpRegistration.getEntityId()).isEqualTo(identityProvider.signingIdpEntityId);
         assertThat(rpRegistration.getRegistrationId()).isEqualTo(IdentityProvider.encodeBase64(identityProvider.signingIdpProvider));
+        assertThat(config.getConfigMap().getSigningCredentials()).hasSizeGreaterThanOrEqualTo(2);
 
         List<SigningCredential> listSigningCredentials = SigningCredentialHelper.signingCredentialList(
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
@@ -152,7 +158,6 @@ public class SpidConfigProviderTest extends BaseSpidTest {
         SpidIdentityProviderConfig config = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider);
         List<Credential> credentials = config.getMetadataRelyingPartySigningCredentials();
 
-        assertThat(credentials).isNotNull();
         assertThat(credentials).hasSize(1);
 
         Credential cred = credentials.get(0);
@@ -195,6 +200,7 @@ public class SpidConfigProviderTest extends BaseSpidTest {
         SpidIdentityProviderConfig spidIdentityProviderConfig = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider);
         RelyingPartyRegistration relyingPartyRegistration = spidIdentityProviderConfig.getRelyingPartyRegistration();
 
+        assertThat(relyingPartyRegistration).isNotNull();
         assertThat(relyingPartyRegistration.getEntityId()).isEqualTo(identityProvider.signingIdpEntityId);
 
         SigningCredential signingCredential = SigningCredentialHelper.signingCredentialList(

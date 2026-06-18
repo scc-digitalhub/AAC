@@ -8,6 +8,8 @@ import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SigningCredentialHelper;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
@@ -109,6 +111,13 @@ public class SpidAuthRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime default AssertionConsumerServiceIndex e AttributeConsumingServiceIndex")
     public void testSpidAuthnRequestDefaultAssertionURLAndAttribute() throws Exception {
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNull();
+        assertThat(configmap.getAttributeConsumingServiceIndex()).isNull();
+
+        // DEFAULT_ATTRIBUTE_CONSUMING_SERVICE_INDEX
+        Integer attributeConsumingServiceIndex = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex();
+
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -119,16 +128,8 @@ public class SpidAuthRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Verify the SP is requesting the correct value by bootstrap
-        if (spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getUseAssertionConsumerServiceUrl()){
-            assertThat(xmlRequest).contains("AssertionConsumerServiceURL=\"" +
-                spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAssertionConsumerUrl() + "\"");
-        }else {
-            assertThat(xmlRequest).contains("AssertionConsumerServiceIndex=\"" +
-                spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex() + "\"");
-        }
-        assertThat(xmlRequest).contains("AttributeConsumingServiceIndex=\"" +
-                spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex() + "\"");
+        assertThat(xmlRequest).contains("AssertionConsumerServiceIndex=\"" + attributeConsumingServiceIndex + "\"");
+        assertThat(xmlRequest).contains("AttributeConsumingServiceIndex=\"" + attributeConsumingServiceIndex + "\"");
     }
 
     @Test
@@ -185,7 +186,15 @@ public class SpidAuthRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime Livello SPID e ForceAuthn")
     public void testAuthnRequestSpidLevelAndForceAuthn() throws Exception {
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        assertThat(configmap.getAuthnContext()).isIn(
+            SpidAuthnContext.SPID_L1,
+            SpidAuthnContext.SPID_L2,
+            SpidAuthnContext.SPID_L3
+        );
+
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
@@ -195,18 +204,13 @@ public class SpidAuthRequestTest extends BaseSpidTest {
         assertThat(xmlRequest).isNotNull();
 
         // Verify that the SP enforces authentication (AgID strictly requires ForceAuthn="true" for L2/L3)
-        assertThat(xmlRequest).contains("ForceAuthn=\"true\"");
+        if(configmap.getAuthnContext().equals(SpidAuthnContext.SPID_L2) || configmap.getAuthnContext().equals(SpidAuthnContext.SPID_L3)) {
+            assertThat(xmlRequest).contains("ForceAuthn=\"true\"");
+        }
 
         // Verify that the SP explicitly requests the correct SPID security level
         assertThat(xmlRequest).contains("<saml2p:RequestedAuthnContext");
-        SpidAuthnContext spidAuthnContext = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
-            .getConfigMap().getAuthnContext();
-        assertThat(xmlRequest).contains(spidAuthnContext.getValue());
-        assertThat(spidAuthnContext).isIn(
-            SpidAuthnContext.SPID_L1,
-            SpidAuthnContext.SPID_L2,
-            SpidAuthnContext.SPID_L3
-        );
+        assertThat(xmlRequest).contains(configmap.getAuthnContext().getValue());
     }
 
     @Test

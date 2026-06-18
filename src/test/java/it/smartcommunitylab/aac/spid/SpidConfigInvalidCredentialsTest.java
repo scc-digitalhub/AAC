@@ -3,6 +3,7 @@ package it.smartcommunitylab.aac.spid;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.InvalidIdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SigningCredential;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -34,6 +36,16 @@ public class SpidConfigInvalidCredentialsTest extends BaseSpidTest {
                 spidProviderId = idps.stream().filter(
                     idp -> "spid-test-credentials".equals(idp.getName()))
                     .findFirst().orElseThrow().getProvider();
+
+                SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(spidProviderId).getConfigMap();
+
+                assertThat(configmap.getSigningCredentials()).hasSizeGreaterThanOrEqualTo(2);
+                assertThat(configmap.getSigningKey()).isNotBlank();
+                assertThat(configmap.getSigningCertificate()).isNotBlank();
+                assertThat(configmap.getSigningKey()).startsWith("-----BEGIN PRIVATE KEY-----");
+                assertThat(configmap.getSigningCertificate()).startsWith("-----BEGIN CERTIFICATE-----");
+                assertThat(configmap.getActiveAuthRequestSigningCredentialId()).isNotBlank();
+                assertThat(configmap.getActiveMetadataSigningCredentialId()).isNotBlank();
             }
         });
     }

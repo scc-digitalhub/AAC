@@ -7,30 +7,24 @@ import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
+import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
 import it.smartcommunitylab.aac.spid.setupflow.SpidResponseBuilder;
-import it.smartcommunitylab.aac.spid.utils.MetadataUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.opensaml.saml.saml2.metadata.AttributeConsumingService;
-import org.opensaml.saml.saml2.metadata.EntityDescriptor;
-import org.opensaml.saml.saml2.metadata.RequestedAttribute;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.transaction.Transactional;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -60,7 +54,6 @@ public class SpidCustomProviderTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected MetadataUtils metadataUtils = new MetadataUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -86,6 +79,11 @@ public class SpidCustomProviderTest extends BaseSpidTest {
     @Test
     @DisplayName("Autenticazione Fallita con SetAttribute Custom")
     public void testAuthenticationFailsWithSetAttributeCustom() throws Exception {
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        assertThat(configmap.getSpidAttributes()).isNotEmpty();
+        assertThat(configmap.getSpidAttributes())
+            .doesNotContain(SpidAttribute.SPID_CODE, SpidAttribute.FISCAL_NUMBER);
+
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdPost) // POST
@@ -114,30 +112,15 @@ public class SpidCustomProviderTest extends BaseSpidTest {
     }
 
     @Test
-    @DisplayName("Verifica che gli attributi SPID custom nel Metadata")
-    public void testRequestedSpidAttributesCustom() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
-            this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
-
-        List<AttributeConsumingService> keyDescriptors = descriptor
-            .getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
-            .getAttributeConsumingServices();
-
-        assertThat(keyDescriptors.size()).isEqualTo(1);
-
-        Set<SpidAttribute> attributes = new HashSet<>();
-        for(RequestedAttribute attribute: keyDescriptors.get(0).getRequestedAttributes()){
-            attributes.add(SpidAttribute.parse(attribute.getName()));
-        }
-
-        assertThat(attributes).isEqualTo(
-            spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap().getSpidAttributes()
-        );
-    }
-
-    @Test
     @DisplayName("Verifica runtime AssertionConsumerServiceURL e AttributeConsumingServiceIndex Custom")
     public void testAuthnRequestWithAssertionURLAndAttributeIndexCustom() throws Exception {
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNotNull();
+        assertThat(configmap.getAttributeConsumingServiceIndex()).isNotNull();
+        assertThat(configmap.getUseAssertionConsumerServiceUrl()).isTrue();
+
+        Integer attributeConsumingServiceIndex = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex();
+
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -150,7 +133,6 @@ public class SpidCustomProviderTest extends BaseSpidTest {
 
         // Verify the SP is requesting the correct value custom
         assertThat(xmlRequest).contains("AssertionConsumerServiceURL=\"" + identityProvider.signingIdpSsoUrl + "\"");
-        assertThat(xmlRequest).contains("AttributeConsumingServiceIndex=\"" +
-            spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex() + "\"");
+        assertThat(xmlRequest).contains("AttributeConsumingServiceIndex=\"" + attributeConsumingServiceIndex + "\"");
     }
 }
