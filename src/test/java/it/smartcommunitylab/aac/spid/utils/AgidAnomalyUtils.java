@@ -7,7 +7,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayInputStream;
@@ -25,7 +27,15 @@ import java.util.UUID;
  * to inject specific AgID error codes (Status, Sub-Status, and StatusMessage)
  * while dynamically updating session-specific attributes like IDs and timestamps.
  */
-public class AgidAnomalyUtils extends ResponseUtils {
+public class AgidAnomalyUtils {
+
+    // Factory used to securely parse XML strings into DOM objects (Anti-XXE protected).
+    // Declared as static final to instantiate it only once and prevent performance bottlenecks.
+    static final DocumentBuilderFactory SECURE_DOC_BUILDER_FACTORY;
+
+    // Factory used to serialize in-memory DOM objects back into standard XML strings.
+    // Declared as static final to reduce object creation overhead during heavy loads.
+    static final TransformerFactory TRANSFORMER_FACTORY;
 
     /**
      * Constructs a tailored SAML Error Response based on the provided AgID scenario.
@@ -40,7 +50,7 @@ public class AgidAnomalyUtils extends ResponseUtils {
     public String buildErrorSamlResponse(String xmlResponseErrorTemplate, SpidAgidAnomalyScenario scenario, String inResponseToValue, String destinationUrl, String issuerEntityId) throws Exception {
 
         // 1. Decode and parse the base template into a manipulable DOM Document
-        DocumentBuilder db = ResponseUtils.SECURE_DBF.newDocumentBuilder();
+        DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(xmlResponseErrorTemplate.getBytes(StandardCharsets.UTF_8)));
         doc.getDocumentElement().normalize();
 
@@ -108,11 +118,31 @@ public class AgidAnomalyUtils extends ResponseUtils {
         }
 
         // 6. Serialize the modified DOM back into an XML string and encode it to Base64
-        Transformer transformer = ResponseUtils.TRANSFORMER_FACTORY.newTransformer();
+        Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         transformer.transform(new DOMSource(doc), new StreamResult(out));
         String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
 
         return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
+    }
+
+    static {
+        try {
+            // 1. Initialize the OpenSAML library engine
+            org.opensaml.core.config.InitializationService.initialize();
+
+            // 2. Create a secure XML DocumentBuilderFactory (Anti-XXE protection)
+            SECURE_DOC_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+            SECURE_DOC_BUILDER_FACTORY.setNamespaceAware(true);
+            SECURE_DOC_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            SECURE_DOC_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            SECURE_DOC_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+
+            // 3. Create the Factory for XML serialization
+            TRANSFORMER_FACTORY = TransformerFactory.newInstance();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Critical initialization error in ResponseUtils class", e);
+        }
     }
 }

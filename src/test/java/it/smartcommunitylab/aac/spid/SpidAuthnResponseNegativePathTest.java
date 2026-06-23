@@ -10,8 +10,7 @@ import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
-import it.smartcommunitylab.aac.spid.setupflow.SpidResponseBuilder;
-import it.smartcommunitylab.aac.spid.utils.SpidAuthNegativeUtils;
+import it.smartcommunitylab.aac.spid.utils.SpidAuthnNegativeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
+public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -53,7 +52,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected SpidAuthNegativeUtils spidAuthNegativeUtils = new SpidAuthNegativeUtils();
+    protected SpidAuthnNegativeUtils spidAuthnNegativeUtils = new SpidAuthnNegativeUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -89,7 +88,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // InResponseTo errato (Mismatch Request ID)
-        String response = spidAuthNegativeUtils.prepareForSimulationNotValidRequestId(
+        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidRequestId(
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
             mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
@@ -122,7 +121,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // Generates a payload without InResponseTo
-        String response = spidAuthNegativeUtils.prepareForSimulationUnsolicitedResponse(
+        String response = spidAuthnNegativeUtils.prepareForSimulationUnsolicitedResponse(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -159,7 +158,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // Generates a signed payload but originating from an unknown Issuer
-        String response = spidAuthNegativeUtils.prepareForSimulationIssuerMismatch(
+        String response = spidAuthnNegativeUtils.prepareForSimulationIssuerMismatch(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -195,7 +194,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // Expired Assertion (NotOnOrAfter in the past)
-        String response = spidAuthNegativeUtils.prepareForSimulationNotValidNotOnOrAfter(
+        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidNotOnOrAfter(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -234,7 +233,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // Generates a response where the Assertion's validity begins in the future
-        String response = spidAuthNegativeUtils.prepareForSimulationNotValidNotBeforeFuture(
+        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidNotBeforeFuture(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -273,7 +272,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // Audience errata (Invalid EntityID - Token Substitution)
-        String response = spidAuthNegativeUtils.prepareForSimulationNotValidEntityId(
+        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidEntityId(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -306,7 +305,7 @@ public class SpidAuthResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // Generates a payload with a fictitious Destination (Recipient Mismatch)
-        String response = spidAuthNegativeUtils.prepareForSimulationRecipientMismatch(
+        String response = spidAuthnNegativeUtils.prepareForSimulationRecipientMismatch(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,

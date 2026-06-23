@@ -24,7 +24,7 @@ public class SpidResponseBuilder {
     private String signingIdpSsoUrl;
     private String assertingPartyEntityId;
     private String entityIdAac;
-    private Set<SpidAttribute> setSpidAttributes;
+    private Set<SpidAttribute> spidAttributes;
 
     /* --- Cryptographic Materials ---
      * PEM keys required to apply AgID-compliant digital signatures.
@@ -32,8 +32,7 @@ public class SpidResponseBuilder {
     private String idpPrivateKey;
     private String idpCertificate;
 
-    // Internal utilities to keep the builder logic clean
-    private final ResponseUtils responseUtils = new ResponseUtils();
+    // Internal utilities to keep the builder logic clean;
     private final AgidAnomalyUtils anomalyFactory = new AgidAnomalyUtils();
 
     // Flow execution flags and state
@@ -104,11 +103,11 @@ public class SpidResponseBuilder {
 
     /**
      * Sets the specific collection of SPID attributes to be included in the SAML Response.
-     * * @param setSpidAttributes The set of {@link SpidAttribute}s explicitly requested by the Service Provider.
+     * * @param spidAttributes The set of {@link SpidAttribute}s explicitly requested by the Service Provider.
      * @return The current builder instance.
      */
-    public SpidResponseBuilder withSetSpidAttributes(Set<SpidAttribute> setSpidAttributes) {
-        this.setSpidAttributes = setSpidAttributes;
+    public SpidResponseBuilder withSetSpidAttributes(Set<SpidAttribute> spidAttributes) {
+        this.spidAttributes = spidAttributes;
         return this;
     }
 
@@ -124,31 +123,31 @@ public class SpidResponseBuilder {
             if (this.anomalyScenario != null) {
                 // Generate an AgID Anomaly Response
                 response = anomalyFactory.buildErrorSamlResponse(
-                        this.xmlResponseAgidErrorTemplate,
-                        this.anomalyScenario,
-                        this.requestId,
-                        this.signingIdpSsoUrl,
-                        this.assertingPartyEntityId
+                    this.xmlResponseAgidErrorTemplate,
+                    this.anomalyScenario,
+                    this.requestId,
+                    this.signingIdpSsoUrl,
+                    this.assertingPartyEntityId
                 );
             } else {
                 // Generate a standard Success Response
-                response = responseUtils.modifyAndEncodeSamlResponse(
-                        this.xmlResponseTemplate,
-                        this.requestId,
-                        this.signingIdpSsoUrl,
-                        this.assertingPartyEntityId,
-                        this.entityIdAac,
-                        this.setSpidAttributes
+                response = ResponseUtils.modifyAndEncodeSamlResponse(
+                    this.xmlResponseTemplate,
+                    this.requestId,
+                    this.signingIdpSsoUrl,
+                    this.assertingPartyEntityId,
+                    this.entityIdAac,
+                    this.spidAttributes
                 );
             }
         }
 
         // Cryptographically sign the Response if required
         if (this.applySignature) {
-            response = responseUtils.createSignedSamlResponse(
-                    response,
-                    this.idpPrivateKey,
-                    this.idpCertificate
+            response = ResponseUtils.createSignedSamlResponse(
+                response,
+                this.idpPrivateKey,
+                this.idpCertificate
             );
         }
 

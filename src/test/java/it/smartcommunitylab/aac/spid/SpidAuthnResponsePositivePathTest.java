@@ -11,21 +11,18 @@ import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
 import it.smartcommunitylab.aac.spid.setupflow.SpidResponseBuilder;
-import it.smartcommunitylab.aac.spid.utils.SpidAuthPositiveUtils;
-import it.smartcommunitylab.aac.spid.utils.UserUtils;
+import it.smartcommunitylab.aac.spid.utils.SpidAuthnPositiveUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.transaction.Transactional;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpidAuthResponsePositivePathTest extends BaseSpidTest {
+public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -54,8 +51,7 @@ public class SpidAuthResponsePositivePathTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected UserUtils userUtils = new UserUtils();
-    protected SpidAuthPositiveUtils spidAuthPositiveUtils = new SpidAuthPositiveUtils();
+    protected SpidAuthnPositiveUtils spidAuthnPositiveUtils = new SpidAuthnPositiveUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -145,7 +141,7 @@ public class SpidAuthResponsePositivePathTest extends BaseSpidTest {
 
         // Legitimate upgrade SPID level (L2 -> L3) via HackerUtils (using it as a generic utility here)
         // Or via normal builder if preferred. Using the existing implementation:
-        String response = spidAuthPositiveUtils.prepareForSimulationNotValidChangeSpidLevelHigh(
+        String response = spidAuthnPositiveUtils.prepareForSimulationNotValidChangeSpidLevelHigh(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -163,36 +159,5 @@ public class SpidAuthResponsePositivePathTest extends BaseSpidTest {
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL));
-    }
-
-    @Test
-    @DisplayName("Verifica runtime HTML Form (HTTP-POST)")
-    public void testRuntimeHtmlFormStructurePost() throws Exception {
-        // 1. Create an active session pre-populated with a protected resource request
-        // This ensures Spring Security will automatically generate a valid RelayState
-        MockHttpSession session = userUtils.createSessionWithSavedClientRequest(BASE_URL);
-
-        // 2. Execute the SSO initialization request directly and capture the raw HTML response
-        String htmlResponse = mockMvc.perform(post(BASE_URL + AUTHENTICATE_PATH + identityProvider.registrationIdPost)
-                .secure(true)
-                .session(session))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        // 3. Verify the HTML response contains a form intended for the IdP via POST
-        assertThat(htmlResponse).contains("<form");
-        assertThat(htmlResponse).containsIgnoringCase("method=\"post\"");
-
-        String action = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
-            .getRelyingPartyRegistration(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST)
-            .getAssertingPartyDetails()
-            .getSingleSignOnServiceLocation();
-
-        assertThat(htmlResponse).contains("action=\"" + action + "\"");
-
-        // 4. Verify the presence of the mandatory hidden SAML inputs
-        assertThat(htmlResponse).contains("name=\"SAMLRequest\"");
-        assertThat(htmlResponse).contains("name=\"RelayState\"");
     }
 }

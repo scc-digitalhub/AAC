@@ -28,7 +28,7 @@ public class MockIdpSpid {
 
     /**
      * Shared Cryptographic Materials (PKCS#8 Keys & Certs)
-     * {@link it.smartcommunitylab.aac.spid.SpidCheckLoadBootStrapTest} for the certificate and private key generation command
+     * {@code src/test/resources/spid/credential.cnf} for the certificate and private key generation command
      */
 
     public final String IDP_MOCK_PRIVATE_KEY = """
@@ -90,8 +90,7 @@ public class MockIdpSpid {
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#esempio-di-response-con-assertion">
      *      Official AgID SPID Technical Rules - SAML Response & Assertion Example</a>
      */
-    public String XML_RESPONSE_TEMPLATE =
-        """
+    public String XML_RESPONSE_TEMPLATE = """
         <saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"
                          xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
                          xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -147,10 +146,9 @@ public class MockIdpSpid {
      * during the test execution or setup flow.
      *
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/messaggi-errore.html">
- *          Official AgID SPID Technical Rules - Error Messages Mapping</a>
+     * Official AgID SPID Technical Rules - Error Messages Mapping</a>
      */
-    public String XML_RESPONSE_AGID_ERROR_TEMPLATE =
-        """
+    public String XML_RESPONSE_AGID_ERROR_TEMPLATE = """
         <saml2p:Response xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"
                          xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion"
                          ID="_response_test_id_value"
@@ -167,13 +165,11 @@ public class MockIdpSpid {
             </saml2p:Status>
         </saml2p:Response>""";
 
-
     /* =========================================================================
      * Identity Provider (IdP) Metadata Template & Generation
      * ========================================================================= */
 
-    private final String ASSERTING_PARTY_METADATA_TEMPLATE =
-        """
+    private final String ASSERTING_PARTY_METADATA_TEMPLATE = """
         <?xml version="1.0" encoding="UTF-8"?>
         <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" \
         entityID="%s" ID="_bf133aac099b99b3d81286e1a341f2d34188043a77fe15bf4bf1487dae9b2ea3">
@@ -190,7 +186,6 @@ public class MockIdpSpid {
         </md:KeyDescriptor>
         </md:IDPSSODescriptor>
         </md:EntityDescriptor>""";
-
 
     private String getMetadataRedirect() {
         return String.format(

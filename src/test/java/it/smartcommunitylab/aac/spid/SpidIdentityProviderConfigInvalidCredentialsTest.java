@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
-public class SpidConfigInvalidCredentialsTest extends BaseSpidTest {
+public class SpidIdentityProviderConfigInvalidCredentialsTest extends BaseSpidTest {
 
     private String spidProviderId;
     protected InvalidIdentityProvider invalidIdentityProvider = new InvalidIdentityProvider();

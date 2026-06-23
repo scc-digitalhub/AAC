@@ -6,8 +6,7 @@ import org.opensaml.core.xml.io.Unmarshaller;
 import org.opensaml.core.xml.util.XMLObjectSupport;
 import org.opensaml.saml.saml2.core.Response;
 import org.opensaml.security.credential.Credential;
-import org.opensaml.security.credential.CredentialContextSet;
-import org.opensaml.security.credential.UsageType;
+import org.opensaml.security.x509.BasicX509Credential;
 import org.opensaml.security.x509.X509Credential;
 import org.opensaml.xmlsec.signature.KeyInfo;
 import org.opensaml.xmlsec.signature.Signature;
@@ -20,8 +19,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -34,7 +31,6 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -44,8 +40,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +59,7 @@ public class ResponseUtils {
 
     // Factory used to securely parse XML strings into DOM objects (Anti-XXE protected).
     // Declared as static final to instantiate it only once and prevent performance bottlenecks.
-    static final DocumentBuilderFactory SECURE_DBF;
+    static final DocumentBuilderFactory SECURE_DOC_BUILDER_FACTORY;
 
     // Factory used to serialize in-memory DOM objects back into standard XML strings.
     // Declared as static final to reduce object creation overhead during heavy loads.
@@ -89,9 +83,9 @@ public class ResponseUtils {
                                                      String ssoDestinationUrl,
                                                      String assertingPartyEntityId,
                                                      String serviceProviderEntityId,
-                                                     Set<SpidAttribute> setSpidAttributes) throws Exception {
+                                                     Set<SpidAttribute> spidAttributes) throws Exception {
 
-        DocumentBuilder db = SECURE_DBF.newDocumentBuilder();
+        DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
         doc.getDocumentElement().normalize();
 
@@ -204,10 +198,10 @@ public class ResponseUtils {
                 }
 
                 // Create the list of SpidAttributes
-                List<Element> spidAttributes = buildSpidAttributes(setSpidAttributes, doc);
+                List<Element> spidAttributesSelected = buildSpidAttributes(spidAttributes, doc);
 
                 // Append on AttributeStatement
-                for (Element attr : spidAttributes) {
+                for (Element attr : spidAttributesSelected) {
                     attributeStatementElement.appendChild(attr);
                 }
             }
@@ -225,11 +219,11 @@ public class ResponseUtils {
     /**
      * Dynamically builds a list of SAML Attributes with mock user data based on the requested SPID attributes.
      *
-     * @param setSpidAttributes The set of {@link SpidAttribute}s explicitly requested by the Service Provider.
+     * @param requestedSpidAttributes The set of {@link SpidAttribute}s explicitly requested by the Service Provider.
      * @param doc               The active XML {@link Document} being built.
      * @return A list of populated SAML {@code <saml2:Attribute>} Elements ready to be appended.
      */
-    private static List<Element> buildSpidAttributes(Set<SpidAttribute> setSpidAttributes, Document doc) {
+    private static List<Element> buildSpidAttributes(Set<SpidAttribute> requestedSpidAttributes, Document doc) {
         List<Element> attributesList = new ArrayList<>();
 
         // Prepare the complete mock user profile
@@ -245,9 +239,9 @@ public class ResponseUtils {
 
         Set<String> attributesToInject = new HashSet<>();
 
-        if (setSpidAttributes != null && !setSpidAttributes.isEmpty()) {
+        if (requestedSpidAttributes != null && !requestedSpidAttributes.isEmpty()) {
             // Use explicitly requested attributes
-            for (SpidAttribute requestedAttr : setSpidAttributes) {
+            for (SpidAttribute requestedAttr : requestedSpidAttributes) {
                 attributesToInject.add(requestedAttr.getValue());
             }
         } else {
@@ -304,10 +298,10 @@ public class ResponseUtils {
      * @throws Exception If parsing, marshalling, or cryptographic operations fail.
      */
     public static String createSignedSamlResponse(String xmlContentBase64, String privateKeyBase64, String certificateBase64) throws Exception {
-        CustomTestCredential credential = createTestCredentialFromStrings(privateKeyBase64, certificateBase64);
+        BasicX509Credential credential = createCredentialFromPem(privateKeyBase64, certificateBase64);
         String samlResponseXml = new String(Base64.getDecoder().decode(xmlContentBase64), StandardCharsets.UTF_8);
 
-        String signedSamlResponse = resignSamlResponsePayload(samlResponseXml, credential);
+        String signedSamlResponse = signSamlResponse(samlResponseXml, credential);
 
         return Base64.getEncoder().encodeToString(signedSamlResponse.getBytes(StandardCharsets.UTF_8));
     }
@@ -321,10 +315,10 @@ public class ResponseUtils {
      * @return The signed XML string.
      * @throws Exception If OpenSAML marshalling or signing fails.
      */
-    private static String resignSamlResponsePayload(String samlResponseXml, Credential signingCredential)
+    private static String signSamlResponse(String samlResponseXml, Credential signingCredential)
             throws Exception {
 
-        DocumentBuilder db = SECURE_DBF.newDocumentBuilder();
+        DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(samlResponseXml.getBytes(StandardCharsets.UTF_8)));
 
         Element rootElement = doc.getDocumentElement();
@@ -393,15 +387,15 @@ public class ResponseUtils {
     }
 
     /* =========================================================================
-     * Custom Credential Wrapper
+     * Credential Parsing Utility
      * ========================================================================= */
 
     /**
      * Parses raw Base64 strings representing PEM encoded keys and certificates
-     * into a usable OpenSAML CustomTestCredential.
+     * into a usable OpenSAML BasicX509Credential.
      * Strips PEM headers, footers, and whitespace before decoding.
      */
-    private static CustomTestCredential createTestCredentialFromStrings(String privateKeyBase64, String certificateBase64) throws Exception {
+    private static BasicX509Credential createCredentialFromPem(String privateKeyBase64, String certificateBase64) throws Exception {
         Function<String, byte[]> decodePem = (base64String) -> {
             String cleanString = base64String
                     .replaceAll("(?m)^-----.*-----.*\\n", "")
@@ -420,7 +414,10 @@ public class ResponseUtils {
                 new ByteArrayInputStream(certBytes)
         );
 
-        return new CustomTestCredential(privateKey, certificate);
+        BasicX509Credential credential = new BasicX509Credential(certificate);
+        credential.setPrivateKey(privateKey);
+
+        return credential;
     }
 
     static {
@@ -429,11 +426,11 @@ public class ResponseUtils {
             org.opensaml.core.config.InitializationService.initialize();
 
             // 2. Create a secure XML DocumentBuilderFactory (Anti-XXE protection)
-            SECURE_DBF = DocumentBuilderFactory.newInstance();
-            SECURE_DBF.setNamespaceAware(true);
-            SECURE_DBF.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            SECURE_DBF.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            SECURE_DBF.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            SECURE_DOC_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+            SECURE_DOC_BUILDER_FACTORY.setNamespaceAware(true);
+            SECURE_DOC_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            SECURE_DOC_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            SECURE_DOC_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 
             // 3. Create the Factory for XML serialization
             TRANSFORMER_FACTORY = TransformerFactory.newInstance();
@@ -441,65 +438,5 @@ public class ResponseUtils {
         } catch (Exception e) {
             throw new RuntimeException("Critical initialization error in ResponseUtils class", e);
         }
-    }
-
-    /**
-     * An internal implementation of OpenSAML's {@link X509Credential} interface.
-     * Used to hold the in-memory PrivateKey and Certificate needed to sign test payloads,
-     * stubbing out unused interface methods.
-     */
-    private static class CustomTestCredential implements X509Credential {
-
-        private final PrivateKey privateKey;
-        private final java.security.cert.X509Certificate certificate;
-
-        public CustomTestCredential(PrivateKey privateKey, java.security.cert.X509Certificate certificate) {
-            this.privateKey = privateKey;
-            this.certificate = certificate;
-        }
-
-        @Nullable
-        @Override
-        public PrivateKey getPrivateKey() { return privateKey; }
-
-        @Nonnull
-        @Override
-        public java.security.cert.X509Certificate getEntityCertificate() { return certificate; }
-
-        @Nullable
-        @Override
-        public String getEntityId() { return null; }
-
-        @Nullable
-        @Override
-        public UsageType getUsageType() { return null; }
-
-        @Nonnull
-        @Override
-        public Collection<String> getKeyNames() { return Collections.emptyList(); }
-
-        @Nullable
-        @Override
-        public PublicKey getPublicKey() { return certificate.getPublicKey(); }
-
-        @Nullable
-        @Override
-        public javax.crypto.SecretKey getSecretKey() { return null; }
-
-        @Nullable
-        @Override
-        public CredentialContextSet getCredentialContextSet() { return null; }
-
-        @Nonnull
-        @Override
-        public Class<? extends Credential> getCredentialType() { return X509Credential.class; }
-
-        @Nonnull
-        @Override
-        public Collection<java.security.cert.X509Certificate> getEntityCertificateChain() { return List.of(certificate); }
-
-        @Nullable
-        @Override
-        public Collection<java.security.cert.X509CRL> getCRLs() { return null; }
     }
 }

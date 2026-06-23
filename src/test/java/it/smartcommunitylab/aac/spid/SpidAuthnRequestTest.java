@@ -8,17 +8,18 @@ import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SigningCredentialHelper;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
+import it.smartcommunitylab.aac.spid.utils.UserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 /**
  * Test suite for the generation and dispatch of SPID SAML 2.0 AuthnRequests.
@@ -44,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 // Add @Transactional to clean up the DB automatically between @Test methods within this class
 @Transactional
-public class SpidAuthRequestTest extends BaseSpidTest {
+public class SpidAuthnRequestTest extends BaseSpidTest {
 
     // Inject Redirect WireMock
     @InjectWireMock("idp-server-redirect")
@@ -194,7 +196,6 @@ public class SpidAuthRequestTest extends BaseSpidTest {
         );
 
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
-
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
@@ -338,5 +339,38 @@ public class SpidAuthRequestTest extends BaseSpidTest {
         if (xmlRequest.contains("Consent=")) {
             assertThat(xmlRequest).contains("Consent=\"urn:oasis:names:tc:SAML:2.0:consent:unspecified\"");
         }
+    }
+
+    @Test
+    @DisplayName("Verifica runtime HTML Form (HTTP-POST)")
+    public void testRuntimeHtmlFormStructurePost() throws Exception {
+        // 1. Create an active session pre-populated with a protected resource request
+        // This ensures Spring Security will automatically generate a valid RelayState
+        UserUtils userUtils = new UserUtils();
+        MockHttpSession session = userUtils.createSessionWithSavedClientRequest(BASE_URL);
+
+        // 2. Execute the SSO initialization request directly and capture the raw HTML response
+        String htmlRequest = mockMvc.perform(post(BASE_URL + AUTHENTICATE_PATH + identityProvider.registrationIdPost)
+                .secure(true)
+                .session(session))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        // 3. Verify the formal structure of the DOM (View)
+        assertThat(htmlRequest).isNotBlank();
+        assertThat(htmlRequest).contains("<form");
+        assertThat(htmlRequest).containsIgnoringCase("method=\"post\"");
+
+        String action = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider)
+            .getRelyingPartyRegistration(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST)
+            .getAssertingPartyDetails()
+            .getSingleSignOnServiceLocation();
+
+        assertThat(htmlRequest).contains("action=\"" + action + "\"");
+
+        // 4. Verify the presence of the mandatory hidden inputs required by the IdP
+        assertThat(htmlRequest).contains("name=\"SAMLRequest\"");
+        assertThat(htmlRequest).contains("name=\"RelayState\"");
     }
 }

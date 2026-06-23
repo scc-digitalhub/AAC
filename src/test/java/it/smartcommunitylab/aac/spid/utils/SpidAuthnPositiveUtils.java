@@ -7,9 +7,8 @@ import java.util.Base64;
 
 /**
  * Utility for manipulating SAML/SPID payloads for standard authentication flows and valid edge cases.
- * Used alongside SpidAuthResponseTest.
  */
-public class SpidAuthPositiveUtils {
+public class SpidAuthnPositiveUtils {
 
     /**
      * Simulates an IdP returning a higher security level (e.g., L2 requested, L3 returned).

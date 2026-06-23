@@ -6,7 +6,6 @@ import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.provider.SigningCredentialHelper;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SigningCredential;
-import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @ActiveProfiles({"test", "test-spid"})
-public class SpidConfigProviderTest extends BaseSpidTest {
+public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
 
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();

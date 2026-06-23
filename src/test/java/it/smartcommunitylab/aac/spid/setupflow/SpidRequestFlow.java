@@ -139,6 +139,6 @@ public class SpidRequestFlow {
             requestId = requestUtils.extractAuthnRequestId(xmlRequest);
         }
 
-        return new SpidRequest(session, relayState, samlRequestEncoded, xmlRequest, requestId, redirectedUrl);
+        return new SpidRequest(session, relayState, xmlRequest, requestId, redirectedUrl);
     }
 }

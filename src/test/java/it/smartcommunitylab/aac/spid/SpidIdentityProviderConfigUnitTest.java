@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * It exclusively tests from-scratch instantiation, static utilities, and
  * controlled failures (expected exceptions) within the internal business logic.
  */
-public class SpidConfigUnitTest {
+public class SpidIdentityProviderConfigUnitTest {
 
     @Test
     @DisplayName("Verifica codifica, decodifica ed estrazione del Registration ID")
@@ -214,65 +214,65 @@ public class SpidConfigUnitTest {
         String validPemCert = "-----BEGIN CERTIFICATE-----\n" + validCertBase64 + "\n-----END CERTIFICATE-----";
 
         String validPemKey = """
-                -----BEGIN PRIVATE KEY-----
-                MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCTvUdaYROlgbHL
-                vc2N8ieWbv17v2/0Hv12lw4+m/200PXZVW+15uFn0E5F+iUXfb8I0u9hDRKIg1gT
-                MjK20GOu1yYgwbmhnoVpvuotktN9NAA9kLpJliPADBnx6cHvFgEP8aGISKg9xopm
-                5FSGevQr1bKwAiOgncQ06GNbO9kNIo63td7w4oBq1wTUodOTR6/3tkYzHZnlsZuB
-                Lzhx8RCMUgBkQc/tK0vWUCIC4MU83vA+oD3Q6ogcT642YfoX3emY+wVwcG7pD8Sh
-                zeV9pDbmsy/yJ14blA6bS0cPT3cHa5t8EG40CCkOGZWDEfOGOOVVRudgub0b6tL0
-                5cMrjPAlAgMBAAECggEAMu+IITXk8yPy656ltvGtCmV7yWVoMM9abb+IrrdTUjrU
-                +DhHinxubD9aLTAgB6hX66/lzh0WrbAy9nNRHsxcAdS1lYeU+47OynWDAXFkrv71
-                skQqpeI4sya47zm7njWE6j1Rhs4eCyZfYzgHmFHdyxsjPyGNrPuXwPH6B2Nr4uXo
-                ClQhEZJCs9veijYKi4eKCqXeeJV+xUtpCU8Aay460T518l5/OxiGjBQuoSeEkcJh
-                RvJV6qgSTMTpS4ZOhuFMGFs37TlTUdRt9upCTLG9jW+QqKVr1Gi0Ge0EVFvgd2KE
-                S78qW+G/e+/VF77E/GJnvBi5G2GIAnW1iF+3MVJXxQKBgQDImz04sGU4LHRjLx3+
-                /o/opRjlS0gMBkOh5sw/bJ+GX6UfK9vTG0sUxVSX5nBXVk5B+0o4NKGEiaHs+7YN
-                ttG5X62nr1RR25Jlj4h+XX3sl65nV536zK5iXrzIZwhKdrPwy/KAmkVVs32527/v
-                IWJ9LO20QhpSJk/rwb/dsZyglwKBgQC8iOWa3mQand4W2pbSd5OJ+vS+Cz2atkQP
-                0wNil1HymOJpXOAyZHQ7xdKkR4len+9Uo7Z/ds5PqqltEMFb6K4pVtMRUUqyL9s1
-                UQ8hRuuQe/xjFcKcLNJtxHggZjjdyQcGeARjpZDMvabNaqlUJ6mp4H0f5yH9rqYb
-                x/bHs2jQowKBgDdWCzc+AU3ThW9uqdmTIuNL12g4sfEPMUzRu3mrXv3UGFpW4NaE
-                6tsZ69HS8R5GYmP1C24hpoRG6vHSJU/3JDb8W4yr4piJ9wIo67/fzkKbPLKpCp0K
-                JPhhpbWqJjFUOSKtP4GWDJYtYvsH0RQHo4FgCVn1+gi7JMSlt2VR/yCVAoGAUyrY
-                jl64Lf2h8NbwXVueW+m2ePcgb9UjZQ+imKVD4w6KIgx0YgZqN8vmRc3AzVskCmRF
-                pyjTjdUs9A3GHjMgUOAaL7N6jewKeRSO5hEQ7SWkilkZBifHk+BtVW2CfGOnk7Tx
-                yrtIiujGYitBEvyEHYoH6EDff7bBU9P8CtAb1p0CgYEAv14JHufws2JfN0TTG0xL
-                NQxYE7wp7ElPp9JU1qf1A088RTdhG6uCN+x35wwEY1Hl7qOQuZyk/7tOiWpPhGzG
-                RTj0E50MJuOv/RKQuyBfsv5iBs5Tp3OBJx4LCqlQzIO+gJc+b/ud4rIAlMfXkJfe
-                ztyRCKwg+qh/UH+8YD211QM=
-                -----END PRIVATE KEY-----""";
+            -----BEGIN PRIVATE KEY-----
+            MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCTvUdaYROlgbHL
+            vc2N8ieWbv17v2/0Hv12lw4+m/200PXZVW+15uFn0E5F+iUXfb8I0u9hDRKIg1gT
+            MjK20GOu1yYgwbmhnoVpvuotktN9NAA9kLpJliPADBnx6cHvFgEP8aGISKg9xopm
+            5FSGevQr1bKwAiOgncQ06GNbO9kNIo63td7w4oBq1wTUodOTR6/3tkYzHZnlsZuB
+            Lzhx8RCMUgBkQc/tK0vWUCIC4MU83vA+oD3Q6ogcT642YfoX3emY+wVwcG7pD8Sh
+            zeV9pDbmsy/yJ14blA6bS0cPT3cHa5t8EG40CCkOGZWDEfOGOOVVRudgub0b6tL0
+            5cMrjPAlAgMBAAECggEAMu+IITXk8yPy656ltvGtCmV7yWVoMM9abb+IrrdTUjrU
+            +DhHinxubD9aLTAgB6hX66/lzh0WrbAy9nNRHsxcAdS1lYeU+47OynWDAXFkrv71
+            skQqpeI4sya47zm7njWE6j1Rhs4eCyZfYzgHmFHdyxsjPyGNrPuXwPH6B2Nr4uXo
+            ClQhEZJCs9veijYKi4eKCqXeeJV+xUtpCU8Aay460T518l5/OxiGjBQuoSeEkcJh
+            RvJV6qgSTMTpS4ZOhuFMGFs37TlTUdRt9upCTLG9jW+QqKVr1Gi0Ge0EVFvgd2KE
+            S78qW+G/e+/VF77E/GJnvBi5G2GIAnW1iF+3MVJXxQKBgQDImz04sGU4LHRjLx3+
+            /o/opRjlS0gMBkOh5sw/bJ+GX6UfK9vTG0sUxVSX5nBXVk5B+0o4NKGEiaHs+7YN
+            ttG5X62nr1RR25Jlj4h+XX3sl65nV536zK5iXrzIZwhKdrPwy/KAmkVVs32527/v
+            IWJ9LO20QhpSJk/rwb/dsZyglwKBgQC8iOWa3mQand4W2pbSd5OJ+vS+Cz2atkQP
+            0wNil1HymOJpXOAyZHQ7xdKkR4len+9Uo7Z/ds5PqqltEMFb6K4pVtMRUUqyL9s1
+            UQ8hRuuQe/xjFcKcLNJtxHggZjjdyQcGeARjpZDMvabNaqlUJ6mp4H0f5yH9rqYb
+            x/bHs2jQowKBgDdWCzc+AU3ThW9uqdmTIuNL12g4sfEPMUzRu3mrXv3UGFpW4NaE
+            6tsZ69HS8R5GYmP1C24hpoRG6vHSJU/3JDb8W4yr4piJ9wIo67/fzkKbPLKpCp0K
+            JPhhpbWqJjFUOSKtP4GWDJYtYvsH0RQHo4FgCVn1+gi7JMSlt2VR/yCVAoGAUyrY
+            jl64Lf2h8NbwXVueW+m2ePcgb9UjZQ+imKVD4w6KIgx0YgZqN8vmRc3AzVskCmRF
+            pyjTjdUs9A3GHjMgUOAaL7N6jewKeRSO5hEQ7SWkilkZBifHk+BtVW2CfGOnk7Tx
+            yrtIiujGYitBEvyEHYoH6EDff7bBU9P8CtAb1p0CgYEAv14JHufws2JfN0TTG0xL
+            NQxYE7wp7ElPp9JU1qf1A088RTdhG6uCN+x35wwEY1Hl7qOQuZyk/7tOiWpPhGzG
+            RTj0E50MJuOv/RKQuyBfsv5iBs5Tp3OBJx4LCqlQzIO+gJc+b/ud4rIAlMfXkJfe
+            ztyRCKwg+qh/UH+8YD211QM=
+            -----END PRIVATE KEY-----""";
 
         // XML string containing the SAME certificate inside the <ds:X509Certificate> tag
         String validXml = """
-                <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:spid="https://spid.gov.it/saml-extensions" entityID="http://test-entity-id">
-                    <md:Organization>
-                        <md:OrganizationName>OrgTest</md:OrganizationName>
-                        <md:OrganizationDisplayName>Org Display Test</md:OrganizationDisplayName>
-                        <md:OrganizationURL>https://org.test</md:OrganizationURL>
-                    </md:Organization>
-                    <md:ContactPerson>
-                        <md:EmailAddress>test@test.com</md:EmailAddress>
-                        <md:Extensions>
-                            <spid:IPACode>IPA123</spid:IPACode>
-                        </md:Extensions>
-                    </md:ContactPerson>
-                    <md:SPSSODescriptor>
-                        <md:KeyDescriptor use="signing">
-                           <ds:KeyInfo>
-                               <ds:X509Data>
-                                   <ds:X509Certificate>%s</ds:X509Certificate>
-                               </ds:X509Data>
-                           </ds:KeyInfo>
-                        </md:KeyDescriptor>
-                        <md:AttributeConsumingService index="0">
-                            <md:ServiceName>Service Test</md:ServiceName>
-                            <md:RequestedAttribute Name="name"/>
-                            <md:RequestedAttribute Name="fiscalNumber"/>
-                        </md:AttributeConsumingService>
-                    </md:SPSSODescriptor>
-                </md:EntityDescriptor>
-                """.formatted(validCertBase64);
+            <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:spid="https://spid.gov.it/saml-extensions" entityID="http://test-entity-id">
+                <md:Organization>
+                    <md:OrganizationName>OrgTest</md:OrganizationName>
+                    <md:OrganizationDisplayName>Org Display Test</md:OrganizationDisplayName>
+                    <md:OrganizationURL>https://org.test</md:OrganizationURL>
+                </md:Organization>
+                <md:ContactPerson>
+                    <md:EmailAddress>test@test.com</md:EmailAddress>
+                    <md:Extensions>
+                        <spid:IPACode>IPA123</spid:IPACode>
+                    </md:Extensions>
+                </md:ContactPerson>
+                <md:SPSSODescriptor>
+                    <md:KeyDescriptor use="signing">
+                       <ds:KeyInfo>
+                           <ds:X509Data>
+                               <ds:X509Certificate>%s</ds:X509Certificate>
+                           </ds:X509Data>
+                       </ds:KeyInfo>
+                    </md:KeyDescriptor>
+                    <md:AttributeConsumingService index="0">
+                        <md:ServiceName>Service Test</md:ServiceName>
+                        <md:RequestedAttribute Name="name"/>
+                        <md:RequestedAttribute Name="fiscalNumber"/>
+                    </md:AttributeConsumingService>
+                </md:SPSSODescriptor>
+            </md:EntityDescriptor>
+            """.formatted(validCertBase64);
 
         ConfigurableIdentityProvider cp = new ConfigurableIdentityProvider();
         cp.setProvider("test-provider");

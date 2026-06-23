@@ -12,9 +12,9 @@ import java.util.regex.Pattern;
 
 /**
  * Utility for simulating SAML protocol anomalies (e.g., time constraints, missing IDs).
- * Used alongside SpidProtocolValidationTest to ensure the SP correctly filters malformed payloads.
+ * Used alongside SpidAuthnResponseNegativePathTest to ensure the SP correctly filters malformed payloads.
  */
-public class SpidAuthNegativeUtils {
+public class SpidAuthnNegativeUtils {
 
     /**
      * Simulates a mismatch between AuthnRequest and Response.
