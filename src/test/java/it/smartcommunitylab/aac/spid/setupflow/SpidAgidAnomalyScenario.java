@@ -5,12 +5,33 @@ package it.smartcommunitylab.aac.spid.setupflow;
  */
 public enum SpidAgidAnomalyScenario {
 
-    // --- REQUEST ANOMALIES (Status: VersionMismatch) ---
+    // --- IDP & PROTOCOL ANOMALIES (SAML Status Failures) ---
+
+    /** Error nr02: Identity Provider non disponibile. */
+    CODE_02("urn:oasis:names:tc:SAML:2.0:status:Responder", null, "ErrorCode nr02"),
+
+    /** Error nr03: Errore di sistema interno dell'IdP. */
+    CODE_03("urn:oasis:names:tc:SAML:2.0:status:Responder", null, "ErrorCode nr03"),
+
+    /** Error nr04: Errore di formato della richiesta (rilevato a monte dall'IdP). */
+    CODE_04("urn:oasis:names:tc:SAML:2.0:status:Requester", null, "ErrorCode nr04"),
+
+    /** Error nr05: Verifica della firma dell'AuthnRequest fallita lato IdP. */
+    CODE_05("urn:oasis:names:tc:SAML:2.0:status:Requester", null, "ErrorCode nr05"),
+
+    /** Error nr06: Richiesta scaduta rispetto al timestamp (IssueInstant). */
+    CODE_06("urn:oasis:names:tc:SAML:2.0:status:Requester", null, "ErrorCode nr06"),
+
+    /** Error nr07: Errore di sistema generico dell'IdP. */
+    CODE_07("urn:oasis:names:tc:SAML:2.0:status:Responder", null, "ErrorCode nr07"),
+
+    /** Error nr10: Elementi strutturali o tag non conformi rilevati dall'IdP. */
+    CODE_10("urn:oasis:names:tc:SAML:2.0:status:Requester", null, "ErrorCode nr10"),
+
+    // --- LOCAL REQUEST VALIDATION ANOMALIES (Status: VersionMismatch / Requester) ---
 
     /** Error nr09: SAML version mismatch (not 2.0). */
     CODE_09("urn:oasis:names:tc:SAML:2.0:status:VersionMismatch", null, "ErrorCode nr09"),
-
-    // --- REQUEST ANOMALIES (Status: Requester) ---
 
     /** Error nr08: Signature of the AuthnRequest is missing or invalid. */
     CODE_08("urn:oasis:names:tc:SAML:2.0:status:Requester", null, "ErrorCode nr08"),
@@ -39,7 +60,7 @@ public enum SpidAgidAnomalyScenario {
     /** Error nr18: AttributeConsumerServiceIndex error. */
     CODE_18("urn:oasis:names:tc:SAML:2.0:status:Requester", "urn:oasis:names:tc:SAML:2.0:status:RequestUnsupported", "ErrorCode nr18"),
 
-    // --- RESPONSE ANOMALIES (Status: Responder) ---
+    // --- RESPONSE ANOMALIES (Status: Responder) - USER ERRORS ---
 
     /** Error nr19: Authentication failed (wrong credentials multiple times). */
     CODE_19("urn:oasis:names:tc:SAML:2.0:status:Responder", "urn:oasis:names:tc:SAML:2.0:status:AuthnFailed", "ErrorCode nr19"),

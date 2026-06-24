@@ -166,4 +166,41 @@ public class SpidAuthnNegativeUtils {
 
         return ResponseUtils.createSignedSamlResponse(modifiedXmlResponse, privateKey, certificate);
     }
+
+    /**
+     * Generates a signed SAML Response payload where the IssueInstant and NotBefore time attributes
+     * are manipulated into the future by a specific offset of seconds.
+     */
+    public String prepareResponseWithTimeTooOld(
+            SpidRequest ctx,
+            String xmlTemplate,
+            String idpSsoUrl,
+            String assertingPartyId,
+            String entityIdSp,
+            String privateKey,
+            String certificate) throws Exception {
+
+        // Calculate the future timestamp based on the requested offset
+        Instant futureInstant = java.time.Instant.now().plusSeconds(90);
+        // Format to standard ISO-8601 UTC format used by SAML (e.g., yyyy-MM-ddTHH:mm:ss.SSSZ)
+        String futureTimestamp = futureInstant.toString();
+
+        // Expire time must always be after the issue time to avoid immediate validation crashes
+        String futureNotOnOrAfter = futureInstant.plusSeconds(300).toString();
+
+        String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
+                xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+
+        String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
+
+        plainXml = plainXml
+                .replace("InResponseTo=\"\"", "InResponseTo=\"" + ctx.getRequestId() + "\"")
+                .replaceAll("IssueInstant=\"[^\"]+\"", "IssueInstant=\"" + futureTimestamp + "\"")
+                .replaceAll("NotBefore=\"[^\"]+\"", "NotBefore=\"" + futureTimestamp + "\"")
+                .replaceAll("NotOnOrAfter=\"[^\"]+\"", "NotOnOrAfter=\"" + futureNotOnOrAfter + "\"");
+
+        String tamperedXmlBase64 = Base64.getEncoder().encodeToString(plainXml.getBytes(StandardCharsets.UTF_8));
+
+        return ResponseUtils.createSignedSamlResponse(tamperedXmlBase64, privateKey, certificate);
+    }
 }

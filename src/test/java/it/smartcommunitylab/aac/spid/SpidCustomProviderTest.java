@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.WebAttributes;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.transaction.Transactional;
@@ -76,14 +77,27 @@ public class SpidCustomProviderTest extends BaseSpidTest {
         });
     }
 
+    /**
+     * REGOLE TECNICHE SPID: Sezione "Attributi" e "Ricezione delle risposte (SAML Response)".
+     * Test di Sicurezza e Riconciliazione: Verifica che l'autenticazione fallisca se l'asserzione restituita
+     * dall'Identity Provider manca degli attributi minimi richiesti dal Service Provider per l'identificazione univoca dell'utente.
+     * Nello scenario SPID, sebbene l'IdP firmi e trasmetta un set personalizzato di attributi concordato, il modulo di controllo
+     * del Service Provider deve invalidare il flusso qualora manchino i dati vitali per il provisioning o l'accoppiamento dell'account locale
+     * (es. 'spidCode' o 'fiscalNumber'). Il test garantisce che l'assenza di tali identificativi provochi il rifiuto della sessione
+     * e il reindirizzamento protetto verso la pagina di errore del login.
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/attributi.html">Regole Tecniche SPID - Attributi e Riconciliazione</a>
+     */
     @Test
-    @DisplayName("Autenticazione Fallita con SetAttribute Custom")
+    @DisplayName("Autenticazione Fallita con SPID_CODE e FISCAL_NUMBER mancanti")
     public void testAuthenticationFailsWithSetAttributeCustom() throws Exception {
+        // Validate that the underlying custom configuration map is populated but explicitly lacks vital identifiers
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getSpidAttributes()).isNotEmpty();
         assertThat(configmap.getSpidAttributes())
             .doesNotContain(SpidAttribute.SPID_CODE, SpidAttribute.FISCAL_NUMBER);
 
+        // Execute the outbound authentication request enforcing the HTTP-POST binding
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdPost) // POST
@@ -91,6 +105,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
+        // Build the inbound SAML Response containing the custom attributes, deliberately omitting spidCode and fiscalNumber
         String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST, identityProvider.signingIdpEntityId) // POST
@@ -100,6 +115,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
             .withSignature()
             .buildResponse();
 
+        // Dispatch the incomplete assertion payload to the ACS listener and assert proper authentication rejection
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
@@ -109,11 +125,25 @@ public class SpidCustomProviderTest extends BaseSpidTest {
             )
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // spidCode - fiscalNumber MISSING
+
+        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
     }
 
+    /**
+     * REGOLE TECNICHE SPID: Sezione "Richiesta di Autenticazione (AuthnRequest)".
+     * Verifica la generazione della AuthnRequest quando il Service Provider è configurato per trasmettere l'URL esplicito
+     * dell'Assertion Consumer Service (AssertionConsumerServiceURL) in combinazione con un indice di attributi personalizzato.
+     * Sebbene AgID definisca l'uso esplicito dell'URL come "scelta sconsigliata" rispetto all'indice posizionale (Index), esso
+     * rimane pienamente conforme alle specifiche. Il test garantisce che l'autenticatore popoli l'attributo con l'endpoint esatto
+     * dell'SP e includa contemporaneamente l'indice del set di attributi richiesto, coprendo interamente questo ramo logico.
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#authnrequest">Regole Tecniche SPID - AuthnRequest</a>
+     */
     @Test
     @DisplayName("Verifica runtime AssertionConsumerServiceURL e AttributeConsumingServiceIndex Custom")
     public void testAuthnRequestWithAssertionURLAndAttributeIndexCustom() throws Exception {
+        // Verify that the database configuration overrides are active for explicit ACS URL and Custom Attribute Index
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNotNull();
         assertThat(configmap.getAttributeConsumingServiceIndex()).isNotNull();
@@ -121,18 +151,20 @@ public class SpidCustomProviderTest extends BaseSpidTest {
 
         Integer attributeConsumingServiceIndex = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex();
 
+        // Execute the outbound authentication request flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        // Verify the SAML payload was generated...
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Verify the SP is requesting the correct value custom
+        // Verify that the outbound XML requests the explicit SP AssertionConsumerServiceURL matching your application endpoint
         assertThat(xmlRequest).contains("AssertionConsumerServiceURL=\"" + identityProvider.signingIdpSsoUrl + "\"");
+
+        // Assert that the custom AttributeConsumingServiceIndex configured is correctly injected into the payload
         assertThat(xmlRequest).contains("AttributeConsumingServiceIndex=\"" + attributeConsumingServiceIndex + "\"");
     }
 }
