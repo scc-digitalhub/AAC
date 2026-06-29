@@ -29,20 +29,17 @@ public class RequestUtils {
      */
     public String extractAuthnRequestId(String xmlContent) {
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            Document doc = db.parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
+            Document doc = SECURE_DBF.newDocumentBuilder()
+                .parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
             doc.getDocumentElement().normalize();
-
-            Element authnRequestElement = (Element) doc.getElementsByTagName("saml2p:AuthnRequest").item(0);
-
-            if (authnRequestElement != null) {
-                return authnRequestElement.getAttribute("ID");
-            }
+            // namespace-aware: non dipende dal prefisso saml2p:
+            Element authnRequest = (Element) doc
+                .getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "AuthnRequest")
+                .item(0);
+            return authnRequest != null ? authnRequest.getAttribute("ID") : null;
         } catch (Exception e) {
-            throw new RuntimeException("Impossible extract AuthnRequestId from AuthnRequest: " + e.getMessage(), e);
+            throw new RuntimeException("Unable to extract ID from AuthnRequest: " + e.getMessage(), e);
         }
-        return null;
     }
 
     /**
@@ -54,25 +51,7 @@ public class RequestUtils {
      * @throws Exception If URL parsing or UTF-8 decoding fails.
      */
     public String extractSamlRequestParameter(String redirectedUrl) throws Exception {
-        URL url = new URL(redirectedUrl);
-        String query = url.getQuery();
-        String samlRequestEncoded = null;
-
-        if (query != null) {
-            String[] pairs = query.split("&");
-            for (String pair : pairs) {
-                int idx = pair.indexOf("=");
-                if (idx == -1) continue;
-
-                String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
-                String value = URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
-
-                if ("SAMLRequest".equals(key)) {
-                    samlRequestEncoded = value;
-                }
-            }
-        }
-        return samlRequestEncoded;
+        return extractQueryParameter(redirectedUrl, "SAMLRequest");
     }
 
     /**
@@ -85,25 +64,26 @@ public class RequestUtils {
      * @throws Exception If URL parsing or UTF-8 decoding fails.
      */
     public String extractRelayStateParameter(String redirectedUrl) throws Exception {
-        URL url = new URL(redirectedUrl);
-        String query = url.getQuery();
-        String relayState = null;
+        return extractQueryParameter(redirectedUrl, "RelayState");
+    }
 
-        if (query != null) {
-            String[] pairs = query.split("&");
-            for (String pair : pairs) {
-                int idx = pair.indexOf("=");
-                if (idx == -1) continue;
-
-                String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
-                String value = URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
-
-                if ("RelayState".equals(key)) {
-                    relayState = value;
-                }
+    /** Extracts and URL-decodes a single query parameter from a redirect URL; null if absent. */
+    private String extractQueryParameter(String redirectedUrl, String paramName) throws Exception {
+        String query = new URL(redirectedUrl).getQuery();
+        if (query == null) {
+            return null;
+        }
+        for (String pair : query.split("&")) {
+            int idx = pair.indexOf('=');
+            if (idx == -1) {
+                continue;
+            }
+            String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+            if (paramName.equals(key)) {
+                return URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
             }
         }
-        return relayState;
+        return null;
     }
 
     /**
@@ -134,7 +114,7 @@ public class RequestUtils {
 
             return outputStream.toString(StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException("Impossibile decodificare/decomprimere SAMLRequest: " + e.getMessage(), e);
+            throw new RuntimeException("Unable to decode/inflate SAMLRequest: " + e.getMessage(), e);
         }
     }
 
@@ -170,5 +150,25 @@ public class RequestUtils {
     public String decodePostSamlRequest(String samlRequestEncoded) {
         byte[] decodedBytes = java.util.Base64.getMimeDecoder().decode(samlRequestEncoded);
         return new String(decodedBytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Shared, namespace-aware {@link DocumentBuilderFactory} hardened against XXE attacks.
+     * Created once and reused to avoid per-call setup overhead.
+     */
+    private static final DocumentBuilderFactory SECURE_DBF;
+    static {
+        SECURE_DBF = DocumentBuilderFactory.newInstance();
+        // Namespace-aware parsing so elements are matched by namespace, not by literal prefix
+        SECURE_DBF.setNamespaceAware(true);
+        try {
+            // XXE hardening: forbid DOCTYPE and disable external entity resolution
+            SECURE_DBF.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            SECURE_DBF.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            SECURE_DBF.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        } catch (Exception e) {
+            // A parser that can't be secured must fail fast at class load
+            throw new ExceptionInInitializerError(e);
+        }
     }
 }

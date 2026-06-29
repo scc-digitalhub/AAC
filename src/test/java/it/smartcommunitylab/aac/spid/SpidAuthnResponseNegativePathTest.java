@@ -5,6 +5,8 @@ import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
 import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
 import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
+import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
@@ -114,8 +116,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the destination routing mismatch securely
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_IN_RESPONSE_TO);
         assertThat(sessionException.getMessage()).containsIgnoringCase("does not match the ID of the authentication request");
     }
 
@@ -160,9 +164,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the underlying framework correctly populated the session with a dedicated security exception
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getMessage()).containsIgnoringCase("1000");
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
     }
 
     /**
@@ -204,8 +209,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Check that the Spring Security core captured the unauthorized trust circle mismatch
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_SIGNATURE);
         assertThat(sessionException.getMessage()).containsIgnoringCase("Invalid signature for object [_response_test_id_value]");
     }
 
@@ -249,8 +256,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Verify that Spring Security explicitly rejected the Assertion due to time restrictions (stale check)
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
         assertThat(sessionException.getMessage()).containsIgnoringCase("is no longer valid");
     }
 
@@ -294,8 +303,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Verifies that Spring Security has raised a time-related premature authentication exception
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
         assertThat(sessionException.getMessage()).containsIgnoringCase("is not yet valid");
     }
 
@@ -339,8 +350,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the destination routing mismatch securely
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
         assertThat(sessionException.getMessage()).containsIgnoringCase("Invalid assertion [_assertion_test_id_value] for SAML response [_response_test_id_value]: Condition '{urn:oasis:names:tc:SAML:2.0:assertion}AudienceRestriction' of type 'null' in assertion '_assertion_test_id_value' was not valid.: None of the audiences within Assertion '_assertion_test_id_value' matched the list of valid audiances");
     }
 
@@ -353,7 +366,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - Ricezione risposte SAML</a>
      */
     @Test
-    @DisplayName("Protocollo: Fallimento atteso per Recipient Mismatch (Destination errato)")
+    @DisplayName("Protocollo: Fallimento atteso per Recipient Mismatch (Destination errata)")
     public void testAuthenticationFailsOnRecipientMismatch() throws Exception {
         // 1. Trigger the standard outbound framework request to create context anchors
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
@@ -383,34 +396,40 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the destination routing mismatch securely
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_DESTINATION);
         assertThat(sessionException.getMessage()).containsIgnoringCase("Invalid destination [https://hacker-endpoint.invalid/auth/spid/sso/malicious] for SAML response [_response_test_id_value]");
     }
 
     /**
      * REGOLE TECNICHE SPID: Sezione "Single Sign-On" -> "Response".
      * Verifica il rigetto tassativo di un'asserzione SAML il cui timestamp di generazione risulta fuori dalle soglie di tolleranza ammesse.
-     * In conformità con i vincoli di convalida degli attributi temporali (IssueInstant, NotBefore) definiti da AgID nella sezione "Response",
-     * il Service Provider deve scartare i messaggi che superano il disallineamento massimo consentito dallo standard internazionale SAML Core.
-     * Il test accerta che il motore di sicurezza intercetti la violazione temporale di 90 secondi (oltre la soglia di Clock Skew),
-     * neghi l'accesso respingendo il login e popoli la sessione con la relativa eccezione di sicurezza del framework.
+     * In conformità con i vincoli di convalida degli attributi temporali (IssueInstant, NotBefore) definiti da AgID, il Service Provider
+     * deve scartare i messaggi che superano il disallineamento massimo consentito (Clock Skew).
+     * Il test accerta che l'infrastruttura di sicurezza intercetti una violazione temporale generata ad hoc (+60 secondi nel futuro,
+     * superando la soglia di tolleranza di 30s), neghi l'accesso respingendo il login e popoli la sessione con la relativa
+     * eccezione di sicurezza del framework.
      *
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - SSO Response</a>
-     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML Core 2.0 Standard (Sez. 2.5.1.1 - Clock Skew)</a>
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML Core 2.0 Standard (Sez. 2.5.1.2 - Clock Skew)</a>
+     * @see <a href="https://docs.spring.io/spring-security/reference/servlet/saml2/login/authentication.html">Spring Security SAML2 - Implementazione di riferimento per il Clock Skew</a>
+     * @see <a href="https://documentation.cloud-iam.com/resources/saml-clock-skew.html">Cloud-IAM SAML Docs - Best practice di settore (soglia consigliata 30-120s)</a>
+     * @see <a href="https://github.com/italia/spid-php-lib/issues/88">GitHub Developers Italia - Discussione sulle soglie di tolleranza nell'SDK ufficiale SPID</a>
      */
     @Test
-    @DisplayName("Protocollo: Fallimento atteso per limiti di Clock Skew temporale +90s")
-    public void testAuthenticationFailsOutsideClockSkewToleranceThresholds() throws Exception {
-        // Premature token well outside acceptable clock skew limits (+90 seconds) ---
-        SpidRequest spidRequestInvalid = new SpidRequestFlow(mockMvc)
+    @DisplayName("Protocollo: Fallimento atteso per limiti di Clock Skew temporale +60s")
+    public void testAuthenticationFailsOutsideClockSkewTolerance() throws Exception {
+        // Premature token well outside acceptable clock skew limits (+60 seconds) ---
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String invalidSkewResponse = spidAuthnNegativeUtils.prepareResponseWithTimeTooOld(
-            spidRequestInvalid,
+        String invalidSkewResponse = spidAuthnNegativeUtils.prepareSamlResponseWithClockSkewTooFarInFuture(
+                spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
             mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
@@ -422,15 +441,240 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", invalidSkewResponse)
-                .param("RelayState", spidRequestInvalid.getRelayState())
-                .session(spidRequestInvalid.getSession())
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // Must be blocked and rejected
 
         // Confirm that the context captured the security violation in session
-        Exception sessionException = (Exception) spidRequestInvalid.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR);
         assertThat(sessionException.getMessage()).containsIgnoringCase("assertion IssueInstant is after the instant of the received response");
+    }
+
+    /**
+     * REGOLE TECNICHE SPID: Sezione "Ricezione delle risposte (SAML Response)" -> Validazione dell'identità.
+     * Test di Protocollo: Verifica che il Service Provider rifiuti una risposta in cui manca l'identificativo
+     * dell'utente. Poiché il custom SpidAuthenticationProvider è estremamente rigoroso, l'assenza del NameID
+     * o dei suoi attributi obbligatori (es. NameQualifier) causa un fallimento precoce del provider stesso,
+     * mappato dal framework come eccezione di validazione interna (1013).
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - Ricezione risposte SAML</a>
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML 2.0 Core (Sez. 3.3.4 - Element &lt;Subject&gt;)</a>
+     */
+    @Test
+    @DisplayName("Protocollo: Fallimento atteso per Assenza o Malformazione Subject")
+    public void testAuthenticationFailsOnMissingSubject() throws Exception {
+        // 1. Establish the current active transactional session state
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // 2. Generate a signed SAML Response missing the mandatory <saml2:NameID> attributes
+        String response = spidAuthnNegativeUtils.prepareForSimulationMissingSubject(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        // 3. Dispatch the corrupted payload and verify the SP aborts login securely
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // 4. The strict SPID provider rejects the response with a missing Subject/NameID,
+        // mapped to an internal validation error in our SpidError domain
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR); // Error Code 1013
+    }
+
+    /**
+     * SICUREZZA APPLICATIVA: Validazione formale del documento XML.
+     * Test di Protocollo: Verifica che l'infrastruttura intercetti i payload che non rispettano le specifiche
+     * strutturali (Schema XML) di SAML 2.0. In questo test forniamo un RelayState legittimo (per superare il
+     * controllo CSRF iniziale) ma passiamo un XML troncato. Il sistema deve generare l'errore specifico di
+     * malformazione dei dati in fase di unmarshalling, impedendo elaborazioni pericolose o crash dell'applicazione.
+     *
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML 2.0 Core (Sez. 3 - SAML Assertions XML Schema)</a>
+     * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/XML_Security_Cheat_Sheet.html">OWASP XML Security Cheat Sheet</a>
+     */
+    @Test
+    @DisplayName("Protocollo: Fallimento atteso per XML non deserializzabile)")
+    public void testAuthenticationFailsOnMalformedResponseData() throws Exception {
+        // 1. Initialize the outbound flow to establish a stateful session context
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // 2. Generate a severely truncated XML payload and encode it in Base64
+        String truncatedXml = "<saml2p:Response xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" ID=\"_123\"";
+        String malformedBase64 = java.util.Base64.getEncoder().encodeToString(truncatedXml.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        // 3. Post the malformed payload with a valid RelayState and ensure the framework aborts the request
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", malformedBase64)
+                .param("RelayState", spidRequest.getRelayState()) // Legitimate RelayState to bypass the initial CSRF check
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // 4. The custom SpidWebSsoAuthenticationFilter successfully wraps the low-level parsing error.
+        // We assert directly against our SpidAuthenticationException expecting the Malformed Response Data code.
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA); // Error Code 1003
+    }
+
+    /**
+     * PROTOCOLLO SAML 2.0: Validazione della classe del messaggio in ingresso.
+     * Test di Protocollo: Verifica che il Service Provider rigetti un payload che appartiene
+     * a una classe di messaggio non attesa per quell'endpoint (es. LogoutResponse al posto di AuthnResponse).
+     * Il custom provider genera una ClassCastException che viene gestita in sicurezza come
+     * malformazione del payload (1003).
+     *
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML 2.0 Core (Sez. 3.2.2)</a>
+     */
+    @Test
+    @DisplayName("Protocollo: Fallimento atteso per Classe Messaggio Errata")
+    public void testAuthenticationFailsOnUnknownResponseClass() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        String response = spidAuthnNegativeUtils.prepareForSimulationUnknownResponseClass(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // Estraiamo la custom exception, poiché il filtro SPID ha wrappato la ClassCastException
+        // e il Saml2Error "malformed_response_data"
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA); // Error Code 1003
+    }
+
+    /**
+     * PROTOCOLLO SAML 2.0: Validazione degli attributi obbligatori della Response.
+     * Test di Protocollo: Verifica che il Service Provider rifiuti un messaggio <saml2p:Response>
+     * privo dei requisiti minimi strutturali (es. attributo "ID"). Il custom SpidAuthenticationProvider
+     * collassa questi errori strutturali fatali sotto l'eccezione 1000 (SPID Validation).
+     *
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML 2.0 Core</a>
+     */
+    @Test
+    @DisplayName("Protocollo: Fallimento atteso per Struttura Response Invalida")
+    public void testAuthenticationFailsOnInvalidResponseStructure() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        String response = spidAuthnNegativeUtils.prepareForSimulationInvalidResponse(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        assertThat(sessionException).isNotNull();
+        // Custom provider throws 1000 for fatal structural ID errors
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
+    }
+
+    /**
+     * SICUREZZA APPLICATIVA: Gestione sicura dei tentativi di decrittazione falliti.
+     * Test di Sicurezza: Verifica la resilienza dell'infrastruttura quando riceve una <saml2:EncryptedAssertion>
+     * corrotta. L'eccezione NPE interna di OpenSAML viene intrappolata in modo sicuro dal filtro
+     * custom e trasformata in un errore di validazione interna, prevenendo crash applicativi.
+     */
+    @Test
+    @DisplayName("Protocollo: Fallimento atteso per Errore di Decrittazione")
+    public void testAuthenticationFailsOnDecryptionError() throws Exception {
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        String response = spidAuthnNegativeUtils.prepareForSimulationDecryptionError(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_DECRYPTION_ERROR);
     }
 }

@@ -142,7 +142,7 @@ public class AgidAnomalyUtils {
             TRANSFORMER_FACTORY = TransformerFactory.newInstance();
 
         } catch (Exception e) {
-            throw new RuntimeException("Critical initialization error in ResponseUtils class", e);
+            throw new RuntimeException("Critical initialization error in AgidAnomalyUtils class", e);
         }
     }
 }

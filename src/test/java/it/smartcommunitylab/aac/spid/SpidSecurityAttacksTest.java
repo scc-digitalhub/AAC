@@ -5,6 +5,8 @@ import com.maciejwalkowiak.wiremock.spring.ConfigureWireMock;
 import com.maciejwalkowiak.wiremock.spring.EnableWireMock;
 import com.maciejwalkowiak.wiremock.spring.InjectWireMock;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
+import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
+import it.smartcommunitylab.aac.spid.model.SpidError;
 import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
@@ -12,7 +14,6 @@ import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
 import it.smartcommunitylab.aac.spid.setupflow.SpidResponseBuilder;
 import it.smartcommunitylab.aac.spid.utils.SpidAttackUtils;
-import it.smartcommunitylab.aac.spid.utils.UserUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -58,7 +60,6 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected UserUtils userUtils = new UserUtils();
     protected SpidAttackUtils spidAttackUtils = new SpidAttackUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
@@ -81,18 +82,18 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         });
     }
 
-    /**
-     * SICUREZZA APPLICATIVA: Mitigazione degli attacchi di tipo Replay (Replay Attacks).
-     * Verifica che il Service Provider intercetti e respinga una SAML Response firmata legittima che sia già stata sottomessa
-     * e processata in precedenza. Il riutilizzo del token da parte di una sessione terza (l'attaccante) deve fallire istantaneamente,
-     * bloccando l'accesso abusivo alle risorse del cittadino.
-     *
-     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf">OASIS SAML 2.0 Security Considerations (Sez. 5.1.2)</a>
-     * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html">OWASP SAML Security Cheat Sheet</a>
-     */
+    /* SICUREZZA APPLICATIVA: rigetto di una SAML Response rubata e riusata in una sessione diversa.
+    * Un attaccante intercetta una Response valida e firmata della vittima e la reinvia nel proprio
+    * contesto (sessione + RelayState propri). Poiché l'asserzione è legata transazionalmente alla
+    * AuthnRequest pendente tramite InResponseTo, il token rubato non corrisponde alla richiesta
+    * dell'attaccante e viene rifiutato.
+    *
+    * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf">OASIS SAML 2.0 Security Considerations (Sez. 5.1.2)</a>
+    * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html">OWASP SAML Security Cheat Sheet</a>
+    */
     @Test
-    @DisplayName("Sicurezza: Fallimento atteso per Attacco di Replay (SAML Response riutilizzata da un utente terzo)")
-    public void testAuthenticationFailsOnReplayAttack() throws Exception {
+    @DisplayName("Sicurezza: token rubato rifiutato per InResponseTo non corrispondente")
+    public void testAuthenticationFailsOnStolenAssertionReuse() throws Exception {
         // 1. Establish a legitimate authentication session context for the victim
         SpidRequest victimSpidResponse = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -118,21 +119,28 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL));
 
-        // ATTACK: An attacker intercepts the used SAMLResponse and attempts to replay it within an isolated hacker session
-        MockHttpSession hackerSession = userUtils.createSessionWithSavedClientRequest(BASE_URL);
+        // ATTACK: the attacker starts a legitimate flow of their own, so the request passes the
+        // registration-resolution gate and the stolen token is actually validated downstream.
+        SpidRequest attacker = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
 
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
-                .param("SAMLResponse", response) // REPLAYED Payload (Intercepted from victim)
-                .param("RelayState", victimSpidResponse.getRelayState())     // REPLAYED RelayState
-                .session(hackerSession) // DIFFERENT Session (The Hacker's session)
+                .param("SAMLResponse", response)                 // victim's stolen token
+                .param("RelayState", attacker.getRelayState())   // attacker's own context
+                .session(attacker.getSession())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-            .andReturn();
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
-        // 3. Assert that the core security engine detected the duplicate message use and raised an authentication exception
-        Exception hackerException = (Exception) hackerSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        assertThat(hackerException).isNotNull();
-        assertThat(hackerException.getMessage()).contains("No relying party registration found");
+        // The stolen token does not match the attacker's own pending AuthnRequest (InResponseTo mismatch)
+        SpidAuthenticationException ex = (SpidAuthenticationException) attacker.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(ex).isNotNull();
+        assertThat(ex.getError()).isEqualTo(SpidError.SAML_INVALID_IN_RESPONSE_TO);
     }
 
     /**
@@ -174,9 +182,11 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Confirm that the security core intercepted the state mismatch and populated the context error
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getMessage()).contains("No relying party registration found");
+        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(samlEx).isNotNull();
+        SpidError spidError = SpidError.translate(samlEx.getSaml2Error());
+        assertThat(spidError).isEqualTo(SpidError.SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND);
     }
 
     /**
@@ -216,9 +226,11 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andReturn();
 
         // 3. Confirm that the security core intercepted the state mismatch and populated the context error
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getMessage()).contains("No relying party registration found");
+        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(samlEx).isNotNull();
+        SpidError spidError = SpidError.translate(samlEx.getSaml2Error());
+        assertThat(spidError).isEqualTo(SpidError.SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND);
     }
 
     /**
@@ -259,9 +271,10 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andReturn();
 
         // 4. Check that the system throws exception 1000, capturing a fatal cryptographic layout error
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getMessage()).contains("1000"); // Cryptographic validation error code
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION); // Cryptographic validation error code
     }
 
     /**
@@ -305,9 +318,10 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Verify that the system registers error code 1000, confirming a payload validation rejection
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getMessage()).contains("1000"); // Cryptographic validation error code
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION); // Cryptographic validation error code
     }
 
     /**
@@ -337,9 +351,11 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // Confirm that the security core intercepted the malformed syntax and populated the context error
-        Exception base64Exception = (Exception) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        Saml2AuthenticationException base64Exception = (Saml2AuthenticationException) session
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(base64Exception).isNotNull();
-        assertThat(base64Exception.getMessage()).contains("No relying party registration found");
+        SpidError spidError1 = SpidError.translate(base64Exception.getSaml2Error());
+        assertThat(spidError1).isEqualTo(SpidError.SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND);
 
         // Clean the session attributes to prepare for the second isolated scenario run
         session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
@@ -359,9 +375,112 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // Confirm that the XML unmarshalling failure is securely trapped and registered as a validation context failure
-        Exception xmlException = (Exception) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        assertThat(xmlException).isNotNull();
-        assertThat(xmlException.getMessage()).contains("No relying party registration found");
+        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) session
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(samlEx).isNotNull();
+        SpidError spidError2 = SpidError.translate(samlEx.getSaml2Error());
+        assertThat(spidError2).isEqualTo(SpidError.SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND);
+    }
+
+    /**
+     * SICUREZZA APPLICATIVA: Contrasto ad attacchi di Man-in-the-Middle (MitM) e Data Tampering.
+     * Verifica che il Service Provider invalidi immediatamente l'autenticazione se il payload della SAML Response
+     * viene alterato dopo essere stato firmato dall'IdP. La modifica di un qualsiasi nodo (es. un attributo temporale,
+     * l'ID della response o i dati dell'utente) invalida matematicamente l'hash crittografico (digest) calcolato nella
+     * firma XML. L'attaccante non possedendo la chiave privata dell'IdP non può ricalcolare una firma valida.
+     * Il test accerta che questa discrepanza sollevi la corretta eccezione di firma invalida.
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - Verifica della Firma</a>
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML 2.0 Core (Sez. 5.4 - XML Signature Profile)</a>
+     * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html">OWASP SAML Security - XML Signature Wrapping & Tampering</a>
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per Payload manomesso (Firma Invalida / MitM)")
+    public void testAuthenticationFailsOnTamperedPayloadInvalidSignature() throws Exception {
+        // 1. Establish a standard authentication session context for the transaction
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+                .withIdpConfig(identityProvider.registrationIdRedirect)
+                .withSession()
+                .executeRequest();
+
+        // 2. Generate a valid signed SAML Response, then maliciously tamper with the XML data without resigning it
+        String response = spidAttackUtils.prepareForSimulationInvalidSignature(
+                spidRequest,
+                mockIdpSpid.XML_RESPONSE_TEMPLATE,
+                identityProvider.signingIdpSsoUrl,
+                mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+                identityProvider.signingIdpEntityId,
+                mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+                mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        // 3. Dispatch the corrupted (tampered) payload and verify the SP aborts login securely
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                        .secure(true)
+                        .param("SAMLResponse", response)
+                        .param("RelayState", spidRequest.getRelayState())
+                        .session(spidRequest.getSession())
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // 4. Assert that the framework intercepted the digest/signature mismatch and generated the specific SpidError
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_SIGNATURE);
+    }
+
+    /**
+     * SICUREZZA APPLICATIVA: Contrasto ad attacchi di XML Signature Wrapping (XSW).
+     * Test di Sicurezza: Simula un classico attacco XSW (XML Signature Wrapping).
+     * Parte da una SAML Response valida e legittimamente firmata, quindi inietta una seconda
+     * asserzione CONTRAFFATTA e NON FIRMATA, lasciando intatta la firma originale. L'asserzione
+     * contraffatta viene posizionata prima di quella genuina in modo che un parser XML ingenuo
+     * (leggendo "la prima asserzione") prelevi i dati controllati dall'attaccante. Un Service
+     * Provider conforme deve elaborare solo l'elemento firmato o rigettare l'intero messaggio.
+     *
+     * @see <a href="https://www.usenix.org/conference/usenixsecurity12/technical-sessions/presentation/somorovsky">Somorovsky et al., "On Breaking SAML: Be Whoever You Want to Be" (USENIX Security 2012)</a>
+     * @see <a href="https://cheatsheetseries.owasp.org/cheatsheets/SAML_Security_Cheat_Sheet.html">OWASP SAML Security - XML Signature Wrapping</a>
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-sec-consider-2.0-os.pdf">OASIS SAML 2.0 Security Considerations (Sez. 6 - XML Signature)</a>
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - Verifica della firma sulla Response</a>
+     */
+    @Test
+    @DisplayName("Sicurezza: Fallimento atteso per XML Signature Wrapping (asserzione forgiata aggiunta)")
+    public void testAuthenticationFailsOnSignatureWrapping() throws Exception {
+        // 1. Establish the current active transactional session state
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
+
+        // 2. Generate a legitimately signed SAML Response, then inject an unsigned forged assertion (XSW)
+        String response = spidAttackUtils.prepareForSimulationSignatureWrapping(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
+        );
+
+        // 3. Dispatch the manipulated XSW payload and verify the SP securely aborts the login process
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl).secure(true)
+                .param("SAMLResponse", response).param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession()).contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+
+        // 4. Assert that the framework's strict XML parsing and signature validation intercepted the wrapping anomaly
+        SpidAuthenticationException ex = (SpidAuthenticationException) spidRequest.getSession()
+                .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        assertThat(ex).isNotNull();
+        // Spring/OpenSAML rejects responses carrying an assertion not covered by a valid signature
+        assertThat(ex.getError()).isIn(SpidError.SAML_INVALID_SIGNATURE, SpidError.SAML_INVALID_ASSERTION);
     }
 
     /**

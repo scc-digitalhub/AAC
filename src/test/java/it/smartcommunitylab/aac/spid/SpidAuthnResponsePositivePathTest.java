@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -108,7 +109,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
                 .session(spidRequest.getSession())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(USER_DESTINATION_URL));
+            .andExpect(redirectedUrl(USER_DESTINATION_URL))
+            .andExpect(authenticated());
     }
 
     /**
@@ -147,7 +149,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
                 .session(spidRequest.getSession())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(USER_DESTINATION_URL));
+            .andExpect(redirectedUrl(USER_DESTINATION_URL))
+            .andExpect(authenticated());
     }
 
     /**
@@ -162,7 +165,7 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Autenticazione con successo: livello SPID restituito (L3) è superiore a quello richiesto (L2)")
-    public void testAuthenticationSucceedOnHighSpidLevel() throws Exception {
+    public void testAuthenticationSucceedsOnHighSpidLevel() throws Exception {
         // 1. Trigger a standard authentication request flow expecting a minimum of SPID L2
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -189,7 +192,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
                 .session(spidRequest.getSession())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(USER_DESTINATION_URL));
+            .andExpect(redirectedUrl(USER_DESTINATION_URL))
+            .andExpect(authenticated());
     }
 
     /**
@@ -198,15 +202,18 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
      * In conformità con i vincoli di ricezione ed elaborazione normati da AgID nella sezione "Response", il Service Provider
      * esegue il controllo sui timestamp del token. Seguendo le raccomandazioni dello standard SAML Core 2.0, viene applicata
      * una finestra di tolleranza (Clock Skew) per compensare minime latenze di trasmissione o sfasamenti tra i server.
-     * Il test garantisce che una risposta emessa in anticipo di 30 secondi nel futuro rispetto all'orologio locale venga
-     * accettata dall'infrastruttura, finalizzando l'autenticazione senza sollevare eccezioni.
+     * Il test garantisce che una risposta il cui timestamp di emissione (IssueInstant) risulta traslato di +30 secondi nel futuro
+     * rispetto all'orologio locale venga accettata dall'infrastruttura, finalizzando l'autenticazione senza sollevare eccezioni.
      *
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - SSO Response</a>
-     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML Core 2.0 Standard (Sez. 2.5.1.1 - Clock Skew)</a>
+     * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML Core 2.0 Standard (Sez. 2.5.1.2 - Clock Skew)</a>
+     * @see <a href="https://docs.spring.io/spring-security/reference/servlet/saml2/login/authentication.html">Spring Security SAML2 - Implementazione di riferimento per il Clock Skew</a>
+     * @see <a href="https://documentation.cloud-iam.com/resources/saml-clock-skew.html">Cloud-IAM SAML Docs - Best practice di settore (soglia consigliata 30-120s)</a>
+     * @see <a href="https://github.com/italia/spid-php-lib/issues/88">GitHub Developers Italia - Discussione sulle soglie di tolleranza nell'SDK ufficiale SPID</a>
      */
     @Test
     @DisplayName("Autenticazione con successo: Validazione limiti di Clock Skew temporale +30s")
-    public void testAuthenticationSucceedClockSkewToleranceThresholds() throws Exception {
+    public void testAuthenticationSucceedsClockSkewTolerance() throws Exception {
         // Premature token but within acceptable clock skew tolerance (+30 seconds)
         SpidRequest spidRequestValid = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -214,7 +221,7 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String validSkewResponse = spidAuthnPositiveUtils.prepareResponseWithTime(
+        String validSkewResponse = spidAuthnPositiveUtils.prepareSamlResponseWithClockSkew(
             spidRequestValid,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -231,6 +238,7 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
                 .session(spidRequestValid.getSession())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl(USER_DESTINATION_URL)); // Should pass successfully within tolerance
+            .andExpect(redirectedUrl(USER_DESTINATION_URL))
+            .andExpect(authenticated()); // Should pass successfully within tolerance
     }
 }

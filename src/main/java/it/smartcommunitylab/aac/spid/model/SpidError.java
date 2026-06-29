@@ -108,14 +108,17 @@ public enum SpidError {
     public static SpidError translate(Saml2Error saml2Error) {
         System.out.println("saml error " + saml2Error.getErrorCode());
 
-        SpidError error = SpidError.SYSTEM_ERROR;
+        SpidError error = SpidError.SPID_FAILED_RESPONSE_VALIDATION;
 
         switch (saml2Error.getErrorCode()) {
             case Saml2ErrorCodes.UNKNOWN_RESPONSE_CLASS:
                 error = SAML_UNKNOWN_RESPONSE_CLASS;
                 break;
             case Saml2ErrorCodes.MALFORMED_RESPONSE_DATA:
-                error = SAML_MALFORMED_REQUEST_DATA;
+                error = SAML_MALFORMED_RESPONSE_DATA;
+                break;
+            case Saml2ErrorCodes.INVALID_RESPONSE:
+                error = SAML_INVALID_RESPONSE;
                 break;
             case Saml2ErrorCodes.INVALID_DESTINATION:
                 error = SAML_INVALID_DESTINATION;
@@ -143,6 +146,15 @@ public enum SpidError {
                 break;
             case Saml2ErrorCodes.RELYING_PARTY_REGISTRATION_NOT_FOUND:
                 error = SAML_RELYING_PARTY_REGISTRATION_NOT_FOUND;
+                break;
+            case Saml2ErrorCodes.INVALID_IN_RESPONSE_TO:
+                error = SAML_INVALID_IN_RESPONSE_TO;
+                break;
+            case Saml2ErrorCodes.MALFORMED_REQUEST_DATA:
+                error = SAML_MALFORMED_REQUEST_DATA;
+                break;
+            case Saml2ErrorCodes.INVALID_REQUEST:
+                error = SAML_INVALID_REQUEST;
                 break;
         }
 

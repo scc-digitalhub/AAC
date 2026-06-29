@@ -50,7 +50,7 @@ public class SpidAuthnPositiveUtils {
      * Generates a signed SAML Response payload where the IssueInstant and NotBefore time attributes
      * are manipulated into the future by a specific offset of seconds.
      */
-    public String prepareResponseWithTime(
+    public String prepareSamlResponseWithClockSkew(
             SpidRequest ctx,
             String xmlTemplate,
             String idpSsoUrl,
@@ -60,7 +60,7 @@ public class SpidAuthnPositiveUtils {
             String certificate) throws Exception {
 
         // Calculate the future timestamp based on the requested offset
-        Instant futureInstant = java.time.Instant.now().plusSeconds(30);
+        Instant futureInstant = Instant.now().plusSeconds(30);
         // Format to standard ISO-8601 UTC format used by SAML (e.g., yyyy-MM-ddTHH:mm:ss.SSSZ)
         String futureTimestamp = futureInstant.toString();
 
@@ -68,12 +68,11 @@ public class SpidAuthnPositiveUtils {
         String futureNotOnOrAfter = futureInstant.plusSeconds(300).toString();
 
         String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+            xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
         String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
         plainXml = plainXml
-            .replace("InResponseTo=\"\"", "InResponseTo=\"" + ctx.getRequestId() + "\"")
             .replaceAll("IssueInstant=\"[^\"]+\"", "IssueInstant=\"" + futureTimestamp + "\"")
             .replaceAll("NotBefore=\"[^\"]+\"", "NotBefore=\"" + futureTimestamp + "\"")
             .replaceAll("NotOnOrAfter=\"[^\"]+\"", "NotOnOrAfter=\"" + futureNotOnOrAfter + "\"");

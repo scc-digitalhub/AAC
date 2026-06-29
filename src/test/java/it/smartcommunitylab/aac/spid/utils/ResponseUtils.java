@@ -65,6 +65,8 @@ public class ResponseUtils {
     // Declared as static final to reduce object creation overhead during heavy loads.
     static final TransformerFactory TRANSFORMER_FACTORY;
 
+    private static final long ASSERTION_VALIDITY_SECONDS = 300;
+
     /**
      * Modifies a base SAML Response XML string to adapt it to the current test session context.
      * Updates timestamps, correlation IDs, destinations, issuer EntityIDs, and injects specific
@@ -106,7 +108,7 @@ public class ResponseUtils {
         if (subjectConfirmationDataNodes.getLength() > 0) {
             Element subjectConfirmationDataElement = (Element) subjectConfirmationDataNodes.item(0);
             subjectConfirmationDataElement.setAttribute("InResponseTo", inResponseToValue);
-            subjectConfirmationDataElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(300000)));
+            subjectConfirmationDataElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(ASSERTION_VALIDITY_SECONDS)));
             subjectConfirmationDataElement.setAttribute("Recipient", ssoDestinationUrl);
         }
 
@@ -162,7 +164,7 @@ public class ResponseUtils {
             if (conditionsNodes.getLength() > 0) {
                 Element conditionsElement = (Element) conditionsNodes.item(0);
                 conditionsElement.setAttribute("NotBefore", formatter.format(now.minusSeconds(60)));
-                conditionsElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(300000)));
+                conditionsElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(ASSERTION_VALIDITY_SECONDS)));
 
                 NodeList audienceRestrictionNodes = conditionsElement.getElementsByTagNameNS(
                         "urn:oasis:names:tc:SAML:2.0:assertion",

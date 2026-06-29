@@ -508,6 +508,8 @@ public class SpidMetadataTest extends BaseSpidTest {
 
         assertThat(spssoDescriptor.isAuthnRequestsSigned()).isNotNull();
         assertThat(spssoDescriptor.isAuthnRequestsSigned()).isTrue();
+        assertThat(spssoDescriptor.getWantAssertionsSigned()).isNotNull();
+        assertThat(spssoDescriptor.getWantAssertionsSigned()).isTrue();
     }
 
     /**

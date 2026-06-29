@@ -90,6 +90,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime Dispatch")
     public void testSpidAuthnRequestDispatch() throws Exception {
+        // 1. Trigger the standard outbound flow to generate the AuthnRequest
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -101,26 +102,29 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
             .getAssertingPartyDetails()
             .getSingleSignOnServiceLocation();
 
-        // Verify that SP performed
+        // 2. Verify that the SP successfully initiated the redirection sequence
         String redirectUrl = spidRequest.getRedirectedUrl();
         assertThat(redirectUrl).isNotNull();
 
-        // Verify the request is routed to the correct IdP destination
+        // 3. Verify the request is securely routed to the correct IdP destination URL
         assertThat(redirectUrl).contains(destination);
 
-        // Verify the SAML payload was generated...
+        // 4. Verify the fundamental SAML payload syntax and constraints
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
         assertThat(xmlRequest).contains("saml2p:AuthnRequest");
 
-        assertThat(xmlRequest).contains("ID=\"");
+        // The ID attribute must be a valid xs:ID (cannot start with a number, must start with a letter or underscore)
+        java.util.regex.Matcher idMatcher = java.util.regex.Pattern.compile("ID=\"([a-zA-Z_][a-zA-Z0-9_.-]*)\"").matcher(xmlRequest);
+        assertThat(idMatcher.find()).isTrue();
+
         assertThat(xmlRequest).contains("IssueInstant=\"");
 
-        // Verify the Destination points to the IdP
+        // Verify the Destination strictly matches the intended asserting party
         assertThat(xmlRequest).contains("Destination=\"" + destination + "\"");
 
-        // SPID mandates that IsPassive must NEVER be true (it should be false or omitted entirely)
-        assertThat(xmlRequest).doesNotContain("IsPassive=\"true\"");
+        // SPID: the IsPassive attribute must NOT be present (implicit default is false)
+        assertThat(xmlRequest).doesNotContain("IsPassive");
     }
 
     /**
@@ -137,20 +141,21 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime default AssertionConsumerServiceIndex e AttributeConsumingServiceIndex")
     public void testSpidAuthnRequestDefaultAssertionURLAndAttribute() throws Exception {
+        // 1. Load the SP configurations and assert that direct URLs are securely bypassed in favor of indexes
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNull();
         assertThat(configmap.getAttributeConsumingServiceIndex()).isNull();
 
-        // DEFAULT_ATTRIBUTE_CONSUMING_SERVICE_INDEX
         Integer attributeConsumingServiceIndex = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getAttributeConsumingServiceIndex();
 
+        // 2. Generate the outbound SAML AuthnRequest via standard flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        // Verify the SAML payload was generated...
+        // 3. Extract the XML and verify that the indexes match the registered SPID metadata profiles
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
@@ -171,6 +176,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime Binding e Firma (SigAlg/Signature)")
     public void testRuntimeBindingAndSignature() throws Exception {
+        // 1. Generate the AuthnRequest utilizing the HTTP-Redirect binding strategy
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -180,7 +186,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String redirectUrl = spidRequest.getRedirectedUrl();
         assertThat(redirectUrl).isNotNull();
 
-        // Parse the generated redirection URL to isolate and inspect the query string components
+        // 2. Parse the generated redirection URL to isolate and inspect the query string components
         UriComponents uriComponents = UriComponentsBuilder.fromUriString(redirectUrl).build();
         assertThat(uriComponents.getFragment()).isNull();
 
@@ -189,13 +195,13 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String rawSigAlg = uriComponents.getQueryParams().getFirst("SigAlg");
         String rawSignature = uriComponents.getQueryParams().getFirst("Signature");
 
-        // Assert that all mandatory HTTP-Redirect parameters required by AgID are present
+        // 3. Assert that all mandatory HTTP-Redirect parameters required by AgID are present
         assertThat(rawSamlRequest).isNotBlank();
         assertThat(rawRelayState).isNotBlank();
         assertThat(rawSigAlg).isNotBlank();
         assertThat(rawSignature).isNotBlank();
 
-        // Decode URL components to perform strict cryptographic and structural validation
+        // 4. Decode URL components to perform strict cryptographic and structural validation
         String sigAlg = URLDecoder.decode(rawSigAlg, StandardCharsets.UTF_8);
         String signature = URLDecoder.decode(rawSignature, StandardCharsets.UTF_8);
         String samlRequest = URLDecoder.decode(rawSamlRequest, StandardCharsets.UTF_8);
@@ -212,16 +218,15 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      * REGOLE TECNICHE SPID: Sezione "Richiesta di Autenticazione (AuthnRequest)".
      * Verifica la presenza e la corretta valorizzazione dell'elemento `<saml2:Issuer>` all'interno della AuthnRequest.
      * AgID richiede che ogni richiesta di autenticazione indichi esplicitamente l'identificatore univoco (EntityID) del
-     * Service Provider mittente. Questo valore deve corrispondere esattamente all'entityID dichiarato nel metadato dell'SP,
-     * consentendo all'Identity Provider di associare la richiesta al corretto profilo di trust configurato nella federazione
-     * e di rifiutare tentativi di spoofing o richieste anonime.
+     * Service Provider mittente e che specifichi obbligatoriamente l'attributo Format. Questo valore deve corrispondere
+     * esattamente all'entityID dichiarato nel metadato dell'SP, consentendo all'IdP di associare la richiesta al trust corretto.
      *
-     * @see <<a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#authnrequest">Regole Tecniche SPID - AuthnRequest</a>
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#authnrequest">Regole Tecniche SPID - AuthnRequest</a>
      */
     @Test
-    @DisplayName("Verifica runtime Issuer (EntityID del SP)")
+    @DisplayName("Verifica runtime Issuer (EntityID del SP) e attributo Format")
     public void testRuntimeIssuer() throws Exception {
-        // Execute the SPID authentication flow to generate the runtime AuthnRequest XML
+        // 1. Execute the SPID authentication flow to generate the runtime AuthnRequest XML
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -231,10 +236,14 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Ensure the XML payload contains a formally valid saml2:Issuer tag structure
+        // 2. Ensure the XML payload contains a formally valid saml2:Issuer tag structure
         assertThat(xmlRequest).contains("<saml2:Issuer");
 
-        // Verify that the Issuer value explicitly matches the SP's EntityID and does not mimic the IdP's EntityID
+        // 3. Verify the AgID mandatory Format attribute for the Issuer tag
+        assertThat(xmlRequest).contains("Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:entity\"");
+        assertThat(xmlRequest).contains("NameQualifier=\"" + identityProvider.signingIdpEntityId + "\"");
+
+        // 4. Verify that the Issuer value explicitly matches the SP's EntityID and does not mimic the IdP's EntityID
         assertThat(xmlRequest).contains(">" + identityProvider.signingIdpEntityId + "</saml2:Issuer>");
         assertThat(xmlRequest).doesNotContain(">" + mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT + "</saml2:Issuer>");
     }
@@ -242,18 +251,16 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     /**
      * REGOLE TECNICHE SPID: Sezione "Richiesta di Autenticazione (AuthnRequest)".
      * Verifica la corretta configurazione del livello di sicurezza SPID richiesto (L1/L2/L3) e l'impostazione
-     * tassativa del meccanismo di autenticazione forzata (ForceAuthn).
-     * AgID esige che l'attributo ForceAuthn sia impostato sempre a "true" su tutte le richieste per impedire
-     * il riutilizzo di sessioni SSO precedentemente aperte lato Identity Provider, obbligando l'utente a reinserire
-     * le proprie credenziali ad ogni accesso. Inoltre, verifica che il nodo RequestedAuthnContext contenga l'URI
-     * esatto corrispondente al livello SPID stabilito per il servizio.
+     * AgID richiede l'attributo ForceAuthn="true" per i livelli superiori a SpidL1 (SpidL2/SpidL3),
+     * per impedire il riutilizzo di sessioni SSO già aperte lato Identity Provider. Per SpidL1 non è
+     * imposto. Verifica inoltre che RequestedAuthnContext contenga l'URI del livello SPID configurato.
      *
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#authnrequest">Regole Tecniche SPID - AuthnRequest</a>
      */
     @Test
     @DisplayName("Verifica runtime Livello SPID e ForceAuthn")
     public void testAuthnRequestSpidLevelAndForceAuthn() throws Exception {
-        // Validate that the underlying configuration maps to a valid SPID assurance level
+        // 1. Validate that the underlying configuration maps to a valid SPID assurance level
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getAuthnContext()).isIn(
             SpidAuthnContext.SPID_L1,
@@ -261,7 +268,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
             SpidAuthnContext.SPID_L3
         );
 
-        // Execute the authentication flow to capture the outbound XML payload
+        // 2. Execute the authentication flow to capture the outbound XML payload
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -271,10 +278,12 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // AgID strictly requires ForceAuthn="true" for ALL requests to prevent session reuse
-        assertThat(xmlRequest).contains("ForceAuthn=\"true\"");
+        // 3. AgID strictly requires ForceAuthn="true" > L1
+        if (configmap.getAuthnContext() != SpidAuthnContext.SPID_L1) {
+            assertThat(xmlRequest).contains("ForceAuthn=\"true\"");
+        }
 
-        // Verify that the SP explicitly requests the correct SPID security level context element
+        // 4. Verify that the SP explicitly requests the correct SPID security level context element
         assertThat(xmlRequest).contains("<saml2p:RequestedAuthnContext");
         assertThat(xmlRequest).contains(configmap.getAuthnContext().getValue());
     }
@@ -292,7 +301,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime NameID Policy")
     public void testAuthnRequestNameIdPolicy() throws Exception {
-        // Execute the SPID authentication flow to generate the outbound SAML message
+        // 1. Execute the SPID authentication flow to generate the outbound SAML message
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -302,10 +311,10 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Verify that the NameIDPolicy tag exists within the AuthnRequest
+        // 2. Verify that the NameIDPolicy tag exists within the AuthnRequest
         assertThat(xmlRequest).contains("<saml2p:NameIDPolicy");
 
-        // SPID strictly requires the NameID format to be 'transient' to protect user privacy
+        // 3. SPID strictly requires the NameID format to be 'transient' to protect user privacy
         assertThat(xmlRequest).contains("Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:transient\"");
     }
 
@@ -322,7 +331,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime Timestamp e Version")
     public void testAuthnRequestTimestampAndVersion() throws Exception {
-        // Execute the SPID authentication flow to trigger the generation of the AuthnRequest XML
+        // 1. Execute the SPID authentication flow to trigger the generation of the AuthnRequest XML
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -332,10 +341,10 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // SPID strictly relies on the SAML 2.0 protocol version
+        // 2. SPID strictly relies on the SAML 2.0 protocol version
         assertThat(xmlRequest).contains("Version=\"2.0\"");
 
-        // Extract and verify the IssueInstant attribute format (Must conform to ISO 8601 in UTC, ending with 'Z')
+        // 3. Extract and verify the IssueInstant attribute format (Must conform to ISO 8601 in UTC, ending with 'Z')
         java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("IssueInstant=\"([^\"]+)\"").matcher(xmlRequest);
         assertThat(matcher.find()).isTrue();
 
@@ -360,7 +369,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime Binding (HTTP-POST) e Algoritmi di Firma")
     public void testRuntimeBindingPostAndSignature() throws Exception {
-        // Execute the SPID authentication flow by explicitly enforcing the HTTP-POST binding configuration
+        // 1. Execute the SPID authentication flow by explicitly enforcing the HTTP-POST binding configuration
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdPost)
@@ -371,11 +380,11 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Verify that the XML payload contains a valid enveloped ds:Signature block inside the request
+        // 2. Verify that the XML payload contains a valid enveloped ds:Signature block inside the request
         assertThat(xmlRequest).contains("<saml2p:AuthnRequest");
         assertThat(xmlRequest).contains("<ds:Signature");
 
-        // Assert strict compliance with AgID cryptographic standards (RSA-SHA256, SHA-256 digest, and Exclusive Canonicalization)
+        // 3. Assert strict compliance with AgID cryptographic standards (RSA-SHA256, SHA-256 digest, and Exclusive Canonicalization)
         assertThat(xmlRequest).contains("Algorithm=\"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256\"");
         assertThat(xmlRequest).contains("Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha256\"");
         assertThat(xmlRequest).contains("Algorithm=\"http://www.w3.org/2001/10/xml-exc-c14n#\"");
@@ -394,7 +403,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime Certificato Binding (HTTP-POST) - AUTH_REQUEST")
     public void testRuntimeSigningCertificatePost() throws Exception {
-        // Execute the authentication request flow using the HTTP-POST binding
+        // 1. Execute the authentication request flow using the HTTP-POST binding
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdPost)
@@ -405,10 +414,10 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Normalize the XML string by removing all whitespace and formatting characters to avoid comparison mismatches
+        // 2. Normalize the XML string by removing all whitespace and formatting characters to avoid comparison mismatches
         String normalizedXml = xmlRequest.replaceAll("\\s+", "");
 
-        // Retrieve and clean the expected signing certificate from the configuration repository
+        // 3. Retrieve and clean the expected signing certificate from the configuration repository
         String signingCertificate = SigningCredentialHelper.signingCredentialList(
                 spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
                 SigningCredentialHelper.CredentialPurpose.AUTH_REQUEST)
@@ -417,7 +426,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
             .replace(END_CERT, "")
             .replaceAll("\\s+", "");
 
-        // Verify that the certificate selected for signing the AuthRequest is embedded in the XML payload
+        // 4. Verify that the certificate selected for signing the AuthRequest is embedded in the XML payload
         assertThat(normalizedXml).contains(signingCertificate);
     }
 
@@ -434,6 +443,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica runtime attributo Comparison='minimum' nel RequestedAuthnContext")
     public void testAuthnRequestComparisonMinimum() throws Exception {
+        // 1. Trigger the outbound flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -443,7 +453,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // The system uses 'minimum' (e.g., it accepts SPID L3 even if L2 is requested),
+        // 2. The system uses 'minimum' (e.g., it accepts SPID L3 even if L2 is requested),
         // which is the correct and recommended behavior for SPID AuthnContext flexibility.
         assertThat(xmlRequest).contains("<saml2p:RequestedAuthnContext Comparison=\"minimum\"");
     }
@@ -461,7 +471,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica assenza o corretta formattazione dell'attributo Consent")
     public void testAuthnRequestConsentAttribute() throws Exception {
-        // Trigger the outbound SPID authentication request flow
+        // 1. Trigger the outbound SPID authentication request flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
@@ -471,7 +481,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
         String xmlRequest = spidRequest.getXmlRequest();
         assertThat(xmlRequest).isNotNull();
 
-        // Validate the Consent attribute format only if the underlying framework explicitly includes it.
+        // 2. Validate the Consent attribute format only if the underlying framework explicitly includes it.
         // For SPID compliance, it should either be omitted completely or set to the standard 'unspecified' URI.
         if (xmlRequest.contains("Consent=")) {
             assertThat(xmlRequest).contains("Consent=\"urn:oasis:names:tc:SAML:2.0:consent:unspecified\"");
