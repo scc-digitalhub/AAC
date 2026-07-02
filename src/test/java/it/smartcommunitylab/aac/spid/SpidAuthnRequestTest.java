@@ -89,7 +89,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime Dispatch")
-    public void testSpidAuthnRequestDispatch() throws Exception {
+    public void testSpidAuthnRequestDispatch() {
         // 1. Trigger the standard outbound flow to generate the AuthnRequest
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -140,7 +140,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime default AssertionConsumerServiceIndex e AttributeConsumingServiceIndex")
-    public void testSpidAuthnRequestDefaultAssertionURLAndAttribute() throws Exception {
+    public void testSpidAuthnRequestDefaultAssertionURLAndAttribute() {
         // 1. Load the SP configurations and assert that direct URLs are securely bypassed in favor of indexes
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNull();
@@ -175,7 +175,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime Binding e Firma (SigAlg/Signature)")
-    public void testRuntimeBindingAndSignature() throws Exception {
+    public void testRuntimeBindingAndSignature() {
         // 1. Generate the AuthnRequest utilizing the HTTP-Redirect binding strategy
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -225,7 +225,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime Issuer (EntityID del SP) e attributo Format")
-    public void testRuntimeIssuer() throws Exception {
+    public void testRuntimeIssuer() {
         // 1. Execute the SPID authentication flow to generate the runtime AuthnRequest XML
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -259,7 +259,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime Livello SPID e ForceAuthn")
-    public void testAuthnRequestSpidLevelAndForceAuthn() throws Exception {
+    public void testAuthnRequestSpidLevelAndForceAuthn() {
         // 1. Validate that the underlying configuration maps to a valid SPID assurance level
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getAuthnContext()).isIn(
@@ -300,7 +300,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime NameID Policy")
-    public void testAuthnRequestNameIdPolicy() throws Exception {
+    public void testAuthnRequestNameIdPolicy() {
         // 1. Execute the SPID authentication flow to generate the outbound SAML message
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -330,7 +330,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime Timestamp e Version")
-    public void testAuthnRequestTimestampAndVersion() throws Exception {
+    public void testAuthnRequestTimestampAndVersion() {
         // 1. Execute the SPID authentication flow to trigger the generation of the AuthnRequest XML
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -368,7 +368,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime Binding (HTTP-POST) e Algoritmi di Firma")
-    public void testRuntimeBindingPostAndSignature() throws Exception {
+    public void testRuntimeBindingPostAndSignature() {
         // 1. Execute the SPID authentication flow by explicitly enforcing the HTTP-POST binding configuration
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -442,7 +442,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime attributo Comparison='minimum' nel RequestedAuthnContext")
-    public void testAuthnRequestComparisonMinimum() throws Exception {
+    public void testAuthnRequestComparisonMinimum() {
         // 1. Trigger the outbound flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
@@ -470,7 +470,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica assenza o corretta formattazione dell'attributo Consent")
-    public void testAuthnRequestConsentAttribute() throws Exception {
+    public void testAuthnRequestConsentAttribute() {
         // 1. Trigger the outbound SPID authentication request flow
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)

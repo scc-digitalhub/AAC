@@ -22,19 +22,23 @@ public class UserUtils {
      * @return A pre-populated {@link MockHttpSession} containing the saved target request.
      */
     public MockHttpSession createSessionWithSavedClientRequest(String ssoDestinationUrl) {
-        MockHttpSession session = new MockHttpSession();
+        try {
+            MockHttpSession session = new MockHttpSession();
 
-        String[] urlParts = ssoDestinationUrl.split("://");
-        String scheme = urlParts[0];
-        String hostAndPort = urlParts[1];
+            String[] urlParts = ssoDestinationUrl.split("://");
+            String scheme = urlParts[0];
+            String hostAndPort = urlParts[1];
 
-        MockHttpServletRequest savedRequest = new MockHttpServletRequest("GET", "/console/user");
-        savedRequest.setScheme(scheme);
-        savedRequest.setServerName(hostAndPort);
-        savedRequest.setSession(session);
+            MockHttpServletRequest savedRequest = new MockHttpServletRequest("GET", "/console/user");
+            savedRequest.setScheme(scheme);
+            savedRequest.setServerName(hostAndPort);
+            savedRequest.setSession(session);
 
-        // Save the request in the session, simulating Spring Security's ExceptionTranslationFilter behavior
-        new HttpSessionRequestCache().saveRequest(savedRequest, new MockHttpServletResponse());
-        return (MockHttpSession) savedRequest.getSession();
+            // Save the request in the session, simulating Spring Security's ExceptionTranslationFilter behavior
+            new HttpSessionRequestCache().saveRequest(savedRequest, new MockHttpServletResponse());
+            return (MockHttpSession) savedRequest.getSession();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create a mock HTTP session with the saved client request", e);
+        }
     }
 }

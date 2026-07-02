@@ -3,7 +3,6 @@ package it.smartcommunitylab.aac.spid.utils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,6 +10,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.regex.Matcher;
 import java.util.zip.Inflater;
 
 /**
@@ -21,18 +21,24 @@ import java.util.zip.Inflater;
 public class RequestUtils {
 
     /**
+     * Shared, namespace-aware {@link DocumentBuilderFactory} hardened against XXE attacks.
+     * Created once and reused to avoid per-call setup overhead.
+     */
+    private static final DocumentBuilderFactory SECURE_DBF;
+
+    /**
      * Parses a raw SAML AuthnRequest XML string and extracts its unique ID attribute.
      * This ID is crucial for establishing the 'InResponseTo' correlation during the SAML response phase.
      *
      * @param xmlContent The raw XML string of the SAML AuthnRequest.
      * @return The extracted 'ID' attribute, or null if parsing fails or the element is not found.
      */
-    public String extractAuthnRequestId(String xmlContent) {
+    public static String extractAuthnRequestId(String xmlContent) {
         try {
             Document doc = SECURE_DBF.newDocumentBuilder()
                 .parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
             doc.getDocumentElement().normalize();
-            // namespace-aware: non dipende dal prefisso saml2p:
+            // namespace-aware: does not depend on the saml2p: prefix
             Element authnRequest = (Element) doc
                 .getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "AuthnRequest")
                 .item(0);
@@ -48,9 +54,8 @@ public class RequestUtils {
      *
      * @param redirectedUrl The complete URL where the SP redirected the user for authentication.
      * @return The URL-decoded string value of the 'SAMLRequest' parameter, or null if not found.
-     * @throws Exception If URL parsing or UTF-8 decoding fails.
      */
-    public String extractSamlRequestParameter(String redirectedUrl) throws Exception {
+    public static String extractSamlRequestParameter(String redirectedUrl) {
         return extractQueryParameter(redirectedUrl, "SAMLRequest");
     }
 
@@ -61,29 +66,32 @@ public class RequestUtils {
      *
      * @param redirectedUrl The complete URL where the SP redirected the user for authentication.
      * @return The URL-decoded string value of the 'RelayState' parameter, or null if not found.
-     * @throws Exception If URL parsing or UTF-8 decoding fails.
      */
-    public String extractRelayStateParameter(String redirectedUrl) throws Exception {
+    public static String extractRelayStateParameter(String redirectedUrl) {
         return extractQueryParameter(redirectedUrl, "RelayState");
     }
 
     /** Extracts and URL-decodes a single query parameter from a redirect URL; null if absent. */
-    private String extractQueryParameter(String redirectedUrl, String paramName) throws Exception {
-        String query = new URL(redirectedUrl).getQuery();
-        if (query == null) {
+    private static String extractQueryParameter(String redirectedUrl, String paramName) {
+        try {
+            String query = new URL(redirectedUrl).getQuery();
+            if (query == null) {
+                return null;
+            }
+            for (String pair : query.split("&")) {
+                int idx = pair.indexOf('=');
+                if (idx == -1) {
+                    continue;
+                }
+                String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+                if (paramName.equals(key)) {
+                    return URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
+                }
+            }
             return null;
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Failed to extract query parameter '%s' from the redirected URL", paramName), e);
         }
-        for (String pair : query.split("&")) {
-            int idx = pair.indexOf('=');
-            if (idx == -1) {
-                continue;
-            }
-            String key = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
-            if (paramName.equals(key)) {
-                return URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
-            }
-        }
-        return null;
     }
 
     /**
@@ -95,7 +103,7 @@ public class RequestUtils {
      * @return The raw, plain-text XML string of the SAML AuthnRequest.
      * @throws RuntimeException if the decoding or decompression process fails.
      */
-    public String decodeAndInflateSamlRequest(String samlRequestEncoded) {
+    public static String decodeAndInflateSamlRequest(String samlRequestEncoded) {
         try {
             byte[] decodedBytes = Base64.getDecoder().decode(samlRequestEncoded);
 
@@ -129,14 +137,18 @@ public class RequestUtils {
      * @return The string value contained within the 'value' attribute.
      * @throws IllegalStateException if the specified input field is not found in the HTML.
      */
-    public String extractHtmlInputValue(String html, String inputName) {
-        java.util.regex.Matcher matcher = java.util.regex.Pattern
-                .compile("name=\"" + inputName + "\"\\s+value=\"([^\"]+)\"")
-                .matcher(html);
-        if (matcher.find()) {
-            return matcher.group(1);
+    public static String extractHtmlInputValue(String html, String inputName) {
+        try {
+            Matcher matcher = java.util.regex.Pattern
+                    .compile("name=\"" + inputName + "\"\\s+value=\"([^\"]+)\"")
+                    .matcher(html);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not find the input field '" + inputName + "' in the generated HTML for POST Binding");
         }
-        throw new IllegalStateException("Could not find the input field '" + inputName + "' in the generated HTML for POST Binding");
+        return null;
     }
 
     /**
@@ -152,11 +164,6 @@ public class RequestUtils {
         return new String(decodedBytes, java.nio.charset.StandardCharsets.UTF_8);
     }
 
-    /**
-     * Shared, namespace-aware {@link DocumentBuilderFactory} hardened against XXE attacks.
-     * Created once and reused to avoid per-call setup overhead.
-     */
-    private static final DocumentBuilderFactory SECURE_DBF;
     static {
         SECURE_DBF = DocumentBuilderFactory.newInstance();
         // Namespace-aware parsing so elements are matched by namespace, not by literal prefix

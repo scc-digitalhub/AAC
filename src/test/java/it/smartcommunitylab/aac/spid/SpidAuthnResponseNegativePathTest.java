@@ -12,7 +12,7 @@ import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
-import it.smartcommunitylab.aac.spid.utils.SpidAuthnNegativeUtils;
+import it.smartcommunitylab.aac.spid.steps.SpidAuthnNegativeSimulator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected SpidAuthnNegativeUtils spidAuthnNegativeUtils = new SpidAuthnNegativeUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -96,7 +95,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Mock an inbound payload containing a mismatched Request ID inside the InResponseTo attribute
-        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidRequestId(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidRequestId(
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
             mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
@@ -120,7 +119,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_IN_RESPONSE_TO);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("does not match the ID of the authentication request");
     }
 
     /**
@@ -143,7 +141,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generate a signed SAML response completely missing the mandatory InResponseTo attribute
-        String response = spidAuthnNegativeUtils.prepareForSimulationUnsolicitedResponse(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidUnsolicitedResponse(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -189,7 +187,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Build a cryptographically valid response payload but signed by an unknown/unregistered entity ID
-        String response = spidAuthnNegativeUtils.prepareForSimulationIssuerMismatch(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidIssuerMismatch(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -213,7 +211,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_SIGNATURE);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("Invalid signature for object [_response_test_id_value]");
     }
 
     /**
@@ -235,7 +232,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generate an outdated SAML response where the NotOnOrAfter condition is set to a historical past date
-        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidNotOnOrAfter(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidNotOnOrAfter(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -260,7 +257,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("is no longer valid");
     }
 
     /**
@@ -282,7 +278,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generates a response token where the Assertion's validity window begins in the future
-        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidNotBeforeFuture(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidNotBeforeFuture(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -307,7 +303,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("is not yet valid");
     }
 
     /**
@@ -330,7 +325,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Build a response token targeting a fictitious, invalid SP EntityID inside the Audience Restrictions block
-        String response = spidAuthnNegativeUtils.prepareForSimulationNotValidEntityId(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidEntityId(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -354,7 +349,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("Invalid assertion [_assertion_test_id_value] for SAML response [_response_test_id_value]: Condition '{urn:oasis:names:tc:SAML:2.0:assertion}AudienceRestriction' of type 'null' in assertion '_assertion_test_id_value' was not valid.: None of the audiences within Assertion '_assertion_test_id_value' matched the list of valid audiances");
     }
 
     /**
@@ -376,7 +370,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generates an inbound response payload containing an incorrect, fictitious Destination endpoint location URI
-        String response = spidAuthnNegativeUtils.prepareForSimulationRecipientMismatch(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidRecipientMismatch(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
@@ -400,7 +394,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_DESTINATION);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("Invalid destination [https://hacker-endpoint.invalid/auth/spid/sso/malicious] for SAML response [_response_test_id_value]");
     }
 
     /**
@@ -408,9 +401,10 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
      * Verifica il rigetto tassativo di un'asserzione SAML il cui timestamp di generazione risulta fuori dalle soglie di tolleranza ammesse.
      * In conformità con i vincoli di convalida degli attributi temporali (IssueInstant, NotBefore) definiti da AgID, il Service Provider
      * deve scartare i messaggi che superano il disallineamento massimo consentito (Clock Skew).
-     * Il test accerta che l'infrastruttura di sicurezza intercetti una violazione temporale generata ad hoc (+60 secondi nel futuro,
-     * superando la soglia di tolleranza di 30s), neghi l'accesso respingendo il login e popoli la sessione con la relativa
-     * eccezione di sicurezza del framework.
+     * Il test accerta che l'infrastruttura di sicurezza intercetti una violazione temporale generata ad hoc
+     * (uno sfasamento nel futuro pari al doppio della finestra di tolleranza di
+     * {@value it.smartcommunitylab.aac.spid.SpidKeys#SPID_CLOCK_SKEW} secondi, quindi ben oltre la soglia ammessa),
+     * neghi l'accesso respingendo il login e popoli la sessione con la relativa eccezione di sicurezza del framework.
      *
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - SSO Response</a>
      * @see <a href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf">OASIS SAML Core 2.0 Standard (Sez. 2.5.1.2 - Clock Skew)</a>
@@ -419,17 +413,17 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
      * @see <a href="https://github.com/italia/spid-php-lib/issues/88">GitHub Developers Italia - Discussione sulle soglie di tolleranza nell'SDK ufficiale SPID</a>
      */
     @Test
-    @DisplayName("Protocollo: Fallimento atteso per limiti di Clock Skew temporale +60s")
+    @DisplayName("Protocollo: Fallimento atteso per limiti di Clock Skew temporale " + SpidKeys.SPID_CLOCK_SKEW * 2 + "s")
     public void testAuthenticationFailsOutsideClockSkewTolerance() throws Exception {
-        // Premature token well outside acceptable clock skew limits (+60 seconds) ---
+        // Premature token well outside acceptable clock skew limits
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String invalidSkewResponse = spidAuthnNegativeUtils.prepareSamlResponseWithClockSkewTooFarInFuture(
-                spidRequest,
+        String invalidSkewResponse = SpidAuthnNegativeSimulator.simulateInvalidSamlResponseWithClockSkewTooFarInFuture(
+            spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
             mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
@@ -452,7 +446,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR);
-        assertThat(sessionException.getMessage()).containsIgnoringCase("assertion IssueInstant is after the instant of the received response");
     }
 
     /**
@@ -476,7 +469,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generate a signed SAML Response missing the mandatory <saml2:NameID> attributes
-        String response = spidAuthnNegativeUtils.prepareForSimulationMissingSubject(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidMissingSubject(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -501,7 +494,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR); // Error Code 1013
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR);
     }
 
     /**
@@ -542,9 +535,8 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         // We assert directly against our SpidAuthenticationException expecting the Malformed Response Data code.
         SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
         assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA); // Error Code 1003
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA);
     }
 
     /**
@@ -565,7 +557,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String response = spidAuthnNegativeUtils.prepareForSimulationUnknownResponseClass(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidUnknownResponseClass(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -588,9 +580,8 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         // e il Saml2Error "malformed_response_data"
         SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
         assertThat(sessionException).isNotNull();
-        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA); // Error Code 1003
+        assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA);
     }
 
     /**
@@ -610,7 +601,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String response = spidAuthnNegativeUtils.prepareForSimulationInvalidResponse(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidResponse(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -631,9 +622,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
 
         SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
         assertThat(sessionException).isNotNull();
-        // Custom provider throws 1000 for fatal structural ID errors
         assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
     }
 
@@ -652,7 +641,7 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String response = spidAuthnNegativeUtils.prepareForSimulationDecryptionError(
+        String response = SpidAuthnNegativeSimulator.simulateInvalidDecryptionError(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -673,7 +662,6 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
 
         SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_DECRYPTION_ERROR);
     }

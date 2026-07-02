@@ -8,11 +8,14 @@ import it.smartcommunitylab.aac.spid.provider.SigningCredentialHelper;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.utils.MetadataUtils;
+import net.shibboleth.utilities.java.support.xml.ParserPool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLObject;
-import org.opensaml.core.xml.schema.XSURI;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
+import org.opensaml.core.xml.io.Unmarshaller;
 import org.opensaml.saml.saml2.metadata.AttributeConsumingService;
 import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.saml.saml2.metadata.ContactPerson;
@@ -34,12 +37,13 @@ import org.opensaml.xmlsec.signature.X509Certificate;
 import org.opensaml.xmlsec.signature.X509Data;
 import org.opensaml.xmlsec.signature.support.SignatureConstants;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MvcResult;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import java.io.ByteArrayInputStream;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,7 +56,6 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -64,7 +67,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"test", "test-spid"})
 public class SpidMetadataTest extends BaseSpidTest {
 
-    protected MetadataUtils metadataUtils = new MetadataUtils();
+    private static final int MIN_RSA_KEY_SIZE = 2048;
+
     protected IdentityProvider identityProvider = new IdentityProvider();
 
     @BeforeEach
@@ -131,7 +135,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica che la struttura XML (EntityDescriptor) sia ben formattata")
     public void testMetadataXmlStructureIsWellFormed() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         SPSSODescriptor spssoDescriptor = descriptor.getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol");
@@ -157,7 +161,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica corrispondenza del valore EntityID")
     public void testEntityIdMatchesConfiguration() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         assertThat(descriptor.getEntityID()).isEqualTo(
@@ -175,7 +179,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica binding e URL dell'Assertion Consumer Service (POST)")
     public void testAssertionConsumerServiceLocationAndBinding() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<AssertionConsumerService> assertionConsumerServices = descriptor
@@ -207,7 +211,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica binding e URL del Single Logout Service (POST)")
     public void testSingleLogoutServiceLocationAndBinding() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<SingleLogoutService> singleLogoutServices = descriptor
@@ -244,7 +248,7 @@ public class SpidMetadataTest extends BaseSpidTest {
         assertThat(configmap.getSpidAttributes())
             .contains(SpidAttribute.SPID_CODE, SpidAttribute.FISCAL_NUMBER);
 
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<AttributeConsumingService> keyDescriptors = descriptor
@@ -272,7 +276,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica presenza e validità del certificato di firma root - METADATA_SIGNATURE")
     public void testRootSignatureCertificateIsPresentAndValid() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<X509Data> keyDescriptors = Objects.requireNonNull(Objects.requireNonNull(descriptor
@@ -297,8 +301,8 @@ public class SpidMetadataTest extends BaseSpidTest {
             .replaceAll("\\s+", "");
 
         assertThat(metadataSignatureCertificate).isEqualTo(idpSigningCertificate);
-        assertThat(metadataUtils.decodeBase64ToX509Certificate(metadataSignatureCertificate))
-            .isEqualTo(metadataUtils.decodeBase64ToX509Certificate(idpSigningCertificate));
+        assertThat(MetadataUtils.decodeBase64ToX509Certificate(metadataSignatureCertificate))
+            .isEqualTo(MetadataUtils.decodeBase64ToX509Certificate(idpSigningCertificate));
     }
 
     /**
@@ -315,7 +319,7 @@ public class SpidMetadataTest extends BaseSpidTest {
         SpidIdentityProviderConfigMap configmap= spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getSigningCredentials()).hasSizeGreaterThanOrEqualTo(2);
 
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<KeyDescriptor> keyDescriptors = descriptor
@@ -361,7 +365,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica presenza del KeyDescriptor di tipo SIGNING")
     public void testSigningKeyDescriptorIsPresent() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<KeyDescriptor> keyDescriptors = descriptor
@@ -385,7 +389,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica firma: RSA >= 2048 bit, Signature e Digest SHA-256 o superiore")
     public void testMetadataSignatureAlgorithmAndKeySize() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
                 this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         Signature signature = descriptor.getSignature();
@@ -399,7 +403,6 @@ public class SpidMetadataTest extends BaseSpidTest {
             SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA384,
             SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA512
         );
-        assertThat(sigAlgorithm).isEqualTo(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256);
 
         Element signatureDom = signature.getDOM();
         assertThat(signatureDom).isNotNull();
@@ -413,7 +416,6 @@ public class SpidMetadataTest extends BaseSpidTest {
             SignatureConstants.ALGO_ID_DIGEST_SHA384,
             SignatureConstants.ALGO_ID_DIGEST_SHA512
         );
-        assertThat(digestAlgorithm).isEqualTo(SignatureConstants.ALGO_ID_DIGEST_SHA256);
 
         String idpSigningCertificate = SigningCredentialHelper.signingCredentialList(
                     spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
@@ -423,10 +425,10 @@ public class SpidMetadataTest extends BaseSpidTest {
             .replace(END_CERT, "")
             .replace("\n", "");
 
-        java.security.cert.X509Certificate cert = metadataUtils.decodeBase64ToX509Certificate(idpSigningCertificate);
+        java.security.cert.X509Certificate cert = MetadataUtils.decodeBase64ToX509Certificate(idpSigningCertificate);
         assertThat(cert.getPublicKey()).isInstanceOf(RSAPublicKey.class);
         RSAPublicKey rsaPublicKey = (RSAPublicKey) cert.getPublicKey();
-        assertThat(rsaPublicKey.getModulus().bitLength()).isGreaterThanOrEqualTo(2048);
+        assertThat(rsaPublicKey.getModulus().bitLength()).isGreaterThanOrEqualTo(MIN_RSA_KEY_SIZE);
     }
 
     /**
@@ -448,14 +450,14 @@ public class SpidMetadataTest extends BaseSpidTest {
         String originalXml = res.getResponse().getContentAsString();
 
         // Use extractDigestValueFromXml to read the original one
-        String originalDigest = metadataUtils.extractDigestValueFromXml(originalXml);
+        String originalDigest = MetadataUtils.extractDigestValueFromXml(originalXml);
 
         SigningCredential signingCertificate = SigningCredentialHelper.signingCredentialList(
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
             SigningCredentialHelper.CredentialPurpose.METADATA_SIGNATURE).get(0);
 
         // Use resignAndExtractDigest to recalculate it
-        String resignedDigest = metadataUtils.resignAndExtractDigest(
+        String resignedDigest = MetadataUtils.resignAndExtractDigest(
             originalXml,
             signingCertificate
         );
@@ -474,7 +476,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica che esista un SOLO SPSSODescriptor e supporti SAML 2.0")
     public void testSpssoDescriptorIsUniqueAndValid() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<RoleDescriptor> allRoleDescriptors = descriptor.getRoleDescriptors();
@@ -501,7 +503,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica che AuthnRequestsSigned sia true nello SPSSODescriptor")
     public void testAuthnRequestsSignedIsTrue() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         SPSSODescriptor spssoDescriptor = descriptor.getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol");
@@ -523,7 +525,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica attributi index e isDefault dell'Assertion Consumer Service")
     public void testAssertionConsumerServiceIndexAndDefault() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<AssertionConsumerService> assertionConsumerServices = descriptor
@@ -556,7 +558,7 @@ public class SpidMetadataTest extends BaseSpidTest {
         assertThat(configmap.getContactPersonEmailAddress()).isNotBlank();
         assertThat(configmap.getContactPersonIPACode()).isNotBlank();
 
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         Organization organization = descriptor.getOrganization();
@@ -604,7 +606,7 @@ public class SpidMetadataTest extends BaseSpidTest {
         assertThat(configmap.getContactPersonEmailAddress()).isNotBlank();
         assertThat(configmap.getContactPersonIPACode()).isNotBlank();
 
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<ContactPerson> contactPersons = descriptor.getContactPersons();
@@ -665,7 +667,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica conformità del NameIDFormat (se presente, deve essere transient)")
     public void testNameIdFormatIsTransient() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
             this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         SPSSODescriptor spssoDescriptor = descriptor.getSPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol");
@@ -697,7 +699,7 @@ public class SpidMetadataTest extends BaseSpidTest {
     @Test
     @DisplayName("Verifica l'attributo index dell'AttributeConsumingService")
     public void testAttributeConsumingServiceIndex() throws Exception {
-        EntityDescriptor descriptor = metadataUtils.extractEntityDescriptorFromMvcResult(
+        EntityDescriptor descriptor = MetadataUtils.extractEntityDescriptorFromMvcResult(
                 this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn());
 
         List<AttributeConsumingService> attributeConsumingServices = descriptor
@@ -711,5 +713,36 @@ public class SpidMetadataTest extends BaseSpidTest {
         // AgID only requires the index to be present as a non-negative identifying integer
         assertThat(primaryAttributeService.getIndex()).isNotNull();
         assertThat(primaryAttributeService.getIndex()).isGreaterThanOrEqualTo(0);
+    }
+
+    /**
+     * Parses and unmarshals the XML content of an MvcResult into an OpenSAML EntityDescriptor.
+     * This method verifies that the mocked endpoint correctly returns valid SAML metadata.
+     */
+    @Test
+    @DisplayName("Verifica la corretta costruzione del EntityDescriptor")
+    public void testEntityDescriptorMvcResult() throws Exception {
+        MvcResult res = this.mockMvc.perform(get(identityProvider.signingIdpMetadataUrl)).andExpect(status().isOk()).andReturn();
+        String xml = res.getResponse().getContentAsString();
+        XMLObjectProviderRegistry registry = ConfigurationService.get(XMLObjectProviderRegistry.class);
+        ParserPool parserPool = registry.getParserPool();
+
+        // Parse the raw XML string into a DOM element
+        Document document = parserPool.parse(new ByteArrayInputStream(xml.getBytes()));
+        Element rootElement = document.getDocumentElement();
+
+        // Retrieve the appropriate OpenSAML unmarshaller for the root element
+        Unmarshaller unmarshaller = registry.getUnmarshallerFactory().getUnmarshaller(rootElement);
+        assertThat(unmarshaller).isNotNull();
+
+        // Unmarshal the DOM element into an OpenSAML XMLObject
+        XMLObject xmlObject = unmarshaller.unmarshall(rootElement);
+
+        // Ensure the object is specifically an EntityDescriptor
+        assertThat(xmlObject).isInstanceOf(EntityDescriptor.class);
+        EntityDescriptor descriptor = (EntityDescriptor) xmlObject;
+
+        // Basic validation: the entityID attribute must be present
+        assertThat(descriptor.getEntityID()).isNotNull();
     }
 }

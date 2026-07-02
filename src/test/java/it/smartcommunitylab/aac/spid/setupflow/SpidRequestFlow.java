@@ -88,57 +88,62 @@ public class SpidRequestFlow {
 
     /**
      * Executes the requested flow and builds the final test context.
-     * @return A consolidated SpidTestContext with all flow parameters.
-     * @throws Exception If MockMvc execution, SAML decoding, XML manipulation, or signing fails.
+     * @return A consolidated SpidRequest with all flow parameters.
      */
-    public SpidRequest executeRequest() throws Exception {
-        MockHttpSession session = null;
-        String relayState = null;
-        String requestId = null;
-        String samlRequestEncoded = null;
-        String xmlRequest = null;
-        String redirectedUrl = null;
+    public SpidRequest executeRequest() {
+        try {
+            MockHttpSession session = null;
+            String relayState = null;
+            String requestId = null;
+            String samlRequestEncoded;
+            String xmlRequest = null;
+            String redirectedUrl = null;
 
-        // 1. Simulate the initialization of the SSO flow by the SP
-        if (this.generateSession) {
-            session = userUtils.createSessionWithSavedClientRequest(this.baseUrlAac);
-            mockMvc.perform(get(this.userDestinationUrl).session(session));
+            // 1. Simulate the initialization of the SSO flow by the SP
+            if (this.generateSession) {
+                session = userUtils.createSessionWithSavedClientRequest(this.baseUrlAac);
+                mockMvc.perform(get(this.userDestinationUrl).session(session));
 
-            // Request on Login
-            MvcResult result = mockMvc.perform(get(this.baseUrlAac + this.authenticatePath + this.registrationId)
-                            .secure(true)
-                            .session(session))
+                // Request on Login
+                MvcResult result = mockMvc.perform(get(this.baseUrlAac + this.authenticatePath + this.registrationId)
+                        .secure(true)
+                        .session(session))
                     .andReturn();
 
-            if (this.usePostBinding) {
-                // --- HTTP-POST ---
-                if ( result.getResponse().getStatus() != 200 ){
-                    throw new IllegalArgumentException("Mismatch status for HTTP-POST");
+                int actualStatus = result.getResponse().getStatus();
+
+                if (this.usePostBinding) {
+                    // --- HTTP-POST ---
+                    if (actualStatus != 200) {
+                        throw new IllegalStateException(String.format("Mismatch status for HTTP-POST: expected 200, got %d", actualStatus));
+                    }
+
+                    String html = result.getResponse().getContentAsString();
+                    samlRequestEncoded = RequestUtils.extractHtmlInputValue(html, "SAMLRequest");
+                    relayState = RequestUtils.extractHtmlInputValue(html, "RelayState");
+
+                    // No Inflate
+                    xmlRequest = requestUtils.decodePostSamlRequest(samlRequestEncoded);
+                } else {
+                    // --- HTTP-REDIRECT ---
+                    if (actualStatus != 302) {
+                        throw new IllegalStateException(String.format("Mismatch status for HTTP-REDIRECT: expected 302, got %d", actualStatus));
+                    }
+
+                    redirectedUrl = result.getResponse().getRedirectedUrl();
+                    samlRequestEncoded = RequestUtils.extractSamlRequestParameter(redirectedUrl);
+                    relayState = RequestUtils.extractRelayStateParameter(redirectedUrl);
+
+                    // Inflate
+                    xmlRequest = RequestUtils.decodeAndInflateSamlRequest(samlRequestEncoded);
                 }
 
-                String html = result.getResponse().getContentAsString();
-                samlRequestEncoded = requestUtils.extractHtmlInputValue(html, "SAMLRequest");
-                relayState = requestUtils.extractHtmlInputValue(html, "RelayState");
-
-                // No Inflate
-                xmlRequest = requestUtils.decodePostSamlRequest(samlRequestEncoded);
-            } else {
-                // --- HTTP-REDIRECT ---
-                if ( result.getResponse().getStatus() != 302 ){
-                    throw new IllegalArgumentException("Mismatch status for HTTP-REDIRECT");
-                }
-
-                redirectedUrl = result.getResponse().getRedirectedUrl();
-                samlRequestEncoded = requestUtils.extractSamlRequestParameter(redirectedUrl);
-                relayState = requestUtils.extractRelayStateParameter(redirectedUrl);
-
-                // Inflate
-                xmlRequest = requestUtils.decodeAndInflateSamlRequest(samlRequestEncoded);
+                requestId = RequestUtils.extractAuthnRequestId(xmlRequest);
             }
 
-            requestId = requestUtils.extractAuthnRequestId(xmlRequest);
+            return new SpidRequest(session, relayState, xmlRequest, requestId, redirectedUrl);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to execute the mock SPID authentication request flow", e);
         }
-
-        return new SpidRequest(session, relayState, xmlRequest, requestId, redirectedUrl);
     }
 }

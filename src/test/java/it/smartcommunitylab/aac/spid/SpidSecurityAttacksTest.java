@@ -13,7 +13,7 @@ import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
 import it.smartcommunitylab.aac.spid.setupflow.SpidResponseBuilder;
-import it.smartcommunitylab.aac.spid.utils.SpidAttackUtils;
+import it.smartcommunitylab.aac.spid.steps.SpidAttackSimulator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,8 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.transaction.Transactional;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +62,6 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected SpidAttackUtils spidAttackUtils = new SpidAttackUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -82,7 +83,8 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         });
     }
 
-    /* SICUREZZA APPLICATIVA: rigetto di una SAML Response rubata e riusata in una sessione diversa.
+    /**
+     * SICUREZZA APPLICATIVA: rigetto di una SAML Response rubata e riusata in una sessione diversa.
     * Un attaccante intercetta una Response valida e firmata della vittima e la reinvia nel proprio
     * contesto (sessione + RelayState propri). Poiché l'asserzione è legata transazionalmente alla
     * AuthnRequest pendente tramite InResponseTo, il token rubato non corrisponde alla richiesta
@@ -297,7 +299,7 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Force an intentional privilege downgrade mock (L2 -> L1) into the payload structure
-        String response = spidAttackUtils.prepareForSimulationNotValidChangeSpidLevelLow(
+        String response = SpidAttackSimulator.simulatePrivilegeDowngrade(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -361,8 +363,8 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
         // SCENARIO 2: Submitting a valid Base64 string that decodes to a heavily corrupted/truncated XML payload structure
-        String truncatedXmlBase64 = java.util.Base64.getEncoder().encodeToString(
-            "<saml2p:Response xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" ID=\"_123\"".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        String truncatedXmlBase64 = Base64.getEncoder().encodeToString(
+            "<saml2p:Response xmlns:saml2p=\"urn:oasis:names:tc:SAML:2.0:protocol\" ID=\"_123\"".getBytes(StandardCharsets.UTF_8)
         );
 
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
@@ -399,31 +401,31 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
     public void testAuthenticationFailsOnTamperedPayloadInvalidSignature() throws Exception {
         // 1. Establish a standard authentication session context for the transaction
         SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
-                .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
-                .withIdpConfig(identityProvider.registrationIdRedirect)
-                .withSession()
-                .executeRequest();
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdRedirect)
+            .withSession()
+            .executeRequest();
 
         // 2. Generate a valid signed SAML Response, then maliciously tamper with the XML data without resigning it
-        String response = spidAttackUtils.prepareForSimulationInvalidSignature(
-                spidRequest,
-                mockIdpSpid.XML_RESPONSE_TEMPLATE,
-                identityProvider.signingIdpSsoUrl,
-                mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
-                identityProvider.signingIdpEntityId,
-                mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
-                mockIdpSpid.IDP_MOCK_CERTIFICATE
+        String response = SpidAttackSimulator.simulateSignatureTampering(
+            spidRequest,
+            mockIdpSpid.XML_RESPONSE_TEMPLATE,
+            identityProvider.signingIdpSsoUrl,
+            mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT,
+            identityProvider.signingIdpEntityId,
+            mockIdpSpid.IDP_MOCK_PRIVATE_KEY,
+            mockIdpSpid.IDP_MOCK_CERTIFICATE
         );
 
         // 3. Dispatch the corrupted (tampered) payload and verify the SP aborts login securely
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
-                        .secure(true)
-                        .param("SAMLResponse", response)
-                        .param("RelayState", spidRequest.getRelayState())
-                        .session(spidRequest.getSession())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.getRelayState())
+                .session(spidRequest.getSession())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the digest/signature mismatch and generated the specific SpidError
         SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
@@ -457,7 +459,7 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generate a legitimately signed SAML Response, then inject an unsigned forged assertion (XSW)
-        String response = spidAttackUtils.prepareForSimulationSignatureWrapping(
+        String response = SpidAttackSimulator.simulateXmlSignatureWrapping(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,

@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.spid.provider.IdentityProvider;
 import it.smartcommunitylab.aac.spid.setup.BaseSpidTest;
 import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidAgidAnomalyScenario;
-import it.smartcommunitylab.aac.spid.utils.AgidUtils;
+import it.smartcommunitylab.aac.spid.steps.AgidVerifier;
 import it.smartcommunitylab.aac.spid.setupflow.SpidAgidErrorContextBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -57,7 +57,6 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected AgidUtils agidUtils = new AgidUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -96,7 +95,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("AgID CODE_01: Autenticazione corretta Binding (HTTP-Redirect)")
-    public void testAgidCode01SuccessfulAuthenticationWithHttpRedirectBinding() throws Exception {
+    public void testAgidCode01SuccessfulAuthenticationWithHttpRedirectBinding() {
         // Build the simulated execution context mimicking a compliant HTTP-Redirect inbound flow
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
@@ -106,7 +105,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Execute the full end-to-end successful SAML response parsing and session validation
-        agidUtils.executeSuccessfulSamlFlow(context);
+        AgidVerifier.verifySuccessfulLoginFlow(context);
     }
 
     /**
@@ -122,7 +121,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("AgID CODE_26: Processo di erogazione identità pregressa a buon fine")
-    public void testAgidCode26SuccessfulIdentityProvisioning() throws Exception {
+    public void testAgidCode26SuccessfulIdentityProvisioning() {
         // Build the simulated context mapping the specific AgID CODE_26 success scenario via HTTP-Redirect
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
@@ -132,7 +131,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Process the successful inbound identity matching flow and ensure session creation
-        agidUtils.executeSuccessfulSamlFlow(context);
+        AgidVerifier.verifySuccessfulLoginFlow(context);
     }
 
     @Test
@@ -162,7 +161,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
         value = SpidAgidAnomalyScenario.class,
         names = {"CODE_08", "CODE_09", "CODE_11", "CODE_12", "CODE_13", "CODE_14", "CODE_15", "CODE_16", "CODE_17", "CODE_18"}
     )
-    public void testAgidTechnicalAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
+    public void testAgidTechnicalAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) {
         // Build the mock execution context tailored for technical inbound anomalies via HTTP-Redirect
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
@@ -172,12 +171,11 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Simulate the processing of the anomalous SAML Response to capture the expected security exception
-        SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
+        SpidAuthenticationException spidEx = AgidVerifier.triggerAnomalyAndExtractException(scenario, context);
 
         // Assert backend exception mapping and verify that the UI correctly routes to the login error view with localized messages
-        agidUtils.validateSpidAnomalyTechnicalAndSystem(spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
+        AgidVerifier.verifyTechnicalAnomalyLocalization(spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
         assertThat(spidEx.getError().getErrorCode()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION.getErrorCode());
-        assertThat(spidEx.getError().getErrorCode()).isEqualTo("1000");
     }
 
     /* =========================================================================================
@@ -201,7 +199,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
         value = SpidAgidAnomalyScenario.class,
         names = {"CODE_19", "CODE_20", "CODE_21", "CODE_22", "CODE_23", "CODE_25", "CODE_30"}
     )
-    public void testAgidUserAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
+    public void testAgidUserAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) {
         // Initialize the testing context for user-side anomalies over the HTTP-Redirect binding
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
@@ -211,10 +209,10 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Process the anomalous SAML response payload to capture the specific user authentication exception
-        SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
+        SpidAuthenticationException spidEx = AgidVerifier.triggerAnomalyAndExtractException(scenario, context);
 
         // Verify that the UI safely intercepts the failure and renders the dedicated courtesy page with localized messages
-        agidUtils.validateSpidAnomalyUser(scenario, spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
+        AgidVerifier.verifyUserAnomalyLocalization(scenario, spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
 
         // Map each inbound AgID scenario to its respective internal domain error code
         SpidError expectedError = switch (scenario) {
@@ -254,7 +252,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
         value = SpidAgidAnomalyScenario.class,
         names = {"CODE_27", "CODE_28", "CODE_29"}
     )
-    public void testAgidIdentityProvisioningAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
+    public void testAgidIdentityProvisioningAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) {
         // Initialize the validation context mimicking a Group C identity reuse anomaly over HTTP-Redirect
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(false)
@@ -264,11 +262,10 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Process the inbound SAML payload and capture the expected validation exception from the backend engine
-        SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
+        SpidAuthenticationException spidEx = AgidVerifier.triggerAnomalyAndExtractException(scenario, context);
 
         // Assert that the thrown exception maps precisely to a generic backend SAML response validation failure
         assertThat(spidEx.getError().getErrorCode()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION.getErrorCode());
-        assertThat(spidEx.getError().getErrorCode()).isEqualTo("1000");
     }
 
     /**
@@ -283,7 +280,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("AgID CODE_01: Autenticazione corretta Binding (HTTP-POST)")
-    public void testAgidCode01SuccessfulAuthenticationWithHttpPostBinding() throws Exception {
+    public void testAgidCode01SuccessfulAuthenticationWithHttpPostBinding() {
         // Build the simulated execution context enforcing the HTTP-POST binding for the inbound SAML message
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
             .activePostBinding(true)
@@ -293,7 +290,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Process the successful HTTP-POST flow, validating the signature and completing user session mapping
-        agidUtils.executeSuccessfulSamlFlow(context);
+        AgidVerifier.verifySuccessfulLoginFlow(context);
     }
 
     /* =========================================================================================
@@ -317,7 +314,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             value = SpidAgidAnomalyScenario.class,
             names = {"CODE_02", "CODE_03", "CODE_04", "CODE_05", "CODE_06", "CODE_07", "CODE_10"}
     )
-    public void testAgidIdpAndProtocolAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) throws Exception {
+    public void testAgidIdpAndProtocolAnomaliesAreHandledCorrectly(SpidAgidAnomalyScenario scenario) {
         // Build the simulated environment mimicking an IdP-side status rejection or protocol mismatch
         SpidAgidErrorContextBuilder context = getBaseContextBuilder()
                 .activePostBinding(false)
@@ -327,12 +324,11 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
                 .build();
 
         // Process the inbound SAML Response containing the IdP failure status code
-        SpidAuthenticationException spidEx = agidUtils.executeAnomalyScenarioAndGetException(scenario, context);
+        SpidAuthenticationException spidEx = AgidVerifier.triggerAnomalyAndExtractException(scenario, context);
 
         // Verify that the security engine maps this to a response validation failure and updates the UI accordingly
-        agidUtils.validateSpidAnomalyTechnicalAndSystem(spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
+        AgidVerifier.verifyTechnicalAnomalyLocalization(spidEx, mockMvc, LOGIN_DESTINATION_URL, messageSource);
         assertThat(spidEx.getError().getErrorCode()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION.getErrorCode());
-        assertThat(spidEx.getError().getErrorCode()).isEqualTo("1000");
     }
 
     /**

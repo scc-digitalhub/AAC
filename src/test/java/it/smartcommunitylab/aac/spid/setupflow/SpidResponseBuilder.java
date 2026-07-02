@@ -32,9 +32,6 @@ public class SpidResponseBuilder {
     private String idpPrivateKey;
     private String idpCertificate;
 
-    // Internal utilities to keep the builder logic clean;
-    private final AgidAnomalyUtils anomalyFactory = new AgidAnomalyUtils();
-
     // Flow execution flags and state
     private boolean applySignature = false;
     private SpidAgidAnomalyScenario anomalyScenario = null;
@@ -114,43 +111,46 @@ public class SpidResponseBuilder {
     /**
      * Executes the requested flow to build and optionally sign the SAML Response.
      * @return The final XML string of the SAML Response.
-     * @throws Exception If XML manipulation or signing fails.
      */
-    public String buildResponse() throws Exception {
-        String response = this.xmlResponseTemplate;
+    public String buildResponse() {
+        try {
+            String response = this.xmlResponseTemplate;
 
-        if (this.requestId != null) {
-            if (this.anomalyScenario != null) {
-                // Generate an AgID Anomaly Response
-                response = anomalyFactory.buildErrorSamlResponse(
-                    this.xmlResponseAgidErrorTemplate,
-                    this.anomalyScenario,
-                    this.requestId,
-                    this.signingIdpSsoUrl,
-                    this.assertingPartyEntityId
-                );
-            } else {
-                // Generate a standard Success Response
-                response = ResponseUtils.modifyAndEncodeSamlResponse(
-                    this.xmlResponseTemplate,
-                    this.requestId,
-                    this.signingIdpSsoUrl,
-                    this.assertingPartyEntityId,
-                    this.entityIdAac,
-                    this.spidAttributes
+            if (this.requestId != null) {
+                if (this.anomalyScenario != null) {
+                    // Generate an AgID Anomaly Response
+                    response = AgidAnomalyUtils.buildErrorSamlResponse(
+                        this.xmlResponseAgidErrorTemplate,
+                        this.anomalyScenario,
+                        this.requestId,
+                        this.signingIdpSsoUrl,
+                        this.assertingPartyEntityId
+                    );
+                } else {
+                    // Generate a standard Success Response
+                    response = ResponseUtils.modifyAndEncodeSamlResponse(
+                        this.xmlResponseTemplate,
+                        this.requestId,
+                        this.signingIdpSsoUrl,
+                        this.assertingPartyEntityId,
+                        this.entityIdAac,
+                        this.spidAttributes
+                    );
+                }
+            }
+
+            // Cryptographically sign the Response if required
+            if (this.applySignature) {
+                response = ResponseUtils.createSignedSamlResponse(
+                    response,
+                    this.idpPrivateKey,
+                    this.idpCertificate
                 );
             }
-        }
 
-        // Cryptographically sign the Response if required
-        if (this.applySignature) {
-            response = ResponseUtils.createSignedSamlResponse(
-                response,
-                this.idpPrivateKey,
-                this.idpCertificate
-            );
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build and process the final SAML Response", e);
         }
-
-        return response;
     }
 }

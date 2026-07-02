@@ -108,7 +108,7 @@ public enum SpidError {
     public static SpidError translate(Saml2Error saml2Error) {
         System.out.println("saml error " + saml2Error.getErrorCode());
 
-        SpidError error = SpidError.SPID_FAILED_RESPONSE_VALIDATION;
+        SpidError error = SpidError.SYSTEM_ERROR;
 
         switch (saml2Error.getErrorCode()) {
             case Saml2ErrorCodes.UNKNOWN_RESPONSE_CLASS:

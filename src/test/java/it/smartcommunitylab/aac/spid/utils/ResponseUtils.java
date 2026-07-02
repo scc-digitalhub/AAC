@@ -1,6 +1,9 @@
 package it.smartcommunitylab.aac.spid.utils;
 
+import it.smartcommunitylab.aac.spid.SpidKeys;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
 import org.opensaml.core.xml.io.Unmarshaller;
 import org.opensaml.core.xml.util.XMLObjectSupport;
@@ -31,7 +34,6 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
@@ -65,8 +67,6 @@ public class ResponseUtils {
     // Declared as static final to reduce object creation overhead during heavy loads.
     static final TransformerFactory TRANSFORMER_FACTORY;
 
-    private static final long ASSERTION_VALIDITY_SECONDS = 300;
-
     /**
      * Modifies a base SAML Response XML string to adapt it to the current test session context.
      * Updates timestamps, correlation IDs, destinations, issuer EntityIDs, and injects specific
@@ -78,144 +78,149 @@ public class ResponseUtils {
      * @param assertingPartyEntityId  The Entity ID of the mock Identity Provider.
      * @param serviceProviderEntityId The Entity ID of the relying Service Provider.
      * @return A dynamically modified, Base64-encoded SAML Response ready to be signed.
-     * @throws Exception If DOM parsing or transformation fails.
      */
-    public static String modifyAndEncodeSamlResponse(String xmlContent,
-                                                     String inResponseToValue,
-                                                     String ssoDestinationUrl,
-                                                     String assertingPartyEntityId,
-                                                     String serviceProviderEntityId,
-                                                     Set<SpidAttribute> spidAttributes) throws Exception {
+    public static String modifyAndEncodeSamlResponse(
+        String xmlContent,
+        String inResponseToValue,
+        String ssoDestinationUrl,
+        String assertingPartyEntityId,
+        String serviceProviderEntityId,
+        Set<SpidAttribute> spidAttributes)
+    {
+        try {
 
-        DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
-        doc.getDocumentElement().normalize();
+            DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
+            Document doc = db.parse(new ByteArrayInputStream(xmlContent.getBytes(StandardCharsets.UTF_8)));
+            doc.getDocumentElement().normalize();
 
-        Instant now = Instant.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
+            Instant now = Instant.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
 
-        // Update root Response element attributes
-        NodeList responseNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response");
-        if (responseNodes.getLength() > 0) {
-            Element responseElement = (Element) responseNodes.item(0);
-            responseElement.setAttribute("InResponseTo", inResponseToValue);
-            responseElement.setAttribute("IssueInstant", formatter.format(now));
-            responseElement.setAttribute("Destination", ssoDestinationUrl);
-        }
-
-        // Update SubjectConfirmationData to ensure the SP accepts the bearer token
-        NodeList subjectConfirmationDataNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "SubjectConfirmationData");
-        if (subjectConfirmationDataNodes.getLength() > 0) {
-            Element subjectConfirmationDataElement = (Element) subjectConfirmationDataNodes.item(0);
-            subjectConfirmationDataElement.setAttribute("InResponseTo", inResponseToValue);
-            subjectConfirmationDataElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(ASSERTION_VALIDITY_SECONDS)));
-            subjectConfirmationDataElement.setAttribute("Recipient", ssoDestinationUrl);
-        }
-
-        // Update Issuers to reflect the mock IdP
-        NodeList issuerNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer");
-        if (issuerNodes.getLength() > 0) {
-            for (int i = 0; i < issuerNodes.getLength(); i++) {
-                Element issuerElement = (Element) issuerNodes.item(i);
-                issuerElement.setTextContent(assertingPartyEntityId);
-            }
-        }
-
-        // Update AuthnStatement timestamps
-        NodeList authnStatementNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AuthnStatement");
-        if (authnStatementNodes.getLength() > 0) {
-            Element authnStatementElement = (Element) authnStatementNodes.item(0);
-            authnStatementElement.setAttribute("AuthnInstant", formatter.format(now));
-        }
-
-        // Update NameID Qualifier
-        NodeList nameIDNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "NameID");
-        if (nameIDNodes.getLength() > 0) {
-            Element nameIDElement = (Element) nameIDNodes.item(0);
-            nameIDElement.setAttribute("NameQualifier", assertingPartyEntityId);
-        }
-
-        // Process the main Assertion block
-        NodeList assertionNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
-        if (assertionNodes.getLength() > 0) {
-            Element assertionElement = (Element) assertionNodes.item(0);
-            assertionElement.setAttribute("IssueInstant", formatter.format(now));
-
-            // REMOVE ALL EXISTING SIGNATURES (both from Response and Assertion) before re-signing.
-            // Failing to do so will result in cryptographic validation errors on the SP side.
-            NodeList allSignatures = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
-            while (allSignatures.getLength() > 0) {
-                Node sig = allSignatures.item(0);
-                sig.getParentNode().removeChild(sig);
+            // Update root Response element attributes
+            NodeList responseNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response");
+            if (responseNodes.getLength() > 0) {
+                Element responseElement = (Element) responseNodes.item(0);
+                responseElement.setAttribute("InResponseTo", inResponseToValue);
+                responseElement.setAttribute("IssueInstant", formatter.format(now));
+                responseElement.setAttribute("Destination", ssoDestinationUrl);
             }
 
-            // Force Destination value (Critical for Spring Security validation)
-            Element responseElement = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response").item(0);
-            responseElement.setAttribute("Destination", ssoDestinationUrl);
-
-            // Enforce Audience Restriction Coherence
-            Element audience = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Audience").item(0);
-            if (audience != null) {
-                audience.setTextContent(serviceProviderEntityId);
+            // Update SubjectConfirmationData to ensure the SP accepts the bearer token
+            NodeList subjectConfirmationDataNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "SubjectConfirmationData");
+            if (subjectConfirmationDataNodes.getLength() > 0) {
+                Element subjectConfirmationDataElement = (Element) subjectConfirmationDataNodes.item(0);
+                subjectConfirmationDataElement.setAttribute("InResponseTo", inResponseToValue);
+                subjectConfirmationDataElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(SpidKeys.SPID_CLOCK_SKEW * 10)));
+                subjectConfirmationDataElement.setAttribute("Recipient", ssoDestinationUrl);
             }
 
-            // Update validity timeframe conditions
-            NodeList conditionsNodes = assertionElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Conditions");
-            if (conditionsNodes.getLength() > 0) {
-                Element conditionsElement = (Element) conditionsNodes.item(0);
-                conditionsElement.setAttribute("NotBefore", formatter.format(now.minusSeconds(60)));
-                conditionsElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(ASSERTION_VALIDITY_SECONDS)));
+            // Update Issuers to reflect the mock IdP
+            NodeList issuerNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer");
+            if (issuerNodes.getLength() > 0) {
+                for (int i = 0; i < issuerNodes.getLength(); i++) {
+                    Element issuerElement = (Element) issuerNodes.item(i);
+                    issuerElement.setTextContent(assertingPartyEntityId);
+                }
+            }
 
-                NodeList audienceRestrictionNodes = conditionsElement.getElementsByTagNameNS(
-                        "urn:oasis:names:tc:SAML:2.0:assertion",
-                        "AudienceRestriction"
-                );
-                if (audienceRestrictionNodes.getLength() > 0) {
-                    Element audienceRestrictionElement = (Element) audienceRestrictionNodes.item(0);
-                    NodeList audienceNodes = audienceRestrictionElement.getElementsByTagNameNS(
+            // Update AuthnStatement timestamps
+            NodeList authnStatementNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AuthnStatement");
+            if (authnStatementNodes.getLength() > 0) {
+                Element authnStatementElement = (Element) authnStatementNodes.item(0);
+                authnStatementElement.setAttribute("AuthnInstant", formatter.format(now));
+            }
+
+            // Update NameID Qualifier
+            NodeList nameIDNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "NameID");
+            if (nameIDNodes.getLength() > 0) {
+                Element nameIDElement = (Element) nameIDNodes.item(0);
+                nameIDElement.setAttribute("NameQualifier", assertingPartyEntityId);
+            }
+
+            // Process the main Assertion block
+            NodeList assertionNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Assertion");
+            if (assertionNodes.getLength() > 0) {
+                Element assertionElement = (Element) assertionNodes.item(0);
+                assertionElement.setAttribute("IssueInstant", formatter.format(now));
+
+                // REMOVE ALL EXISTING SIGNATURES (both from Response and Assertion) before re-signing.
+                // Failing to do so will result in cryptographic validation errors on the SP side.
+                NodeList allSignatures = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+                while (allSignatures.getLength() > 0) {
+                    Node sig = allSignatures.item(0);
+                    sig.getParentNode().removeChild(sig);
+                }
+
+                // Force Destination value (Critical for Spring Security validation)
+                Element responseElement = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response").item(0);
+                responseElement.setAttribute("Destination", ssoDestinationUrl);
+
+                // Enforce Audience Restriction Coherence
+                Element audience = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Audience").item(0);
+                if (audience != null) {
+                    audience.setTextContent(serviceProviderEntityId);
+                }
+
+                // Update validity timeframe conditions
+                NodeList conditionsNodes = assertionElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Conditions");
+                if (conditionsNodes.getLength() > 0) {
+                    Element conditionsElement = (Element) conditionsNodes.item(0);
+                    conditionsElement.setAttribute("NotBefore", formatter.format(now.minusSeconds(60)));
+                    conditionsElement.setAttribute("NotOnOrAfter", formatter.format(now.plusSeconds(SpidKeys.SPID_CLOCK_SKEW * 10)));
+
+                    NodeList audienceRestrictionNodes = conditionsElement.getElementsByTagNameNS(
                             "urn:oasis:names:tc:SAML:2.0:assertion",
-                            "Audience"
+                            "AudienceRestriction"
                     );
+                    if (audienceRestrictionNodes.getLength() > 0) {
+                        Element audienceRestrictionElement = (Element) audienceRestrictionNodes.item(0);
+                        NodeList audienceNodes = audienceRestrictionElement.getElementsByTagNameNS(
+                                "urn:oasis:names:tc:SAML:2.0:assertion",
+                                "Audience"
+                        );
 
-                    if (audienceNodes.getLength() > 0) {
-                        Element audienceElement = (Element) audienceNodes.item(0);
-                        audienceElement.setTextContent(serviceProviderEntityId);
+                        if (audienceNodes.getLength() > 0) {
+                            Element audienceElement = (Element) audienceNodes.item(0);
+                            audienceElement.setTextContent(serviceProviderEntityId);
+                        }
+                    }
+                }
+
+                // Inject Mock SPID Attributes into the AttributeStatement
+                NodeList attributeStatementNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeStatement");
+                Element attributeStatementElement = (attributeStatementNodes.getLength() > 0) ? (Element) attributeStatementNodes.item(0) : null;
+
+                if (attributeStatementElement != null) {
+                    // Clear the existing 'name' attribute if present to avoid duplication
+                    NodeList nameAttributes = attributeStatementElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Attribute");
+                    for (int i = 0; i < nameAttributes.getLength(); i++) {
+                        Element attr = (Element) nameAttributes.item(i);
+                        if ("name".equals(attr.getAttribute("Name"))) {
+                            attributeStatementElement.removeChild(attr);
+                            break;
+                        }
+                    }
+
+                    // Create the list of SpidAttributes
+                    List<Element> spidAttributesSelected = buildSpidAttributes(spidAttributes, doc);
+
+                    // Append on AttributeStatement
+                    for (Element attr : spidAttributesSelected) {
+                        attributeStatementElement.appendChild(attr);
                     }
                 }
             }
 
-            // Inject Mock SPID Attributes into the AttributeStatement
-            NodeList attributeStatementNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "AttributeStatement");
-            Element attributeStatementElement = (attributeStatementNodes.getLength() > 0) ? (Element) attributeStatementNodes.item(0) : null;
+            // Serialize the modified DOM back into an XML string
+            Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            transformer.transform(new DOMSource(doc), new StreamResult(out));
+            String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
 
-            if (attributeStatementElement != null) {
-                // Clear the existing 'name' attribute if present to avoid duplication
-                NodeList nameAttributes = attributeStatementElement.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Attribute");
-                for (int i = 0; i < nameAttributes.getLength(); i++) {
-                    Element attr = (Element) nameAttributes.item(i);
-                    if ("name".equals(attr.getAttribute("Name"))) {
-                        attributeStatementElement.removeChild(attr);
-                        break;
-                    }
-                }
-
-                // Create the list of SpidAttributes
-                List<Element> spidAttributesSelected = buildSpidAttributes(spidAttributes, doc);
-
-                // Append on AttributeStatement
-                for (Element attr : spidAttributesSelected) {
-                    attributeStatementElement.appendChild(attr);
-                }
-            }
+            return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to modify and encode the customized SPID SAML Response", e);
         }
-
-        // Serialize the modified DOM back into an XML string
-        Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        transformer.transform(new DOMSource(doc), new StreamResult(out));
-        String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
-
-        return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -226,42 +231,58 @@ public class ResponseUtils {
      * @return A list of populated SAML {@code <saml2:Attribute>} Elements ready to be appended.
      */
     private static List<Element> buildSpidAttributes(Set<SpidAttribute> requestedSpidAttributes, Document doc) {
-        List<Element> attributesList = new ArrayList<>();
+        try {
+            List<Element> attributesList = new ArrayList<>();
 
-        // Prepare the complete mock user profile
-        Map<String, String> mockUser = new HashMap<>();
-        mockUser.put("name", "FEDERICO, Giacomo");
-        mockUser.put("familyName", "ROSSI");
-        mockUser.put("spidCode", "MOKIDP80A01H501C");
-        mockUser.put("fiscalNumber", "MOKIDP80A01H501C");
-        mockUser.put("email", "federico.rossi@invalid.mock");
-        mockUser.put("mobilePhone", "+393331234567");
-        mockUser.put("ivaCode", "IT12345678901");
-        mockUser.put("idCard", "cartaIdentita CA00000AA comuneRoma 2020-01-01 2030-01-01");
+            // Prepare the complete mock user profile
+            Map<String, String> mockUser = createMockUser();
 
-        Set<String> attributesToInject = new HashSet<>();
+            Set<String> attributesToInject = new HashSet<>();
 
-        if (requestedSpidAttributes != null && !requestedSpidAttributes.isEmpty()) {
-            // Use explicitly requested attributes
-            for (SpidAttribute requestedAttr : requestedSpidAttributes) {
-                attributesToInject.add(requestedAttr.getValue());
-            }
-        } else {
-            // Fallback to default SPID attributes
-            attributesToInject.addAll(Arrays.asList(
+            if (requestedSpidAttributes != null && !requestedSpidAttributes.isEmpty()) {
+                // Use explicitly requested attributes
+                for (SpidAttribute requestedAttr : requestedSpidAttributes) {
+                    attributesToInject.add(requestedAttr.getValue());
+                }
+            } else {
+                // Fallback to default SPID attributes
+                attributesToInject.addAll(Arrays.asList(
                     "name", "email", "fiscalNumber", "spidCode", "familyName"
-            ));
-        }
-
-        // Create element
-        for (String attributeName : attributesToInject) {
-            if (mockUser.containsKey(attributeName)) {
-                Element attribute = buildSamlAttribute(doc, attributeName, mockUser.get(attributeName));
-                attributesList.add(attribute);
+                ));
             }
-        }
 
-        return attributesList;
+            // Create element
+            for (String attributeName : attributesToInject) {
+                if (mockUser.containsKey(attributeName)) {
+                    Element attribute = buildSamlAttribute(doc, attributeName, mockUser.get(attributeName));
+                    attributesList.add(attribute);
+                }
+            }
+            return attributesList;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build the mock SPID SAML attributes", e);
+        }
+    }
+
+    /**
+     * Provides a fictitious SPID user profile (attribute name to sample value) used as test data
+     * for building mock SAML assertions. All values are fake and for testing only.
+     */
+    private static @NonNull Map<String, String> createMockUser() {
+        try {
+            Map<String, String> mockUser = new HashMap<>();
+            mockUser.put("name", "FEDERICO, Giacomo");
+            mockUser.put("familyName", "ROSSI");
+            mockUser.put("spidCode", "MOKIDP80A01H501C");
+            mockUser.put("fiscalNumber", "MOKIDP80A01H501C");
+            mockUser.put("email", "federico.rossi@invalid.mock");
+            mockUser.put("mobilePhone", "+393331234567");
+            mockUser.put("ivaCode", "IT12345678901");
+            mockUser.put("idCard", "cartaIdentita CA00000AA comuneRoma 2025-01-01 2040-01-01");
+            return mockUser;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to construct the mock SPID user profile", e);
+        }
     }
 
     /**
@@ -274,16 +295,19 @@ public class ResponseUtils {
      * @return The constructed {@code <saml2:Attribute>} Element.
      */
     private static Element buildSamlAttribute(Document doc, String name, String value) {
-        Element attribute = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:assertion", "saml2:Attribute");
-        attribute.setAttribute("Name", name);
+        try {
+            Element attribute = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:assertion", "saml2:Attribute");
+            attribute.setAttribute("Name", name);
 
-        Element attributeValue = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:assertion", "saml2:AttributeValue");
-        attributeValue.setAttributeNS("http://www.w3.org/2001/XMLSchema-instance", "xsi:type", "xs:string");
-        attributeValue.setTextContent(value);
+            Element attributeValue = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:assertion", "saml2:AttributeValue");
+            attributeValue.setAttributeNS("http://www.w3.org/2001/XMLSchema-instance", "xsi:type", "xs:string");
+            attributeValue.setTextContent(value);
 
-        attribute.appendChild(attributeValue);
-
-        return attribute;
+            attribute.appendChild(attributeValue);
+            return attribute;
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Failed to construct the SAML attribute element for '%s'", name), e);
+        }
     }
 
     /* =========================================================================
@@ -297,15 +321,22 @@ public class ResponseUtils {
      * @param privateKeyBase64   The Base64 string of the private signing key.
      * @param certificateBase64  The Base64 string of the public X.509 certificate.
      * @return A Base64-encoded string of the fully signed SAML Response.
-     * @throws Exception If parsing, marshalling, or cryptographic operations fail.
      */
-    public static String createSignedSamlResponse(String xmlContentBase64, String privateKeyBase64, String certificateBase64) throws Exception {
-        BasicX509Credential credential = createCredentialFromPem(privateKeyBase64, certificateBase64);
-        String samlResponseXml = new String(Base64.getDecoder().decode(xmlContentBase64), StandardCharsets.UTF_8);
+    public static String createSignedSamlResponse(
+        String xmlContentBase64,
+        String privateKeyBase64,
+        String certificateBase64)
+    {
+        try {
+            BasicX509Credential credential = createCredentialFromPem(privateKeyBase64, certificateBase64);
+            String samlResponseXml = new String(Base64.getDecoder().decode(xmlContentBase64), StandardCharsets.UTF_8);
 
-        String signedSamlResponse = signSamlResponse(samlResponseXml, credential);
+            String signedSamlResponse = signSamlResponse(samlResponseXml, credential);
 
-        return Base64.getEncoder().encodeToString(signedSamlResponse.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(signedSamlResponse.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to sign and encode the SAML Response", e);
+        }
     }
 
     /**
@@ -315,77 +346,87 @@ public class ResponseUtils {
      * @param samlResponseXml The plain-text unsigned SAML Response XML.
      * @param signingCredential The OpenSAML credential used for signing.
      * @return The signed XML string.
-     * @throws Exception If OpenSAML marshalling or signing fails.
      */
-    private static String signSamlResponse(String samlResponseXml, Credential signingCredential)
-            throws Exception {
+    private static String signSamlResponse(String samlResponseXml, Credential signingCredential) {
+        try {
+            DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
+            Document doc = db.parse(new ByteArrayInputStream(samlResponseXml.getBytes(StandardCharsets.UTF_8)));
 
-        DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(samlResponseXml.getBytes(StandardCharsets.UTF_8)));
+            Element rootElement = doc.getDocumentElement();
+            Unmarshaller unmarshaller = XMLObjectProviderRegistrySupport.getUnmarshallerFactory().getUnmarshaller(rootElement);
+            assert unmarshaller != null;
+            Response response = (Response) unmarshaller.unmarshall(rootElement);
 
-        Element rootElement = doc.getDocumentElement();
-        Unmarshaller unmarshaller = XMLObjectProviderRegistrySupport.getUnmarshallerFactory().getUnmarshaller(rootElement);
-        assert unmarshaller != null;
-        Response response = (Response) unmarshaller.unmarshall(rootElement);
+            // 1. Sign the inner Assertion
+            if (!response.getAssertions().isEmpty()) {
+                org.opensaml.saml.saml2.core.Assertion assertion = response.getAssertions().get(0);
+                Signature assertionSignature = buildSignatureObject(signingCredential);
+                assertion.setSignature(assertionSignature);
 
-        // 1. Sign the inner Assertion
-        if (!response.getAssertions().isEmpty()) {
-            org.opensaml.saml.saml2.core.Assertion assertion = response.getAssertions().get(0);
-            Signature assertionSignature = buildSignatureObject(signingCredential);
-            assertion.setSignature(assertionSignature);
+                // Marshalling is strictly required by OpenSAML before actual signing occurs
+                Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(assertion)).marshall(assertion);
+                Signer.signObject(assertionSignature);
+            }
 
-            // Marshalling is strictly required by OpenSAML before actual signing occurs
-            Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(assertion)).marshall(assertion);
-            Signer.signObject(assertionSignature);
+            // 2. Sign the outer Response container
+            Signature responseSignature = buildSignatureObject(signingCredential);
+            response.setSignature(responseSignature);
+
+            Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(response)).marshall(response);
+            Signer.signObject(responseSignature);
+
+            // Transform the final signed DOM back into an XML String
+            StringWriter writer = new StringWriter();
+            TRANSFORMER_FACTORY.newTransformer().transform(new DOMSource(response.getDOM()), new StreamResult(writer));
+            return writer.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to apply cryptographic signatures to the SAML Assertion and Response", e);
         }
-
-        // 2. Sign the outer Response container
-        Signature responseSignature = buildSignatureObject(signingCredential);
-        response.setSignature(responseSignature);
-
-        Objects.requireNonNull(XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(response)).marshall(response);
-        Signer.signObject(responseSignature);
-
-        // Transform the final signed DOM back into an XML String
-        StringWriter writer = new StringWriter();
-        TRANSFORMER_FACTORY.newTransformer().transform(new DOMSource(response.getDOM()), new StreamResult(writer));
-        return writer.toString();
     }
 
     /**
      * Constructs an OpenSAML Signature object configured with the algorithms
      * mandated by SPID (RSA_SHA256 and exclusive canonicalization).
      */
-    private static Signature buildSignatureObject(Credential credential) throws Exception {
-        Signature signature = (Signature) XMLObjectSupport.buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
-        signature.setSigningCredential(credential);
-        signature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256);
-        signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
-        appendKeyInfoToSignature(signature, (X509Credential) credential);
-        return signature;
+    private static Signature buildSignatureObject(Credential credential) {
+        try {
+            Signature signature = (Signature) XMLObjectSupport.buildXMLObject(Signature.DEFAULT_ELEMENT_NAME);
+            signature.setSigningCredential(credential);
+            signature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256);
+            signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
+            appendKeyInfoToSignature(signature, credential);
+            return signature;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build the OpenSAML Signature object with SPID parameters", e);
+        }
     }
 
     /**
      * Appends the X.509 Certificate to the XML Signature's KeyInfo block,
      * allowing the Relying Party to verify the signature against published metadata.
      */
-    private static void appendKeyInfoToSignature(Signature signature, Credential signingCredential) throws CertificateEncodingException {
+    private static void appendKeyInfoToSignature(Signature signature, Credential signingCredential) {
         if (!(signingCredential instanceof X509Credential)) {
             throw new IllegalArgumentException("Signing credential must be an X509Credential.");
         }
 
-        java.security.cert.X509Certificate cert = ((X509Credential) signingCredential).getEntityCertificate();
+        try {
+            java.security.cert.X509Certificate cert = ((X509Credential) signingCredential).getEntityCertificate();
 
-        KeyInfo keyInfo = (KeyInfo) XMLObjectSupport.buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);
-        X509Data x509Data = (X509Data) XMLObjectSupport.buildXMLObject(X509Data.DEFAULT_ELEMENT_NAME);
-        X509Certificate x509Certificate = (X509Certificate) XMLObjectSupport.buildXMLObject(X509Certificate.DEFAULT_ELEMENT_NAME);
+            KeyInfo keyInfo = (KeyInfo) XMLObjectSupport.buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);
+            X509Data x509Data = (X509Data) XMLObjectSupport.buildXMLObject(X509Data.DEFAULT_ELEMENT_NAME);
+            X509Certificate x509Certificate =
+                    (X509Certificate) XMLObjectSupport.buildXMLObject(X509Certificate.DEFAULT_ELEMENT_NAME);
 
-        String certValue = Base64.getEncoder().encodeToString(cert.getEncoded());
-        x509Certificate.setValue(certValue);
+            String certValue = Base64.getEncoder().encodeToString(cert.getEncoded());
+            x509Certificate.setValue(certValue);
 
-        x509Data.getX509Certificates().add(x509Certificate);
-        keyInfo.getX509Datas().add(x509Data);
-        signature.setKeyInfo(keyInfo);
+            x509Data.getX509Certificates().add(x509Certificate);
+            keyInfo.getX509Datas().add(x509Data);
+            signature.setKeyInfo(keyInfo);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to append the X.509 KeyInfo block to the SAML signature", e);
+        }
     }
 
     /* =========================================================================
@@ -397,35 +438,39 @@ public class ResponseUtils {
      * into a usable OpenSAML BasicX509Credential.
      * Strips PEM headers, footers, and whitespace before decoding.
      */
-    private static BasicX509Credential createCredentialFromPem(String privateKeyBase64, String certificateBase64) throws Exception {
-        Function<String, byte[]> decodePem = (base64String) -> {
-            String cleanString = base64String
-                    .replaceAll("(?m)^-----.*-----.*\\n", "")
-                    .replaceAll("\\s+", "");
+    private static BasicX509Credential createCredentialFromPem(String privateKeyBase64, String certificateBase64) {
+        try {
+            Function<String, byte[]> decodePem = (base64String) -> {
+                String cleanString = base64String
+                        .replaceAll("(?m)^-----.*-----.*\\n", "")
+                        .replaceAll("\\s+", "");
 
-            return Base64.getDecoder().decode(cleanString);
-        };
+                return Base64.getDecoder().decode(cleanString);
+            };
 
-        byte[] privateKeyBytes = decodePem.apply(privateKeyBase64);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+            byte[] privateKeyBytes = decodePem.apply(privateKeyBase64);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
 
-        byte[] certBytes = decodePem.apply(certificateBase64);
-        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-        java.security.cert.X509Certificate certificate = (java.security.cert.X509Certificate) certFactory.generateCertificate(
-                new ByteArrayInputStream(certBytes)
-        );
+            byte[] certBytes = decodePem.apply(certificateBase64);
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            java.security.cert.X509Certificate certificate = (java.security.cert.X509Certificate) certFactory.generateCertificate(
+                    new ByteArrayInputStream(certBytes)
+            );
 
-        BasicX509Credential credential = new BasicX509Credential(certificate);
-        credential.setPrivateKey(privateKey);
+            BasicX509Credential credential = new BasicX509Credential(certificate);
+            credential.setPrivateKey(privateKey);
 
-        return credential;
+            return credential;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create the OpenSAML X.509 credential from the provided PEM strings", e);
+        }
     }
 
     static {
         try {
             // 1. Initialize the OpenSAML library engine
-            org.opensaml.core.config.InitializationService.initialize();
+            InitializationService.initialize();
 
             // 2. Create a secure XML DocumentBuilderFactory (Anti-XXE protection)
             SECURE_DOC_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();

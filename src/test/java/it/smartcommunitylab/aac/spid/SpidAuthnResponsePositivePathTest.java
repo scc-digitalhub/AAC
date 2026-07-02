@@ -11,7 +11,7 @@ import it.smartcommunitylab.aac.spid.setup.MockIdpSpid;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequest;
 import it.smartcommunitylab.aac.spid.setupflow.SpidRequestFlow;
 import it.smartcommunitylab.aac.spid.setupflow.SpidResponseBuilder;
-import it.smartcommunitylab.aac.spid.utils.SpidAuthnPositiveUtils;
+import it.smartcommunitylab.aac.spid.steps.SpidAuthnPositiveSimulator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,6 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
     @InjectWireMock("idp-server-post")
     protected WireMockServer mockIdPServerPost;
 
-    protected SpidAuthnPositiveUtils spidAuthnPositiveUtils = new SpidAuthnPositiveUtils();
     protected MockIdpSpid mockIdpSpid = new MockIdpSpid();
     protected IdentityProvider identityProvider = new IdentityProvider();
 
@@ -174,7 +173,7 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generate an upgraded SAML Response containing a higher assurance profile (SPID L3) than requested
-        String response = spidAuthnPositiveUtils.prepareForSimulationNotValidChangeSpidLevelHigh(
+        String response = SpidAuthnPositiveSimulator.simulateValidChangeSpidLevelHigh(
             spidRequest,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,
@@ -202,7 +201,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
      * In conformità con i vincoli di ricezione ed elaborazione normati da AgID nella sezione "Response", il Service Provider
      * esegue il controllo sui timestamp del token. Seguendo le raccomandazioni dello standard SAML Core 2.0, viene applicata
      * una finestra di tolleranza (Clock Skew) per compensare minime latenze di trasmissione o sfasamenti tra i server.
-     * Il test garantisce che una risposta il cui timestamp di emissione (IssueInstant) risulta traslato di +30 secondi nel futuro
+     * Il test garantisce che una risposta il cui timestamp di emissione (IssueInstant) risulta traslato di
+     * +{@value it.smartcommunitylab.aac.spid.SpidKeys#SPID_CLOCK_SKEW} secondi nel futuro
      * rispetto all'orologio locale venga accettata dall'infrastruttura, finalizzando l'autenticazione senza sollevare eccezioni.
      *
      * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#response">Regole Tecniche SPID - SSO Response</a>
@@ -212,16 +212,16 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
      * @see <a href="https://github.com/italia/spid-php-lib/issues/88">GitHub Developers Italia - Discussione sulle soglie di tolleranza nell'SDK ufficiale SPID</a>
      */
     @Test
-    @DisplayName("Autenticazione con successo: Validazione limiti di Clock Skew temporale +30s")
+    @DisplayName("Autenticazione con successo: Validazione limiti di Clock Skew temporale " + SpidKeys.SPID_CLOCK_SKEW + "s")
     public void testAuthenticationSucceedsClockSkewTolerance() throws Exception {
-        // Premature token but within acceptable clock skew tolerance (+30 seconds)
+        // Premature token but within acceptable clock skew tolerance
         SpidRequest spidRequestValid = new SpidRequestFlow(mockMvc)
             .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
             .withIdpConfig(identityProvider.registrationIdRedirect)
             .withSession()
             .executeRequest();
 
-        String validSkewResponse = spidAuthnPositiveUtils.prepareSamlResponseWithClockSkew(
+        String validSkewResponse = SpidAuthnPositiveSimulator.simulateValidSamlResponseWithClockSkew(
             spidRequestValid,
             mockIdpSpid.XML_RESPONSE_TEMPLATE,
             identityProvider.signingIdpSsoUrl,

@@ -1,6 +1,7 @@
 package it.smartcommunitylab.aac.spid.utils;
 
 import it.smartcommunitylab.aac.spid.setupflow.SpidAgidAnomalyScenario;
+import org.opensaml.core.config.InitializationService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,91 +46,99 @@ public class AgidAnomalyUtils {
      * @param destinationUrl       The SP endpoint URL where this response will be sent.
      * @param issuerEntityId       The Entity ID of the mock Identity Provider.
      * @return A Base64-encoded string containing the modified XML SAML Response, ready to be signed.
-     * @throws Exception If DOM parsing or transformation fails.
      */
-    public String buildErrorSamlResponse(String xmlResponseErrorTemplate, SpidAgidAnomalyScenario scenario, String inResponseToValue, String destinationUrl, String issuerEntityId) throws Exception {
+    public static String buildErrorSamlResponse(
+        String xmlResponseErrorTemplate,
+        SpidAgidAnomalyScenario scenario,
+        String inResponseToValue,
+        String destinationUrl,
+        String issuerEntityId)
+    {
+        try {
+            // 1. Decode and parse the base template into a manipulable DOM Document
+            DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
+            Document doc = db.parse(new ByteArrayInputStream(xmlResponseErrorTemplate.getBytes(StandardCharsets.UTF_8)));
+            doc.getDocumentElement().normalize();
 
-        // 1. Decode and parse the base template into a manipulable DOM Document
-        DocumentBuilder db = SECURE_DOC_BUILDER_FACTORY.newDocumentBuilder();
-        Document doc = db.parse(new ByteArrayInputStream(xmlResponseErrorTemplate.getBytes(StandardCharsets.UTF_8)));
-        doc.getDocumentElement().normalize();
+            Instant now = Instant.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
 
-        Instant now = Instant.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
-
-        // 2. Update the root Response element attributes (ID, Destination, IssueInstant, InResponseTo)
-        Element responseElement = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response").item(0);
-        if (responseElement != null) {
-            responseElement.setAttribute("ID", "_" + UUID.randomUUID()); // Generate a fresh unique ID
-            responseElement.setAttribute("InResponseTo", inResponseToValue);
-            responseElement.setAttribute("Destination", destinationUrl);
-            responseElement.setAttribute("IssueInstant", formatter.format(now));
-        }
-
-        // 3. Update the Issuer to match the mock IdP.
-        // If missing, dynamically create and insert it as the FIRST child to comply with SAML 2.0 schema.
-        NodeList issuerNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer");
-        if (issuerNodes.getLength() > 0) {
-            for (int i = 0; i < issuerNodes.getLength(); i++) {
-                issuerNodes.item(i).setTextContent(issuerEntityId);
-            }
-        } else if (responseElement != null) {
-            Element newIssuer = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:assertion", "saml2:Issuer");
-            newIssuer.setTextContent(issuerEntityId);
-            responseElement.insertBefore(newIssuer, responseElement.getFirstChild());
-        }
-
-        // 4. STRIP EXISTING SIGNATURE: Crucial step. Since the document payload has been altered,
-        // the old signature is invalid and must be removed entirely before re-signing to avoid conflicts.
-        NodeList signatureNodes = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
-        while (signatureNodes.getLength() > 0) {
-            Node signatureNode = signatureNodes.item(0);
-            signatureNode.getParentNode().removeChild(signatureNode);
-        }
-
-        // 5. Update the Status node with the values mapped from the provided Enum
-        NodeList statusNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Status");
-        if (statusNodes.getLength() > 0) {
-            Element statusElement = (Element) statusNodes.item(0);
-
-            // Clear any existing children from the Status node
-            while (statusElement.hasChildNodes()) {
-                statusElement.removeChild(statusElement.getFirstChild());
+            // 2. Update the root Response element attributes (ID, Destination, IssueInstant, InResponseTo)
+            Element responseElement = (Element) doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Response").item(0);
+            if (responseElement != null) {
+                responseElement.setAttribute("ID", "_" + UUID.randomUUID()); // Generate a fresh unique ID
+                responseElement.setAttribute("InResponseTo", inResponseToValue);
+                responseElement.setAttribute("Destination", destinationUrl);
+                responseElement.setAttribute("IssueInstant", formatter.format(now));
             }
 
-            // Create the primary <saml2p:StatusCode Value="...">
-            Element mainStatusCodeElement = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:protocol", "saml2p:StatusCode");
-            mainStatusCodeElement.setAttribute("Value", scenario.getSamlTopLevelStatus());
-
-            // Create and append the secondary Sub StatusCode, if specified by the scenario
-            if (scenario.getSamlSubStatus() != null && !scenario.getSamlSubStatus().isEmpty()) {
-                Element subStatusCodeElement = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:protocol", "saml2p:StatusCode");
-                subStatusCodeElement.setAttribute("Value", scenario.getSamlSubStatus());
-                mainStatusCodeElement.appendChild(subStatusCodeElement);
+            // 3. Update the Issuer to match the mock IdP.
+            // If missing, dynamically create and insert it as the FIRST child to comply with SAML 2.0 schema.
+            NodeList issuerNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:assertion", "Issuer");
+            if (issuerNodes.getLength() > 0) {
+                for (int i = 0; i < issuerNodes.getLength(); i++) {
+                    issuerNodes.item(i).setTextContent(issuerEntityId);
+                }
+            } else if (responseElement != null) {
+                Element newIssuer = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:assertion", "saml2:Issuer");
+                newIssuer.setTextContent(issuerEntityId);
+                responseElement.insertBefore(newIssuer, responseElement.getFirstChild());
             }
 
-            // Create and append the <saml2p:StatusMessage>
-            Element statusMessageElement = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:protocol", "saml2p:StatusMessage");
-            statusMessageElement.setTextContent(scenario.getSamlStatusMessage());
+            // 4. STRIP EXISTING SIGNATURE: Crucial step. Since the document payload has been altered,
+            // the old signature is invalid and must be removed entirely before re-signing to avoid conflicts.
+            NodeList signatureNodes = doc.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature");
+            while (signatureNodes.getLength() > 0) {
+                Node signatureNode = signatureNodes.item(0);
+                signatureNode.getParentNode().removeChild(signatureNode);
+            }
 
-            // Reconstruct the Status hierarchy
-            statusElement.appendChild(mainStatusCodeElement);
-            statusElement.appendChild(statusMessageElement);
+            // 5. Update the Status node with the values mapped from the provided Enum
+            NodeList statusNodes = doc.getElementsByTagNameNS("urn:oasis:names:tc:SAML:2.0:protocol", "Status");
+            if (statusNodes.getLength() > 0) {
+                Element statusElement = (Element) statusNodes.item(0);
+
+                // Clear any existing children from the Status node
+                while (statusElement.hasChildNodes()) {
+                    statusElement.removeChild(statusElement.getFirstChild());
+                }
+
+                // Create the primary <saml2p:StatusCode Value="...">
+                Element mainStatusCodeElement = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:protocol", "saml2p:StatusCode");
+                mainStatusCodeElement.setAttribute("Value", scenario.getSamlTopLevelStatus());
+
+                // Create and append the secondary Sub StatusCode, if specified by the scenario
+                if (scenario.getSamlSubStatus() != null && !scenario.getSamlSubStatus().isEmpty()) {
+                    Element subStatusCodeElement = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:protocol", "saml2p:StatusCode");
+                    subStatusCodeElement.setAttribute("Value", scenario.getSamlSubStatus());
+                    mainStatusCodeElement.appendChild(subStatusCodeElement);
+                }
+
+                // Create and append the <saml2p:StatusMessage>
+                Element statusMessageElement = doc.createElementNS("urn:oasis:names:tc:SAML:2.0:protocol", "saml2p:StatusMessage");
+                statusMessageElement.setTextContent(scenario.getSamlStatusMessage());
+
+                // Reconstruct the Status hierarchy
+                statusElement.appendChild(mainStatusCodeElement);
+                statusElement.appendChild(statusMessageElement);
+            }
+
+            // 6. Serialize the modified DOM back into an XML string and encode it to Base64
+            Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            transformer.transform(new DOMSource(doc), new StreamResult(out));
+            String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
+
+            return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate the AgID SAML error response", e);
         }
-
-        // 6. Serialize the modified DOM back into an XML string and encode it to Base64
-        Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        transformer.transform(new DOMSource(doc), new StreamResult(out));
-        String modifiedXmlString = out.toString(StandardCharsets.UTF_8);
-
-        return Base64.getEncoder().encodeToString(modifiedXmlString.getBytes(StandardCharsets.UTF_8));
     }
 
     static {
         try {
             // 1. Initialize the OpenSAML library engine
-            org.opensaml.core.config.InitializationService.initialize();
+            InitializationService.initialize();
 
             // 2. Create a secure XML DocumentBuilderFactory (Anti-XXE protection)
             SECURE_DOC_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();

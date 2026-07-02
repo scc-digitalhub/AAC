@@ -142,7 +142,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
      */
     @Test
     @DisplayName("Verifica runtime AssertionConsumerServiceURL e AttributeConsumingServiceIndex Custom")
-    public void testAuthnRequestWithAssertionURLAndAttributeIndexCustom() throws Exception {
+    public void testAuthnRequestWithAssertionURLAndAttributeIndexCustom() {
         // Verify that the database configuration overrides are active for explicit ACS URL and Custom Attribute Index
         SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
         assertThat(configmap.getUseAssertionConsumerServiceUrl()).isNotNull();
