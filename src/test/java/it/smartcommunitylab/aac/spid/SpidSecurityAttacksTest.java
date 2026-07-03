@@ -104,7 +104,7 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Generate a valid, signed SAML Response linked to the victim's request ID
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, victimSpidResponse.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, victimSpidResponse.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -115,8 +115,8 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", victimSpidResponse.getRelayState())
-                .session(victimSpidResponse.getSession())
+                .param("RelayState", victimSpidResponse.relayState())
+                .session(victimSpidResponse.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL));
@@ -132,14 +132,14 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)                 // victim's stolen token
-                .param("RelayState", attacker.getRelayState())   // attacker's own context
-                .session(attacker.getSession())
+                .param("RelayState", attacker.relayState())   // attacker's own context
+                .session(attacker.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // The stolen token does not match the attacker's own pending AuthnRequest (InResponseTo mismatch)
-        SpidAuthenticationException ex = (SpidAuthenticationException) attacker.getSession()
+        SpidAuthenticationException ex = (SpidAuthenticationException) attacker.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(ex).isNotNull();
         assertThat(ex.getError()).isEqualTo(SpidError.SAML_INVALID_IN_RESPONSE_TO);
@@ -165,7 +165,7 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -177,14 +177,14 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", maliciousRelayStateUrl) // Injected malicious URL
-                .session(spidRequest.getSession())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             // 3. The flow breaks gracefully because the hijacked RelayState fails to resolve against the internal session context
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Confirm that the security core intercepted the state mismatch and populated the context error
-        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) spidRequest.getSession()
+        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(samlEx).isNotNull();
         SpidError spidError = SpidError.translate(samlEx.getSaml2Error());
@@ -209,7 +209,7 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -221,14 +221,14 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
                 .secure(true)
                 .param("SAMLResponse", response)
                 .param("RelayState", "SSdfMklR7My_NohjAY72i57SfjumEOEhIXnEYVVMIew=") // MANIPULATED RelayState (Invalid CSRF)
-                .session(spidRequest.getSession())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL))
             .andReturn();
 
         // 3. Confirm that the security core intercepted the state mismatch and populated the context error
-        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) spidRequest.getSession()
+        Saml2AuthenticationException samlEx = (Saml2AuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(samlEx).isNotNull();
         SpidError spidError = SpidError.translate(samlEx.getSaml2Error());
@@ -255,7 +255,7 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Build the inbound SAML Response template deliberately omitting the .withSignature() step (Signature Stripping)
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId)
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -265,15 +265,15 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL))
             .andReturn();
 
         // 4. Check that the system throws exception 1000, capturing a fatal cryptographic layout error
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION); // Cryptographic validation error code
@@ -313,14 +313,14 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Verify that the system registers error code 1000, confirming a payload validation rejection
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION); // Cryptographic validation error code
@@ -421,14 +421,14 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the digest/signature mismatch and generated the specific SpidError
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_SIGNATURE);
@@ -471,13 +471,13 @@ public class SpidSecurityAttacksTest extends BaseSpidTest {
 
         // 3. Dispatch the manipulated XSW payload and verify the SP securely aborts the login process
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl).secure(true)
-                .param("SAMLResponse", response).param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession()).contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .param("SAMLResponse", response).param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session()).contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework's strict XML parsing and signature validation intercepted the wrapping anomaly
-        SpidAuthenticationException ex = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException ex = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
         assertThat(ex).isNotNull();

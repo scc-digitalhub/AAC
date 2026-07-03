@@ -72,9 +72,7 @@ public class SpidIdentityProviderConfigInvalidCredentialsTest extends BaseSpidTe
         invalidIdentityProvider.configsInvalid.setSigningCredentials(invalidIdentityProvider.signingListCredentialsInvalid);
         invalidIdentityProvider.configsInvalid.setActiveAuthRequestSigningCredentialId(invalidIdentityProvider.signingActiveSigningCredentialIdInvalid);
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            invalidIdentityProvider.createInvalidSpidIdentityProvider(invalidIdentityProvider.configsInvalid);
-        });
+        assertThrows(IllegalArgumentException.class, () -> invalidIdentityProvider.createInvalidSpidIdentityProvider(invalidIdentityProvider.configsInvalid));
     }
 
     @Test
@@ -89,9 +87,7 @@ public class SpidIdentityProviderConfigInvalidCredentialsTest extends BaseSpidTe
 
         invalidIdentityProvider.configsInvalid.setSigningCredentials(invalidIdentityProvider.signingListCredentialsInvalid);
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            invalidIdentityProvider.createInvalidSpidIdentityProvider(invalidIdentityProvider.configsInvalid);
-        });
+        assertThrows(IllegalArgumentException.class, () -> invalidIdentityProvider.createInvalidSpidIdentityProvider(invalidIdentityProvider.configsInvalid));
     }
 
     @Test
@@ -102,8 +98,6 @@ public class SpidIdentityProviderConfigInvalidCredentialsTest extends BaseSpidTe
         invalidIdentityProvider.configsInvalid.setSigningCertificate(invalidIdentityProvider.signingIdpSigningCertificateByProviderId);
         invalidIdentityProvider.configsInvalid.setSigningKey(invalidIdentityProvider.signingListCredentialsByProviderId.get(0).getSigningKey());
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            invalidIdentityProvider.createInvalidSpidIdentityProvider(invalidIdentityProvider.configsInvalid);
-        });
+        assertThrows(IllegalArgumentException.class, () -> invalidIdentityProvider.createInvalidSpidIdentityProvider(invalidIdentityProvider.configsInvalid));
     }
 }

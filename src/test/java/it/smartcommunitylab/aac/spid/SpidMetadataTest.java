@@ -16,6 +16,7 @@ import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.XMLObject;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
 import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.schema.XSURI;
 import org.opensaml.saml.saml2.metadata.AttributeConsumingService;
 import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
 import org.opensaml.saml.saml2.metadata.ContactPerson;
@@ -651,7 +652,7 @@ public class SpidMetadataTest extends BaseSpidTest {
             .findFirst();
 
         assertThat(ipaCodeElement).isPresent();
-        assertThat(ipaCodeElement.get().getDOM().getTextContent()).isEqualTo(configmap.getContactPersonIPACode());
+        assertThat(Objects.requireNonNull(ipaCodeElement.get().getDOM()).getTextContent()).isEqualTo(configmap.getContactPersonIPACode());
     }
 
     /**
@@ -675,7 +676,7 @@ public class SpidMetadataTest extends BaseSpidTest {
 
         // Extract all declared NameIDFormat elements
         List<String> nameIdFormats = spssoDescriptor.getNameIDFormats().stream()
-            .map(format -> format.getURI()) // Or getValue() depending on your OpenSAML version
+            .map(XSURI::getURI) // Or getValue() depending on your OpenSAML version
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
@@ -711,7 +712,6 @@ public class SpidMetadataTest extends BaseSpidTest {
         AttributeConsumingService primaryAttributeService = attributeConsumingServices.get(0);
 
         // AgID only requires the index to be present as a non-negative identifying integer
-        assertThat(primaryAttributeService.getIndex()).isNotNull();
         assertThat(primaryAttributeService.getIndex()).isGreaterThanOrEqualTo(0);
     }
 

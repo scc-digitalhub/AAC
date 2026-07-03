@@ -28,7 +28,7 @@ public class SpidAttackSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             // Force SpidL1
@@ -58,7 +58,7 @@ public class SpidAttackSimulator {
         try {
             // 1. Generate a perfectly valid payload
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
             // 2. SIGN the valid payload (Cryptographic digest is calculated and appended here)
             String legitimatelySignedBase64 = ResponseUtils.createSignedSamlResponse(cleanXmlBase64, privateKey, certificate);
@@ -92,7 +92,7 @@ public class SpidAttackSimulator {
         try {
             // 1. Generate a perfectly valid payload
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
             // 2. SIGN the valid payload (the genuine assertion is now covered by a valid signature)
             String legitimatelySignedBase64 = ResponseUtils.createSignedSamlResponse(cleanXmlBase64, privateKey, certificate);
@@ -107,7 +107,7 @@ public class SpidAttackSimulator {
                 .replace("__NOW__", now)
                 .replace("__NOT_ON_OR_AFTER__", notOnOrAfter)
                 .replace("__ASSERTING_PARTY__", assertingPartyId)
-                .replace("__REQUEST_ID__", ctx.getRequestId())
+                .replace("__REQUEST_ID__", ctx.requestId())
                 .replace("__SSO_URL__", idpSsoUrl)
                 .replace("__ENTITY_ID_SP__", entityIdSp);
 

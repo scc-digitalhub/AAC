@@ -106,7 +106,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
             .executeRequest();
 
         // Build the inbound SAML Response containing the custom attributes, deliberately omitting spidCode and fiscalNumber
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST, identityProvider.signingIdpEntityId) // POST
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -119,14 +119,14 @@ public class SpidCustomProviderTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             )
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // spidCode - fiscalNumber MISSING
 
-        Exception sessionException = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        Exception sessionException = (Exception) spidRequest.session().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
     }
 
@@ -158,7 +158,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
             .withSession()
             .executeRequest();
 
-        String xmlRequest = spidRequest.getXmlRequest();
+        String xmlRequest = spidRequest.xmlRequest();
         assertThat(xmlRequest).isNotNull();
 
         // Verify that the outbound XML requests the explicit SP AssertionConsumerServiceURL matching your application endpoint

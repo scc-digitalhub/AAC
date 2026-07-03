@@ -59,9 +59,7 @@ public class SpidIdentityProviderConfigUnitTest {
     public void testExceptionOnEmptyUpstreamIdps() {
         SpidIdentityProviderConfig config = new SpidIdentityProviderConfig("my-provider", "my-realm");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            config.setIdentityProviders(Collections.emptyList());
-        });
+        assertThrows(IllegalArgumentException.class, () -> config.setIdentityProviders(Collections.emptyList()));
     }
 
     @Test
@@ -73,9 +71,7 @@ public class SpidIdentityProviderConfigUnitTest {
         SpidIdentityProviderConfigMap configMap = new SpidIdentityProviderConfigMap();
         configMap.setMetadataXML("<xml-break><break>");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap));
     }
 
     @Test
@@ -85,17 +81,13 @@ public class SpidIdentityProviderConfigUnitTest {
 
         String badUri = "http://bad url with spaces.com";
 
-        assertThrows(URISyntaxException.class, () -> {
-            config.evalIdpKeyIdentifier(badUri);
-        });
+        assertThrows(URISyntaxException.class, () -> config.evalIdpKeyIdentifier(badUri));
     }
 
     @Test
     @DisplayName("Rottura Controllata: Estrazione Registration ID vuoto/nullo")
     public void testExceptionOnEmptyRegistrationId() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            SpidIdentityProviderConfig.getProviderId("");
-        });
+        assertThrows(IllegalArgumentException.class, () -> SpidIdentityProviderConfig.getProviderId(""));
     }
 
     /* =========================================================================
@@ -111,9 +103,7 @@ public class SpidIdentityProviderConfigUnitTest {
         SpidIdentityProviderConfigMap configMap = new SpidIdentityProviderConfigMap();
         configMap.setEntityId("http://my-entity-id");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap));
     }
 
     @Test
@@ -126,9 +116,7 @@ public class SpidIdentityProviderConfigUnitTest {
         configMap.setEntityId("http://my-entity-id");
         configMap.setSigningCertificate("-----BEGIN CERTIFICATE-----\nCERTIFICATE\n-----END CERTIFICATE-----");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap));
     }
 
     @Test
@@ -144,9 +132,7 @@ public class SpidIdentityProviderConfigUnitTest {
         configMap.setSigningCredentials(Collections.singletonList(badCredential));
         configMap.setActiveAuthRequestSigningCredentialId("active_req");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap));
     }
 
     @Test
@@ -163,9 +149,7 @@ public class SpidIdentityProviderConfigUnitTest {
 
         configMap.setActiveAuthRequestSigningCredentialId("id_lost");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap));
     }
 
     @Test
@@ -184,9 +168,7 @@ public class SpidIdentityProviderConfigUnitTest {
         configMap.setSigningCredentials(Arrays.asList(cred1, cred2));
         configMap.setActiveAuthRequestSigningCredentialId("id1");
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new SpidIdentityProviderConfig(cp, new IdentityProviderSettingsMap(), configMap));
     }
 
     @Test

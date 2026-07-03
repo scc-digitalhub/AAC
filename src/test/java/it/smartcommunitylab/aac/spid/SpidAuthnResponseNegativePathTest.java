@@ -108,14 +108,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the destination routing mismatch securely
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_IN_RESPONSE_TO);
@@ -155,14 +155,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the underlying framework correctly populated the session with a dedicated security exception
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
@@ -200,14 +200,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Check that the Spring Security core captured the unauthorized trust circle mismatch
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_SIGNATURE);
@@ -246,14 +246,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Verify that Spring Security explicitly rejected the Assertion due to time restrictions (stale check)
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
@@ -292,14 +292,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Verifies that Spring Security has raised a time-related premature authentication exception
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
@@ -338,14 +338,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the destination routing mismatch securely
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_ASSERTION);
@@ -383,14 +383,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. Assert that the framework intercepted the destination routing mismatch securely
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INVALID_DESTINATION);
@@ -435,14 +435,14 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", invalidSkewResponse)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // Must be blocked and rejected
 
         // Confirm that the context captured the security violation in session
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR);
@@ -483,15 +483,15 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. The strict SPID provider rejects the response with a missing Subject/NameID,
         // mapped to an internal validation error in our SpidError domain
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_INTERNAL_VALIDATION_ERROR);
@@ -525,15 +525,15 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", malformedBase64)
-                .param("RelayState", spidRequest.getRelayState()) // Legitimate RelayState to bypass the initial CSRF check
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState()) // Legitimate RelayState to bypass the initial CSRF check
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // 4. The custom SpidWebSsoAuthenticationFilter successfully wraps the low-level parsing error.
         // We assert directly against our SpidAuthenticationException expecting the Malformed Response Data code.
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA);
@@ -570,15 +570,15 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
         // Estraiamo la custom exception, poiché il filtro SPID ha wrappato la ClassCastException
         // e il Saml2Error "malformed_response_data"
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_MALFORMED_RESPONSE_DATA);
@@ -614,13 +614,13 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SPID_FAILED_RESPONSE_VALIDATION);
@@ -654,13 +654,13 @@ public class SpidAuthnResponseNegativePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL));
 
-        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.getSession()
+        SpidAuthenticationException sessionException = (SpidAuthenticationException) spidRequest.session()
                 .getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
         assertThat(sessionException.getError()).isEqualTo(SpidError.SAML_DECRYPTION_ERROR);

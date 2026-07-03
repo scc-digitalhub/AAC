@@ -17,17 +17,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayInputStream;
-import java.security.PrivateKey;
+import java.net.URI;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,11 +131,11 @@ public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
         assertThat(config.getConfigMap().getSigningCredentials()).hasSizeGreaterThanOrEqualTo(2);
 
         List<SigningCredential> listSigningCredentials = SigningCredentialHelper.signingCredentialList(
-            spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
-            SigningCredentialHelper.CredentialPurpose.METADATA_EXPOSURE);
+                spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
+                SigningCredentialHelper.CredentialPurpose.METADATA_EXPOSURE);
 
         List<String> expectedCertificates = new ArrayList<>();
-        for (SigningCredential signingCredential: listSigningCredentials) {
+        for (SigningCredential signingCredential : listSigningCredentials) {
             if (signingCredential.getSigningCertificate() != null) {
                 expectedCertificates.add(signingCredential.getSigningCertificate());
             }
@@ -147,8 +145,13 @@ public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
         Saml2X509Credential credential = rpRegistration.getSigningX509Credentials().iterator().next();
         assertThat(credential).isNotNull();
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(rpRegistration.getAssertionConsumerServiceLocation());
-        assertThat(builder.buildAndExpand(Map.of("baseUrl", BASE_URL)).toUriString()).isEqualTo(identityProvider.signingIdpSsoUrl);
+        String rawLocation = rpRegistration.getAssertionConsumerServiceLocation();
+
+        // FIX: Manually expand the template and use java.net.URI to avoid fromUriString() SAST alerts.
+        String expandedLocation = rawLocation.replace("{baseUrl}", BASE_URL);
+        URI safeUri = URI.create(expandedLocation);
+
+        assertThat(safeUri.toString()).isEqualTo(identityProvider.signingIdpSsoUrl);
     }
 
     @Test
@@ -206,11 +209,10 @@ public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
             SigningCredentialHelper.CredentialPurpose.AUTH_REQUEST).get(0);
 
-        X509Certificate actualCert = relyingPartyRegistration.getCredentials().get(0).getCertificate();
-        PrivateKey actualPrivateKey = relyingPartyRegistration.getCredentials().get(0).getPrivateKey();
+        Saml2X509Credential saml2X509Credential = relyingPartyRegistration.getSigningX509Credentials().iterator().next();
 
-        String actualCertBase64 = Base64.getEncoder().encodeToString(actualCert.getEncoded());
-
+        // CERTIFICATE
+        String actualCertBase64 = Base64.getEncoder().encodeToString(saml2X509Credential.getCertificate().getEncoded());
         String expectedCertBase64 = signingCredential.getSigningCertificate()
             .replaceAll("-----[A-Z ]+-----", "")
             .replaceAll("\\s+", "");
@@ -218,8 +220,8 @@ public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
         // CERTIFICATE VERIFICATION
         assertThat(actualCertBase64).isEqualTo(expectedCertBase64);
 
-        String actualPrivateKeyBase64 = Base64.getEncoder().encodeToString(actualPrivateKey.getEncoded());
-
+        // PRIVATE KEY
+        String actualPrivateKeyBase64 = Base64.getEncoder().encodeToString(saml2X509Credential.getPrivateKey().getEncoded());
         String expectedPrivateKeyBase64 = signingCredential.getSigningKey()
             .replaceAll("-----[A-Z ]+-----", "")
             .replaceAll("\\s+", "");

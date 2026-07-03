@@ -53,7 +53,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             String regexNotOnOrAfter = "NotOnOrAfter=\"([^\"]+)\"";
@@ -86,7 +86,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             plainXml = plainXml.replaceAll("InResponseTo=\"[^\"]*\"", "");
@@ -111,7 +111,7 @@ public class SpidAuthnNegativeSimulator {
         try {
             String fakeIssuerEntityId = "https://unregistered-rogue-idp.invalid/metadata";
             String modifiedXmlResponse = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, fakeIssuerEntityId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, fakeIssuerEntityId, entityIdSp, null);
 
             return ResponseUtils.createSignedSamlResponse(modifiedXmlResponse, privateKey, certificate);
         } catch (Exception e) {
@@ -133,7 +133,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             String regexNotBefore = "NotBefore=\"([^\"]+)\"";
@@ -166,7 +166,7 @@ public class SpidAuthnNegativeSimulator {
         try {
             String fakeEntityId = "https://hacker-service-provider.invalid/metadata";
             String modifiedXmlResponse = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, fakeEntityId, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, fakeEntityId, null);
 
             return ResponseUtils.createSignedSamlResponse(modifiedXmlResponse, privateKey, certificate);
         } catch (Exception e) {
@@ -188,7 +188,7 @@ public class SpidAuthnNegativeSimulator {
         try {
             String fakeAcsUrl = "https://hacker-endpoint.invalid/auth/spid/sso/malicious";
             String modifiedXmlResponse = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), fakeAcsUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), fakeAcsUrl, assertingPartyId, entityIdSp, null);
 
             return ResponseUtils.createSignedSamlResponse(modifiedXmlResponse, privateKey, certificate);
         } catch (Exception e) {
@@ -219,7 +219,7 @@ public class SpidAuthnNegativeSimulator {
             String futureNotOnOrAfter = futureInstant.plusSeconds(SpidKeys.SPID_CLOCK_SKEW * 10).toString();
 
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
@@ -252,7 +252,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             // Remove ONLY the <saml2:NameID> node inside the Subject, leaving the Subject node intact.
@@ -284,7 +284,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             // Strip the mandatory ID attribute from the Response tag
@@ -312,7 +312,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
             // Replace the valid Assertion with a corrupted EncryptedAssertion block
@@ -341,7 +341,7 @@ public class SpidAuthnNegativeSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
             // 1. Sign it while it's still a valid Response so the signature block is created
             String signedBase64 = ResponseUtils.createSignedSamlResponse(cleanXmlBase64, privateKey, certificate);

@@ -42,7 +42,7 @@ public class AgidVerifier {
                 .withSession()
                 .executeRequest();
 
-            String response = new SpidResponseBuilder(ctx.getXmlTemplate(), spidRequest.getRequestId())
+            String response = new SpidResponseBuilder(ctx.getXmlTemplate(), spidRequest.requestId())
                 .withIdpConfig(ctx.getSigningIdpSsoUrl())
                 .withEntityIds(ctx.getAssertingPartyEntityId(), ctx.getEntityIdAac())
                 .withCertificates(ctx.getIdpPrivateKey(), ctx.getIdpCertificate())
@@ -54,7 +54,7 @@ public class AgidVerifier {
 
             // 3. Validation: Ensure redirection to protected resource and no exceptions
             String redirectedUrl = result.getResponse().getRedirectedUrl();
-            Exception ex = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+            Exception ex = (Exception) spidRequest.session().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
             assertThat(ex).isNull();
             assertThat(redirectedUrl).isEqualTo(ctx.getUserDestinationUrl());
@@ -81,7 +81,7 @@ public class AgidVerifier {
                 .withSession()
                 .executeRequest();
 
-            String response = new SpidResponseBuilder(ctx.getXmlTemplate(), spidRequest.getRequestId())
+            String response = new SpidResponseBuilder(ctx.getXmlTemplate(), spidRequest.requestId())
                 .withIdpConfig(ctx.getSigningIdpSsoUrl())
                 .withEntityIds(ctx.getAssertingPartyEntityId(), ctx.getEntityIdAac())
                 .withCertificates(ctx.getIdpPrivateKey(), ctx.getIdpCertificate())
@@ -98,7 +98,7 @@ public class AgidVerifier {
             assertThat(redirectedUrl).isNotEqualTo(ctx.getUserDestinationUrl());
 
             // 4. Extract and verify the exception
-            Exception sessionEx = (Exception) spidRequest.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+            Exception sessionEx = (Exception) spidRequest.session().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
             assertThat(sessionEx).isNotNull().isInstanceOf(SpidAuthenticationException.class);
 
             SpidAuthenticationException spidEx = (SpidAuthenticationException) sessionEx;
@@ -130,8 +130,8 @@ public class AgidVerifier {
             return mockMvc.perform(post(ssoUrl)
                     .secure(true)
                     .param("SAMLResponse", samlResponse)
-                    .param("RelayState", ctx.getRelayState())
-                    .session(ctx.getSession())
+                    .param("RelayState", ctx.relayState())
+                    .session(ctx.session())
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 )
                 .andExpect(status().is3xxRedirection())

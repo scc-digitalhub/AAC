@@ -93,7 +93,7 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Mock a fully valid and cryptographically signed SAML Response matching the outbound request ID
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, identityProvider.signingIdpEntityId) // REDIRECT
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -104,8 +104,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL))
@@ -133,7 +133,7 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
             .executeRequest();
 
         // 2. Build a valid, signed SAML Response targeting the POST-binding configurations
-        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.getRequestId())
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
             .withIdpConfig(identityProvider.signingIdpSsoUrl)
             .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST, identityProvider.signingIdpEntityId) // POST
             .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
@@ -144,8 +144,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL))
@@ -187,8 +187,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", response)
-                .param("RelayState", spidRequest.getRelayState())
-                .session(spidRequest.getSession())
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL))
@@ -234,8 +234,8 @@ public class SpidAuthnResponsePositivePathTest extends BaseSpidTest {
         this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
                 .secure(true)
                 .param("SAMLResponse", validSkewResponse)
-                .param("RelayState", spidRequestValid.getRelayState())
-                .session(spidRequestValid.getSession())
+                .param("RelayState", spidRequestValid.relayState())
+                .session(spidRequestValid.session())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(USER_DESTINATION_URL))

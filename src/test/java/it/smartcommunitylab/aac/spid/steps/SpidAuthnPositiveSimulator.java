@@ -37,7 +37,7 @@ public class SpidAuthnPositiveSimulator {
     {
         try {
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
@@ -75,7 +75,7 @@ public class SpidAuthnPositiveSimulator {
             String futureNotOnOrAfter = futureInstant.plusSeconds(SpidKeys.SPID_CLOCK_SKEW * 10).toString();
 
             String cleanXmlBase64 = ResponseUtils.modifyAndEncodeSamlResponse(
-                    xmlTemplate, ctx.getRequestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
+                    xmlTemplate, ctx.requestId(), idpSsoUrl, assertingPartyId, entityIdSp, null);
 
             String plainXml = new String(Base64.getDecoder().decode(cleanXmlBase64), StandardCharsets.UTF_8);
 
