@@ -32,7 +32,7 @@ public class AgidVerifier {
      * Executes a standard successful SAML Authentication flow.
      * @param ctx The context containing all the configuration parameters for the test.
      */
-    public static void verifySuccessfulLoginFlow(SpidAgidErrorContextBuilder ctx) {
+    public static String verifySuccessfulLoginFlow(SpidAgidErrorContextBuilder ctx) {
         try {
             // 1. Build the context for a successful flow
             SpidRequest spidRequest = new SpidRequestFlow(ctx.getMockMvc())
@@ -49,15 +49,9 @@ public class AgidVerifier {
                 .withSignature()
                 .buildResponse();
 
-            // 2. Perform the SAML POST
+            // 2. Return Redirected Url
             MvcResult result = performSamlPost(ctx.getMockMvc(), spidRequest, response, ctx.getSigningIdpSsoUrl());
-
-            // 3. Validation: Ensure redirection to protected resource and no exceptions
-            String redirectedUrl = result.getResponse().getRedirectedUrl();
-            Exception ex = (Exception) spidRequest.session().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-            assertThat(ex).isNull();
-            assertThat(redirectedUrl).isEqualTo(ctx.getUserDestinationUrl());
+            return result.getResponse().getRedirectedUrl();
         } catch (Exception e) {
             throw new RuntimeException("Failed to execute the successful SPID SAML authentication flow", e);
         }

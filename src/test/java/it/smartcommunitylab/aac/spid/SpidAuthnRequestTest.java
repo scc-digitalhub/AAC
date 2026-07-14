@@ -72,7 +72,7 @@ public class SpidAuthnRequestTest extends BaseSpidTest {
                 // Any Identity Provider loaded from the bootstrap can be used here
                 ConfigurableIdentityProvider idp = idps.get(0);
 
-                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBootstrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });

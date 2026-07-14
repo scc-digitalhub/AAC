@@ -22,7 +22,7 @@ public class IdentityProvider {
     public String registrationIdRedirect;
     public String registrationIdPost;
 
-    public void initRealmByBoostrap(ConfigurableIdentityProvider idp, String BASE_URL, String METADATA_PATH, String SSO_PATH) {
+    public void initRealmByBootstrap(ConfigurableIdentityProvider idp, String BASE_URL, String METADATA_PATH, String SSO_PATH) {
         this.signingIdpProvider = idp.getProvider();
         this.signingIdpMetadataUrl = BASE_URL + METADATA_PATH + encodeBase64(this.signingIdpProvider);
         this.signingIdpSsoUrl = BASE_URL + SSO_PATH + encodeBase64(this.signingIdpProvider);

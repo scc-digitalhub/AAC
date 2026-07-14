@@ -72,7 +72,7 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
                 // Any Identity Provider loaded from the bootstrap can be used here
                 ConfigurableIdentityProvider idp = idps.get(1);
 
-                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBootstrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
@@ -105,7 +105,8 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Execute the full end-to-end successful SAML response parsing and session validation
-        AgidVerifier.verifySuccessfulLoginFlow(context);
+        String redirectUrl = AgidVerifier.verifySuccessfulLoginFlow(context);
+        assertThat(redirectUrl).isEqualTo(USER_DESTINATION_URL);
     }
 
     /**
@@ -131,7 +132,8 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Process the successful inbound identity matching flow and ensure session creation
-        AgidVerifier.verifySuccessfulLoginFlow(context);
+        String redirectUrl = AgidVerifier.verifySuccessfulLoginFlow(context);
+        assertThat(redirectUrl).isEqualTo(USER_DESTINATION_URL);
     }
 
     @Test
@@ -290,7 +292,8 @@ public class SpidAgidAnomalyTest extends BaseSpidTest {
             .build();
 
         // Process the successful HTTP-POST flow, validating the signature and completing user session mapping
-        AgidVerifier.verifySuccessfulLoginFlow(context);
+        String redirectUrl = AgidVerifier.verifySuccessfulLoginFlow(context);
+        assertThat(redirectUrl).isEqualTo(USER_DESTINATION_URL);
     }
 
     /* =========================================================================================

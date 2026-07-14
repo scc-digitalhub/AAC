@@ -55,7 +55,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,7 +84,7 @@ public class SpidMetadataTest extends BaseSpidTest {
                     idp -> "spid-test-organization".equals(idp.getName()))
                     .findFirst().orElseThrow();
 
-                identityProvider.initRealmByBoostrap(idpOrganization, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBootstrap(idpOrganization, BASE_URL, METADATA_PATH, SSO_PATH);
             }
         });
     }
@@ -122,7 +121,8 @@ public class SpidMetadataTest extends BaseSpidTest {
             .andExpect(status().isOk())
             .andReturn();
 
-        assertEquals("application/xml;charset=UTF-8", res.getResponse().getContentType());
+        //assertEquals("application/xml;charset=UTF-8", res.getResponse().getContentType());
+        assertThat(res.getResponse().getContentType()).isEqualTo("application/xml;charset=UTF-8");
     }
 
     /**
@@ -331,6 +331,9 @@ public class SpidMetadataTest extends BaseSpidTest {
             spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap(),
             SigningCredentialHelper.CredentialPurpose.METADATA_EXPOSURE);
 
+        // While not strictly required by AGID guidelines, we enforce a minimum of 2 signing
+        // credentials by design. This internal choice ensures higher consistency and supports
+        // smooth certificate rotation (rollover) for exposed metadata.
         assertThat(listSigningCredentials).hasSizeGreaterThanOrEqualTo(2);
 
         List<String> expectedCertificates = new ArrayList<>();

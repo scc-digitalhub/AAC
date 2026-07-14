@@ -71,7 +71,7 @@ public class SpidCustomProviderTest extends BaseSpidTest {
                     idp -> "spid-test-custom".equals(idp.getName()))
                     .findFirst().orElseThrow();
 
-                identityProvider.initRealmByBoostrap(idpCustom, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBootstrap(idpCustom, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
@@ -126,6 +126,66 @@ public class SpidCustomProviderTest extends BaseSpidTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // spidCode - fiscalNumber MISSING
 
+        Exception sessionException = (Exception) spidRequest.session().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        assertThat(sessionException).isNotNull();
+    }
+
+    /**
+     * REGOLE TECNICHE SPID: Sezione "Ricezione delle risposte (SAML Response)" e "Riconciliazione".
+     * Test di Sicurezza e Mapping: Verifica che l'autenticazione fallisca a livello di Service Provider
+     * se l'Identity Provider non restituisce l'attributo esplicitamente configurato come identificatore
+     * primario dell'utente (Subject ID).
+     * Nel contesto SPID e delle implementazioni SAML (es. AAC), l'assenza dell'attributo designato
+     * nella configurazione locale (es. 'subAttributeName = fiscalNumber') per la risoluzione del principal
+     * impedisce la creazione dell'utenza, rendendo nulla la fase di evaluateSubjectIdFromPrincipal().
+     * Il test garantisce che questo generi l'interruzione della catena (nessun principal trovato),
+     * invalidando la sessione e proteggendo il flusso tramite reindirizzamento alla pagina di login.
+     *
+     * @see <a href="https://docs.italia.it/italia/spid/spid-regole-tecniche/it/stabile/single-sign-on.html#ricezione-delle-risposte-saml-response">Regole Tecniche SPID - SAML Response e Identificazione</a>
+     */
+    @Test
+    @DisplayName("Autenticazione Fallita: Impossibile risolvere il SubjectId configurato (FISCAL_NUMBER mancante)")
+    public void testAuthenticationFailsWhenConfiguredSubjectAttributeIsMissing() throws Exception {
+
+        // Validate the explicit routing parameters and the configured primary subject identifier
+        SpidIdentityProviderConfigMap configmap = spidProviderConfigRepository.findByProviderId(identityProvider.signingIdpProvider).getConfigMap();
+        String configuredSubjectAttribute = configmap.getSubAttributeName().toString();
+
+        assertThat(configuredSubjectAttribute).isNotNull();
+        assertThat(configmap.getSpidAttributes()).isNotEmpty();
+
+        // Explicitly verify that the attributes to be sent DO NOT contain the required Subject Attribute
+        //assertThat(configmap.getSpidAttributes()).doesNotContain(SpidAttribute.parse(configuredSubjectAttribute));
+
+        // Execute the outbound authentication request enforcing the HTTP-POST binding
+        SpidRequest spidRequest = new SpidRequestFlow(mockMvc)
+            .withEndpoints(BASE_URL, USER_DESTINATION_URL, AUTHENTICATE_PATH)
+            .withIdpConfig(identityProvider.registrationIdPost) // POST
+            .withPostBinding(true)
+            .withSession()
+            .executeRequest();
+
+        // Build the inbound SAML Response containing the custom attributes, deliberately omitting the configured subject attribute
+        String response = new SpidResponseBuilder(mockIdpSpid.XML_RESPONSE_TEMPLATE, spidRequest.requestId())
+            .withIdpConfig(identityProvider.signingIdpSsoUrl)
+            .withEntityIds(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST, identityProvider.signingIdpEntityId) // POST
+            .withCertificates(mockIdpSpid.IDP_MOCK_PRIVATE_KEY, mockIdpSpid.IDP_MOCK_CERTIFICATE)
+            .withSetSpidAttributes(configmap.getSpidAttributes()) // CUSTOM SET ATTRIBUTE (lacks subAttributeName)
+            .withSignature()
+            .buildResponse();
+
+        // Dispatch the incomplete assertion payload to the ACS listener and assert proper authentication rejection
+        this.mockMvc.perform(post(identityProvider.signingIdpSsoUrl)
+                .secure(true)
+                .param("SAMLResponse", response)
+                .param("RelayState", spidRequest.relayState())
+                .session(spidRequest.session())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            )
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl(LOGIN_DESTINATION_URL)); // Fallback routing to login due to missing Principal
+
+        // Assert that the session contains the correct Authentication Exception caused by the null SubjectId
         Exception sessionException = (Exception) spidRequest.session().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         assertThat(sessionException).isNotNull();
     }

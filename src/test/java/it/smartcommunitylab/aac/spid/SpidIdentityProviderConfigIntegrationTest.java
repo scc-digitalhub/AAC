@@ -51,7 +51,7 @@ public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
                 // Every identity provider is supported
                 ConfigurableIdentityProvider idp = idps.get(1);
 
-                identityProvider.initRealmByBoostrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
+                identityProvider.initRealmByBootstrap(idp, BASE_URL, METADATA_PATH, SSO_PATH);
                 identityProvider.initRegistrationIdBinding(mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_REDIRECT, mockIdpSpid.ASSERTING_PARTY_ENTITY_ID_POST);
             }
         });
@@ -128,6 +128,10 @@ public class SpidIdentityProviderConfigIntegrationTest extends BaseSpidTest {
         assertThat(rpRegistration).isNotNull();
         assertThat(rpRegistration.getEntityId()).isEqualTo(identityProvider.signingIdpEntityId);
         assertThat(rpRegistration.getRegistrationId()).isEqualTo(IdentityProvider.encodeBase64(identityProvider.signingIdpProvider));
+
+        // While not strictly required by AGID guidelines, we enforce a minimum of 2 signing
+        // credentials by design. This internal choice ensures higher consistency and supports
+        // smooth certificate rotation (rollover) for exposed metadata.
         assertThat(config.getConfigMap().getSigningCredentials()).hasSizeGreaterThanOrEqualTo(2);
 
         List<SigningCredential> listSigningCredentials = SigningCredentialHelper.signingCredentialList(
