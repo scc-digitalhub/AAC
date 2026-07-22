@@ -1,0 +1,13 @@
+decisions:
+    "0001":
+        adr_id: "0001"
+        title: ADRTemplateSelection
+        status: decided
+        comments:
+            - author: gianpaolo-tndigit
+              date: "2026-07-22 14:24:31"
+              comment: "1"
+    "0002":
+        adr_id: "0002"
+        title: OAuth2TokenGrantAuditFiltering
+        status: open
