@@ -91,7 +91,7 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
         // audit
         if (eventPublisher != null) {
-            eventPublisher.publishTokenGrant(accessToken, authentication, clientAuth);
+            eventPublisher.publishTokenGrant(accessToken, authentication, clientAuth, grantType);
         }
 
         // check extensions

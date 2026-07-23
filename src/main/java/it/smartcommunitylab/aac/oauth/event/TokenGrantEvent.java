@@ -30,12 +30,25 @@ public class TokenGrantEvent extends OAuth2Event {
     private final OAuth2Authentication authentication;
     private final OAuth2ClientAuthenticationToken clientAuth;
 
+    // the grant type that produced this token (e.g. authorization_code, refresh_token)
+    private final String grantType;
+
     public TokenGrantEvent(OAuth2AccessToken token, OAuth2Authentication authentication, OAuth2ClientAuthenticationToken clientAuth) {
+        this(token, authentication, clientAuth, null);
+    }
+
+    public TokenGrantEvent(
+            OAuth2AccessToken token,
+            OAuth2Authentication authentication,
+            OAuth2ClientAuthenticationToken clientAuth,
+            String grantType
+    ) {
         super(authentication.getOAuth2Request());
         Assert.notNull(token, "token can not be null");
         this.token = token;
         this.authentication = authentication;
         this.clientAuth = clientAuth;
+        this.grantType = grantType;
     }
 
     public OAuth2AccessToken getToken() {
@@ -48,5 +61,9 @@ public class TokenGrantEvent extends OAuth2Event {
 
     public OAuth2ClientAuthenticationToken getClientAuthentication() {
         return clientAuth;
+    }
+
+    public String getGrantType() {
+        return grantType;
     }
 }

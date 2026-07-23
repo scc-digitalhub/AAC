@@ -47,8 +47,17 @@ public class OAuth2EventPublisher implements ApplicationEventPublisherAware {
     }
 
     public void publishTokenGrant(OAuth2AccessToken token, OAuth2Authentication authentication, OAuth2ClientAuthenticationToken clientAuth) {
+        publishTokenGrant(token, authentication, clientAuth, null);
+    }
+
+    public void publishTokenGrant(
+        OAuth2AccessToken token,
+        OAuth2Authentication authentication,
+        OAuth2ClientAuthenticationToken clientAuth,
+        String grantType
+    ) {
         if (this.applicationEventPublisher != null) {
-            this.applicationEventPublisher.publishEvent(new TokenGrantEvent(token, authentication, clientAuth));
+            this.applicationEventPublisher.publishEvent(new TokenGrantEvent(token, authentication, clientAuth, grantType));
         }
     }
 

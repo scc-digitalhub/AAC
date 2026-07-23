@@ -277,6 +277,11 @@ public class RealmManager {
             templatesConfigMap = r.getTemplatesConfiguration().getConfiguration();
         }
 
+        Map<String, Serializable> auditConfigMap = null;
+        if (r.getAuditConfiguration() != null) {
+            auditConfigMap = r.getAuditConfiguration().getConfiguration();
+        }
+
         Realm realm = realmService.updateRealm(
             slug,
             name,
@@ -286,7 +291,8 @@ public class RealmManager {
             oauth2ConfigMap,
             tosConfigMap,
             localizationConfigMap,
-            templatesConfigMap
+            templatesConfigMap,
+            auditConfigMap
         );
 
         return realm;

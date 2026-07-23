@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.audit.helper.AuditHelperMethods;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.event.OAuth2AuthorizationExceptionEvent;
@@ -24,9 +26,12 @@ import it.smartcommunitylab.aac.oauth.event.OAuth2TokenExceptionEvent;
 import it.smartcommunitylab.aac.oauth.event.TokenGrantEvent;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +58,15 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
 
     private final OAuth2ClientDetailsService clientService;
 
+    private RealmService realmService;
+
     public OAuth2EventListener(OAuth2ClientDetailsService clientService) {
         Assert.notNull(clientService, "client service is required");
         this.clientService = clientService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
     }
 
     @Override
@@ -147,32 +158,59 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             AACOAuth2AccessToken token = (AACOAuth2AccessToken) event.getToken();
             OAuth2Authentication auth = event.getAuthentication();
             OAuth2ClientAuthenticationToken authClient = event.getClientAuthentication();
-            Authentication authUser = auth.getUserAuthentication();
+            Authentication rawAuthentication = auth.getUserAuthentication();
 
-            //            String principal = auth.getName();
             String principal = token.getSubject();
             if (!StringUtils.hasText(principal)) {
                 principal = auth.getName();
             }
 
             String realm = token.getRealm();
-            String type = auth.getUserAuthentication() == null ? "client" : "user";
+            // realm level detail configuration
+            String levelRealmEvent = AuditHelperMethods.resolveOauth2EventsLevel(realmService, realm);
 
-            Map<String, Object> data = new HashMap<>();
-            Map<String, Object> webAuthenticationDetails = new HashMap<>();
-
-            if (authClient != null && authClient.getWebAuthenticationDetails() != null) {
-                webAuthenticationDetails.put("client", authClient.getWebAuthenticationDetails());
+            if(levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_NONE)) {
+                return;
             }
 
-            if (authUser != null && authUser.getDetails() != null) {
-                webAuthenticationDetails.put("user", authUser.getDetails());
+            // use LinkedHashMap so the serialized audit JSON preserves this insertion order
+            Map<String, Object> data = new LinkedHashMap<>();
+
+            // TOKEN GRANT TYPE
+            if (StringUtils.hasText(event.getGrantType())) {
+                data.put("grant_type", event.getGrantType());
             }
 
-            data.put("webAuthenticationDetails", webAuthenticationDetails);
+            // ISSUED TOKENS
+            List<String> issuedTokens = AuditHelperMethods.issuedTokens(token, event);
+            data.put("issued_tokens", issuedTokens);
 
-            data.put("type", type);
-            data.put("token", token.getValue());
+            // IP ADDRESS OF CLIENT THAT REQUIRE TOKEN
+            if (!levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_MINIMAL) && authClient != null && authClient.getWebAuthenticationDetails() != null) {
+                data.put("webAuthenticationDetails", authClient.getWebAuthenticationDetails());
+            }
+
+            // CLIENT DATA
+            if (authClient != null) {
+                Map<String, Object> clientData = AuditHelperMethods.clientData(authClient, realm);
+                data.put("client", clientData);
+            }
+
+            // USER DATA
+            if (rawAuthentication != null && rawAuthentication.getDetails() != null) {
+                Map<String, Object> userData = AuditHelperMethods.userData(rawAuthentication.getDetails(), levelRealmEvent);
+                data.put("user", userData);
+            }
+
+            // TOKEN TYPE
+            String tokenType = AuditHelperMethods.tokenType(token, rawAuthentication);
+            data.put("type", tokenType);
+
+            // TOKEN VALUE SANITIZE
+            if (!levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_MINIMAL)) {
+                String safeTokenValue = AuditHelperMethods.sanitizeToken(token.getValue());
+                data.put("token", safeTokenValue);
+            }
             data.put("scope", token.getScope());
 
             data.put("jti", token.getToken());

@@ -59,3 +59,15 @@ export const realmTosSchema: RJSFSchema = {
         },
     },
 };
+
+export const realmAuditSchema: RJSFSchema = {
+    type: 'object',
+    properties: {
+        oauth2EventsLevel: {
+            type: 'string',
+            enum: ['none', 'minimal', 'details', 'full'],
+            title: 'field.oauth2EventsLevel.name',
+            description: 'field.oauth2EventsLevel.helperText',
+        },
+    },
+};

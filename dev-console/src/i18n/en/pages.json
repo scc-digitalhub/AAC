@@ -254,6 +254,12 @@
         "header": "Login"
     },
     "realm": {
+        "audit": {
+            "header": {
+                "subtitle": "Configure the detail level of OAuth2 token grant audit events",
+                "title": "Audit"
+            }
+        },
         "developers": {
             "header": {
                 "title": "Developers"

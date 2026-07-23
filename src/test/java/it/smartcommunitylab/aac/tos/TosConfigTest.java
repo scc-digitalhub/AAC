@@ -96,7 +96,8 @@ public class TosConfigTest {
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
             realm.getLocalizationConfiguration().getConfiguration(),
-            realm.getTemplatesConfiguration().getConfiguration()
+            realm.getTemplatesConfiguration().getConfiguration(),
+            realm.getAuditConfiguration().getConfiguration()
         );
 
         //updated model shows 'enabled'
@@ -122,7 +123,8 @@ public class TosConfigTest {
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
             realm.getLocalizationConfiguration().getConfiguration(),
-            realm.getTemplatesConfiguration().getConfiguration()
+            realm.getTemplatesConfiguration().getConfiguration(),
+            realm.getAuditConfiguration().getConfiguration()
         );
 
         //updated model shows 'disabled'
@@ -163,7 +165,8 @@ public class TosConfigTest {
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
             realm.getLocalizationConfiguration().getConfiguration(),
-            realm.getTemplatesConfiguration().getConfiguration()
+            realm.getTemplatesConfiguration().getConfiguration(),
+            realm.getAuditConfiguration().getConfiguration()
         );
 
         //updated model shows 'enabled'
@@ -189,7 +192,8 @@ public class TosConfigTest {
             realm.getOAuthConfiguration().getConfiguration(),
             tosConfig.getConfiguration(),
             realm.getLocalizationConfiguration().getConfiguration(),
-            realm.getTemplatesConfiguration().getConfiguration()
+            realm.getTemplatesConfiguration().getConfiguration(),
+            realm.getAuditConfiguration().getConfiguration()
         );
 
         //updated model shows 'disabled'
@@ -264,7 +268,8 @@ public class TosConfigTest {
             realm.getOAuthConfiguration().getConfiguration(),
             configMap.getConfiguration(),
             realm.getLocalizationConfiguration().getConfiguration(),
-            realm.getTemplatesConfiguration().getConfiguration()
+            realm.getTemplatesConfiguration().getConfiguration(),
+            realm.getAuditConfiguration().getConfiguration()
         );
     }
 

@@ -88,6 +88,11 @@ public class RealmEntity {
     @Convert(converter = HashMapConverter.class)
     private Map<String, Serializable> templatesConfigurationMap;    
 
+    @Lob
+    @Column(name = "audit_configuration_map")
+    @Convert(converter = HashMapConverter.class)
+    private Map<String, Serializable> auditConfigurationMap;
+
     public String getName() {
         return name;
     }
@@ -175,5 +180,13 @@ public class RealmEntity {
     public void setTemplatesConfigurationMap(Map<String, Serializable> templatesConfigurationMap) {
         this.templatesConfigurationMap = templatesConfigurationMap;
     }
-    
+
+    public Map<String, Serializable> getAuditConfigurationMap() {
+        return auditConfigurationMap;
+    }
+
+    public void setAuditConfigurationMap(Map<String, Serializable> auditConfigurationMap) {
+        this.auditConfigurationMap = auditConfigurationMap;
+    }
+
 }

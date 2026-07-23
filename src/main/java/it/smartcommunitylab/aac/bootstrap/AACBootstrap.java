@@ -454,7 +454,8 @@ public class AACBootstrap {
                                 : null,
                             r.getTemplatesConfiguration() != null
                                 ? r.getTemplatesConfiguration().getConfiguration()
-                                : null
+                                : null,
+                            r.getAuditConfiguration() != null ? r.getAuditConfiguration().getConfiguration() : null
                         );
                     }
 

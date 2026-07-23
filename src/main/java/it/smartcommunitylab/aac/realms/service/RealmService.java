@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.realms.service;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.AlreadyRegisteredException;
 import it.smartcommunitylab.aac.common.InvalidDataException;
+import it.smartcommunitylab.aac.audit.model.AuditConfigurationMap;
 import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.RegistrationException;
 import it.smartcommunitylab.aac.model.Realm;
@@ -161,7 +162,8 @@ public class RealmService implements InitializingBean {
         Map<String, Serializable> oauthConfigurationMap,
         Map<String, Serializable> tosConfigurationMap,
         Map<String, Serializable> locConfigurationMap,
-        Map<String, Serializable> templatesConfigurationMap
+        Map<String, Serializable> templatesConfigurationMap,
+        Map<String, Serializable> auditConfigurationMap
     ) throws NoSuchRealmException {
         if (SystemKeys.REALM_GLOBAL.equals(slug) || SystemKeys.REALM_SYSTEM.equals(slug)) {
             throw new IllegalArgumentException("system realms are immutable");
@@ -181,6 +183,7 @@ public class RealmService implements InitializingBean {
         r.setTosConfigurationMap(tosConfigurationMap);
         r.setLocalizationConfigurationMap(locConfigurationMap);
         r.setTemplatesConfigurationMap(templatesConfigurationMap);
+        r.setAuditConfigurationMap(auditConfigurationMap);
 
         r = realmRepository.save(r);
 
@@ -299,6 +302,12 @@ public class RealmService implements InitializingBean {
             templatesConfigMap.setConfiguration(re.getTemplatesConfigurationMap());
         }
         r.setTemplatesConfiguration(templatesConfigMap);
+
+        AuditConfigurationMap auditConfigMap = new AuditConfigurationMap();
+        if (re.getAuditConfigurationMap() != null) {
+            auditConfigMap.setConfiguration(re.getAuditConfigurationMap());
+        }
+        r.setAuditConfiguration(auditConfigMap);
 
         return r;
     }

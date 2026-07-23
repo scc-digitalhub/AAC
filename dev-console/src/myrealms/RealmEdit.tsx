@@ -19,6 +19,7 @@ import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { ResourceTitle } from '../components/ResourceTitle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
+    realmAuditSchema,
     realmLocalizationSchema,
     realmOAuthSchema,
     realmTosSchema,
@@ -160,6 +161,18 @@ const RealmEditForm = () => {
                 <JsonSchemaInput
                     source="tosConfiguration"
                     schema={realmTosSchema}
+                />
+            </TabbedForm.Tab>
+            <TabbedForm.Tab label="tab.audit">
+                <SectionTitle
+                    text={translate('page.realm.audit.header.title')}
+                    secondaryText={translate(
+                        'page.realm.audit.header.subtitle'
+                    )}
+                />
+                <JsonSchemaInput
+                    source="auditConfiguration"
+                    schema={realmAuditSchema}
                 />
             </TabbedForm.Tab>
             <TabbedForm.Tab label="tab.developers">

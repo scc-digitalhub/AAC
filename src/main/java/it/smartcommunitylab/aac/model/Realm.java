@@ -19,6 +19,7 @@ package it.smartcommunitylab.aac.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.smartcommunitylab.aac.audit.model.AuditConfigurationMap;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.LocalizationConfigurationMap;
 import it.smartcommunitylab.aac.templates.model.TemplatesConfigurationMap;
@@ -47,12 +48,14 @@ public class Realm {
     private TosConfigurationMap tosConfiguration;
     private LocalizationConfigurationMap localizationConfiguration;
     private TemplatesConfigurationMap templatesConfiguration;
+    private AuditConfigurationMap auditConfiguration;
 
     public Realm() {
         this.oauthConfiguration = new OAuth2ConfigurationMap();
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
         this.templatesConfiguration = new TemplatesConfigurationMap();
+        this.auditConfiguration = new AuditConfigurationMap();
     }
 
     public Realm(String slug) {
@@ -61,6 +64,7 @@ public class Realm {
         this.tosConfiguration = new TosConfigurationMap();
         this.localizationConfiguration = new LocalizationConfigurationMap();
         this.templatesConfiguration = new TemplatesConfigurationMap();
+        this.auditConfiguration = new AuditConfigurationMap();
     }
 
     public String getName() {
@@ -139,11 +143,20 @@ public class Realm {
         this.templatesConfiguration = templatesConfiguration;
     }
 
+    public AuditConfigurationMap getAuditConfiguration() {
+        return auditConfiguration;
+    }
+
+    public void setAuditConfiguration(AuditConfigurationMap auditConfiguration) {
+        this.auditConfiguration = auditConfiguration;
+    }
+
     public void clearConfig() {
         this.oauthConfiguration= null;
         this.tosConfiguration= null;
         this.localizationConfiguration= null;
         this.templatesConfiguration= null;
+        this.auditConfiguration= null;
     }
     
 }

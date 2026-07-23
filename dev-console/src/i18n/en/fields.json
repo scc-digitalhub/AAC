@@ -274,6 +274,10 @@
         "helperText": "",
         "name": "Audit events"
     },
+    "oauth2EventsLevel": {
+        "helperText": "Detail level for OAuth2 token grant audit events (OAUTH2_TOKEN_GRANT) in this realm. Leave empty to keep the default (none).",
+        "name": "OAuth2 token events level"
+    },
     "linkable": {
         "helperText": "",
         "name": "Enable account linking"
