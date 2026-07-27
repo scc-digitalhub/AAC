@@ -1,4 +1,4 @@
-package it.smartcommunitylab.aac.otp.persistance;
+package it.smartcommunitylab.aac.otp.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

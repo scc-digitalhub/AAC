@@ -1,8 +1,9 @@
-package it.smartcommunitylab.aac.otp.persistance;
+package it.smartcommunitylab.aac.otp.persistence;
+
+import java.util.List;
 
 import it.smartcommunitylab.aac.repository.CustomJpaRepository;
 import it.smartcommunitylab.aac.repository.DetachableJpaRepository;
-import java.util.List;
 
 public interface InternalUserOtpEntityRepository
     extends CustomJpaRepository<InternalUserOtpEntity, String>, DetachableJpaRepository<InternalUserOtpEntity> {

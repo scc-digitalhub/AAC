@@ -1,19 +1,5 @@
 package it.smartcommunitylab.aac.otp.controller;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Pattern;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -24,6 +10,18 @@ import it.smartcommunitylab.aac.otp.OtpCredentialsAuthority;
 import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
 import it.smartcommunitylab.aac.otp.provider.OtpCredentialsService;
 import it.smartcommunitylab.aac.otp.provider.OtpIdentityProvider;
+import javax.validation.Valid;
+import javax.validation.constraints.Pattern;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping
