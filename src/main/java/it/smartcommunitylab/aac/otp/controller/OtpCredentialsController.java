@@ -62,7 +62,7 @@ public class OtpCredentialsController {
                 return ResponseEntity.badRequest().build();
             }
 
-            service.generateOtp(resolvedUsername);
+            service.generateOtp(resolvedUsername, providerId);
             return ResponseEntity.noContent().build();
         } catch (NoSuchProviderException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

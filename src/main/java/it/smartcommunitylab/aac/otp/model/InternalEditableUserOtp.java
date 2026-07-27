@@ -6,10 +6,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.credentials.base.AbstractEditableUserCredentials;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
-import java.util.Date;
 import javax.validation.Valid;
 
-// capire se serve, altrimenti rimuovere
 @Valid
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,13 +23,13 @@ public class InternalEditableUserOtp extends AbstractEditableUserCredentials {
     private String userId;
 
     @JsonSchemaIgnore
-    private Date createDate;
+    private Long createDate;
 
     @JsonSchemaIgnore
-    private Date modifiedDate;
+    private Long modifiedDate;
 
     @JsonSchemaIgnore
-    private Date expireDate;
+    private Long expireDate;
 
     public InternalEditableUserOtp(String realm, String id) {
         super(SystemKeys.AUTHORITY_OTP, null, realm, id);
@@ -63,27 +61,27 @@ public class InternalEditableUserOtp extends AbstractEditableUserCredentials {
         this.userId = userId;
     }
 
-    public Date getCreateDate() {
+    public Long getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Long createDate) {
         this.createDate = createDate;
     }
 
-    public Date getModifiedDate() {
+    public Long getModifiedDate() {
         return modifiedDate;
     }
 
-    public void setModifiedDate(Date modifiedDate) {
+    public void setModifiedDate(Long modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
 
-    public Date getExpireDate() {
+    public Long getExpireDate() {
         return expireDate;
     }
 
-    public void setExpireDate(Date expireDate) {
+    public void setExpireDate(Long expireDate) {
         this.expireDate = expireDate;
     }
 }

@@ -9,9 +9,9 @@ import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsAuthority;
 import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
 import it.smartcommunitylab.aac.internal.service.InternalJpaUserAccountService;
-import it.smartcommunitylab.aac.internal.service.InternalUserConfirmKeyService;
 import it.smartcommunitylab.aac.otp.model.InternalEditableUserOtp;
 import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
+import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
 import it.smartcommunitylab.aac.otp.provider.OtpCredentialsService;
 import it.smartcommunitylab.aac.otp.provider.OtpCredentialsServiceConfig;
 import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfig;
@@ -36,23 +36,33 @@ public class OtpCredentialsAuthority
     private RealmAwareUriBuilder uriBuilder;
     private UserEntityService userService;
     private ResourceEntityService resourceService;
-    private final InternalUserConfirmKeyService confirmKeyService;
     private final InternalJpaUserAccountService accountService;
     private final UserCredentialsService<InternalUserOtp> credentialsService;
+    private final InternalUserOtpEntityRepository otpRepository;
 
     public OtpCredentialsAuthority(
         ProviderConfigRepository<OtpIdentityProviderConfig> registrationRepository,
-        InternalUserConfirmKeyService confirmKeyService,
         InternalJpaUserAccountService accountService,
-        UserCredentialsService<InternalUserOtp> credentialsService
+        UserCredentialsService<InternalUserOtp> credentialsService,
+        InternalUserOtpEntityRepository otpRepository
     ) {
         super(SystemKeys.AUTHORITY_OTP, new OtpConfigTranslatorRepository(registrationRepository));
-        Assert.notNull(confirmKeyService, "confirmKeyService is mandatory");
         Assert.notNull(accountService, "accountService is mandatory");
+        Assert.notNull(otpRepository, "otpRepository is mandatory");
 
-        this.confirmKeyService = confirmKeyService;
         this.accountService = accountService;
+        this.otpRepository = otpRepository;
         this.credentialsService = credentialsService;
+    }
+
+    @Autowired
+    public void setUserService(UserEntityService userService) {
+        this.userService = userService;
+    }
+
+    @Autowired
+    public void setResourceService(ResourceEntityService resourceService) {
+        this.resourceService = resourceService;
     }
 
     @Autowired
@@ -69,11 +79,10 @@ public class OtpCredentialsAuthority
     public OtpCredentialsService buildProvider(OtpCredentialsServiceConfig config) {
         OtpCredentialsService service = new OtpCredentialsService(
             config.getProvider(),
-            this.credentialsService,
-            this.confirmKeyService,
-            this.accountService,
-            config.getSettingsMap().getRepositoryId(),
+            credentialsService,
+            accountService,
             config,
+            otpRepository,
             config.getRealm()
         );
 

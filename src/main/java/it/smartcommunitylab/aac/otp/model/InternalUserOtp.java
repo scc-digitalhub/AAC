@@ -1,16 +1,19 @@
 package it.smartcommunitylab.aac.otp.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserOtp extends AbstractUserCredentials {
 
-    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
+    private static final Long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_OTP;
 
@@ -20,7 +23,7 @@ public class InternalUserOtp extends AbstractUserCredentials {
     @NotBlank
     private String token;
 
-    private long expiry_timestamp;
+    private Long expiryTimestamp;
 
     private int attempts;
 
@@ -35,7 +38,7 @@ public class InternalUserOtp extends AbstractUserCredentials {
         super();
     }
 
-    public static long getSerialversionuid() {
+    public static Long getSerialversionuid() {
         return serialVersionUID;
     }
 
@@ -59,12 +62,12 @@ public class InternalUserOtp extends AbstractUserCredentials {
         this.token = token;
     }
 
-    public long getExpiry_timestamp() {
-        return expiry_timestamp;
+    public Long getExpiryTimestamp() {
+        return expiryTimestamp;
     }
 
-    public void setExpiry_timestamp(long expiry_timestamp) {
-        this.expiry_timestamp = expiry_timestamp;
+    public void setExpiryTimestamp(Long expiryTimestamp) {
+        this.expiryTimestamp = expiryTimestamp;
     }
 
     public int getAttempts() {
@@ -100,7 +103,7 @@ public class InternalUserOtp extends AbstractUserCredentials {
 
     @Override
     public boolean isExpired() {
-        return expiry_timestamp < System.currentTimeMillis();
+        return expiryTimestamp != null && expiryTimestamp < System.currentTimeMillis();
     }
 
     @Override
@@ -135,8 +138,8 @@ public class InternalUserOtp extends AbstractUserCredentials {
             repositoryId +
             ", token=" +
             token +
-            ", expiry_timestamp=" +
-            expiry_timestamp +
+            ", expiryTimestamp=" +
+            expiryTimestamp +
             ", attempts=" +
             attempts +
             ", consumed=" +

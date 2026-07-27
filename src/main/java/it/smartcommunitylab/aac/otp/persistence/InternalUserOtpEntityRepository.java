@@ -11,6 +11,12 @@ public interface InternalUserOtpEntityRepository
 
     List<InternalUserOtpEntity> findByRealm(String realm);
 
+    List<InternalUserOtpEntity> findByUserId(String userId);
+
+    InternalUserOtpEntity findByTokenAndRealm(String token, String realm);
+
+    InternalUserOtpEntity findByTokenAndProviderId(String token, String providerId);
+
     List<InternalUserOtpEntity> findByRepositoryIdAndUserId(String repositoryId, String userId);
 
     List<InternalUserOtpEntity> findByRepositoryIdAndUserIdOrderByExpiryTimestampDesc(
@@ -20,11 +26,9 @@ public interface InternalUserOtpEntityRepository
 
     List<InternalUserOtpEntity> findByRepositoryIdAndConsumed(String repositoryId, boolean consumed);
 
-    List<InternalUserOtpEntity> findByToken(String token);
-
     List<InternalUserOtpEntity> findByConsumed(boolean consumed);
 
     List<InternalUserOtpEntity> findByAttemptsGreaterThanEqual(int attempts);
 
-    List<InternalUserOtpEntity> findByExpiryTimestampLessThan(long timestamp);
+    List<InternalUserOtpEntity> findByExpiryTimestampLessThan(Long timestamp);
 }

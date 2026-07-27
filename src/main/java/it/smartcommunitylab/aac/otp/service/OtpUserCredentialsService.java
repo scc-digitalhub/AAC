@@ -1,16 +1,13 @@
 package it.smartcommunitylab.aac.otp.service;
 
-import it.smartcommunitylab.aac.common.DuplicatedDataException;
-import it.smartcommunitylab.aac.common.NoSuchCredentialException;
-import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
-import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
-import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntity;
-import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.validation.constraints.NotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,7 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
-@Service
+import it.smartcommunitylab.aac.common.DuplicatedDataException;
+import it.smartcommunitylab.aac.common.NoSuchCredentialException;
+import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
+import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
+import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntity;
+import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
+
+@Service("otpUserCredentialsService")
 @Validated
 @Transactional
 public class OtpUserCredentialsService implements UserCredentialsService<InternalUserOtp> {
@@ -33,6 +38,7 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<InternalUserOtp> findCredentials(@NotNull String repositoryId) {
         logger.debug("find credentials for repository {}", String.valueOf(repositoryId));
 
@@ -104,6 +110,15 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
             }
 
             InternalUserOtpEntity credential = from(reg, id, repository);
+
+            System.out.println("ID: " + credential.getId());
+            System.out.println("RepositoryId: " + credential.getRepositoryId());
+            System.out.println("UserId: " + credential.getUserId());
+            System.out.println("Realm: " + credential.getRealm());
+            System.out.println("ProviderId: " + credential.getProviderId()); // <- Guarda se questo è NULL!
+            System.out.println("Token: " + credential.getToken());
+            System.out.println("ExpiryTimestamp: " + credential.getExpiryTimestamp());
+
             credential = otpRepository.saveAndFlush(credential);
 
             InternalUserOtp result = to(credential);
@@ -112,6 +127,7 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
 
             return result;
         } catch (Exception e) {
+            e.printStackTrace(); // Utile per vedere se l'eccezione originale viene mascherata
             throw new RegistrationException(e.getMessage());
         }
     }
@@ -138,9 +154,19 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
             credential.setUserId(reg.getUserId());
             credential.setRealm(reg.getRealm());
             credential.setToken(reg.getToken());
-            credential.setExpiryTimestamp(reg.getExpiry_timestamp());
+
+            Long expiry = reg.getExpiryTimestamp();
+            if (expiry == null) {
+                expiry = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+            }
+            credential.setExpiryTimestamp(expiry);
+
             credential.setAttempts(reg.getAttempts());
             credential.setConsumed(reg.isConsumed());
+
+            if (reg.getProvider() != null) {
+                credential.setProviderId(reg.getProvider());
+            }
 
             credential = otpRepository.saveAndFlush(credential);
 
@@ -179,14 +205,25 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
 
     private InternalUserOtpEntity from(InternalUserOtp reg, String id, String repository) {
         InternalUserOtpEntity credential = new InternalUserOtpEntity();
-        credential.setId(id);
+        credential.setId(id != null ? id : UUID.randomUUID().toString());
         credential.setRepositoryId(repository);
         credential.setUserId(reg.getUserId());
         credential.setRealm(reg.getRealm());
         credential.setToken(reg.getToken());
-        credential.setExpiryTimestamp(reg.getExpiry_timestamp());
+
+        Long expiry = reg.getExpiryTimestamp();
+        if (expiry == null) {
+            expiry = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+        }
+        credential.setExpiryTimestamp(expiry);
+
         credential.setAttempts(reg.getAttempts());
         credential.setConsumed(reg.isConsumed());
+
+        // Fissa providerId: se null imposta un valore di default o usa repositoryId per evitare il NotNull
+        String providerId = reg.getProvider() != null ? reg.getProvider() : repository;
+        credential.setProviderId(providerId);
+
         return credential;
     }
 
@@ -195,9 +232,10 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
         reg.setRepositoryId(credential.getRepositoryId());
         reg.setUserId(credential.getUserId());
         reg.setToken(credential.getToken());
-        reg.setExpiry_timestamp(credential.getExpiryTimestamp());
+        reg.setExpiryTimestamp(credential.getExpiryTimestamp());
         reg.setAttempts(credential.getAttempts());
         reg.setConsumed(credential.isConsumed());
+        reg.setProvider(credential.getProviderId());
         return reg;
     }
 }

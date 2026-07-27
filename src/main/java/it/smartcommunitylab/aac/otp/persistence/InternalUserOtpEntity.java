@@ -2,17 +2,13 @@ package it.smartcommunitylab.aac.otp.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "internal_user_OTP", uniqueConstraints = @UniqueConstraint(columnNames = { "repository_id" }))
-@EntityListeners(AuditingEntityListener.class)
+@Table(name = "internal_user_OTP")
 public class InternalUserOtpEntity {
 
     @Id
@@ -33,12 +29,16 @@ public class InternalUserOtpEntity {
     private String realm;
 
     @NotNull
+    @Column(name = "provider_id", length = 128)
+    private String providerId;
+
+    @NotNull
     @Column(length = 512)
     private String token;
 
     @NotNull
-    @Column(name = "expiry_timestamp")
-    private long expiryTimestamp;
+    @Column(name = "expiry_timestamp", nullable = false)
+    private Long expiryTimestamp;
 
     @NotNull
     @Column(name = "attempts")
@@ -88,11 +88,11 @@ public class InternalUserOtpEntity {
         this.token = token;
     }
 
-    public long getExpiryTimestamp() {
+    public Long getExpiryTimestamp() {
         return expiryTimestamp;
     }
 
-    public void setExpiryTimestamp(long expiryTimestamp) {
+    public void setExpiryTimestamp(Long expiryTimestamp) {
         this.expiryTimestamp = expiryTimestamp;
     }
 
@@ -133,5 +133,13 @@ public class InternalUserOtpEntity {
             consumed +
             "]"
         );
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
     }
 }

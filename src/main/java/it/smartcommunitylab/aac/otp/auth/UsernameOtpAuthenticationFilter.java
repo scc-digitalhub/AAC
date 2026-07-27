@@ -1,20 +1,12 @@
 package it.smartcommunitylab.aac.otp.auth;
 
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
-import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
-import it.smartcommunitylab.aac.core.auth.UserAuthentication;
-import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
-import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
-import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
-import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
-import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
-import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfig;
 import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -29,6 +21,17 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.core.auth.WebAuthenticationDetails;
+import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.internal.auth.InternalAuthenticationException;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
+import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
+import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfig;
 
 /**
  * Authentication filter for OTP and Magic Link based flows.

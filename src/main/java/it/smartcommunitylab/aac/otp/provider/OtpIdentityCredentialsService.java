@@ -64,7 +64,7 @@ public class OtpIdentityCredentialsService extends AbstractProvider<InternalUser
 
         InternalUserOtp otp = new InternalUserOtp(getRealm(), userId);
         otp.setToken(token);
-        otp.setExpiry_timestamp(expiry);
+        otp.setExpiryTimestamp(expiry);
 
         String link = uriBuilder.buildUri(getRealm(), "otp/verify/" + token).toString();
 
