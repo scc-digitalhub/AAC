@@ -7,8 +7,6 @@ import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 
 public class OtpIdentityProviderConfig extends AbstractIdentityProviderConfig<OtpIdentityProviderConfigMap> {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
-
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + OtpIdentityProviderConfigMap.RESOURCE_TYPE;
 

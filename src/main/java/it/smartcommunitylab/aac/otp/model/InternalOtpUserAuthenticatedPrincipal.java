@@ -11,7 +11,6 @@ public class InternalOtpUserAuthenticatedPrincipal
     extends InternalUserAuthenticatedPrincipal
     implements CredentialsContainer {
 
-    private static final long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PRINCIPAL + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_OTP;
 

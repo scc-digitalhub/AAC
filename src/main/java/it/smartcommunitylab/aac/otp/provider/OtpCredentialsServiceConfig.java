@@ -7,7 +7,6 @@ import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsM
 
 public class OtpCredentialsServiceConfig extends AbstractCredentialsServiceConfig<OtpIdentityProviderConfigMap> {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_PROVIDER +
         SystemKeys.ID_SEPARATOR +

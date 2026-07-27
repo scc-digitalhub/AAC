@@ -1,24 +1,27 @@
 package it.smartcommunitylab.aac.otp.provider;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import java.io.Serializable;
 import java.util.Map;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
 
-    private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
+    private static final Long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
     public static final String RESOURCE_TYPE =
         SystemKeys.RESOURCE_CONFIG +
@@ -53,7 +56,7 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
 
     public OtpIdentityProviderConfigMap() {}
 
-    public static long getSerialversionuid() {
+    public static Long getSerialversionuid() {
         return serialVersionUID;
     }
 

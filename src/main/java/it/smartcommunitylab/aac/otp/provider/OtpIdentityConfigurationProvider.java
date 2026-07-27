@@ -1,11 +1,12 @@
 package it.smartcommunitylab.aac.otp.provider;
 
+import org.springframework.stereotype.Service;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.config.IdentityAuthoritiesProperties;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
-import org.springframework.stereotype.Service;
 
 @Service
 public class OtpIdentityConfigurationProvider
