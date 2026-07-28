@@ -12,7 +12,13 @@ import {
     SaveButton,
     useTranslate,
 } from 'react-admin';
-import { List, SimpleForm, TextInput } from 'react-admin';
+import { InspectButton } from '@dslab/ra-inspect-button';
+import {
+    List,
+    SimpleForm,
+    TextInput,
+    RecordContextProvider,
+} from 'react-admin';
 import { Box, ListItem, Typography } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import KeyIcon from '@mui/icons-material/Key';
@@ -66,7 +72,7 @@ export const AccountsList = () => {
                         <MuiList>
                             <ListItem>
                                 <Labeled>
-                                    <TextField label="id" source="uuid" />
+                                    <TextField label="id" source="id" />
                                 </Labeled>
                             </ListItem>
                             {record.email && (
@@ -102,6 +108,13 @@ export const AccountsList = () => {
                 actions={record => {
                     return (
                         <CardToolbar variant="dense" sx={{ width: 1 }}>
+                            {record?.attributes && (
+                                <RecordContextProvider
+                                    value={record.attributes}
+                                >
+                                    <InspectButton />
+                                </RecordContextProvider>
+                            )}
                             {record.authority === 'internal' && <EditButton />}
                             <DeleteWithConfirmButton
                                 confirmContent="page.accounts.delete_account.content"

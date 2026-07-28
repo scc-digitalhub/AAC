@@ -25,7 +25,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractEditableAccount;
 import it.smartcommunitylab.aac.repository.JsonSchemaIgnore;
+
+import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -74,6 +77,9 @@ public class SamlEditableUserAccount extends AbstractEditableAccount {
 
     @Schema(name = "language", title = "field.language", description = "description.language")
     private String lang;
+
+    @Schema(name = "attributes", title = "field.attributes", description = "description.attributes")
+    private Map<String, Serializable> attributes;
 
     protected SamlEditableUserAccount() {
         super(SystemKeys.AUTHORITY_SAML, null, null, null);
@@ -156,6 +162,10 @@ public class SamlEditableUserAccount extends AbstractEditableAccount {
     public void setLang(String lang) {
         this.lang = lang;
     }
+
+    public Map<String, Serializable> getAttributes() { return attributes; }
+
+    public void setAttributes(Map<String, Serializable> attributes) { this.attributes = attributes; }
 
     public Date getCreateDate() {
         return createDate;

@@ -5,6 +5,7 @@
     "license": "Apache-2.0",
     "homepage": "/console/user",
     "dependencies": {
+        "@dslab/ra-inspect-button": "^1.0.3",
         "@mui/icons-material": "^5.11.0",
         "@mui/material": "^5.11.7",
         "@simplewebauthn/browser": "^7.0.1",

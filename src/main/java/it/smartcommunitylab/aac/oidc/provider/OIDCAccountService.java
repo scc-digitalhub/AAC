@@ -20,9 +20,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.oidc.OIDCKeys;
 import it.smartcommunitylab.aac.oidc.model.OIDCEditableUserAccount;
 import it.smartcommunitylab.aac.oidc.model.OIDCUserAccount;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Transactional
 public class OIDCAccountService
@@ -81,6 +86,15 @@ public class OIDCAccountService
         ea.setGivenName(account.getGivenName());
         ea.setFamilyName(account.getFamilyName());
         ea.setLang(account.getLang());
+
+        Map<String, Serializable> attributes = account
+            .getAttributes() == null ? null : account.getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !OIDCKeys.HIDDEN_ATTRIBUTES.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        ea.setAttributes(attributes);
 
         return ea;
     }

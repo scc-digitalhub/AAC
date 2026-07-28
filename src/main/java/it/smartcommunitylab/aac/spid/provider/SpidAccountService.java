@@ -20,9 +20,14 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
+import it.smartcommunitylab.aac.saml.SamlKeys;
 import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.Serializable;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Transactional
 public class SpidAccountService
@@ -66,6 +71,15 @@ public class SpidAccountService
         ea.setEmail(account.getEmail());
         ea.setName(account.getName());
         ea.setSurname(account.getSurname());
+
+        Map<String, Serializable> attributes = account
+            .getAttributes() == null ? null : account.getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !SamlKeys.HIDDEN_ATTRIBUTES.contains(e.getKey()))
+            .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+
+        ea.setAttributes(attributes);
 
         return ea;
     }

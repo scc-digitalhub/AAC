@@ -25,13 +25,17 @@ public class SamlKeys {
 
     static final String[] SAML_ATTRIBUTES_VALUES = { "subject", "issuer", "issueInstant" };
 
+    static final String[] HIDDEN_ATTRIBUTES_VALUES = { "provider", "realm", "authority" };
+
     static final String[] ACCOUNT_ATTRIBUTES_VALUES = { "username", "name", "email", "locale" };
 
     public static final Set<String> SAML_ATTRIBUTES;
     public static final Set<String> ACCOUNT_ATTRIBUTES;
+    public static final Set<String> HIDDEN_ATTRIBUTES;
 
     static {
         SAML_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(SAML_ATTRIBUTES_VALUES)));
         ACCOUNT_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(ACCOUNT_ATTRIBUTES_VALUES)));
+        HIDDEN_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(HIDDEN_ATTRIBUTES_VALUES)));
     }
 }
