@@ -9,6 +9,7 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.otp.auth.UsernameOtpAuthenticationProvider;
 import it.smartcommunitylab.aac.otp.auth.UsernameOtpAuthenticationToken;
 import it.smartcommunitylab.aac.otp.model.InternalOtpUserAuthenticatedPrincipal;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -64,8 +65,9 @@ public class OtpAuthenticationProvider
         String username = authentication.getName();
         String credentials = String.valueOf(authentication.getCredentials());
 
-        InternalUserAccount account = userAccountService.findAccountById(repositoryId, username);
-        if (account == null) {
+        List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(this.repositoryId, username);
+
+        if (accounts.isEmpty()) {
             if (authentication instanceof UsernameOtpAuthenticationToken && authentication.getCredentials() != null) {
                 String otp = ((UsernameOtpAuthenticationToken) authentication).getOtp();
                 this.otpEncoder.matches(otp, this.userNotFoundEncodedOtp);
@@ -79,6 +81,8 @@ public class OtpAuthenticationProvider
                 new BadCredentialsException("invalid user or otp")
             );
         }
+
+        InternalUserAccount account = accounts.get(0);
         String subject = account.getUserId();
 
         // check whether confirmation is required and user is confirmed
@@ -101,11 +105,19 @@ public class OtpAuthenticationProvider
 
         if (authentication instanceof UsernameOtpAuthenticationToken) {
             try {
-                return authProvider.authenticate(authentication);
+                UsernameOtpAuthenticationToken authRequest = (UsernameOtpAuthenticationToken) authentication;
+                UsernameOtpAuthenticationToken authToProcess = new UsernameOtpAuthenticationToken(
+                    account.getUsername(),
+                    authRequest.getOtp(),
+                    authRequest.getAuthorities()
+                );
+                authToProcess.setDetails(authentication.getDetails());
+                return authProvider.authenticate(authToProcess);
             } catch (AuthenticationException e) {
                 throw new InternalAuthenticationException(subject, username, credentials, "otp", e, e.getMessage());
             }
         }
+
         throw new InternalAuthenticationException(
             subject,
             username,

@@ -168,6 +168,11 @@ public class OtpCredentialsService
         return false;
     }
 
+    public String getUserIdForToken(String token) {
+        InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, getProvider());
+        return accountOtp != null ? accountOtp.getUserId() : null;
+    }
+
     @Override
     public String getRegisterUrl() {
         return uriBuilder != null ? uriBuilder.buildUrl(getRealm(), "/otp/register") : null;
