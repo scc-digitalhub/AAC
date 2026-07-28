@@ -1,15 +1,5 @@
 package it.smartcommunitylab.aac.otp.provider;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-import javax.mail.MessagingException;
-
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -24,6 +14,13 @@ import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntity;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import javax.mail.MessagingException;
+import org.springframework.util.Assert;
 
 public class OtpCredentialsService
     extends AbstractCredentialsService<

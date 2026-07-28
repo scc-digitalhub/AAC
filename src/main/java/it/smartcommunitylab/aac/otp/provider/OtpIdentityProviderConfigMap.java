@@ -1,21 +1,18 @@
 package it.smartcommunitylab.aac.otp.provider;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
+import java.io.Serializable;
+import java.util.Map;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

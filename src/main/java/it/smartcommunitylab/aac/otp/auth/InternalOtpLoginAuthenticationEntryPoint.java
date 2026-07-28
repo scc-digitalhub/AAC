@@ -1,20 +1,17 @@
 package it.smartcommunitylab.aac.otp.auth;
 
+import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
+import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
 import java.util.Collections;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
-
-import it.smartcommunitylab.aac.core.entrypoint.RealmAwarePathUriBuilder;
-import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
 
 /**
  * Authentication entry point for OTP-based flows.

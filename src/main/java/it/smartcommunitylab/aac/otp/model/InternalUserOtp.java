@@ -1,13 +1,10 @@
 package it.smartcommunitylab.aac.otp.model;
 
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.credentials.base.AbstractUserCredentials;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @Valid
 @JsonIgnoreProperties(ignoreUnknown = true)

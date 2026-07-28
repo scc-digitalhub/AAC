@@ -1,13 +1,11 @@
-package it.smartcommunitylab.aac.otp.provider;
-
-import java.util.List;
-
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+package it.smartcommunitylab.aac.otp.service;
 
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntity;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
+import java.util.List;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class OtpCleanupScheduler {

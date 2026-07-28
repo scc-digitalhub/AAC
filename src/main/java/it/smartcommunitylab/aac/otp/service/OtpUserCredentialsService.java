@@ -1,20 +1,5 @@
 package it.smartcommunitylab.aac.otp.service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.validation.constraints.NotNull;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-import org.springframework.validation.annotation.Validated;
-
 import it.smartcommunitylab.aac.common.DuplicatedDataException;
 import it.smartcommunitylab.aac.common.NoSuchCredentialException;
 import it.smartcommunitylab.aac.common.RegistrationException;
@@ -22,6 +7,18 @@ import it.smartcommunitylab.aac.credentials.persistence.UserCredentialsService;
 import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntity;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.validation.annotation.Validated;
 
 @Service("otpUserCredentialsService")
 @Validated

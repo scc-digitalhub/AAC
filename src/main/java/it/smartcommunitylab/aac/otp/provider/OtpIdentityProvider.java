@@ -1,11 +1,5 @@
 package it.smartcommunitylab.aac.otp.provider;
 
-import java.util.Collection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.provider.AuthorizationRequest;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountService;
@@ -25,6 +19,10 @@ import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
 import it.smartcommunitylab.aac.otp.model.InternalOtpUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.util.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.oauth2.provider.AuthorizationRequest;
 
 public class OtpIdentityProvider
     extends AbstractIdentityProvider<

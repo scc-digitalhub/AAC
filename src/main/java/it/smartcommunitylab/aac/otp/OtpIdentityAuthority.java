@@ -1,9 +1,5 @@
 package it.smartcommunitylab.aac.otp;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.core.entrypoint.RealmAwareUriBuilder;
@@ -18,6 +14,9 @@ import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfig;
 import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 public class OtpIdentityAuthority

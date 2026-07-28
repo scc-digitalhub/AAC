@@ -1,8 +1,11 @@
 package it.smartcommunitylab.aac.otp.auth;
 
+import it.smartcommunitylab.aac.Config;
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import java.util.Collections;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -13,11 +16,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import it.smartcommunitylab.aac.Config;
-import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
-import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 
 /**
  * Authentication provider for OTP-based authentication.
