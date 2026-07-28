@@ -186,7 +186,7 @@ public class OAuth2RequestFactory
                 throw new UnsupportedGrantTypeException("Grant type not supported: " + grantType);
             }
             if (authorizationGrantType == PASSWORD) {
-                String username = readParameter(requestParameters, "username", EMAIL_PATTERN);
+                String username = readParameter(requestParameters, "username", USERNAME_PATTERN);
                 String password = requestParameters.get("password");
                 Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
 
@@ -683,8 +683,10 @@ public class OAuth2RequestFactory
 
     public static final String SLUG_PATTERN = SystemKeys.SLUG_PATTERN;
     public static final String STRING_PATTERN = "^[a-zA-Z0-9_:-]+$";
+    // Pattern for validating user identifiers.
+    // Accepts either a simple username or a fully-qualified email address.
     // Reference: https://www.rfc-editor.org/info/rfc5322/#section-3.2.3
-    public static final String EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    public static final String USERNAME_PATTERN = "^[a-zA-Z0-9._%+-]+(@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})?$";
     public static final String URI_PATTERN = "^[a-zA-Z0-9._:/-]+$";
     public static final String SPECIAL_PATTERN = "^[a-zA-Z0-9_!=@$&%():/\\-`.+,/\"]*$";
     public static final String SPACE_STRING_PATTERN = "^[a-zA-Z0-9 _:-]+$";
