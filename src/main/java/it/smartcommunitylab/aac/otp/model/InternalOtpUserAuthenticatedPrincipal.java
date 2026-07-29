@@ -35,6 +35,6 @@ public class InternalOtpUserAuthenticatedPrincipal
 
     @Override
     public void eraseCredentials() {
-        // nothing to do
+        throw new UnsupportedOperationException("Unimplemented method 'eraseCredentials'");
     }
 }

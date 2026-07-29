@@ -10,18 +10,6 @@ import javax.validation.constraints.NotBlank;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalUserOtp extends AbstractUserCredentials {
 
-    private static final Long serialVersionUID = SystemKeys.AAC_INTERNAL_SERIAL_VERSION;
-    public static final String RESOURCE_TYPE =
-        SystemKeys.RESOURCE_CREDENTIALS + SystemKeys.ID_SEPARATOR + SystemKeys.AUTHORITY_OTP;
-
-    @NotBlank
-    private String repositoryId;
-
-    @NotBlank
-    private String token;
-
-    private Long expiryTimestamp;
-
     public InternalUserOtp(String realm, String id) {
         super(SystemKeys.AUTHORITY_OTP, null, realm, id);
     }
@@ -31,20 +19,21 @@ public class InternalUserOtp extends AbstractUserCredentials {
         super();
     }
 
-    public static Long getSerialversionuid() {
-        return serialVersionUID;
-    }
+    @NotBlank
+    private String repositoryId;
 
-    public static String getResourceType() {
-        return RESOURCE_TYPE;
+    @NotBlank
+    private String token;
+    
+    @NotBlank
+    private Long expiryTimestamp;
+
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public String getRepositoryId() {
         return repositoryId;
-    }
-
-    public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
     }
 
     public String getToken() {
@@ -64,48 +53,8 @@ public class InternalUserOtp extends AbstractUserCredentials {
     }
 
     @Override
-    public void eraseCredentials() {
-        this.token = null;
-    }
-
-    @Override
-    public boolean isRevoked() {
-        return false;
-    }
-
-    @Override
-    public boolean isExpired() {
-        return expiryTimestamp != null && expiryTimestamp < System.currentTimeMillis();
-    }
-
-    @Override
-    public String getCredentials() {
-        return token;
-    }
-
-    @Override
     public String getId() {
         return id;
-    }
-
-    @Override
-    public String getUuid() {
-        return super.getUserId();
-    }
-
-    @Override
-    public void setStatus(String status) {
-        // Status management handled by deletion
-    }
-
-    @Override
-    public boolean isActive() {
-        throw new UnsupportedOperationException("Unimplemented method 'isActive'");
-    }
-
-    @Override
-    public String getStatus() {
-        throw new UnsupportedOperationException("Unimplemented method 'getStatus'");
     }
 
     @Override
@@ -119,5 +68,53 @@ public class InternalUserOtp extends AbstractUserCredentials {
             expiryTimestamp +
             "]"
         );
+    }
+
+    @Override
+    public void eraseCredentials() {
+        throw new UnsupportedOperationException("Unimplemented method 'getCredentials'");
+    }
+
+    @Override
+    public String getCredentials() {
+        throw new UnsupportedOperationException("Unimplemented method 'getCredentials'");
+    }
+
+    @Override
+    public String getUuid() {
+        throw new UnsupportedOperationException("Unimplemented method 'getUuid'");
+    }
+
+    public static Long getSerialversionuid() {
+        throw new UnsupportedOperationException("Unimplemented method 'getSerialversionuid'");
+    }
+
+    public static String getResourceType() {
+        throw new UnsupportedOperationException("Unimplemented method 'getResourceType'");
+    }
+
+    @Override
+    public boolean isRevoked() {
+        throw new UnsupportedOperationException("Unimplemented method 'isRevoked'");
+    }
+
+    @Override
+    public boolean isExpired() {
+        throw new UnsupportedOperationException("Unimplemented method 'isExpired'");
+    }
+
+    @Override
+    public void setStatus(String status) {
+        throw new UnsupportedOperationException("Unimplemented method 'setStatus'");
+    }
+
+    @Override
+    public boolean isActive() {
+        throw new UnsupportedOperationException("Unimplemented method 'isActive'");
+    }
+
+    @Override
+    public String getStatus() {
+        throw new UnsupportedOperationException("Unimplemented method 'getStatus'");
     }
 }
