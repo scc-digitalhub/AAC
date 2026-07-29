@@ -108,11 +108,9 @@ public class OtpCredentialsAuthority
                 config.setTitleMap(source.getTitleMap());
                 config.setDescriptionMap(source.getDescriptionMap());
 
-                // we share the same configMap
                 config.setConfigMap(source.getConfigMap());
                 config.setVersion(source.getVersion());
 
-                // build new settingsMap
                 CredentialsServiceSettingsMap settingsMap = new CredentialsServiceSettingsMap();
                 settingsMap.setRepositoryId(source.getRepositoryId());
                 config.setSettingsMap(settingsMap);

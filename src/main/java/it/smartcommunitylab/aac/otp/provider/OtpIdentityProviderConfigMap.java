@@ -44,9 +44,6 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
     @Max(5 * 60)
     private Integer otpValidity;
 
-    @Max(5 * 60)
-    private Integer otpCooldown;
-
     @Min(0)
     @Max(3)
     private Integer otpTryNumber;
@@ -101,13 +98,6 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
         this.otpValidity = otpValidity;
     }
 
-    public Integer getOtpCooldown() {
-        return otpCooldown;
-    }
-
-    public void setOtpCooldown(Integer otpCooldown) {
-        this.otpCooldown = otpCooldown;
-    }
 
     public Integer getOtpTryNumber() {
         return otpTryNumber;
@@ -124,7 +114,6 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
         this.displayAsButton = config.getDisplayAsButton();
         this.requireAccountConfirmation = config.getRequireAccountConfirmation();
         this.otpValidity = config.getOtpValidity();
-        this.otpCooldown = config.getOtpCooldown();
         this.otpTryNumber = config.getOtpTryNumber();
     }
 

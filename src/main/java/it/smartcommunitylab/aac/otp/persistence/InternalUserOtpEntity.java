@@ -100,6 +100,14 @@ public class InternalUserOtpEntity {
         this.attempts = attempts;
     }
 
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
     @Override
     public String toString() {
         return (
@@ -119,13 +127,5 @@ public class InternalUserOtpEntity {
             attempts +
             "]"
         );
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
     }
 }

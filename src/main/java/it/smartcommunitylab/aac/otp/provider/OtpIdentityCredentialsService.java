@@ -1,5 +1,12 @@
 package it.smartcommunitylab.aac.otp.provider;
 
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
@@ -8,11 +15,6 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class OtpIdentityCredentialsService extends AbstractProvider<InternalUserOtp> {
 
@@ -23,7 +25,7 @@ public class OtpIdentityCredentialsService extends AbstractProvider<InternalUser
     private RealmAwareUriBuilder uriBuilder;
     private RealmService realmService;
 
-    private static final int MAGIC_LINK_EXPIRY = 300000; // 5 minutes in milliseconds
+    private static final int VALIDITY_PERIOD = 1; 
 
     public OtpIdentityCredentialsService(
         String providerId,
@@ -59,7 +61,7 @@ public class OtpIdentityCredentialsService extends AbstractProvider<InternalUser
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        Long expiry = System.currentTimeMillis() + MAGIC_LINK_EXPIRY;
+        Long expiry = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(VALIDITY_PERIOD);
 
         InternalUserOtp otp = new InternalUserOtp(getRealm(), userId);
         otp.setToken(token);

@@ -30,7 +30,6 @@ public class OtpIdentityAuthority
     public static final String AUTHORITY_URL = "/auth/otp/";
 
     private final UserAccountService<InternalUserAccount> accountService;
-
     private final OtpFilterProvider filterProvider;
 
     private RealmService realmService;

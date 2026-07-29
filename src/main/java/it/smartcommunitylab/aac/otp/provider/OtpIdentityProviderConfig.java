@@ -11,7 +11,6 @@ public class OtpIdentityProviderConfig extends AbstractIdentityProviderConfig<Ot
         SystemKeys.RESOURCE_PROVIDER + SystemKeys.ID_SEPARATOR + OtpIdentityProviderConfigMap.RESOURCE_TYPE;
 
     private static final int DEFAULT_SESSION_DURATION = 24 * 60 * 60; // 24h
-    private static final int COOLDOWN_DURATION = 300; // 5m
     private static final int TRY_NUMBER = 3;
 
     public OtpIdentityProviderConfig(String provider, String realm) {
@@ -64,10 +63,6 @@ public class OtpIdentityProviderConfig extends AbstractIdentityProviderConfig<Ot
         return configMap.getMaxSessionDuration() != null
             ? configMap.getMaxSessionDuration().intValue()
             : DEFAULT_SESSION_DURATION;
-    }
-
-    public int getDefaultOtpCooldown() {
-        return configMap.getOtpCooldown() != null ? configMap.getOtpCooldown().intValue() : COOLDOWN_DURATION;
     }
 
     public int getDefaultOtpTryNumber() {

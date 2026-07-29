@@ -31,10 +31,11 @@ public class OtpCredentialsService
         OtpCredentialsServiceConfig
     > {
 
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String CHARACTERS = "abcdefghijklmoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private static final int CODE_LENGTH = 6;
+    private static final int VALIDITY_PERIOD = 2;
 
     private final InternalUserOtpEntityRepository otpRepository;
     private final InternalJpaUserAccountService accountService;
@@ -80,15 +81,12 @@ public class OtpCredentialsService
         Long now = System.currentTimeMillis();
 
         if (!existingOtps.isEmpty()) {
-            InternalUserOtpEntity lastOtp = existingOtps.get(0);
-            if (lastOtp.getExpiryTimestamp() != null && lastOtp.getExpiryTimestamp() > now) {
-                throw new RegistrationException("otp-already-generated");
-            }
+            //TODO: Check how many tokens are still valid made the user be able to generate max 10
         }
 
         String otpId = UUID.randomUUID().toString();
         String code = generateOtpCodeString(CODE_LENGTH);
-        Long expiryTime = now + TimeUnit.MINUTES.toMillis(5);
+        Long expiryTime = now + TimeUnit.MINUTES.toMillis(VALIDITY_PERIOD);
 
         InternalUserOtp otpDto = new InternalUserOtp(account.getRealm(), otpId);
         otpDto.setRepositoryId(repositoryId);
@@ -152,6 +150,7 @@ public class OtpCredentialsService
             providerId.equals(accountOtp.getProviderId()) &&
             accountOtp.getExpiryTimestamp() != null &&
             accountOtp.getExpiryTimestamp() > now &&
+            //TODO: check attempts globally for the account, not per token
             accountOtp.getAttempts() < 3
         ) {
             return true;
