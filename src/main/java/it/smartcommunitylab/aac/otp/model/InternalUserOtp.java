@@ -22,8 +22,6 @@ public class InternalUserOtp extends AbstractUserCredentials {
 
     private Long expiryTimestamp;
 
-    private int attempts;
-
     public InternalUserOtp(String realm, String id) {
         super(SystemKeys.AUTHORITY_OTP, null, realm, id);
     }
@@ -63,14 +61,6 @@ public class InternalUserOtp extends AbstractUserCredentials {
 
     public void setExpiryTimestamp(Long expiryTimestamp) {
         this.expiryTimestamp = expiryTimestamp;
-    }
-
-    public int getAttempts() {
-        return attempts;
-    }
-
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
     }
 
     @Override
@@ -127,8 +117,6 @@ public class InternalUserOtp extends AbstractUserCredentials {
             token +
             ", expiryTimestamp=" +
             expiryTimestamp +
-            ", attempts=" +
-            attempts +
             "]"
         );
     }

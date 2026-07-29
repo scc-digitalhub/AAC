@@ -68,7 +68,6 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
         credential.setRealm(reg.getRealm());
         credential.setToken(reg.getToken());
         credential.setExpiryTimestamp(reg.getExpiryTimestamp());
-        credential.setAttempts(reg.getAttempts());
         credential.setProviderId(reg.getProvider());
 
         return credential;
@@ -80,7 +79,6 @@ public class OtpUserCredentialsService implements UserCredentialsService<Interna
         reg.setUserId(credential.getUserId());
         reg.setToken(credential.getToken());
         reg.setExpiryTimestamp(credential.getExpiryTimestamp());
-        reg.setAttempts(credential.getAttempts());
         reg.setProvider(credential.getProviderId());
 
         return reg;

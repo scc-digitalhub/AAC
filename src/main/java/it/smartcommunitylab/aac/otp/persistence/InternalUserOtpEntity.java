@@ -40,10 +40,6 @@ public class InternalUserOtpEntity {
     @Column(name = "expiry_timestamp", nullable = false)
     private Long expiryTimestamp;
 
-    @NotNull
-    @Column(name = "attempts")
-    private int attempts;
-
     public String getId() {
         return id;
     }
@@ -92,14 +88,6 @@ public class InternalUserOtpEntity {
         this.expiryTimestamp = expiryTimestamp;
     }
 
-    public int getAttempts() {
-        return attempts;
-    }
-
-    public void setAttempts(int attempts) {
-        this.attempts = attempts;
-    }
-
     public String getProviderId() {
         return providerId;
     }
@@ -123,8 +111,6 @@ public class InternalUserOtpEntity {
             token +
             ", expiryTimestamp=" +
             expiryTimestamp +
-            ", attempts=" +
-            attempts +
             "]"
         );
     }

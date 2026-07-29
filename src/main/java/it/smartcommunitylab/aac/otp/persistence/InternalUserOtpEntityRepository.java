@@ -25,8 +25,6 @@ public interface InternalUserOtpEntityRepository
         String userId
     );
 
-    List<InternalUserOtpEntity> findByAttemptsGreaterThanEqual(int attempts);
-
     List<InternalUserOtpEntity> findByExpiryTimestampLessThan(Long timestamp);
 
     @Modifying

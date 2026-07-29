@@ -93,7 +93,6 @@ public class OtpCredentialsService
         otpDto.setUserId(account.getUserId());
         otpDto.setToken(code);
         otpDto.setExpiryTimestamp(expiryTime);
-        otpDto.setAttempts(0);
         otpDto.setProvider(providerId);
 
         InternalUserOtp savedOtp;
@@ -146,19 +145,14 @@ public class OtpCredentialsService
         Long now = System.currentTimeMillis();
 
         if (
-            accountOtp != null &&
-            providerId.equals(accountOtp.getProviderId()) &&
-            accountOtp.getExpiryTimestamp() != null &&
-            accountOtp.getExpiryTimestamp() > now &&
+            accountOtp != null && providerId.equals(accountOtp.getProviderId()) && accountOtp.getExpiryTimestamp() > now
             //TODO: check attempts globally for the account, not per token
-            accountOtp.getAttempts() < 3
         ) {
             return true;
         }
 
-        if (accountOtp != null && accountOtp.getAttempts() < 3) {
-            accountOtp.setAttempts(accountOtp.getAttempts() + 1);
-            otpRepository.saveAndFlush(accountOtp);
+        if (accountOtp != null && providerId.equals(accountOtp.getProviderId())) {
+            //TODO: increase attempts globally for the account
         }
 
         return false;
