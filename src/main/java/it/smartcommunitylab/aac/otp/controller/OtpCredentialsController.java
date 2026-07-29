@@ -4,7 +4,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.common.NoSuchProviderException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
-import it.smartcommunitylab.aac.common.SystemException;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.otp.OtpCredentialsAuthority;
 import it.smartcommunitylab.aac.otp.OtpIdentityAuthority;
@@ -31,6 +30,8 @@ public class OtpCredentialsController {
     private final OtpCredentialsAuthority credentialsAuthority;
     private final OtpIdentityAuthority identityAuthority;
 
+    private static final String AUTHORITY_URL = OtpIdentityAuthority.AUTHORITY_URL;
+
     public OtpCredentialsController(
         OtpCredentialsAuthority credentialsAuthority,
         OtpIdentityAuthority identityAuthority
@@ -39,28 +40,26 @@ public class OtpCredentialsController {
         this.identityAuthority = identityAuthority;
     }
 
-    @PostMapping(value = "/auth/otp/request/{providerId}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(
+        value = AUTHORITY_URL + "/request/{providerId}",
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+    )
     public ResponseEntity<Void> requestOtp(
         @PathVariable @Valid @Pattern(regexp = SystemKeys.SLUG_PATTERN) String providerId,
         @RequestParam(required = false) String username,
         @RequestParam(required = false) String email
-    ) throws RegistrationException, SystemException {
+    ) {
         if (!StringUtils.hasText(username) && !StringUtils.hasText(email)) {
             return ResponseEntity.badRequest().build();
         }
 
         try {
             OtpCredentialsService service = credentialsAuthority.getProvider(providerId);
-            if (service == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-
             String resolvedUsername = StringUtils.hasText(username)
                 ? username
                 : resolveUsernameByEmail(providerId, email);
-            if (!StringUtils.hasText(resolvedUsername)) {
-                return ResponseEntity.badRequest().build();
-            }
+
+            if (resolvedUsername == null) return ResponseEntity.badRequest().build();
 
             service.generateOtp(resolvedUsername, providerId);
             return ResponseEntity.noContent().build();
@@ -70,25 +69,21 @@ public class OtpCredentialsController {
             return ResponseEntity.badRequest().build();
         } catch (RegistrationException e) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
-        } catch (SystemException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     private String resolveUsernameByEmail(String providerId, String email) throws NoSuchProviderException {
-        if (!StringUtils.hasText(email)) {
-            return null;
-        }
+        if (!StringUtils.hasText(email)) return null;
 
         OtpIdentityProvider idp = identityAuthority.getProvider(providerId);
-        if (idp == null) {
-            throw new NoSuchProviderException("Otp provider not found");
-        }
+
+        if (idp == null) throw new NoSuchProviderException("Otp provider not found");
 
         InternalUserAccount account = idp.getAccountProvider().findAccountByEmail(email);
-        if (account == null) {
-            return null;
-        }
+
+        if (account == null) return null;
 
         return account.getUsername();
     }

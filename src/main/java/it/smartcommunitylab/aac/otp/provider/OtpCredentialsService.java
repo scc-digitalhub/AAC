@@ -136,12 +136,19 @@ public class OtpCredentialsService
         }
     }
 
-    public boolean verifyOtp(String token, String providerId) throws NoSuchUserException {
+    public void consumeOtp(String token, String providerId) {
+        InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, providerId);
+        if (accountOtp != null) {
+            otpRepository.delete(accountOtp);
+        }
+    }
+
+    public boolean verifyOtp(String token, String providerId) {
         if (token == null || token.isEmpty() || providerId == null || providerId.isEmpty()) {
             return false;
         }
 
-        InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, getProvider());
+        InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, providerId);
         Long now = System.currentTimeMillis();
 
         if (

@@ -27,7 +27,7 @@ public class OtpIdentityAuthority
         OtpIdentityProviderConfigMap
     > {
 
-    public static final String AUTHORITY_URL = "/auth/otp/";
+    public static final String AUTHORITY_URL = "/auth/otp";
 
     private final UserAccountService<InternalUserAccount> accountService;
     private final OtpFilterProvider filterProvider;
