@@ -25,10 +25,6 @@ public interface InternalUserOtpEntityRepository
         String userId
     );
 
-    List<InternalUserOtpEntity> findByRepositoryIdAndConsumed(String repositoryId, boolean consumed);
-
-    List<InternalUserOtpEntity> findByConsumed(boolean consumed);
-
     List<InternalUserOtpEntity> findByAttemptsGreaterThanEqual(int attempts);
 
     List<InternalUserOtpEntity> findByExpiryTimestampLessThan(Long timestamp);

@@ -14,6 +14,7 @@ import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntity;
 import it.smartcommunitylab.aac.otp.persistence.InternalUserOtpEntityRepository;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,11 @@ public class OtpCredentialsService
         OtpIdentityProviderConfigMap,
         OtpCredentialsServiceConfig
     > {
+
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private static final int CODE_LENGTH = 6;
 
     private final InternalUserOtpEntityRepository otpRepository;
     private final InternalJpaUserAccountService accountService;
@@ -70,20 +76,18 @@ public class OtpCredentialsService
             throw new NoSuchUserException();
         }
 
-        // 1. Controlla se l'utente ha già un OTP valido non ancora scaduto
         List<InternalUserOtpEntity> existingOtps = otpRepository.findByUserId(account.getUserId());
         Long now = System.currentTimeMillis();
 
         if (!existingOtps.isEmpty()) {
             InternalUserOtpEntity lastOtp = existingOtps.get(0);
-            if (lastOtp.getExpiryTimestamp() != null && lastOtp.getExpiryTimestamp() > now && !lastOtp.isConsumed()) {
+            if (lastOtp.getExpiryTimestamp() != null && lastOtp.getExpiryTimestamp() > now) {
                 throw new RegistrationException("otp-already-generated");
             }
         }
 
-        // 2. Prepara il DTO dell'OTP
         String otpId = UUID.randomUUID().toString();
-        String code = UUID.randomUUID().toString();
+        String code = generateOtpCodeString(CODE_LENGTH);
         Long expiryTime = now + TimeUnit.MINUTES.toMillis(5);
 
         InternalUserOtp otpDto = new InternalUserOtp(account.getRealm(), otpId);
@@ -92,7 +96,6 @@ public class OtpCredentialsService
         otpDto.setToken(code);
         otpDto.setExpiryTimestamp(expiryTime);
         otpDto.setAttempts(0);
-        otpDto.setConsumed(false);
         otpDto.setProvider(providerId);
 
         InternalUserOtp savedOtp;
@@ -104,7 +107,6 @@ public class OtpCredentialsService
             throw new SystemException(e.getMessage());
         }
 
-        // 4. Invia l'email con il codice generato
         try {
             InternalUserOtpEntity accountOtpEntity = otpRepository.findOne(savedOtp.getId());
             sendOtpMail(accountOtpEntity, account, code, account.getLang());
@@ -148,24 +150,26 @@ public class OtpCredentialsService
         if (
             accountOtp != null &&
             providerId.equals(accountOtp.getProviderId()) &&
-            !accountOtp.isConsumed() &&
             accountOtp.getExpiryTimestamp() != null &&
             accountOtp.getExpiryTimestamp() > now &&
             accountOtp.getAttempts() < 3
         ) {
-            // Segna come consumato una volta verificato con successo
-            accountOtp.setConsumed(true);
-            otpRepository.saveAndFlush(accountOtp);
             return true;
         }
 
         if (accountOtp != null && accountOtp.getAttempts() < 3) {
-            // Incrementa i tentativi falliti
             accountOtp.setAttempts(accountOtp.getAttempts() + 1);
             otpRepository.saveAndFlush(accountOtp);
         }
 
         return false;
+    }
+
+    public static String generateOtpCodeString(int length) {
+        return RANDOM.ints(length, 0, CHARACTERS.length())
+            .mapToObj(CHARACTERS::charAt)
+            .collect(StringBuilder::new, (sb, ch) -> sb.append(ch), (sb1, sb2) -> sb1.append(sb2))
+            .toString();
     }
 
     public String getUserIdForToken(String token) {

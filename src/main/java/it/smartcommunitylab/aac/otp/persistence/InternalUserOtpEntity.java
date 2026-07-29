@@ -33,7 +33,7 @@ public class InternalUserOtpEntity {
     private String providerId;
 
     @NotNull
-    @Column(length = 512)
+    @Column(length = 6)
     private String token;
 
     @NotNull
@@ -43,10 +43,6 @@ public class InternalUserOtpEntity {
     @NotNull
     @Column(name = "attempts")
     private int attempts;
-
-    @NotNull
-    @Column(name = "consumed")
-    private boolean consumed;
 
     public String getId() {
         return id;
@@ -104,14 +100,6 @@ public class InternalUserOtpEntity {
         this.attempts = attempts;
     }
 
-    public boolean isConsumed() {
-        return consumed;
-    }
-
-    public void setConsumed(boolean consumed) {
-        this.consumed = consumed;
-    }
-
     @Override
     public String toString() {
         return (
@@ -129,8 +117,6 @@ public class InternalUserOtpEntity {
             expiryTimestamp +
             ", attempts=" +
             attempts +
-            ", consumed=" +
-            consumed +
             "]"
         );
     }

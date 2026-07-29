@@ -24,8 +24,6 @@ public class InternalUserOtp extends AbstractUserCredentials {
 
     private int attempts;
 
-    private boolean consumed;
-
     public InternalUserOtp(String realm, String id) {
         super(SystemKeys.AUTHORITY_OTP, null, realm, id);
     }
@@ -75,22 +73,9 @@ public class InternalUserOtp extends AbstractUserCredentials {
         this.attempts = attempts;
     }
 
-    public boolean isConsumed() {
-        return consumed;
-    }
-
-    public void setConsumed(boolean consumed) {
-        this.consumed = consumed;
-    }
-
     @Override
     public void eraseCredentials() {
         this.token = null;
-    }
-
-    @Override
-    public boolean isActive() {
-        return !consumed;
     }
 
     @Override
@@ -119,13 +104,18 @@ public class InternalUserOtp extends AbstractUserCredentials {
     }
 
     @Override
-    public String getStatus() {
-        return consumed ? "consumed" : "active";
+    public void setStatus(String status) {
+        // Status management handled by deletion
     }
 
     @Override
-    public void setStatus(String status) {
-        // Status management handled by consumed flag
+    public boolean isActive() {
+        throw new UnsupportedOperationException("Unimplemented method 'isActive'");
+    }
+
+    @Override
+    public String getStatus() {
+        throw new UnsupportedOperationException("Unimplemented method 'getStatus'");
     }
 
     @Override
@@ -139,8 +129,6 @@ public class InternalUserOtp extends AbstractUserCredentials {
             expiryTimestamp +
             ", attempts=" +
             attempts +
-            ", consumed=" +
-            consumed +
             "]"
         );
     }
