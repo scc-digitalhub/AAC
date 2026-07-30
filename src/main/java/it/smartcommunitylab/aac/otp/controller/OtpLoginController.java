@@ -35,22 +35,27 @@ public class OtpLoginController {
         this.authenticationManager = authenticationManager;
     }
 
-    @GetMapping(value = AUTHORITY_URL + "/verify/{providerId}/{token}")
-    public String verify(@PathVariable String providerId, @PathVariable String token, HttpServletRequest req)
-        throws NoSuchProviderException {
+    @GetMapping(value = AUTHORITY_URL + "/verify/{providerId}/{userId}/{token}")
+    public String verify(
+        @PathVariable String providerId,
+        @PathVariable String userId,
+        @PathVariable String token,
+        HttpServletRequest req
+    ) throws NoSuchProviderException {
         OtpCredentialsService service = credentialsAuthority.getProvider(providerId);
 
-        if (!service.verifyOtp(token, providerId)) {
+        if (!service.verifyOtp(token, providerId, userId)) {
             handleError(req, "invalid-otp");
             return "redirect:/";
         }
 
         try {
-            String userId = service.getUserIdForToken(token);
-            if (userId == null) throw new InternalAuthenticationException("otp", "user-not-found");
+            String userIdFromToken = service.getUserIdForToken(token);
+
+            if (userIdFromToken == null) throw new InternalAuthenticationException("otp", "user-not-found");
 
             UsernameOtpAuthenticationToken otpAuthRequest = new UsernameOtpAuthenticationToken(
-                userId,
+                userIdFromToken,
                 token,
                 Collections.emptyList()
             );

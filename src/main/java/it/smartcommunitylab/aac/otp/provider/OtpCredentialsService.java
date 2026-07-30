@@ -121,7 +121,10 @@ public class OtpCredentialsService
         vars.put("user", account);
 
         String link = (uriBuilder != null)
-            ? uriBuilder.buildUrl(null, "/auth/otp/verify/" + accountOtp.getProviderId() + "/" + code)
+            ? uriBuilder.buildUrl(
+                null,
+                "/auth/otp/verify/" + accountOtp.getProviderId() + "/" + accountOtp.getUserId() + "/" + code
+            )
             : "";
 
         vars.put("link", link);
@@ -138,12 +141,19 @@ public class OtpCredentialsService
         }
     }
 
-    public boolean verifyOtp(String token, String providerId) {
-        if (!StringUtils.hasText(token) || !StringUtils.hasText(providerId)) {
+    public boolean verifyOtp(String token, String providerId, String userId) {
+        if (!StringUtils.hasText(token) || !StringUtils.hasText(providerId) || !StringUtils.hasText(userId)) {
             return false;
         }
 
         InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, providerId);
+
+        String userIdFromToken = getUserIdForToken(token);
+
+        if (userIdFromToken == null || !userIdFromToken.equals(userId)) {
+            return false;
+        }
+
         if (accountOtp == null || !providerId.equals(accountOtp.getProviderId())) {
             return false;
         }
