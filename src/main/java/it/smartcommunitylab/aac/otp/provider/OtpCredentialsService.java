@@ -36,7 +36,7 @@ public class OtpCredentialsService
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private static final int CODE_LENGTH = 6;
-    private static final int VALIDITY_PERIOD = 2;
+    private static final int VALIDITY_PERIOD = 1;
 
     private final InternalUserOtpEntityRepository otpRepository;
     private final InternalJpaUserAccountService accountService;
@@ -78,8 +78,9 @@ public class OtpCredentialsService
         List<InternalUserOtpEntity> existingOtps = otpRepository.findByUserId(account.getUserId());
         long now = System.currentTimeMillis();
 
-        if (!existingOtps.isEmpty()) {
-            // TODO: Check how many tokens are still valid made the user be able to generate max 10
+        long validCount = existingOtps.stream().filter(o -> o.getExpiryTimestamp() > now).count();
+        if (validCount >= 10) {
+            throw new RegistrationException("otp.max_tokens_exceeded");
         }
 
         String otpId = UUID.randomUUID().toString();
@@ -134,8 +135,8 @@ public class OtpCredentialsService
         mailService.sendEmail(account.getEmail(), "otp", lang, vars);
     }
 
-    public void consumeOtp(String token, String providerId) {
-        InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, providerId);
+    public void consumeOtp(String token, String providerId, String userId) {
+        InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderIdAndUserId(token, providerId, userId);
         if (accountOtp != null) {
             otpRepository.delete(accountOtp);
         }

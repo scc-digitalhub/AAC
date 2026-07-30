@@ -18,6 +18,8 @@ public interface InternalUserOtpEntityRepository
 
     InternalUserOtpEntity findByTokenAndProviderId(String token, String providerId);
 
+    InternalUserOtpEntity findByTokenAndProviderIdAndUserId(String token, String providerId, String userId);
+
     List<InternalUserOtpEntity> findByRepositoryIdAndUserId(String repositoryId, String userId);
 
     List<InternalUserOtpEntity> findByRepositoryIdAndUserIdOrderByExpiryTimestampDesc(

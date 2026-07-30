@@ -72,7 +72,7 @@ public class OtpLoginController {
             Authentication authenticatedUser = authenticationManager.authenticate(wrappedToken);
             SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
 
-            service.consumeOtp(token, providerId);
+            service.consumeOtp(token, providerId, userIdFromToken);
 
             return "redirect:/";
         } catch (Exception e) {
