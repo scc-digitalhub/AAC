@@ -7,7 +7,6 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.internal.model.InternalUserIdentity;
-import it.smartcommunitylab.aac.otp.provider.OtpFilterProvider;
 import it.smartcommunitylab.aac.otp.provider.OtpIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.otp.provider.OtpIdentityProvider;
 import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfig;
@@ -30,7 +29,6 @@ public class OtpIdentityAuthority
     public static final String AUTHORITY_URL = "/auth/otp";
 
     private final UserAccountService<InternalUserAccount> accountService;
-    private final OtpFilterProvider filterProvider;
 
     private RealmService realmService;
     private MailService mailService;
@@ -44,7 +42,6 @@ public class OtpIdentityAuthority
         Assert.notNull(userAccountService, "account service is mandatory");
 
         this.accountService = userAccountService;
-        this.filterProvider = new OtpFilterProvider(userAccountService, registrationRepository);
     }
 
     @Autowired
@@ -84,8 +81,4 @@ public class OtpIdentityAuthority
         return idp;
     }
 
-    @Override
-    public OtpFilterProvider getFilterProvider() {
-        return filterProvider;
-    }
 }
