@@ -37,10 +37,6 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
 
     private Boolean requireAccountConfirmation;
 
-    /*
-     * OTP properties
-     */
-
     @Max(5 * 60)
     private Integer otpValidity;
 
@@ -98,7 +94,6 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
         this.otpValidity = otpValidity;
     }
 
-
     public Integer getOtpTryNumber() {
         return otpTryNumber;
     }
@@ -120,7 +115,6 @@ public class OtpIdentityProviderConfigMap extends AbstractConfigMap {
     @Override
     @JsonIgnore
     public void setConfiguration(Map<String, Serializable> props) {
-        // use mapper for local
         mapper.setSerializationInclusion(Include.NON_EMPTY);
         OtpIdentityProviderConfigMap map = mapper.convertValue(props, OtpIdentityProviderConfigMap.class);
 

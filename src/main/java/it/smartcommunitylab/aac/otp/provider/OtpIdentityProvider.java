@@ -155,7 +155,6 @@ public class OtpIdentityProvider
     }
 
     public String getLoginUrl() {
-        // we use an address bound to provider, no reason to expose realm
         return OtpIdentityAuthority.AUTHORITY_URL + "login/" + getProvider();
     }
 

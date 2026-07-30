@@ -4,6 +4,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.credentials.base.AbstractCredentialsServiceConfig;
 import it.smartcommunitylab.aac.credentials.model.ConfigurableCredentialsProvider;
 import it.smartcommunitylab.aac.credentials.provider.CredentialsServiceSettingsMap;
+import java.util.Objects;
 
 public class OtpCredentialsServiceConfig extends AbstractCredentialsServiceConfig<OtpIdentityProviderConfigMap> {
 
@@ -34,29 +35,16 @@ public class OtpCredentialsServiceConfig extends AbstractCredentialsServiceConfi
         super(cp, settingsMap, configMap);
     }
 
-    /**
-     * Private constructor for JPA and other serialization tools.
-     *
-     * We need to implement this to enable deserialization of resources via
-     * reflection
-     */
-
-    @SuppressWarnings("unused")
-    private OtpCredentialsServiceConfig() {
+    protected OtpCredentialsServiceConfig() {
         super();
     }
 
     @Override
     public String getRepositoryId() {
-        return configMap.getRepositoryId() != null ? configMap.getRepositoryId() : getRealm();
+        return Objects.requireNonNullElse(configMap.getRepositoryId(), getRealm());
     }
 
-    /*
-     * config flags
-     */
     public boolean isRequireAccountConfirmation() {
-        return configMap.getRequireAccountConfirmation() != null
-            ? configMap.getRequireAccountConfirmation().booleanValue()
-            : true;
+        return Objects.requireNonNullElse(configMap.getRequireAccountConfirmation(), true);
     }
 }

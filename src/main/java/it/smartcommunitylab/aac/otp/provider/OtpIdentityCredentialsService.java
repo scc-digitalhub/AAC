@@ -1,12 +1,5 @@
 package it.smartcommunitylab.aac.otp.provider;
 
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
@@ -15,6 +8,12 @@ import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.otp.model.InternalUserOtp;
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.utils.MailService;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class OtpIdentityCredentialsService extends AbstractProvider<InternalUserOtp> {
 
@@ -25,7 +24,7 @@ public class OtpIdentityCredentialsService extends AbstractProvider<InternalUser
     private RealmAwareUriBuilder uriBuilder;
     private RealmService realmService;
 
-    private static final int VALIDITY_PERIOD = 1; 
+    private static final int VALIDITY_PERIOD = 1;
 
     public OtpIdentityCredentialsService(
         String providerId,
@@ -51,7 +50,6 @@ public class OtpIdentityCredentialsService extends AbstractProvider<InternalUser
     }
 
     public void sendMagicLink(String userId) throws Exception {
-        // Fetch user account to determine language
         InternalUserAccount account = accountService.findAccountById(repositoryId, userId);
         String lang = (account != null && org.springframework.util.StringUtils.hasText(account.getLang()))
             ? account.getLang()

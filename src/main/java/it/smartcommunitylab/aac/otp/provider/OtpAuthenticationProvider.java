@@ -22,17 +22,14 @@ public class OtpAuthenticationProvider
     extends ExtendedAuthenticationProvider<InternalOtpUserAuthenticatedPrincipal, InternalUserAccount> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private static final String ACCOUNT_NOT_FOUND_OTP = "internalAccountNotFoundOtp";
 
-    // provider configuration
     private final OtpIdentityProviderConfig config;
     private final String repositoryId;
-
     private final UserAccountService<InternalUserAccount> userAccountService;
     private final UsernameOtpAuthenticationProvider authProvider;
 
-    private volatile String userNotFoundEncodedOtp;
+    private final String userNotFoundEncodedOtp;
     private final PasswordEncoder otpEncoder;
 
     public OtpAuthenticationProvider(
@@ -50,34 +47,26 @@ public class OtpAuthenticationProvider
         this.config = providerConfig;
         this.repositoryId = config.getRepositoryId();
         this.userAccountService = userAccountService;
-
         this.otpEncoder = new InternalPasswordEncoder();
 
-        authProvider = new UsernameOtpAuthenticationProvider(providerId, userAccountService, repositoryId, realm);
+        this.userNotFoundEncodedOtp = this.otpEncoder.encode(ACCOUNT_NOT_FOUND_OTP);
+
+        this.authProvider = new UsernameOtpAuthenticationProvider(providerId, userAccountService, repositoryId, realm);
     }
 
     @Override
     public Authentication doAuthenticate(Authentication authentication) throws AuthenticationException {
-        if (this.userNotFoundEncodedOtp == null) {
-            this.userNotFoundEncodedOtp = this.otpEncoder.encode(ACCOUNT_NOT_FOUND_OTP);
-        }
-
         String username = authentication.getName();
         String credentials = String.valueOf(authentication.getCredentials());
 
         List<InternalUserAccount> accounts = userAccountService.findAccountsByUser(this.repositoryId, username);
 
         if (accounts.isEmpty()) {
-            if (authentication instanceof UsernameOtpAuthenticationToken && authentication.getCredentials() != null) {
-                String otp = ((UsernameOtpAuthenticationToken) authentication).getOtp();
-                this.otpEncoder.matches(otp, this.userNotFoundEncodedOtp);
-            }
-
-            throw new InternalAuthenticationException(
-                username,
+            verifyDummyOtpIfApplicable(authentication);
+            throw buildAuthException(
+                "unknown",
                 username,
                 credentials,
-                "unknown",
                 new BadCredentialsException("invalid user or otp")
             );
         }
@@ -85,27 +74,30 @@ public class OtpAuthenticationProvider
         InternalUserAccount account = accounts.get(0);
         String subject = account.getUserId();
 
-        // check whether confirmation is required and user is confirmed
         if (config.isRequireAccountConfirmation() && !account.isConfirmed()) {
             logger.debug("account is not verified and confirmation is required to login");
-
-            // throw generic error to avoid account status leak
-            AuthenticationException e = new BadCredentialsException("invalid request");
-            throw new InternalAuthenticationException(subject, username, credentials, "otp", e, e.getMessage());
+            throw buildAuthException(
+                "otp",
+                username,
+                credentials,
+                subject,
+                new BadCredentialsException("invalid request")
+            );
         }
 
-        // check whether account is locked
         if (account.isLocked()) {
             logger.debug("account is locked");
-
-            // throw generic error to avoid account status leak
-            AuthenticationException e = new BadCredentialsException("invalid request");
-            throw new InternalAuthenticationException(subject, username, credentials, "otp", e, e.getMessage());
+            throw buildAuthException(
+                "otp",
+                username,
+                credentials,
+                subject,
+                new BadCredentialsException("invalid request")
+            );
         }
 
-        if (authentication instanceof UsernameOtpAuthenticationToken) {
+        if (authentication instanceof UsernameOtpAuthenticationToken authRequest) {
             try {
-                UsernameOtpAuthenticationToken authRequest = (UsernameOtpAuthenticationToken) authentication;
                 UsernameOtpAuthenticationToken authToProcess = new UsernameOtpAuthenticationToken(
                     account.getUsername(),
                     authRequest.getOtp(),
@@ -114,15 +106,15 @@ public class OtpAuthenticationProvider
                 authToProcess.setDetails(authentication.getDetails());
                 return authProvider.authenticate(authToProcess);
             } catch (AuthenticationException e) {
-                throw new InternalAuthenticationException(subject, username, credentials, "otp", e, e.getMessage());
+                throw buildAuthException("otp", username, credentials, subject, e);
             }
         }
 
-        throw new InternalAuthenticationException(
-            subject,
+        throw buildAuthException(
+            "unknown",
             username,
             credentials,
-            "unknown",
+            subject,
             new BadCredentialsException("invalid request")
         );
     }
@@ -137,9 +129,41 @@ public class OtpAuthenticationProvider
         if (account == null) {
             return null;
         }
-        if (account instanceof InternalUserAccount) {
-            return new InternalOtpUserAuthenticatedPrincipal((InternalUserAccount) account);
+        if (account instanceof InternalUserAccount userAccount) {
+            return new InternalOtpUserAuthenticatedPrincipal(userAccount);
         }
         throw new IllegalArgumentException("Account object is not of type InternalUserAccount");
+    }
+
+    private void verifyDummyOtpIfApplicable(Authentication authentication) {
+        if (authentication instanceof UsernameOtpAuthenticationToken auth && auth.getCredentials() != null) {
+            this.otpEncoder.matches(auth.getOtp(), this.userNotFoundEncodedOtp);
+        }
+    }
+
+    private InternalAuthenticationException buildAuthException(
+        String errorType,
+        String username,
+        String credentials,
+        AuthenticationException cause
+    ) {
+        return buildAuthException(errorType, username, credentials, username, cause);
+    }
+
+    private InternalAuthenticationException buildAuthException(
+        String errorType,
+        String username,
+        String credentials,
+        String subject,
+        AuthenticationException cause
+    ) {
+        return new InternalAuthenticationException(
+            subject,
+            username,
+            credentials,
+            errorType,
+            cause,
+            cause.getMessage()
+        );
     }
 }

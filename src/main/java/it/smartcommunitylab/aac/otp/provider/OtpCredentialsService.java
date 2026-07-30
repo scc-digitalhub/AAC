@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.mail.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 public class OtpCredentialsService
     extends AbstractCredentialsService<
@@ -68,9 +69,6 @@ public class OtpCredentialsService
         this.uriBuilder = uriBuilder;
     }
 
-    /**
-     * Generates and sends OTP.
-     */
     public void generateOtp(String username, String providerId) throws RegistrationException, NoSuchUserException {
         InternalUserAccount account = accountService.findAccountById(repositoryId, username);
         if (account == null) {
@@ -78,15 +76,15 @@ public class OtpCredentialsService
         }
 
         List<InternalUserOtpEntity> existingOtps = otpRepository.findByUserId(account.getUserId());
-        Long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
 
         if (!existingOtps.isEmpty()) {
-            //TODO: Check how many tokens are still valid made the user be able to generate max 10
+            // TODO: Check how many tokens are still valid made the user be able to generate max 10
         }
 
         String otpId = UUID.randomUUID().toString();
         String code = generateOtpCodeString(CODE_LENGTH);
-        Long expiryTime = now + TimeUnit.MINUTES.toMillis(VALIDITY_PERIOD);
+        long expiryTime = now + TimeUnit.MINUTES.toMillis(VALIDITY_PERIOD);
 
         InternalUserOtp otpDto = new InternalUserOtp(account.getRealm(), otpId);
         otpDto.setRepositoryId(repositoryId);
@@ -114,26 +112,23 @@ public class OtpCredentialsService
 
     private void sendOtpMail(InternalUserOtpEntity accountOtp, InternalUserAccount account, String code, String lang)
         throws MessagingException {
-        if (mailService != null) {
-            Map<String, Object> vars = new HashMap<>();
-            vars.put("code", code);
-            vars.put("user", account);
-
-            String link = "";
-            if (uriBuilder != null) {
-                link = uriBuilder.buildUrl(null, "/auth/otp/verify/" + accountOtp.getProviderId() + "/" + code);
-            }
-            vars.put("link", link);
-
-            Map<String, Object> action = new HashMap<>();
-            action.put("url", link);
-            action.put("text", "action.login");
-            vars.put("action", action);
-
-            vars.put("realm", getRealm());
-
-            mailService.sendEmail(account.getEmail(), "otp", lang, vars);
+        if (mailService == null) {
+            return;
         }
+
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("code", code);
+        vars.put("user", account);
+
+        String link = (uriBuilder != null)
+            ? uriBuilder.buildUrl(null, "/auth/otp/verify/" + accountOtp.getProviderId() + "/" + code)
+            : "";
+
+        vars.put("link", link);
+        vars.put("action", Map.of("url", link, "text", "action.login"));
+        vars.put("realm", getRealm());
+
+        mailService.sendEmail(account.getEmail(), "otp", lang, vars);
     }
 
     public void consumeOtp(String token, String providerId) {
@@ -144,24 +139,22 @@ public class OtpCredentialsService
     }
 
     public boolean verifyOtp(String token, String providerId) {
-        if (token == null || token.isEmpty() || providerId == null || providerId.isEmpty()) {
+        if (!StringUtils.hasText(token) || !StringUtils.hasText(providerId)) {
             return false;
         }
 
         InternalUserOtpEntity accountOtp = otpRepository.findByTokenAndProviderId(token, providerId);
-        Long now = System.currentTimeMillis();
+        if (accountOtp == null || !providerId.equals(accountOtp.getProviderId())) {
+            return false;
+        }
 
-        if (
-            accountOtp != null && providerId.equals(accountOtp.getProviderId()) && accountOtp.getExpiryTimestamp() > now
-            //TODO: check attempts globally for the account, not per token
-        ) {
+        long now = System.currentTimeMillis();
+        if (accountOtp.getExpiryTimestamp() > now) {
+            // TODO: check attempts globally for the account, not per token
             return true;
         }
 
-        if (accountOtp != null && providerId.equals(accountOtp.getProviderId())) {
-            //TODO: increase attempts globally for the account
-        }
-
+        // TODO: increase attempts globally if failed verification, not per token but per account
         return false;
     }
 
