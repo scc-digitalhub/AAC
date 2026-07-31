@@ -58,6 +58,7 @@ import it.smartcommunitylab.aac.oauth.token.ResourceOwnerPasswordTokenGranter;
 import it.smartcommunitylab.aac.openid.service.OIDCTokenServices;
 import it.smartcommunitylab.aac.openid.token.IdTokenServices;
 import it.smartcommunitylab.aac.profiles.claims.OpenIdClaimsExtractorProvider;
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
 import it.smartcommunitylab.aac.users.service.UserService;
 import java.beans.PropertyVetoException;
@@ -321,7 +322,8 @@ public class OAuth2Config {
         ScopeRegistry scopeRegistry,
         UserService userService,
         FlowExtensionsService flowExtensionsService,
-        OAuth2EventPublisher oauth2EventPublisher
+        OAuth2EventPublisher oauth2EventPublisher,
+        ExtTokenStore tokenStore
     ) {
         // build our own list of granters
         List<AbstractTokenGranter> granters = new ArrayList<>();
@@ -357,6 +359,7 @@ public class OAuth2Config {
             oAuth2RequestFactory
         );
         refreshTokenGranter.setEventPublisher(oauth2EventPublisher);
+        refreshTokenGranter.setTokenStore(tokenStore);
         granters.add(refreshTokenGranter);
 
         // implicit
@@ -448,7 +451,12 @@ public class OAuth2Config {
     }
 
     @Bean
-    public OAuth2EventListener oauth2EventListener(OAuth2ClientDetailsService clientDetailsService) {
-        return new OAuth2EventListener(clientDetailsService);
+    public OAuth2EventListener oauth2EventListener(
+            OAuth2ClientDetailsService clientDetailsService,
+            RealmService realmService
+    ) {
+        OAuth2EventListener listener = new OAuth2EventListener(clientDetailsService);
+        listener.setRealmService(realmService);
+        return listener;
     }
 }
