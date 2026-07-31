@@ -342,6 +342,10 @@
         "tokenType": {
             "helperText": "",
             "name": "Token type"
+        },
+        "eventsLevel": {
+            "helperText": "Detail level for OAuth2 token grant audit events (OAUTH2_TOKEN_GRANT) in this realm. Leave empty to keep the default (none).",
+            "name": "OAuth2 token events level"
         }
     },
     "persistence": {
