@@ -16,6 +16,8 @@
 
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.event.OAuth2AuthorizationExceptionEvent;
@@ -28,6 +30,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -52,6 +56,12 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
     private ApplicationEventPublisher publisher;
 
     private final OAuth2ClientDetailsService clientService;
+
+    private RealmService realmService;
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
+    }
 
     public OAuth2EventListener(OAuth2ClientDetailsService clientService) {
         Assert.notNull(clientService, "client service is required");
@@ -158,6 +168,12 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             String realm = token.getRealm();
             String type = auth.getUserAuthentication() == null ? "client" : "user";
 
+            String levelRealmEvent = resolveOauth2EventsLevel(realm);
+
+            if(levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_NONE)) {
+                return;
+            }
+
             Map<String, Object> data = new HashMap<>();
             Map<String, Object> webAuthenticationDetails = new HashMap<>();
 
@@ -200,5 +216,16 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
         if (getPublisher() != null) {
             getPublisher().publishEvent(new AuditApplicationEvent(event));
         }
+    }
+
+    private String resolveOauth2EventsLevel(String realm) {
+        if (realmService == null || !StringUtils.hasText(realm)) {
+            return SystemKeys.EVENTS_LEVEL_NONE;
+        }
+        Realm r = realmService.findRealm(realm);
+        String level = (r != null && r.getOAuthConfiguration() != null)
+            ? r.getOAuthConfiguration().getEventsLevel()
+            : null;
+        return StringUtils.hasText(level) ? level : SystemKeys.EVENTS_LEVEL_NONE;
     }
 }

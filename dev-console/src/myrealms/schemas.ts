@@ -42,6 +42,12 @@ export const realmOAuthSchema: RJSFSchema = {
             title: 'field.oauth2.openClientRegistration.name',
             description: 'field.oauth2.openClientRegistration.helperText',
         },
+        eventsLevel: {
+            type: 'string',
+            enum: ['none', 'minimal', 'details', 'full'],
+            title: 'field.oauth2.eventsLevel.name',
+            description: 'field.oauth2.eventsLevel.helperText',
+        },
     },
 };
 export const realmTosSchema: RJSFSchema = {
