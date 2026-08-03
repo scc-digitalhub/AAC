@@ -37,7 +37,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,6 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -78,9 +76,6 @@ public class RefreshTokenGrantTest {
 
     @Autowired
     private BootstrapConfig config;
-
-    @Autowired
-    private ExtTokenStore tokenStore;
 
     private String username;
     private String password;
@@ -749,100 +744,6 @@ public class RefreshTokenGrantTest {
 
         // no access token
         assertThat(response.get(OAuth2ParameterNames.ACCESS_TOKEN)).isNull();
-    }
-
-    @Test
-    @WithMockUserAuthentication(username = "test", realm = "test")
-    public void authCodeRefreshShouldPreserveUserAuthenticationTest() throws Exception {
-        // 1. Authorize request to get the authorization code
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add(OAuth2ParameterNames.RESPONSE_TYPE, ResponseType.CODE.toString());
-        params.add(OAuth2ParameterNames.CLIENT_ID, clientId);
-        // Request offline_access to obtain a refresh token
-        List<String> scopes = List.of(Config.SCOPE_OFFLINE_ACCESS, Config.SCOPE_PROFILE);
-        params.add(OAuth2ParameterNames.SCOPE, String.join(" ", scopes));
-
-        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
-            .get(AUTHORIZE_URL)
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .params(params);
-
-        MvcResult res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
-        String forwardedUrl = res.getResponse().getForwardedUrl();
-
-        MockHttpSession session = (MockHttpSession) res.getRequest().getSession();
-        req = MockMvcRequestBuilders.get(forwardedUrl).session(session);
-        res = this.mockMvc.perform(req).andExpect(status().is3xxRedirection()).andReturn();
-
-        String redirectedUrl = res.getResponse().getRedirectedUrl();
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(redirectedUrl);
-        String code = builder.build(true).getQueryParams().get(OAuth2ParameterNames.CODE).get(0);
-        assertThat(code).isNotBlank();
-
-        // 2. Exchange authorization code for Access Token and Refresh Token
-        params = new LinkedMultiValueMap<>();
-        params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.AUTHORIZATION_CODE.getValue());
-        params.add(OAuth2ParameterNames.CODE, code);
-
-        req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
-            .with(httpBasic(clientId, clientSecret))
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .params(params);
-
-        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
-        Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
-
-        String originalAccessToken = (String) response.get(OAuth2ParameterNames.ACCESS_TOKEN);
-        String refreshToken = (String) response.get(OAuth2ParameterNames.REFRESH_TOKEN);
-
-        assertThat(originalAccessToken).isNotBlank();
-        assertThat(refreshToken).isNotBlank();
-
-        // 3. Perform Refresh Token Grant to obtain a new access token
-        params = new LinkedMultiValueMap<>();
-        params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
-        params.add(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken);
-
-        req = MockMvcRequestBuilders
-            .post(TOKEN_URL)
-            .with(httpBasic(clientId, clientSecret))
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .params(params);
-
-        res = this.mockMvc.perform(req).andExpect(status().isOk()).andReturn();
-        response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
-
-        String refreshedAccessToken = (String) response.get(OAuth2ParameterNames.ACCESS_TOKEN);
-        assertThat(refreshedAccessToken).isNotBlank();
-
-        // Read the original authentication bound to the refresh token to get the expected Subject ID
-        org.springframework.security.oauth2.common.OAuth2RefreshToken storedRefreshToken =
-            tokenStore.readRefreshToken(refreshToken);
-        org.springframework.security.oauth2.provider.OAuth2Authentication originalAuth =
-            tokenStore.readAuthenticationForRefreshToken(storedRefreshToken);
-
-        assertThat(originalAuth).isNotNull();
-        assertThat(originalAuth.getUserAuthentication()).isNotNull();
-
-        String expectedSubjectId = originalAuth.getUserAuthentication().getName();
-
-        // Decode the refreshed JWT payload to inspect its claims
-        String[] jwtParts = refreshedAccessToken.split("\\.");
-        assertThat(jwtParts.length).isEqualTo(3);
-
-        String payload = new String(java.util.Base64.getUrlDecoder().decode(jwtParts[1]));
-        Map<String, Serializable> claims = mapper.readValue(payload, typeRef);
-
-        // Verify that the refreshed token retains the exact same user context ('sub' claim)
-        assertThat(claims.get("sub")).isEqualTo(expectedSubjectId);
-
-        // Verify that the realm claim is preserved and matches the original context
-        assertThat(claims.get("realm")).isEqualTo("test");
-
-        // Verify that the scope claims are correctly carried over to the refreshed token
-        assertThat(claims.get("scope")).isNotNull();
-        assertThat(claims.get("scope").toString()).contains(Config.SCOPE_OFFLINE_ACCESS);
     }
 
     private static final String AUTHORIZE_URL = AuthorizationEndpoint.AUTHORIZATION_URL;

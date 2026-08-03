@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.SystemKeys;
+import it.smartcommunitylab.aac.model.EventsLevel;
 import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
@@ -28,6 +29,7 @@ import it.smartcommunitylab.aac.oauth.event.OAuth2Event;
 import it.smartcommunitylab.aac.oauth.event.OAuth2TokenExceptionEvent;
 import it.smartcommunitylab.aac.oauth.event.TokenGrantEvent;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import java.time.Instant;
 import java.util.Arrays;
@@ -35,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.slf4j.Logger;
@@ -173,20 +176,22 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
 
             String realm = token.getRealm();
             // realm level detail configuration
-            String levelRealmEvent = resolveOauth2EventsLevel(realm);
+            EventsLevel levelRealmEvent = resolveOauth2EventsLevel(realm);
 
-            if(levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_NONE)) {
+            if (EventsLevel.NONE.equals(levelRealmEvent)) {
                 return;
             }
 
             // use LinkedHashMap so the serialized audit JSON preserves this insertion order
             Map<String, Object> data = new LinkedHashMap<>();
 
-            Map<String, Object> oauth2ERequest = MAPPER.convertValue(event.getSource(), new TypeReference<>() {});
-            data.put("grant_type", String.valueOf(oauth2ERequest.get("grantType")));
+            if(auth.getOAuth2Request() != null) {
+                String grantType = auth.getOAuth2Request().getGrantType();
+                data.put("grant_type", grantType);
+            }
 
             // IP ADDRESS OF CLIENT THAT REQUIRE TOKEN
-            if (!levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_MINIMAL) && authClient != null && authClient.getWebAuthenticationDetails() != null) {
+            if(!EventsLevel.MINIMAL.equals(levelRealmEvent) && authClient != null && authClient.getWebAuthenticationDetails() != null) {
                 data.put("webAuthenticationDetails", authClient.getWebAuthenticationDetails());
             }
 
@@ -207,7 +212,7 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
                 // Jackson converts to LinkedHashMap, preserving original JSON order
                 Map<String, Object> authUserMap = MAPPER.convertValue(authUser.getDetails(), new TypeReference<>() {});
 
-                if(levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_FULL)){
+                if(EventsLevel.FULL.equals(levelRealmEvent)){
                     data.put("user", authUserMap);
                 } else {
                     Map<String, Object> userData =  new LinkedHashMap<>();
@@ -215,7 +220,7 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
                     userData.put("realm", authUserMap.get("realm"));
                     userData.put("username", authUserMap.get("username"));
 
-                    if(levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_DETAILS)){
+                    if(EventsLevel.DETAILS.equals(levelRealmEvent)){
                         userData.put("details", extractUserDetails(authUserMap));
                     }
                     data.put("user", userData);
@@ -226,7 +231,7 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             data.put("type", type);
 
             // TOKEN VALUE SANITIZE
-            if (!levelRealmEvent.equals(SystemKeys.EVENTS_LEVEL_MINIMAL)) {
+            if(!EventsLevel.MINIMAL.equals(levelRealmEvent)) {
                 String safeTokenValue = sanitizeToken(token.getValue());
                 data.put("token", safeTokenValue);
             }
@@ -270,12 +275,14 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             Object identitiesObj = rawDetails.get("identities");
 
             // Process identities if they exist and are in a list format
-            if (identitiesObj instanceof List<?> rawIdentities) {
+            if (identitiesObj instanceof List<?> rawList) {
+                // Explicitly cast the entire list upfront (suppressing the unchecked compiler warning)
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> rawIdentities = (List<Map<String, Object>>) rawList;
+
                 List<Map<String, Object>> safeIdentities = rawIdentities.stream()
-                    .filter(Map.class::isInstance)
-                    .map(Map.class::cast)
-                    // Retain only identities containing both 'principal' and 'account'
-                    .filter(identity -> identity.containsKey("principal") && identity.containsKey("account"))
+                    // We can now use the map directly without further casts or class filters
+                    .filter(identity -> identity != null && identity.containsKey("principal") && identity.containsKey("account"))
                     .map(identity -> {
                         // Extract and securely map only the 'account' block
                         Map<String, Object> safeIdentity = new LinkedHashMap<>();
@@ -313,14 +320,14 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
         return "***MASKED_TOKEN***";
     }
 
-    private String resolveOauth2EventsLevel(String realm) {
+    private EventsLevel resolveOauth2EventsLevel(String realm) {
         if (realmService == null || !StringUtils.hasText(realm)) {
-            return SystemKeys.EVENTS_LEVEL_NONE;
+            return EventsLevel.NONE;
         }
-        Realm r = realmService.findRealm(realm);
-        String level = (r != null && r.getOAuthConfiguration() != null)
-                ? r.getOAuthConfiguration().getEventsLevel()
-                : null;
-        return StringUtils.hasText(level) ? level : SystemKeys.EVENTS_LEVEL_NONE;
+
+        return Optional.ofNullable(realmService.findRealm(realm))
+            .map(Realm::getOAuthConfiguration)
+            .map(OAuth2ConfigurationMap::getEventsLevel)
+            .orElse(EventsLevel.NONE);
     }
 }

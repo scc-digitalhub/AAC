@@ -22,8 +22,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.model.EventsLevel;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
 
     // detail level for the OAuth2 token grant audit events (OAUTH2_TOKEN_GRANT)
     // defaults to none; the listener keeps the default behaviour when not configured
-    private String eventsLevel = SystemKeys.EVENTS_LEVEL_NONE;
+    private EventsLevel eventsLevel = EventsLevel.NONE;
 
     public OAuth2ConfigurationMap() {
         enableClientRegistration = false;
@@ -74,11 +74,11 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
         this.openClientRegistration = openClientRegistration;
     }
 
-    public String getEventsLevel() {
+    public EventsLevel getEventsLevel() {
         return eventsLevel;
     }
 
-    public void setEventsLevel(String eventsLevel) {
+    public void setEventsLevel(EventsLevel eventsLevel) {
         this.eventsLevel = eventsLevel;
     }
 
