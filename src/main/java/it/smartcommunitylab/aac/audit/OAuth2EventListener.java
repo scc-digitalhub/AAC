@@ -172,7 +172,7 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             data.put("webAuthenticationDetails", webAuthenticationDetails);
 
             data.put("type", type);
-            data.put("token", token.getValue());
+            data.put("token", mask(token.getValue()));
             data.put("scope", token.getScope());
 
             data.put("jti", token.getToken());
@@ -194,6 +194,22 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             // publish as event, listener will persist to store
             publish(audit);
         }
+    }
+
+    static String mask(String token) {
+        if (token == null || token.isEmpty()) return null;
+
+        if (token.length() == 1) return token;
+
+        String[] parts = token.split("\\.");
+
+        // Mask JWT signature only.
+        if (parts.length == 3) return parts[0] + "." + parts[1] + "." + "*".repeat(parts[2].length());
+
+        int visibleChars = Math.min(8, token.length() / 2);
+
+        // Return opaque token partially masked
+        return token.substring(0, visibleChars) + "*".repeat(token.length() - visibleChars);
     }
 
     protected void publish(AuditEvent event) {
