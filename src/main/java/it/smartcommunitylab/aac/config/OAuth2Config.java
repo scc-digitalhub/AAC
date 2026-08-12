@@ -81,6 +81,7 @@ import org.springframework.security.oauth2.provider.approval.ApprovalStore;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
 import org.springframework.security.oauth2.provider.endpoint.RedirectResolver;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.bind.support.DefaultSessionAttributeStore;
 import org.springframework.web.bind.support.SessionAttributeStore;
 import org.springframework.web.context.WebApplicationContext;
@@ -323,7 +324,7 @@ public class OAuth2Config {
         UserService userService,
         FlowExtensionsService flowExtensionsService,
         OAuth2EventPublisher oauth2EventPublisher,
-        ExtTokenStore tokenStore
+        TokenStore tokenStore
     ) {
         // build our own list of granters
         List<AbstractTokenGranter> granters = new ArrayList<>();
@@ -452,8 +453,8 @@ public class OAuth2Config {
 
     @Bean
     public OAuth2EventListener oauth2EventListener(
-            OAuth2ClientDetailsService clientDetailsService,
-            RealmService realmService
+        OAuth2ClientDetailsService clientDetailsService,
+        RealmService realmService
     ) {
         OAuth2EventListener listener = new OAuth2EventListener(clientDetailsService);
         listener.setRealmService(realmService);

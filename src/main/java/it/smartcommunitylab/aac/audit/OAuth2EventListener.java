@@ -16,8 +16,6 @@
 
 package it.smartcommunitylab.aac.audit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
 import it.smartcommunitylab.aac.identity.model.UserIdentity;
@@ -61,8 +59,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, ApplicationEventPublisherAware {
-
-    private static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
