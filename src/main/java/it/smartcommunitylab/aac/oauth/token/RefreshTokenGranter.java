@@ -21,17 +21,24 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenRequest;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+
 
 public class RefreshTokenGranter extends AbstractTokenGranter {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String GRANT_TYPE = "refresh_token";
+
+    // optional token store, used to recover the full original authentication
+    // (including the end-user) for audit events during the refresh flow
+    private TokenStore tokenStore;
 
     public RefreshTokenGranter(
         AuthorizationServerTokenServices tokenServices,
@@ -74,5 +81,49 @@ public class RefreshTokenGranter extends AbstractTokenGranter {
         String refreshToken = tokenRequest.getRequestParameters().get("refresh_token");
         logger.trace("get access token for refresh token " + refreshToken);
         return getTokenServices().refreshAccessToken(refreshToken, tokenRequest);
+    }
+
+    /*
+     * Overrides the base behavior to recover the full original authentication (including the end-user)
+     * bound to the refresh token.
+     * The default implementation in AbstractTokenGranter returns an OAuth2Authentication with a null user.
+     * We intercept this to attach the historical userAuthentication retrieved from the TokenStore,
+     * ensuring the refreshed token retains the exact same user context for audit events and token enhancement.
+     */
+    @Override
+    protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
+        // 1. Get the base client-only authentication from the framework (user is null here)
+        OAuth2Authentication oAuth2Authentication = super.getOAuth2Authentication(client, tokenRequest);
+
+        // Early exit if tokenStore is not configured
+        if (tokenStore == null) {
+            return oAuth2Authentication;
+        }
+
+        try {
+            String refreshTokenValue = tokenRequest.getRequestParameters().get("refresh_token");
+            if (refreshTokenValue != null) {
+                OAuth2RefreshToken refreshToken = tokenStore.readRefreshToken(refreshTokenValue);
+                if (refreshToken != null) {
+
+                    // 2. Retrieve the historical authentication from the store
+                    OAuth2Authentication storedAuth = tokenStore.readAuthenticationForRefreshToken(refreshToken);
+
+                    if (storedAuth != null && storedAuth.getUserAuthentication() != null) {
+                        // 3. Attach the recovered user authentication to the current request
+                        return new OAuth2Authentication(oAuth2Authentication.getOAuth2Request(), storedAuth.getUserAuthentication());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("unable to recover full authentication for refresh token audit event: " + e.getMessage());
+        }
+
+        // Fallback to base behavior if user recovery fails
+        return oAuth2Authentication;
+    }
+
+    public void setTokenStore(TokenStore tokenStore) {
+        this.tokenStore = tokenStore;
     }
 }
