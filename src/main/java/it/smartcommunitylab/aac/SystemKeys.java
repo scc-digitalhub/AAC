@@ -50,6 +50,7 @@ public class SystemKeys {
     public static final String AUTHORITY_APPLE = "apple";
     public static final String AUTHORITY_WEBAUTHN = "webauthn";
     public static final String AUTHORITY_PASSWORD = "password";
+    public static final String AUTHORITY_OTP = "otp";
     public static final String AUTHORITY_TEMPLATE = "template";
     public static final String AUTHORITY_TOS = "tos";
     public static final String AUTHORITY_OPENIDFED = "openidfed";
