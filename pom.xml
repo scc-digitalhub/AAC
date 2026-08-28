@@ -25,7 +25,7 @@
 		<yarn.version>v1.22.19</yarn.version>
 		<postgresql.version>42.7.1</postgresql.version>
 		<mysql.version>8.3.0</mysql.version>
-		<mariadb.version>3.3.2</mariadb.version>
+		<mariadb.version>3.3.5</mariadb.version>
 		<opensaml.version>4.1.1</opensaml.version>
 		<profile.authorization />
 	</properties>
