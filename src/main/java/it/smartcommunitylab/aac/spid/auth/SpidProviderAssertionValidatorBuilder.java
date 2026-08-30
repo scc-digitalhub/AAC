@@ -1,5 +1,6 @@
 package it.smartcommunitylab.aac.spid.auth;
 
+import it.smartcommunitylab.aac.spid.SpidKeys;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAttributeConsumingService;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
@@ -213,7 +214,9 @@ public class SpidProviderAssertionValidatorBuilder {
             return false;
         }
         // NOTE: technically, Instant.now() is not the instant when the request is received. Should this be fixed?
-        return assertion.getIssueInstant().isBefore(Instant.now());
+        //return assertion.getIssueInstant().isBefore(Instant.now());
+        // Accept assertions that appear to be issued up to 30-second tolerance for future clock skew in the future
+        return assertionInstant.isBefore(Instant.now().plusSeconds(SpidKeys.SPID_CLOCK_SKEW));
     }
 
     private boolean isAssertionConditionsValid(Assertion assertion) {

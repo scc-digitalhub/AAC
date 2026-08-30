@@ -200,7 +200,9 @@ public class SpidMetadataResolver implements Saml2MetadataResolver {
             throw new Saml2Exception(e);
         }
         // add signature to element
-        return SerializeSupport.prettyPrintXML(element);
+        //return SerializeSupport.prettyPrintXML(element);
+        // serialize compact: must match the signed DOM, otherwise indentation breaks the signature digest
+        return SerializeSupport.nodeToString(element);
     }
 
     // build an the Metadata root element, which is a single Entity Descriptor, except for signature

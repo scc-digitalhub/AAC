@@ -1,0 +1,17 @@
+# resources/application-test-spid.yml
+jdbc:
+  dialect: org.hibernate.dialect.H2Dialect
+  driver: org.h2.Driver
+  url: jdbc:h2:mem:spid-test;DB_CLOSE_DELAY=-1
+  user: ac
+  password: ac
+
+# Overriding the SPID configuration for testing
+spid:
+  identityProviders:
+    # IdP mock for HTTP-Redirect
+    - entityId: https://idp.identityserver.redirect
+      metadataUrl: ${wiremock.idp.redirect.url}/metadata
+    # IdP mock for HTTP-POST
+    - entityId: https://idp.identityserver.post
+      metadataUrl: ${wiremock.idp.post.url}/metadata
