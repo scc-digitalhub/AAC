@@ -156,6 +156,12 @@ public class SpidIdentityProvider
         lp.setDescriptionMap(getDescriptionMap());
         lp.setPosition(getConfig().getPosition());
         lp.setLoginUrl(getLoginUrl());
+
+        //template override
+        //TODO validate against supported
+        if (StringUtils.hasText(config.getSettingsMap().getTemplate())) {
+            lp.setTemplate(config.getSettingsMap().getTemplate());
+        }
         
         List<SpidLoginProvider.SpidIdpButton> spidIdpsLogin = new LinkedList<>();
         for (SpidRegistration spidReg : config.getIdentityProviders()) {
