@@ -37,6 +37,7 @@ import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -229,11 +230,14 @@ public class SpidAuthenticationProvider
         if (executionService != null) {
             // get all attributes from principal
             // TODO handle all attributes not only strings.
+            // SAML 2.0 Core 2.7.3.1: an attribute without values is an attribute with no value, not an empty one.
+            // SPID uso professionale (AgID Avviso n.18, mixed Purpose P/PX): legal-person attributes requested for a
+            // type-3 identity come back empty from the IdP; keep them out of the attributes passed to the scripts.
             user
                 .getAttributes()
                 .entrySet()
                 .stream()
-                .filter(e -> e.getValue() != null)
+                .filter(e -> e.getValue() != null && !isEmptyValue(e.getValue()))
                 .forEach(e -> principalAttributes.put(e.getKey(), e.getValue()));
 
             //TODO build context with relevant info
@@ -328,5 +332,23 @@ public class SpidAuthenticationProvider
 
     public void setCustomAuthFunction(String customAuthFunction) {
         this.customAuthFunction = customAuthFunction;
+    }
+
+    /*
+     * true when a SAML attribute value carries nothing: an empty collection, an empty array or a blank string.
+     * SAML 2.0 Core 2.7.3.1: an <Attribute> without <AttributeValue> is an attribute with no value; SPID uso
+     * professionale (AgID Avviso n.18, mixed Purpose P/PX) is the only case where AAC receives such attributes.
+     */
+    static boolean isEmptyValue(Object value) {
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).isEmpty();
+        }
+        if (value instanceof Object[]) {
+            return ((Object[]) value).length == 0;
+        }
+        if (value instanceof String) {
+            return ((String) value).isBlank();
+        }
+        return false;
     }
 }

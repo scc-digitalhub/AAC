@@ -75,6 +75,7 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
 import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
+import it.smartcommunitylab.aac.spid.model.SpidPurpose;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAttributeConsumingService;
 import it.smartcommunitylab.aac.spid.model.SpidMetadataConfiguration;
@@ -599,6 +600,10 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return configMap.getAuthnContext() == null
             ? Collections.emptySet()
             : Collections.singleton(configMap.getAuthnContext().getValue());
+    }
+
+    public SpidPurpose getPurpose() {
+        return configMap.getPurpose();
     }
 
     public SpidUserAttribute getSubAttributeName() {
