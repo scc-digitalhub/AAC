@@ -162,6 +162,31 @@
         </div>
         <div class="row">
             <div class="form-group col">
+                <div class="bootstrap-select-wrapper border-bottom-0"
+                     ng-init="purposeLabels={
+                        'P':   'uso professionale: persona fisica o persona giuridica',
+                        'LP':  'persona giuridica o uso professionale per la persona giuridica',
+                        'PG':  'uso professionale per la persona giuridica',
+                        'PF':  'uso professionale della persona fisica',
+                        'PX':  'persona giuridica o uso professionale (persona fisica o persona giuridica)',
+                        'PS':  'come P, anche per stranieri',
+                        'LPS': 'come LP, anche per stranieri',
+                        'PGS': 'come PG, anche per stranieri',
+                        'PFS': 'come PF, anche per stranieri',
+                        'PXS': 'come PX, anche per stranieri'}">
+                    <label>Spid Purpose (uso professionale)</label>
+                    <select title="None (classic SPID)" ng-model="idp.configuration.purpose">
+                        <option value="">None (classic SPID)</option>
+                        <option ng-repeat="c in idp.schema.properties.purpose.enum" value="{{c}}"
+                                ng-selected="idp.configuration.purpose == c">{{c}} - {{purposeLabels[c] || ''}}
+                        </option>
+                    </select>
+                    <small class="form-text">Kinds of digital identity accepted, sent as &lt;spid:Purpose&gt; in AuthN requests (AgID Avviso SPID n.18). Leave empty for classic SPID.</small>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col">
                 <div class="bootstrap-select-wrapper border-bottom-0">
                     <label>Spid user attributes</label>
                     <select title="Select" multiple="true" data-multiple-separator=""

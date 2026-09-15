@@ -707,6 +707,10 @@
         "name": "Spid level",
         "helperText": "SPID authentication level"
     },
+    "purpose": {
+        "name": "Spid Purpose (uso professionale)",
+        "helperText": "Type of digital identity accepted by the service, sent as <spid:Purpose> in AuthN requests (AgID Avviso SPID n.18). Leave empty for classic SPID (persona fisica / persona giuridica only). P: uso professionale, persona fisica o persona giuridica. LP: persona giuridica o uso professionale per la persona giuridica. PG: uso professionale per la persona giuridica. PF: uso professionale della persona fisica. PX: persona giuridica o uso professionale (persona fisica o persona giuridica). PS, LPS, PGS, PFS, PXS: come P, LP, PG, PF, PX, anche per stranieri."
+    },
     "usernameAttributeName": {
         "name": "Spid username attribute",
         "helperText": "Name of the SPID attribute used as username"

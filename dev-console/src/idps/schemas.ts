@@ -294,7 +294,7 @@ export const uiSchemaOpenidfedIdp: UiSchema = {
     },
 };
 export const uiSchemaSpidIdp: UiSchema = {
-    'ui:layout': [6, 6, 12, 12, 12, 12, 12, 12, 4, 4, 4, 6, 6, 12, 12, 12, 6, 6, 12, 6, 6],
+    'ui:layout': [6, 6, 12, 12, 12, 12, 12, 12, 4, 4, 4, 6, 6, 12, 12, 12, 6, 6, 12, 12, 6, 6],
     'ui:order': [
         'signingKey',
         'signingCertificate',
@@ -315,6 +315,7 @@ export const uiSchemaSpidIdp: UiSchema = {
         'useAssertionConsumerServiceUrl',
         'attributeConsumingServiceIndex',
         'authnContext',
+        'purpose',
         'subAttributeName',
         'usernameAttributeName',
     ],
@@ -329,6 +330,10 @@ export const uiSchemaSpidIdp: UiSchema = {
     authnContext: {
         'ui:title': 'field.spidLevel.name',
         'ui:description': 'field.spidLevel.helperText',
+    },
+    purpose: {
+        'ui:title': 'field.purpose.name',
+        'ui:description': 'field.purpose.helperText',
     },
     signingKey: {
         "ui:widget": "textarea",
