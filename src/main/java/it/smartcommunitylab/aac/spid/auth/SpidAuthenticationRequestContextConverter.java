@@ -214,7 +214,7 @@ public class SpidAuthenticationRequestContextConverter
      * Build <samlp:Extensions><spid:Purpose xmlns:spid="https://spid.gov.it/saml-extensions">VALUE</spid:Purpose></samlp:Extensions>
      * as required by AgID Avviso SPID n.18: exactly one Purpose value per request.
      */
-    public Extensions buildPurposeExtensions(SpidPurpose purpose) {
+    private Extensions buildPurposeExtensions(SpidPurpose purpose) {
         Assert.notNull(purpose, "purpose cannot be null");
 
         QName purposeName = new QName(
