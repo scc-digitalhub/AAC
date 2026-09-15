@@ -25,6 +25,7 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.model.AbstractConfigMap;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
+import it.smartcommunitylab.aac.spid.model.SpidPurpose;
 import it.smartcommunitylab.aac.spid.model.SpidUserAttribute;
 import java.io.Serializable;
 import java.util.List;
@@ -78,6 +79,7 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
     private Boolean useAssertionConsumerServiceUrl;
     private Integer attributeConsumingServiceIndex;
     private SpidAuthnContext authnContext;
+    private SpidPurpose purpose; // optional: null means classic SPID (identity types 1 and 2 only)
 
     private SpidUserAttribute subAttributeName; // optional
     private SpidUserAttribute usernameAttributeName; // optional
@@ -232,6 +234,14 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.authnContext = authnContext;
     }
 
+    public SpidPurpose getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(SpidPurpose purpose) {
+        this.purpose = purpose;
+    }
+
     public SpidUserAttribute getSubAttributeName() {
         return this.subAttributeName;
     }
@@ -269,6 +279,7 @@ public class SpidIdentityProviderConfigMap extends AbstractConfigMap implements 
         this.useAssertionConsumerServiceUrl = map.getUseAssertionConsumerServiceUrl();
         this.attributeConsumingServiceIndex = map.getAttributeConsumingServiceIndex();
         this.authnContext = map.getAuthnContext();
+        this.purpose = map.getPurpose();
         this.subAttributeName = map.getSubAttributeName();
         this.usernameAttributeName = map.getUsernameAttributeName();
     }
