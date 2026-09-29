@@ -114,6 +114,7 @@ const AppView = () => {
                     reference="roles"
                     label="field.roles.name"
                 />
+                <TextField source="description" label="field.description.name" />
                 <TextField source="notes" label="field.notes.name" />
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.credentials">

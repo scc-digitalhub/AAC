@@ -66,6 +66,7 @@ public class ClientEntityService {
         String type,
         String name,
         String description,
+        String notes,
         Collection<String> scopes,
         Collection<String> resourceIds,
         Collection<String> providers,
@@ -87,6 +88,7 @@ public class ClientEntityService {
         c.setType(type);
         c.setName(name);
         c.setDescription(description);
+        c.setNotes(notes);
 
         c.setScopes(StringUtils.collectionToCommaDelimitedString(scopes));
         c.setResourceIds(StringUtils.collectionToCommaDelimitedString(resourceIds));

@@ -121,12 +121,17 @@ public class OAuth2ClientAppService implements ClientAppService {
     public ClientApp registerClient(String realm, ClientApp app) {
         String name = app.getName();
         String description = app.getDescription();
+        String notes = app.getNotes();
 
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Safelist.none());
         }
         if (StringUtils.hasText(description)) {
             description = Jsoup.clean(description, Safelist.none());
+        }
+
+        if (StringUtils.hasText(notes)) {
+            notes = Jsoup.clean(notes, Safelist.none());
         }
 
         if (app.getConfiguration() == null) {
@@ -136,6 +141,7 @@ public class OAuth2ClientAppService implements ClientAppService {
                 app.getClientId(),
                 name,
                 description,
+                notes,
                 Arrays.asList(app.getScopes()),
                 Arrays.asList(app.getResourceIds()),
                 Arrays.asList(app.getProviders()),
@@ -189,6 +195,7 @@ public class OAuth2ClientAppService implements ClientAppService {
                 app.getClientId(),
                 name,
                 description,
+                notes,
                 Arrays.asList(app.getScopes()),
                 Arrays.asList(app.getResourceIds()),
                 Arrays.asList(app.getProviders()),
