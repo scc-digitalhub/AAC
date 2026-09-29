@@ -253,6 +253,7 @@ const AppEditForm = () => {
                     label="field.providers.name"
                     helperText="field.providers.helperText"
                     reference="idps"
+                    perPage={100} 
                     sort={{ field: 'name', order: 'ASC' }}
                 >
                     <CheckboxGroupInput
