@@ -144,9 +144,6 @@ public class OAuth2RequestFactory
             // we need a field in tokenRequest
             Set<String> resourceIds = delimitedStringToSet(decodeParameters(requestParameters.get("resource")));
 
-            // also load resources derived from requested scope
-            resourceIds.addAll(extractResourceIds(scopes));
-
             // depend on flow
             // use per flow token request subtype
             AuthorizationGrantType authorizationGrantType = AuthorizationGrantType.parse(grantType);
@@ -155,7 +152,9 @@ public class OAuth2RequestFactory
                 String redirectUri = readParameter(requestParameters, "redirect_uri", URI_PATTERN);
                 // use scopes as requested
                 Set<String> requestScopes = scopes;
-
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(requestScopes));
+                
                 logger.trace(
                     "create token request for " +
                     clientId +
@@ -189,7 +188,9 @@ public class OAuth2RequestFactory
                 String username = readParameter(requestParameters, "username", USERNAME_PATTERN);
                 String password = requestParameters.get("password");
                 Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), false);
-
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(requestScopes));
+                
                 // remove offline_access if requested and still present
                 // password flow SHOULD not support refresh tokens
                 // but we let request pass, since from spec it COULD be valid
@@ -224,7 +225,9 @@ public class OAuth2RequestFactory
 
             if (authorizationGrantType == CLIENT_CREDENTIALS) {
                 Set<String> requestScopes = extractScopes(scopes, clientDetails.getScope(), true);
-
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(requestScopes));
+                
                 // check offline_access if requested and still present
                 // client flow MUST not support refresh tokens
                 // https://www.rfc-editor.org/rfc/rfc6749#section-4.4.3
@@ -259,7 +262,9 @@ public class OAuth2RequestFactory
                 // refresh tokens can ask scopes, but by default will get those in original
                 // request and not the client default
                 Set<String> requestScopes = scopes;
-
+                // also load resources derived from requested scope
+                resourceIds.addAll(extractResourceIds(requestScopes));
+                
                 logger.trace(
                     "create token request for " +
                     clientId +
