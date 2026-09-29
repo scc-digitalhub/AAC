@@ -97,7 +97,6 @@ const RoleListActions = () => {
             <ImportButton variant="contained" idField="roleId" />
             <ExportButton
                 variant="contained"
-                meta={{ flatten: [] }}
                 sort={{ field: 'name', order: 'ASC' }}
             />
         </TopToolbar>
