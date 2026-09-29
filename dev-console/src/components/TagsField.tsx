@@ -11,7 +11,13 @@ export const TagsField = () => {
     if (!record) return null;
 
     return (
-        <Stack direction={'row'} spacing={1}>
+        <Stack
+        direction={'row'}
+        flexWrap="wrap"
+        useFlexGap
+        gap={1}
+        sx={{ my: 0.5 }}
+        >
             {record.authorities &&
                 record.authorities
                     .filter(a => a.role && a.realm == realmId)
