@@ -107,6 +107,9 @@ public class SpidUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
                 .filter(e -> (e.getValue() != null))
                 .forEach(e -> {
                     String key = e.getKey();
+                    // SAML 2.0 Core 2.7.3.1: an <Attribute> without <AttributeValue> = attribute with no value, skip it.
+                    // Happens with SPID uso professionale (AgID Avviso n.18): a mixed Purpose (P, PX) requests legal-person
+                    // attributes that a type-3 identity does not carry; demo.spid.gov.it returns them as empty elements.
                     List<String> values = e.getValue().stream().map(Object::toString).collect(Collectors.toList());
                     if (values.size() == 1) {
                         result.put(key, values.get(0));
