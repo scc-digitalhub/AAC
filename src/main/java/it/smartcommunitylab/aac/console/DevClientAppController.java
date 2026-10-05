@@ -154,11 +154,13 @@ public class DevClientAppController extends BaseClientAppController {
             // read as raw yaml to check if collection
             Yaml reader = new Yaml();
             Map<String, Object> obj = reader.load(yaml);
-            boolean multiple = obj.containsKey(LIST_KEY);
+            // accept both "clients" and "apps" (export from console uses the resource name)
+            String listKey = obj.containsKey(LIST_KEY) ? LIST_KEY : (obj.containsKey("apps") ? "apps" : null);
+            boolean multiple = listKey != null;
 
             if (multiple) {
                 Map<String, List<ClientApp>> list = yamlObjectMapper.readValue(yaml, typeRef);
-                for (ClientApp app : list.get(LIST_KEY)) {
+                for (ClientApp app : list.get(listKey)) {
                     regs.add(app);
                 }
             } else {

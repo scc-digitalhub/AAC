@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -59,6 +60,17 @@ public class RealmRole {
     public RealmRole(String realm, String role) {
         this.realm = realm;
         this.role = role;
+    }
+
+    /*
+     * Deserialize from a plain string: treat it as roleId
+     * (e.g. "roles: [rr_...]" in client app exports)
+     */
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static RealmRole fromId(String roleId) {
+        RealmRole r = new RealmRole();
+        r.setRoleId(roleId);
+        return r;
     }
 
     public String getRoleId() {
@@ -148,6 +160,10 @@ public class RealmRole {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         RealmRole other = (RealmRole) obj;
+        if (realm == null && role == null && other.realm == null && other.role == null) {
+            // bare references (e.g. deserialized from a plain roleId): compare by id
+            return roleId == null ? other.roleId == null : roleId.equals(other.roleId);
+        }
         if (realm == null) {
             if (other.realm != null) return false;
         } else if (!realm.equals(other.realm)) return false;
