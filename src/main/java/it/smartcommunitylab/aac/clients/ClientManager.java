@@ -43,7 +43,6 @@ import it.smartcommunitylab.aac.oauth.service.OAuth2ClientService;
 import it.smartcommunitylab.aac.oauth.store.ExtTokenStore;
 import it.smartcommunitylab.aac.oauth.store.SearchableApprovalStore;
 import it.smartcommunitylab.aac.realms.service.RealmService;
-import it.smartcommunitylab.aac.roles.service.RealmRoleService;
 import it.smartcommunitylab.aac.roles.service.SpaceRoleService;
 import it.smartcommunitylab.aac.roles.service.SubjectRoleService;
 import it.smartcommunitylab.aac.scope.ScopeRegistry;
@@ -131,9 +130,6 @@ public class ClientManager {
 
     @Autowired
     private SubjectRoleService realmRoleService;
-
-    @Autowired
-    private RealmRoleService realmRoleCatalog;
 
     @Autowired
     private ExtTokenStore tokenStore;
@@ -379,19 +375,9 @@ public class ClientManager {
 
             ClientApp clientApp = oauthClientAppService.registerClient(r.getSlug(), app);
             try {
-                if (app.getRealmRoles() != null && !app.getRealmRoles().isEmpty()) {
-                    // associate realm roles if defined (only existing ones)
-                    Collection<RealmRole> roles = realmRoleService.setRoles(
-                        clientApp.getClientId(),
-                        realm,
-                        resolveRealmRoles(realm, app.getRealmRoles())
-                    );
-                    clientApp.setRealmRoles(roles);
-                } else {
-                    // load realm roles
-                    Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
-                    clientApp.setRealmRoles(roles);
-                }
+                // load realm roles
+                Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+                clientApp.setRealmRoles(roles);
 
                 Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
                 clientApp.setGroups(groups);
@@ -447,11 +433,7 @@ public class ClientManager {
         //update roles if defined
         if(app.getRealmRoles() != null) {
             //replace roles
-            Collection<RealmRole> roles = realmRoleService.setRoles(
-                clientId,
-                realm,
-                resolveRealmRoles(realm, app.getRealmRoles())
-            );
+            Collection<RealmRole> roles = realmRoleService.setRoles(clientId, realm, app.getRealmRoles().stream().map(RealmRole::getRole).toList());
             clientApp.setRealmRoles(new HashSet<>(roles));
         } else {
             // load realm roles
@@ -965,45 +947,6 @@ public class ClientManager {
         } else {
             throw new IllegalArgumentException("invalid client type");
         }
-    }
-
-    /*
-     * Resolve realm role references to role names.
-     * Accepts roles identified by name (realm, role) or by roleId only
-     * (e.g. "roles: [rr_...]" from console export); references to roles
-     * that do not exist in the realm are skipped.
-     */
-    private Collection<String> resolveRealmRoles(String realm, Collection<RealmRole> refs) {
-        Set<String> roles = new HashSet<>();
-        for (RealmRole ref : refs) {
-            if (ref == null) {
-                continue;
-            }
-
-            RealmRole role = null;
-            if (StringUtils.hasText(ref.getRole())) {
-                role = realmRoleCatalog.findRole(realm, ref.getRole());
-            } else if (StringUtils.hasText(ref.getRoleId())) {
-                role = realmRoleCatalog.fetchRole(ref.getRoleId());
-                if (role != null && !realm.equals(role.getRealm())) {
-                    // id belongs to another realm
-                    role = null;
-                }
-            }
-
-            if (role == null) {
-                logger.warn(
-                    "realm role {} not found in realm {}, skipped",
-                    StringUtils.hasText(ref.getRole()) ? ref.getRole() : ref.getRoleId(),
-                    realm
-                );
-                continue;
-            }
-
-            roles.add(role.getRole());
-        }
-
-        return roles;
     }
 
     private Collection<RealmRole> loadClientRoles(String realm, String clientId) throws NoSuchClientException {
