@@ -72,7 +72,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
      * updated accordingly.
      */
 
-    @GetMapping("/attributeset/{realm}")
+    @GetMapping(path = { "/attributeset/{realm}", "/attributeSets/{realm}" })
     @Operation(summary = "list attribute sets from a given realm")
     public Collection<AttributeSet> listAttributeSets(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -98,7 +98,7 @@ public abstract class BaseAttributeSetsController implements InitializingBean {
         return attributeManager.getAttributeSet(realm, setId);
     }
 
-    @PostMapping("/attributeset/{realm}")
+    @PostMapping(path = { "/attributeset/{realm}", "/attributeSets/{realm}" })
     @Operation(summary = "add a new attribute set to a given realm")
     public AttributeSet addAttributeSet(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

@@ -84,7 +84,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef =
         new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {};
-    private final String LIST_KEY = "providers";
+    private final String LIST_KEY = "attributeProviders";
 
     // TODO replace with authorityManager to handle permissions
     @Autowired
@@ -139,7 +139,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     }
 
     @Override
-    @PostMapping("/aps/{realm}")
+    @PostMapping(path = { "/aps/{realm}", "/attributeProviders/{realm}" })
     public ConfigurableAttributeProvider addAp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration
@@ -250,7 +250,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
      * Import/export for console
      */
 
-    @PutMapping("/aps/{realm}")
+    @PutMapping(path = { "/aps/{realm}", "/attributeProviders/{realm}" })
     public Collection<ConfigurableAttributeProvider> importRealmProvider(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,

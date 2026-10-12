@@ -107,7 +107,7 @@ public class BaseAttributeProviderController implements InitializingBean {
      * Manage only realm providers, with config stored
      */
 
-    @GetMapping("/aps/{realm}")
+    @GetMapping(path = { "/aps/{realm}", "/attributeProviders/{realm}" })
     @Operation(summary = "list attribute providers from a given realm")
     public Page<ConfigurableAttributeProvider> listAps(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -149,7 +149,7 @@ public class BaseAttributeProviderController implements InitializingBean {
         return provider;
     }
 
-    @PostMapping("/aps/{realm}")
+    @PostMapping(path = { "/aps/{realm}", "/attributeProviders/{realm}" })
     @Operation(summary = "add a new attribute provider to a given realm")
     public ConfigurableAttributeProvider addAp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

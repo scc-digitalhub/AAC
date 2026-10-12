@@ -100,7 +100,7 @@ public class DevTemplatesController extends BaseTemplatesController {
     /*
      * Import/export for console
      */
-    @PutMapping("/templates/{realm}/models")
+    @PutMapping(path = { "/templates/{realm}/models", "/templatemodels/{realm}" })
     public Collection<TemplateModel> importTemplateModels(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,

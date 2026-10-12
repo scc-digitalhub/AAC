@@ -375,9 +375,19 @@ public class ClientManager {
 
             ClientApp clientApp = oauthClientAppService.registerClient(r.getSlug(), app);
             try {
-                // load realm roles
-                Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
-                clientApp.setRealmRoles(roles);
+                if (app.getRealmRoles() != null && !app.getRealmRoles().isEmpty()) {
+                    // set roles if defined, same as update
+                    Collection<RealmRole> roles = realmRoleService.setRoles(
+                        clientApp.getClientId(),
+                        realm,
+                        app.getRealmRoles().stream().map(RealmRole::getRole).toList()
+                    );
+                    clientApp.setRealmRoles(roles);
+                } else {
+                    // load realm roles
+                    Collection<RealmRole> roles = loadClientRoles(realm, clientApp.getClientId());
+                    clientApp.setRealmRoles(roles);
+                }
 
                 Collection<Group> groups = loadClientGroups(realm, clientApp.getClientId());
                 clientApp.setGroups(groups);

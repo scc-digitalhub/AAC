@@ -61,7 +61,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<DefaultAttributesSet>>> typeRef =
         new TypeReference<Map<String, List<DefaultAttributesSet>>>() {};
-    private final String LIST_KEY = "sets";
+    private final String LIST_KEY = "attributeSets";
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -70,7 +70,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
     /*
      * Import/export for console
      */
-    @PutMapping("/attributeset/{realm}")
+    @PutMapping(path = { "/attributeset/{realm}", "/attributeSets/{realm}" })
     public Collection<AttributeSet> importAttributeSet(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestPart(name = "yaml", required = false) @Valid String yaml,

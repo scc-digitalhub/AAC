@@ -93,8 +93,8 @@ const AttributeSetListActions = () => {
             >
                 <AttributeSetCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" resource="attributeSets" />
+            <ExportButton variant="contained" resource="attributeSets" />
         </TopToolbar>
     );
 };

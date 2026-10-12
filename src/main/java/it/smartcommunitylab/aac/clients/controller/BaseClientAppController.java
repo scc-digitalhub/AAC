@@ -86,7 +86,7 @@ public class BaseClientAppController implements InitializingBean {
         return Config.R_USER;
     }
 
-    @GetMapping("/apps/{realm}")
+    @GetMapping(path = { "/apps/{realm}", "/clientApps/{realm}" })
     @Operation(summary = "list client apps from a given realm")
     public Page<ClientApp> listClientApp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -152,7 +152,7 @@ public class BaseClientAppController implements InitializingBean {
     /*
      * Management
      */
-    @PostMapping("/apps/{realm}")
+    @PostMapping(path = { "/apps/{realm}", "/clientApps/{realm}" })
     @Operation(summary = "register a new client app in a given realm")
     public ClientApp registerClientApp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

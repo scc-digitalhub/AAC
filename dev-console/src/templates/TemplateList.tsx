@@ -101,7 +101,7 @@ const TemplateListActions = () => {
             >
                 <TemplateCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="templateId" />
+            <ImportButton variant="contained" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

@@ -113,7 +113,7 @@ public class BaseIdentityProviderController implements InitializingBean {
      *
      * Manage only realm providers, with config stored
      */
-    @GetMapping("/idps/{realm}")
+    @GetMapping(path = { "/idps/{realm}", "/identityProviders/{realm}" })
     @Operation(summary = "list identity providers from a given realm")
     public Page<ConfigurableIdentityProvider> listIdps(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
@@ -134,7 +134,7 @@ public class BaseIdentityProviderController implements InitializingBean {
         return page;
     }
 
-    @PostMapping("/idps/{realm}")
+    @PostMapping(path = { "/idps/{realm}", "/identityProviders/{realm}" })
     @Operation(summary = "add a new identity provider to a given realm")
     public ConfigurableIdentityProvider addIdp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

@@ -85,7 +85,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef =
         new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {};
-    private final String LIST_KEY = "providers";
+    private final String LIST_KEY = "identityProviders";
 
     @Autowired
     private ClientManager clientManager;
@@ -138,7 +138,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     }
 
     @Override
-    @PostMapping("/idps/{realm}")
+    @PostMapping(path = { "/idps/{realm}", "/identityProviders/{realm}" })
     public ConfigurableIdentityProvider addIdp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration
@@ -174,7 +174,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Import/export for console
      */
-    @PutMapping("/idps/{realm}")
+    @PutMapping(path = { "/idps/{realm}", "/identityProviders/{realm}" })
     public Collection<ConfigurableIdentityProvider> importRealmProvider(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,
