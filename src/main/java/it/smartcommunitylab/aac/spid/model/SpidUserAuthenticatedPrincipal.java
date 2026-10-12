@@ -49,7 +49,21 @@ public class SpidUserAuthenticatedPrincipal extends AbstractUserAuthenticatedPri
     private String emailAddress; // NOTE: spid email is always trusted
 
     public SpidUserAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
-        super(SystemKeys.AUTHORITY_SPID, provider, realm, userId, subjectId);
+        this(SystemKeys.AUTHORITY_SPID, provider, realm, userId, subjectId);
+    }
+
+    /*
+     * The SPID principal is shared by the authorities built on the SPID stack (eidas): the authority
+     * is the one of the provider that authenticated the user.
+     */
+    public SpidUserAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String subjectId
+    ) {
+        super(authority, provider, realm, userId, subjectId);
         Assert.notNull(subjectId, "subjectId cannot be null");
         this.subjectId = subjectId;
     }

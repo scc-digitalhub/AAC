@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
@@ -59,8 +58,10 @@ public class SpidIdentityProvider
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, config, realm);
-        logger.debug("create spid provider with id {}", providerId);
+        // the authority is the one declared by the configuration: the SPID stack is reused as-is by
+        // other authorities (eidas) and every component below takes the authority from the config
+        super(config.getAuthority(), providerId, config, realm);
+        logger.debug("create {} provider with id {}", config.getAuthority(), providerId);
         SpidAccountServiceConfigConverter configConverter = new SpidAccountServiceConfigConverter();
         this.accountService =
             new SpidAccountService(providerId, userAccountService, configConverter.convert(config), realm);

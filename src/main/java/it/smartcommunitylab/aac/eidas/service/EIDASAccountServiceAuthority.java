@@ -26,11 +26,12 @@ import it.smartcommunitylab.aac.core.provider.ConfigurationProvider;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
-import it.smartcommunitylab.aac.eidas.provider.EIDASAccountService;
 import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityProviderConfig;
 import it.smartcommunitylab.aac.saml.model.SamlEditableUserAccount;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
+import it.smartcommunitylab.aac.spid.provider.SpidAccountService;
 import it.smartcommunitylab.aac.spid.provider.SpidAccountServiceConfig;
+import it.smartcommunitylab.aac.spid.provider.SpidAccountServiceConfigConverter;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,14 +45,15 @@ import org.springframework.util.Assert;
  * the user profile list accounts by walking the registered account service authorities: without
  * this bean an eidas account exists in the repository and is invisible everywhere else.
  *
- * Mirrors SpidAccountServiceAuthority; the repositoryId (the provider id) is the same one used at
- * login, so the accounts listed here are exactly those created by the identity provider.
+ * Mirrors SpidAccountServiceAuthority on the eidas configurations: the account service configs are
+ * derived with the SPID converter, which keeps the authority of the source (eidas), and the SPID
+ * account service takes its authority from them.
  */
 @Service
 public class EIDASAccountServiceAuthority
-    extends AbstractProviderAuthority<EIDASAccountService, SpidAccountServiceConfig>
+    extends AbstractProviderAuthority<SpidAccountService, SpidAccountServiceConfig>
     implements
-        AccountServiceAuthority<EIDASAccountService, SamlUserAccount, SamlEditableUserAccount, SpidAccountServiceConfig, SpidIdentityProviderConfigMap> {
+        AccountServiceAuthority<SpidAccountService, SamlUserAccount, SamlEditableUserAccount, SpidAccountServiceConfig, SpidIdentityProviderConfigMap> {
 
     private final UserAccountService<SamlUserAccount> accountService;
 
@@ -73,8 +75,8 @@ public class EIDASAccountServiceAuthority
     }
 
     @Override
-    protected EIDASAccountService buildProvider(SpidAccountServiceConfig config) {
-        EIDASAccountService service = new EIDASAccountService(
+    protected SpidAccountService buildProvider(SpidAccountServiceConfig config) {
+        SpidAccountService service = new SpidAccountService(
             config.getProvider(),
             accountService,
             config,
@@ -96,7 +98,8 @@ public class EIDASAccountServiceAuthority
             ProviderConfigRepository<EIDASIdentityProviderConfig> externalRepository
         ) {
             super(externalRepository);
-            setConverter(EIDASAccountService::toServiceConfig);
+            SpidAccountServiceConfigConverter converter = new SpidAccountServiceConfigConverter();
+            setConverter(converter::convert);
         }
     }
 }

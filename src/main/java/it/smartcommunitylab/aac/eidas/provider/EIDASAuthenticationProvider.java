@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.eidas.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.eidas.model.EIDASUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
@@ -59,11 +58,6 @@ public class EIDASAuthenticationProvider extends SpidAuthenticationProvider {
     ) {
         super(providerId, accountService, config, realm);
         this.config = config;
-    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_EIDAS;
     }
 
     /*
@@ -159,6 +153,7 @@ public class EIDASAuthenticationProvider extends SpidAuthenticationProvider {
 
         // rebuild as an eidas principal
         EIDASUserAuthenticatedPrincipal user = new EIDASUserAuthenticatedPrincipal(
+            getAuthority(),
             getProvider(),
             getRealm(),
             spidPrincipal.getUserId(),

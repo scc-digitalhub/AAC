@@ -23,7 +23,6 @@ import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.ResourceEntityService;
 import it.smartcommunitylab.aac.core.service.TranslatorProviderConfigRepository;
 import it.smartcommunitylab.aac.eidas.model.EIDASUserIdentity;
-import it.smartcommunitylab.aac.eidas.provider.EIDASFilterProvider;
 import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityConfigurationProvider;
 import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityProvider;
 import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityProviderConfig;
@@ -31,6 +30,7 @@ import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderAuthority;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.auth.SpidMetadataRelyingPartyRegistrationRepository;
 import it.smartcommunitylab.aac.spid.auth.SpidRelyingPartyRegistrationRepository;
+import it.smartcommunitylab.aac.spid.provider.SpidFilterProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +42,10 @@ import org.springframework.stereotype.Service;
 /*
  * eIDAS identity authority.
  *
- * The italian eIDAS node behaves as a SPID identity provider, so the SPID stack is reused: the
- * eidas module adds the authority, its own provider and the pieces that carry the authority id
- * (endpoints, login button, sso filter).
+ * The italian eIDAS node behaves as a SPID identity provider, so the SPID stack is reused: the SPID
+ * components are authority-aware (they take the authority from the configuration, the filters from
+ * the filter provider), and the eidas module adds the authority, its own provider and configuration,
+ * the login button and the eIDAS rules on attributes and levels.
  *
  * Unlike SPID there is no registry of upstream identity providers: a single node is configured per
  * provider via the node metadata url.
@@ -57,9 +58,7 @@ public class EIDASIdentityAuthority
     public static final String AUTHORITY_URL = "/auth/" + SystemKeys.AUTHORITY_EIDAS + "/";
 
     private final UserAccountService<SamlUserAccount> accountService;
-    private final SpidRelyingPartyRegistrationRepository registrationRepository;
-    private final SpidMetadataRelyingPartyRegistrationRepository metadataRegistrationRepository;
-    private final EIDASFilterProvider filterProvider;
+    private final SpidFilterProvider filterProvider;
 
     private ScriptExecutionService executionService;
     private ResourceEntityService resourceService;
@@ -72,19 +71,19 @@ public class EIDASIdentityAuthority
         super(SystemKeys.AUTHORITY_EIDAS, providerConfigRepository);
         this.accountService = accountService;
 
-        // the spid registration repositories read configs; EIDASIdentityProviderConfig is already a
-        // SpidIdentityProviderConfig, but java generics are invariant, so the repository is exposed
-        // through a translator with an identity conversion
+        // the SPID registration repositories and filters read SpidIdentityProviderConfig; an
+        // EIDASIdentityProviderConfig is one, but java generics are invariant, hence the identity
+        // translation. The filter provider mounts the SPID filters under /auth/eidas/ and the
+        // tokens are routed by the authority of each provider configuration
         TranslatorProviderConfigRepository<EIDASIdentityProviderConfig, SpidIdentityProviderConfig> configRepository =
             new TranslatorProviderConfigRepository<>(providerConfigRepository);
         configRepository.setConverter(config -> config);
-        this.registrationRepository = new SpidRelyingPartyRegistrationRepository(configRepository);
-        this.metadataRegistrationRepository = new SpidMetadataRelyingPartyRegistrationRepository(configRepository);
         this.filterProvider =
-            new EIDASFilterProvider(
-                registrationRepository,
-                metadataRegistrationRepository,
-                providerConfigRepository
+            new SpidFilterProvider(
+                SystemKeys.AUTHORITY_EIDAS,
+                new SpidRelyingPartyRegistrationRepository(configRepository),
+                new SpidMetadataRelyingPartyRegistrationRepository(configRepository),
+                configRepository
             );
     }
 
@@ -118,7 +117,7 @@ public class EIDASIdentityAuthority
     }
 
     @Override
-    public EIDASFilterProvider getFilterProvider() {
+    public SpidFilterProvider getFilterProvider() {
         return filterProvider;
     }
 }

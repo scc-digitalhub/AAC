@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.spid.auth;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
@@ -73,8 +72,8 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
 
     public static final String DEFAULT_FILTER_URI = SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
     private static final char PATH_DELIMITER = '/';
-    private static final String authorityId = SystemKeys.AUTHORITY_SPID;
 
+    private final String filterProcessingUrl;
     private final RequestMatcher requestMatcher;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRegistrationRepository;
     private final Saml2AuthenticationTokenConverter authenticationConverter;
@@ -103,6 +102,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
 
         this.providerConfigRegistrationRepository = providerConfigRegistrationRepository;
+        this.filterProcessingUrl = filterProcessingUrl;
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
 
         // build a default resolver, will lookup by registrationId, to create default token converter
@@ -178,6 +178,10 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
             RelyingPartyRegistration relyingPartyRegistration = relyingPartyRegistrationRepository.findByRegistrationId(
                 regId
             );
+            if (relyingPartyRegistration == null) {
+                // registration gone (provider disabled or reconfigured while the request was pending)
+                return null;
+            }
             // resolve template fields of the registration, such as {baseUrl}
             String applicationUri = getApplicationUri(request);
             Function<String, String> templateResolver = templateResolver(applicationUri, relyingPartyRegistration);
@@ -263,7 +267,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
         throws AuthenticationException, IOException, ServletException {
         // A. extract provider
-        String registrationId = requestMatcher.matcher(request).getVariables().get("registrationId");
+        String registrationId = resolveRegistrationId(request);
         // registrationId is base64UrlEncode({registrationId})
         String providerId = SpidIdentityProviderConfig.decodeRegistrationId(registrationId);
         SpidIdentityProviderConfig providerConfig = providerConfigRegistrationRepository.findByProviderId(providerId);
@@ -316,7 +320,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         if(eventPublisher != null) {
             eventPublisher.publishEvent(
                 new SpidAuthenticationResponseEvent(
-                    authorityId,
+                    providerConfig.getAuthority(),
                     providerConfig.getProvider(),
                     providerConfig.getRealm(),
                     authenticationRequest
@@ -325,10 +329,11 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         }
 
         // D. generate a wrapped authentication for the multi-provider auth manager
+        // the token is routed to the authority of the provider that issued the request (spid, eidas...)
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
             authenticationRequest,
             providerId,
-            SystemKeys.AUTHORITY_SPID
+            providerConfig.getAuthority()
         );
 
         // also collect request details
@@ -341,5 +346,23 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> authenticationRequestRepository
     ) {
         this.authenticationRequestRepository = authenticationRequestRepository;
+    }
+
+    protected Saml2AuthenticationRequestRepository<SerializableSaml2AuthenticationRequestContext> getAuthenticationRequestRepository() {
+        return authenticationRequestRepository;
+    }
+
+    public String getFilterProcessingUrl() {
+        return filterProcessingUrl;
+    }
+
+    /*
+     * Registration id of the provider the response belongs to. By default it is the {registrationId}
+     * path variable of the filter url; a subclass bound to a single endpoint without the registration
+     * id in the path (eg. a global assertion consumer service) resolves it from the pending
+     * authentication request instead, see getAuthenticationRequestRepository().
+     */
+    protected String resolveRegistrationId(HttpServletRequest request) {
+        return requestMatcher.matcher(request).getVariables().get("registrationId");
     }
 }

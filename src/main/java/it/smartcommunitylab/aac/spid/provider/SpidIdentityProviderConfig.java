@@ -74,7 +74,6 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.identity.base.AbstractIdentityProviderConfig;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import it.smartcommunitylab.aac.spid.SpidIdentityAuthority;
 import it.smartcommunitylab.aac.spid.model.SpidPurpose;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAttributeConsumingService;
@@ -115,13 +114,24 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     private transient RestTemplate restTemplate;
 
     public SpidIdentityProviderConfig(String provider, String realm) {
-        super(
-            SystemKeys.AUTHORITY_SPID,
-            provider,
-            realm,
-            new IdentityProviderSettingsMap(),
-            new SpidIdentityProviderConfigMap()
-        );
+        this(SystemKeys.AUTHORITY_SPID, provider, realm);
+    }
+
+    /*
+     * The SPID configuration is the base of the authorities built on the SPID stack (eidas): the
+     * authority is a parameter, and every endpoint derives from it (see getAuthorityUrl()).
+     */
+    public SpidIdentityProviderConfig(String authority, String provider, String realm) {
+        this(authority, provider, realm, new SpidIdentityProviderConfigMap());
+    }
+
+    protected SpidIdentityProviderConfig(
+        String authority,
+        String provider,
+        String realm,
+        SpidIdentityProviderConfigMap configMap
+    ) {
+        super(authority, provider, realm, new IdentityProviderSettingsMap(), configMap);
         this.relyingPartyRegistrations = null;
         this.metadataRelyingPartyRegistration = null;
         this.identityProviders = Collections.emptySet();
@@ -164,8 +174,13 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
         return statusMap;
     }
 
+    /** Base path of the endpoints of this authority: /auth/{authority}/ */
+    public String getAuthorityUrl() {
+        return "/auth/" + getAuthority() + "/";
+    }
+
     public String metadataUrlTemplate() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "metadata/{registrationId}";
+        return "{baseUrl}" + getAuthorityUrl() + "metadata/{registrationId}";
     }
 
     public String getMetadataUrl() {
@@ -177,7 +192,7 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public String assertionConsumerUrlTemplate() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
+        return "{baseUrl}" + getAuthorityUrl() + "sso/{registrationId}";
     }
 
     public String getAssertionConsumerUrl(){
@@ -493,11 +508,11 @@ public class SpidIdentityProviderConfig extends AbstractIdentityProviderConfig<S
     }
 
     public String getConsumerUrl() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "sso/" + getMetadataRegistrationId();
+        return "{baseUrl}" + getAuthorityUrl() + "sso/" + getMetadataRegistrationId();
     }
 
     public String getLogoutUrl() {
-        return "{baseUrl}" + SpidIdentityAuthority.AUTHORITY_URL + "slo/" + getMetadataRegistrationId();
+        return "{baseUrl}" + getAuthorityUrl() + "slo/" + getMetadataRegistrationId();
     }
 
     private String getMetadataRegistrationId() {

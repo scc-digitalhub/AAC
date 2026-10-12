@@ -22,8 +22,8 @@ import java.io.Serializable;
 import java.util.Map;
 
 /*
- * Principal of an eIDAS authentication: the SPID one, specialized for the authority and cleaned of what
- * does not belong to a SPID-profile Service Provider.
+ * Principal of an eIDAS authentication: the SPID one (the authority is a constructor parameter of the
+ * SPID principal), with its own resource type and the eIDAS specific rules on attributes and email.
  */
 public class EIDASUserAuthenticatedPrincipal extends SpidUserAuthenticatedPrincipal {
 
@@ -35,13 +35,14 @@ public class EIDASUserAuthenticatedPrincipal extends SpidUserAuthenticatedPrinci
         SystemKeys.AUTHORITY_EIDAS
     );
 
-    public EIDASUserAuthenticatedPrincipal(String provider, String realm, String userId, String subjectId) {
-        super(provider, realm, userId, subjectId);
-    }
-
-    @Override
-    public String getAuthority() {
-        return SystemKeys.AUTHORITY_EIDAS;
+    public EIDASUserAuthenticatedPrincipal(
+        String authority,
+        String provider,
+        String realm,
+        String userId,
+        String subjectId
+    ) {
+        super(authority, provider, realm, userId, subjectId);
     }
 
     @Override
@@ -50,9 +51,10 @@ public class EIDASUserAuthenticatedPrincipal extends SpidUserAuthenticatedPrinci
     }
 
     /*
-     * The node releases every attribute twice: with the eIDAS Name URI (under the naturalperson namespace)
-     * and with the SPID name. AAC speaks SPID and reads the SPID names only; the URI form is noise that would
-     * otherwise be persisted with the account and surface in the claims. Kept out of the principal attributes.
+     * AAC speaks SPID and reads the SPID attribute names only. The italian node releases the SPID names
+     * alone (observed on the pre-production node, 5.10.2026); should a node also release the eIDAS Name
+     * URIs (naturalperson namespace), that form would be noise persisted with the account and surfaced in
+     * the claims: kept out of the principal attributes.
      */
     @Override
     public Map<String, Serializable> getAttributes() {

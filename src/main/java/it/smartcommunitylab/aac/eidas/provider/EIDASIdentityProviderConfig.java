@@ -17,7 +17,6 @@
 package it.smartcommunitylab.aac.eidas.provider;
 
 import it.smartcommunitylab.aac.SystemKeys;
-import it.smartcommunitylab.aac.eidas.EIDASIdentityAuthority;
 import it.smartcommunitylab.aac.eidas.model.EIDASAttribute;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
@@ -43,9 +42,8 @@ import org.springframework.web.client.RestTemplate;
  * authnContext) and same relying party registration logic, including the single upstream node that
  * setIdentityProviders() derives from `idpMetadataUrl`.
  *
- * What changes is where our own endpoints live: SPID publishes them under /auth/spid/, eIDAS under
- * /auth/eidas/. The inherited code builds every url from these templates, so overriding them moves
- * the whole SP (assertion consumer, single logout, metadata) onto the eidas authority.
+ * Our own endpoints live under /auth/eidas/: the SPID configuration builds every url (assertion
+ * consumer, single logout, metadata) from its authority, which here is "eidas".
  *
  * One thing is added: the metadata of the node are verified (signature) before the inherited code
  * loads them, see setIdentityProviders(). For SPID the trust in idp metadata comes from the AgID
@@ -65,7 +63,7 @@ public class EIDASIdentityProviderConfig extends SpidIdentityProviderConfig {
         SystemKeys.AUTHORITY_EIDAS;
 
     public EIDASIdentityProviderConfig(String provider, String realm) {
-        super(provider, realm);
+        super(SystemKeys.AUTHORITY_EIDAS, provider, realm, new EIDASIdentityProviderConfigMap());
     }
 
     public EIDASIdentityProviderConfig(
@@ -126,16 +124,12 @@ public class EIDASIdentityProviderConfig extends SpidIdentityProviderConfig {
      */
     @SuppressWarnings("unused")
     private EIDASIdentityProviderConfig() {
-        super(null, null);
+        super(SystemKeys.AUTHORITY_EIDAS, null, null, new EIDASIdentityProviderConfigMap());
     }
 
     private static final Logger logger = LoggerFactory.getLogger(EIDASIdentityProviderConfig.class);
 
     private transient RestTemplate restTemplate;
-
-    public String getAuthorityUrl() {
-        return EIDASIdentityAuthority.AUTHORITY_URL;
-    }
 
     /*
      * The inherited implementation fetches idpMetadataUrl with Spring Security RelyingPartyRegistrations,
@@ -177,51 +171,5 @@ public class EIDASIdentityProviderConfig extends SpidIdentityProviderConfig {
             restTemplate = new RestTemplate();
         }
         return restTemplate;
-    }
-
-    /*
-     * the parent keeps the metadata registration id private, it is base64url({providerId})
-     */
-    private String registrationId() {
-        return encodeRegistrationId(getProvider());
-    }
-
-    /*
-     * Every url of ours is built here, from the authority url: SPID builds the same urls with its own
-     * authority url cabled in, so overriding the four public template methods below moves the whole
-     * Service Provider onto /auth/eidas/.
-     *
-     * SPID is about to offer a second form of the assertion consumer service url, "global", without the
-     * registration id (/auth/spid/sso, resolved from the authentication request kept in session). The
-     * choice is a boolean on the SPID side (isGlobalAssertionConsumerServiceUrl()); when it lands, the
-     * hook isGlobalAcs() below is the single point to wire it, and the urls follow.
-     */
-    private String url(String action, boolean perRegistration, String registrationId) {
-        return "{baseUrl}" + getAuthorityUrl() + action + (perRegistration ? "/" + registrationId : "");
-    }
-
-    /* the assertion consumer service url form: per registration (today) or global; see note above */
-    protected boolean isGlobalAcs() {
-        return false;
-    }
-
-    @Override
-    public String metadataUrlTemplate() {
-        return url("metadata", true, "{registrationId}");
-    }
-
-    @Override
-    public String assertionConsumerUrlTemplate() {
-        return url("sso", !isGlobalAcs(), "{registrationId}");
-    }
-
-    @Override
-    public String getConsumerUrl() {
-        return url("sso", !isGlobalAcs(), registrationId());
-    }
-
-    @Override
-    public String getLogoutUrl() {
-        return url("slo", !isGlobalAcs(), registrationId());
     }
 }
