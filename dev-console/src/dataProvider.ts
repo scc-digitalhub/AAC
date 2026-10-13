@@ -290,14 +290,9 @@ export default (baseUrl: string, httpClient = fetchJson): DataProvider => {
                 method: method,
                 headers: new Headers(headers),
                 body: body,
-            }).then(({ json }) => {
-                if (params.meta?.import) {
-                    // yaml import returns the list of imported records
-                    const first = Array.isArray(json) ? json[0] : json;
-                    return { data: { ...first, id: first?.id } as any };
-                }
-                return { data: { ...params.data, id: json?.id } as any };
-            });
+            }).then(({ json }) => ({
+                data: { ...params.data, id: json?.id } as any,
+            }));
         },
         delete: (resource, params) => {
             let suffix = '';
