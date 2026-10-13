@@ -14,7 +14,9 @@ import {
     useCreateContext,
     useGetResourceLabel,
     useNotify,
+    useRefresh,
     useResourceContext,
+    useSaveContext,
     useTranslate,
 } from 'react-admin';
 import {
@@ -45,7 +47,6 @@ export const ImportButton = (props: ImportButtonProps) => {
         fullWidth = true,
         label = 'action.import_one',
         color = 'info',
-        idField = null,
         variant,
         mutationOptions = {},
         record,
@@ -58,6 +59,7 @@ export const ImportButton = (props: ImportButtonProps) => {
 
     const [open, setOpen] = useState(false);
     const notify = useNotify();
+    const refresh = useRefresh();
     const { onSuccess } = mutationOptions;
 
     const closeDialog = () => {
@@ -100,25 +102,6 @@ export const ImportButton = (props: ImportButtonProps) => {
                     resource={resource}
                     redirect={false}
                     {...rest}
-                    transform={data => {
-                        //unpack record
-                        const res = {
-                            ...data.value,
-                            realm: realm,
-                        };
-
-                        if (data.reset) {
-                            //reset fields
-                            delete res['id'];
-
-                            if (idField) {
-                                //delete additional id field
-                                delete res[idField];
-                            }
-                        }
-
-                        return res;
-                    }}
                     record={{
                         reset: false,
                         value: record || {
@@ -130,6 +113,8 @@ export const ImportButton = (props: ImportButtonProps) => {
                         ...mutationOptions,
                         onSuccess: (data, variables, context) => {
                             closeDialog();
+                            // the import resource may differ from the list one: force reload
+                            refresh();
 
                             if (onSuccess) {
                                 return onSuccess(data, variables, context);
@@ -159,6 +144,7 @@ const CreateContent = (props: {
     const { title, handleClose } = props;
     const translate = useTranslate();
     const { defaultTitle } = useCreateContext();
+    const { save } = useSaveContext();
     const resource = useResourceContext();
     const getResourceLabel = useGetResourceLabel();
     const resourceLabel = getResourceLabel(resource, 1);
@@ -198,6 +184,16 @@ const CreateContent = (props: {
                     </Typography>
                 </Box>
                 <SimpleForm
+                    // send the yaml as-is to the import endpoint (PUT /{resource}/{realm}?reset=):
+                    // the server parses it (single element or list) and handles reset and realm.
+                    // `meta` is forwarded by useCreateController.save to dataProvider.create
+                    // (same as <SaveButton mutationOptions>), the SaveHandler type just omits it
+                    onSubmit={data =>
+                        save &&
+                        save(toYaml(data.value) as any, {
+                            meta: { import: true, resetId: !!data.reset },
+                        } as any)
+                    }
                     toolbar={
                         <Toolbar>
                             <SaveButton
@@ -243,7 +239,6 @@ export type ImportButtonProps<
     | 'redirect'
     | 'className'
 > & {
-    idField?: string;
     maxWidth?: Breakpoint | false;
     fullWidth?: boolean;
     label?: string;

@@ -85,7 +85,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef =
         new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {};
-    private final String LIST_KEY = "providers";
+    private final String LIST_KEY = "identityProviders";
 
     @Autowired
     private ClientManager clientManager;

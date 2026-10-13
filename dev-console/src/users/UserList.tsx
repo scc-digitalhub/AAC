@@ -81,7 +81,7 @@ const UserListActions = () => {
             >
                 <UserInviteForm />
             </CreateInDialogButton>
-            <ExportButton variant="contained" />
+            <ExportButton variant="contained" resource="users" />
         </TopToolbar>
     );
 };

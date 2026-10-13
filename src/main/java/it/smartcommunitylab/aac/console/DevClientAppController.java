@@ -88,7 +88,7 @@ public class DevClientAppController extends BaseClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ClientApp>>> typeRef =
         new TypeReference<Map<String, List<ClientApp>>>() {};
-    private final String LIST_KEY = "clients";
+    private final String LIST_KEY = "clientApps";
 
     @Autowired
     private DevManager devManager;

@@ -153,8 +153,8 @@ const ListActions = () => {
             >
                 <IdpCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="provider" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" resource="identityProviders" />
+            <ExportButton variant="contained" resource="identityProviders" />
         </TopToolbar>
     );
 };
