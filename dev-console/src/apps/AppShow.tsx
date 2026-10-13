@@ -16,8 +16,8 @@ import {
     useTranslate,
 } from 'react-admin';
 import { SectionTitle } from '../components/SectionTitle';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { InspectButton } from '@dslab/ra-inspect-button';
+import { RefreshingExportButton } from '../components/RefreshingExportButton';
+import { RefreshingInspectButton } from '../components/RefreshingInspectButton';
 import { Page } from '../components/Page';
 import { IdField } from '../components/IdField';
 import { AppEndpointsView } from './AppEndpoints';
@@ -194,8 +194,8 @@ const ShowToolBarActions = () => (
     <TopToolbar>
         <TestDialogButton />
         <EditButton />
-        <InspectButton />
+        <RefreshingInspectButton />
         <DeleteWithConfirmButton />
-        <ExportRecordButton language="yaml" color="info" />
+        <RefreshingExportButton />
     </TopToolbar>
 );
