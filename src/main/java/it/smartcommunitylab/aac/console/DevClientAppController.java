@@ -116,7 +116,7 @@ public class DevClientAppController extends BaseClientAppController {
         return clientManager.searchClientApps(realm, q, pageRequest);
     }
 
-    @PutMapping(path = { "/apps/{realm}", "/clientApps/{realm}" })
+    @PutMapping("/apps/{realm}")
     public ResponseEntity<Collection<ClientApp>> importClientApp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,

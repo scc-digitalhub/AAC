@@ -139,7 +139,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     }
 
     @Override
-    @PostMapping(path = { "/aps/{realm}", "/attributeProviders/{realm}" })
+    @PostMapping("/aps/{realm}")
     public ConfigurableAttributeProvider addAp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableAttributeProvider registration
@@ -250,7 +250,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
      * Import/export for console
      */
 
-    @PutMapping(path = { "/aps/{realm}", "/attributeProviders/{realm}" })
+    @PutMapping("/aps/{realm}")
     public Collection<ConfigurableAttributeProvider> importRealmProvider(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,

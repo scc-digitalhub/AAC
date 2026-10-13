@@ -138,7 +138,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     }
 
     @Override
-    @PostMapping(path = { "/idps/{realm}", "/identityProviders/{realm}" })
+    @PostMapping("/idps/{realm}")
     public ConfigurableIdentityProvider addIdp(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestBody @Valid @NotNull ConfigurableIdentityProvider registration
@@ -174,7 +174,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     /*
      * Import/export for console
      */
-    @PutMapping(path = { "/idps/{realm}", "/identityProviders/{realm}" })
+    @PutMapping("/idps/{realm}")
     public Collection<ConfigurableIdentityProvider> importRealmProvider(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,

@@ -70,7 +70,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
     /*
      * Import/export for console
      */
-    @PutMapping(path = { "/attributeset/{realm}", "/attributeSets/{realm}" })
+    @PutMapping("/attributeset/{realm}")
     public Collection<AttributeSet> importAttributeSet(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestPart(name = "yaml", required = false) @Valid String yaml,
