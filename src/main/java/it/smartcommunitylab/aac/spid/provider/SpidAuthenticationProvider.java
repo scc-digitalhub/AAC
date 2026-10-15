@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -78,7 +77,7 @@ public class SpidAuthenticationProvider
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
+        super(config.getAuthority(), providerId, realm);
         this.accountService = accountService;
         this.registrationIds = config.getRelyingPartyRegistrationIds();
         this.subjectAttribute = config.getSubAttributeName();
@@ -167,6 +166,7 @@ public class SpidAuthenticationProvider
         }
         // A. create empty user with no attributes
         SpidUserAuthenticatedPrincipal user = new SpidUserAuthenticatedPrincipal(
+            getAuthority(),
             getProvider(),
             getRealm(),
             null, // userId is evaluated later from attributes

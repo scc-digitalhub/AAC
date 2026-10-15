@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.spid.auth;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
@@ -70,7 +69,7 @@ public class SpidWebSsoAuthenticationRequestFilter
     private static final String DEFAULT_FILTER_URI =
         SpidIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}"; // NOTE: if multiple upstream idps are possible, then registration id must somehow also encode which idp is target of the authentication request
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private static final String authorityId = SystemKeys.AUTHORITY_SPID;
+    private final String filterProcessingUrl;
     private final RequestMatcher requestMatcher;
 
     private final Saml2AuthenticationRequestContextResolver authenticationRequestContextResolver;
@@ -100,6 +99,7 @@ public class SpidWebSsoAuthenticationRequestFilter
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
         this.providerConfigRepository = providerConfigRepository;
+        this.filterProcessingUrl = filterProcessingUrl;
         // use custom implementation to add secure relayState param
         this.authenticationRequestContextResolver =
             new CustomSpidAuthenticationRequestContextResolver(
@@ -121,6 +121,15 @@ public class SpidWebSsoAuthenticationRequestFilter
         );
 
         return factory;
+    }
+
+    /*
+     * OncePerRequestFilter tells instances apart by name: the filter is instantiated once per
+     * authority built on the SPID stack (spid, eidas...), so the name carries the endpoint.
+     */
+    @Override
+    protected String getFilterName() {
+        return getClass().getName() + "." + filterProcessingUrl;
     }
 
     @Override
@@ -182,7 +191,7 @@ public class SpidWebSsoAuthenticationRequestFilter
         if (eventPublisher != null) {
             eventPublisher.publishEvent(
                 new SpidAuthenticationRequestEvent(
-                    authorityId,
+                    config.getAuthority(),
                     config.getProvider(),
                     config.getRealm(),
                     authenticationRequest

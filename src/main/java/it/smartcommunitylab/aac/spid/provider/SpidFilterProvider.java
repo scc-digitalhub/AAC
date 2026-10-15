@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
 public class SpidFilterProvider implements FilterProvider, ApplicationEventPublisherAware {
 
     private static final String[] NO_CORS_ENDPOINTS = { "authenticate/**", "sso/**" }; // must match filters endpoints
-    private static final String authorityId = SystemKeys.AUTHORITY_SPID;
+    private final String authorityId;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository;
     private final SpidRelyingPartyRegistrationRepository relyingPartyRegistrationRepository;
     private final SpidMetadataRelyingPartyRegistrationRepository metadataRelyingPartyRegistrationRepository;
@@ -63,9 +63,30 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
         SpidMetadataRelyingPartyRegistrationRepository metadataRelyingPartyRegistrationRepository,
         ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
     ) {
+        this(
+            SystemKeys.AUTHORITY_SPID,
+            relyingPartyRegistrationRepository,
+            metadataRelyingPartyRegistrationRepository,
+            providerConfigRepository
+        );
+    }
+
+    /*
+     * The filters are shared by the authorities built on the SPID stack (eidas): the authority id
+     * drives the endpoints (/auth/{authority}/...) and the CORS exclusions; the authority routed into
+     * the authentication tokens comes from each provider configuration.
+     */
+    public SpidFilterProvider(
+        String authorityId,
+        SpidRelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+        SpidMetadataRelyingPartyRegistrationRepository metadataRelyingPartyRegistrationRepository,
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository
+    ) {
+        Assert.hasText(authorityId, "authority id is mandatory");
         Assert.notNull(providerConfigRepository, "registration repository is mandatory");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party registration repository is mandatory");
 
+        this.authorityId = authorityId;
         this.providerConfigRepository = providerConfigRepository;
         this.relyingPartyRegistrationRepository = relyingPartyRegistrationRepository;
         this.metadataRelyingPartyRegistrationRepository = metadataRelyingPartyRegistrationRepository;

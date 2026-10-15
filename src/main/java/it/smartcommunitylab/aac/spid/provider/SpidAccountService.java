@@ -16,7 +16,6 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
-import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.base.AbstractAccountService;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
@@ -39,7 +38,7 @@ public class SpidAccountService
         SpidAccountServiceConfig config,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, accountService, config, realm);
+        super(config.getAuthority(), providerId, accountService, config, realm);
     }
 
     @Override
