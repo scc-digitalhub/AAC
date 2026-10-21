@@ -61,7 +61,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<DefaultAttributesSet>>> typeRef =
         new TypeReference<Map<String, List<DefaultAttributesSet>>>() {};
-    private final String LIST_KEY = "sets";
+    private final String LIST_KEY = "attributeSets";
 
     @Autowired
     @Qualifier("yamlObjectMapper")

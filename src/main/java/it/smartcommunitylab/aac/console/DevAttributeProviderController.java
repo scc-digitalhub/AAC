@@ -84,7 +84,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef =
         new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {};
-    private final String LIST_KEY = "providers";
+    private final String LIST_KEY = "attributeProviders";
 
     // TODO replace with authorityManager to handle permissions
     @Autowired
