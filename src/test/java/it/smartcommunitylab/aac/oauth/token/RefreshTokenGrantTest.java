@@ -82,12 +82,13 @@ public class RefreshTokenGrantTest {
     private String clientSecret;
     private String client2Id;
     private String client2Secret;
+    private String client3Id;
 
     @BeforeEach
     public void setUp() {
         if (clientId == null || clientSecret == null || client2Id == null || client2Secret == null) {
             List<ClientRegistration> clients = OAuth2ConfigUtils.with(config).clients();
-            assertThat(clients.size()).isGreaterThanOrEqualTo(2);
+            assertThat(clients.size()).isGreaterThanOrEqualTo(3);
 
             ClientRegistration client1 = clients.get(0);
             clientId = client1.getClientId();
@@ -96,6 +97,10 @@ public class RefreshTokenGrantTest {
             ClientRegistration client2 = clients.get(1);
             client2Id = client2.getClientId();
             client2Secret = client2.getClientSecret();
+
+            // public client (auth method none) with refresh token rotation
+            ClientRegistration client3 = clients.get(2);
+            client3Id = client3.getClientId();
         }
 
         if (clientId == null || clientSecret == null) {
@@ -525,6 +530,26 @@ public class RefreshTokenGrantTest {
     }
 
     // TODO refresh token rotation test
+
+    @Test
+    public void unknownTokenWithNoClientAuthRotationRefreshTest() throws Exception {
+        // refresh as public client with rotation and an unknown token
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
+        params.add(OAuth2ParameterNames.CLIENT_ID, client3Id);
+        params.add(OAuth2ParameterNames.REFRESH_TOKEN, "invalid-refresh-token");
+
+        MockHttpServletRequestBuilder req = MockMvcRequestBuilders
+            .post(TOKEN_URL)
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .params(params);
+
+        MvcResult res = this.mockMvc.perform(req).andExpect(status().isBadRequest()).andReturn();
+
+        // expect a 400 with an error
+        Map<String, Serializable> response = mapper.readValue(res.getResponse().getContentAsString(), typeRef);
+        assertThat(response.get("error")).isEqualTo("invalid_grant");
+    }
 
     @Test
     @WithMockUserAuthentication(username = "test", realm = "test")

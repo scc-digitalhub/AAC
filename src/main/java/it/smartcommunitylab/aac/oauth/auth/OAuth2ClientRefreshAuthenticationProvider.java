@@ -39,6 +39,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.InvalidRequestException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -190,6 +191,8 @@ public class OAuth2ClientRefreshAuthenticationProvider
             return result;
         } catch (ClientRegistrationException e) {
             throw new BadCredentialsException("invalid authentication");
+        } catch (OAuth2Exception e) {
+            throw new BadCredentialsException("invalid authentication", e);
         }
     }
 

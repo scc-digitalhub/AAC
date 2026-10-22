@@ -100,6 +100,18 @@ realms:
             ]
         providers:
           - "tpassword"          
+      - clientId: "test-2222-12345-client"
+        type: "oauth2"
+        name: "test client public"
+        configuration:
+            authorizedGrantTypes:
+              - "refresh_token"
+              - "authorization_code"
+            redirectUris:
+              - "http://localhost:9999"
+            authenticationMethods:
+              - "none"
+            refresh_token_rotation: true
         
     users:
       - uuid: 109990e9f5674a03ab1721e59e1ce05d
