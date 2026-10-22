@@ -403,8 +403,6 @@ export const uiSchemaEidasIdp: UiSchema = {
         'contactPersonIPACode',
         'eidasAttributes',
         'idpMetadataUrl',
-        'idpMetadataSigningCertificate',
-        'verifyIdpMetadataSignature',
         'useAssertionConsumerServiceUrl',
         'attributeConsumingServiceIndex',
         'authnContext',
@@ -427,15 +425,6 @@ export const uiSchemaEidasIdp: UiSchema = {
     authnContext: {
         'ui:title': 'field.spidLevel.name',
         'ui:description': 'field.spidLevel.helperText',
-    },
-    idpMetadataSigningCertificate: {
-        'ui:widget': 'textarea',
-        'ui:title': 'field.idpMetadataSigningCertificate.name',
-        'ui:description': 'field.idpMetadataSigningCertificate.helperText',
-    },
-    verifyIdpMetadataSignature: {
-        'ui:title': 'field.verifyIdpMetadataSignature.name',
-        'ui:description': 'field.verifyIdpMetadataSignature.helperText',
     },
     subAttributeName: {
         'ui:title': 'field.eidasSubAttributeName.name',

@@ -91,47 +91,12 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
      */
     private Set<EIDASAttribute> eidasAttributes;
 
-    /*
-     * The certificate the node signs its metadata with, obtained out of band (FICEP). When set, the
-     * metadata at idpMetadataUrl must verify against it; when empty, they are verified against the
-     * certificate embedded in their own signature (integrity only, see EIDASMetadataSignatureVerifier).
-     */
-    private String idpMetadataSigningCertificate;
-
-    /*
-     * Diagnostic escape hatch, default true: the SPID rules require signed idp metadata, and a node
-     * serving unsigned metadata is a finding to raise with the node operator, not a configuration
-     * to accept silently. Set to false only to work against such a node while the finding is open.
-     */
-    private Boolean verifyIdpMetadataSignature;
-
     public Set<EIDASAttribute> getEidasAttributes() {
         return eidasAttributes;
     }
 
     public void setEidasAttributes(Set<EIDASAttribute> eidasAttributes) {
         this.eidasAttributes = eidasAttributes;
-    }
-
-    public String getIdpMetadataSigningCertificate() {
-        return idpMetadataSigningCertificate;
-    }
-
-    public void setIdpMetadataSigningCertificate(String idpMetadataSigningCertificate) {
-        this.idpMetadataSigningCertificate = idpMetadataSigningCertificate;
-    }
-
-    public Boolean getVerifyIdpMetadataSignature() {
-        return verifyIdpMetadataSignature;
-    }
-
-    public void setVerifyIdpMetadataSignature(Boolean verifyIdpMetadataSignature) {
-        this.verifyIdpMetadataSignature = verifyIdpMetadataSignature;
-    }
-
-    /* not a bean accessor on purpose: the Boolean getter above is the json property, this is the effective value */
-    public boolean shouldVerifyIdpMetadataSignature() {
-        return verifyIdpMetadataSignature == null || verifyIdpMetadataSignature.booleanValue();
     }
 
     /*
@@ -202,8 +167,6 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
     public void setConfiguration(EIDASIdentityProviderConfigMap map) {
         super.setConfiguration(map);
         this.eidasAttributes = map.getEidasAttributes();
-        this.idpMetadataSigningCertificate = map.getIdpMetadataSigningCertificate();
-        this.verifyIdpMetadataSignature = map.getVerifyIdpMetadataSignature();
 
         assertValid();
     }

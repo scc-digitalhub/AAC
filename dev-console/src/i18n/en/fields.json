@@ -691,14 +691,6 @@
         "name": "eIDAS user attributes",
         "helperText": "Attributes requested to the eIDAS node: the Minimum Data Set of Reg. (EU) 2015/1501. spidCode, name, familyName and dateOfBirth are mandatory and always required; placeOfBirth, address and gender are optional and released by some eID schemes only (a citizen whose scheme does not release a requested attribute cannot log in)"
     },
-    "idpMetadataSigningCertificate": {
-        "name": "eIDAS node metadata certificate",
-        "helperText": "Certificate the node signs its metadata with, received from the node operator (PEM). When set, the metadata at the discovery URL must verify against it; when empty they are verified against the certificate embedded in their signature (integrity only)"
-    },
-    "verifyIdpMetadataSignature": {
-        "name": "Verify eIDAS node metadata signature",
-        "helperText": "Default on: unsigned or tampered node metadata make the provider registration fail. Turn off only to diagnose a node serving unsigned metadata"
-    },
     "eidasSubAttributeName": {
         "name": "eIDAS subject attribute",
         "helperText": "Attribute used as local identifier of the user: spidCode, the eIDAS unique identifier released for every citizen"

@@ -20,19 +20,12 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.eidas.model.EIDASAttribute;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
-import it.smartcommunitylab.aac.eidas.auth.EIDASMetadataSignatureVerifier;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAttributeConsumingService;
-import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
 
 /*
  * Configuration of an eIDAS identity provider.
@@ -45,9 +38,9 @@ import org.springframework.web.client.RestTemplate;
  * Our own endpoints live under /auth/eidas/: the SPID configuration builds every url (assertion
  * consumer, single logout, metadata) from its authority, which here is "eidas".
  *
- * One thing is added: the metadata of the node are verified (signature) before the inherited code
- * loads them, see setIdentityProviders(). For SPID the trust in idp metadata comes from the AgID
- * registry; for a single url it has to be established here.
+ * The metadata of the node are loaded by the inherited setIdentityProviders(), exactly as SPID loads
+ * those of an identity provider declared by url: same path, no additional check. The eidas module
+ * keeps the trust model of the SPID module it reuses.
  */
 public class EIDASIdentityProviderConfig extends SpidIdentityProviderConfig {
 
@@ -125,51 +118,5 @@ public class EIDASIdentityProviderConfig extends SpidIdentityProviderConfig {
     @SuppressWarnings("unused")
     private EIDASIdentityProviderConfig() {
         super(SystemKeys.AUTHORITY_EIDAS, null, null, new EIDASIdentityProviderConfigMap());
-    }
-
-    private static final Logger logger = LoggerFactory.getLogger(EIDASIdentityProviderConfig.class);
-
-    private transient RestTemplate restTemplate;
-
-    /*
-     * The inherited implementation fetches idpMetadataUrl with Spring Security RelyingPartyRegistrations,
-     * which reads the certificates and ignores the Signature. The document is fetched once more here and
-     * its signature verified first: unsigned or tampered metadata fail the registration of the provider
-     * with a clear message, instead of quietly installing a certificate we would then validate Responses
-     * against. The double fetch happens at registration only.
-     */
-    @Override
-    public void setIdentityProviders(Collection<SpidRegistration> registrations) {
-        SpidIdentityProviderConfigMap map = getConfigMap();
-        if (map instanceof EIDASIdentityProviderConfigMap && StringUtils.hasText(map.getIdpMetadataUrl())) {
-            EIDASIdentityProviderConfigMap eidasMap = (EIDASIdentityProviderConfigMap) map;
-            if (eidasMap.shouldVerifyIdpMetadataSignature()) {
-                String metadata = fetchMetadata(map.getIdpMetadataUrl());
-                EIDASMetadataSignatureVerifier.verify(metadata, eidasMap.getIdpMetadataSigningCertificate());
-            } else {
-                logger.warn(
-                    "eidas provider {}: signature of the node metadata at {} NOT verified (verifyIdpMetadataSignature=false)",
-                    getProvider(),
-                    map.getIdpMetadataUrl()
-                );
-            }
-        }
-
-        super.setIdentityProviders(registrations);
-    }
-
-    private String fetchMetadata(String url) {
-        try {
-            return getRestTemplate().getForObject(url, String.class);
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException("eIDAS node metadata at " + url + " cannot be fetched: " + e.getMessage(), e);
-        }
-    }
-
-    private RestTemplate getRestTemplate() {
-        if (restTemplate == null) {
-            restTemplate = new RestTemplate();
-        }
-        return restTemplate;
     }
 }
