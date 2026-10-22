@@ -687,6 +687,18 @@
         "name": "Spid user attributes",
         "helperText": "List of attributes to be requested to Idp"
     },
+    "eidasAttributes": {
+        "name": "eIDAS user attributes",
+        "helperText": "Attributes requested to the eIDAS node: the Minimum Data Set of Reg. (EU) 2015/1501. spidCode, name, familyName and dateOfBirth are mandatory and always required; placeOfBirth, address and gender are optional and released by some eID schemes only (a citizen whose scheme does not release a requested attribute cannot log in)"
+    },
+    "eidasSubAttributeName": {
+        "name": "eIDAS subject attribute",
+        "helperText": "Attribute used as local identifier of the user: spidCode, the eIDAS unique identifier released for every citizen"
+    },
+    "eidasUsernameAttributeName": {
+        "name": "eIDAS username attribute",
+        "helperText": "Attribute used as username: spidCode, the eIDAS unique identifier"
+    },
     "idps": {
         "name": "Identity Providers",
         "helperText": "IdP Configuration"

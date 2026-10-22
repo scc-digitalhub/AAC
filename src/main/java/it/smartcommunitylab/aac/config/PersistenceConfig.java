@@ -38,6 +38,7 @@ import it.smartcommunitylab.aac.claims.ScopeClaimsExtractorProvider;
 import it.smartcommunitylab.aac.core.persistence.ProviderEntityRepository;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.AutoJDBCProviderConfigRepository;
+import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityProviderConfig;
 import it.smartcommunitylab.aac.core.service.ConfigurableProviderEntityService;
 import it.smartcommunitylab.aac.core.service.InMemoryProviderConfigRepository;
 import it.smartcommunitylab.aac.core.service.JpaProviderConfigRepository;
@@ -357,6 +358,11 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<SpidIdentityProviderConfig> spidProviderConfigRepository() {
         return buildProviderConfigRepository(SpidIdentityProviderConfig.class, SystemKeys.AUTHORITY_SPID);
+    }
+
+    @Bean
+    public ProviderConfigRepository<EIDASIdentityProviderConfig> eidasProviderConfigRepository() {
+        return buildProviderConfigRepository(EIDASIdentityProviderConfig.class, SystemKeys.AUTHORITY_EIDAS);
     }
 
     @Bean

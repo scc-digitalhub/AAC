@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:fragment="header"> </head>
+
+    <body>
+        <!--
+          eIDAS: always a single direct button, no dropdown menu.
+          - the eidas authority exposes the node as the only configured idp: the loginUrl is its own
+          - as a fallback (no idp resolved) the provider loginUrl is used
+          Without a loginUrl the button remains disabled.
+        -->
+        <div th:fragment="login"
+             th:with="loginUrl=${authority.idpButtons == null or authority.idpButtons.isEmpty()
+                        ? authority.loginUrl
+                        : authority.idpButtons[0].loginUrl}">
+          <p th:if="${authority.getDescription(#locale.language) != null}"
+             th:text="${authority.getDescription(#locale.language)}"></p>
+
+          <a class="btn btn-icon btn-outline-secondary text-left pl-3 btn-login login-eidas"
+             th:classAppend="${authority.cssClass}"
+             th:href="${loginUrl}"
+             th:attr="onclick=${loginUrl == null ? '' : null}">
+            <span class="mr-3 pr-2 border-right btn-login-icon" aria-hidden="true">
+              <img th:src="@{/svg/logo-entraconeidas.svg}" alt="eIDAS" style="width: 24px; height: 24px; object-fit: contain;" />
+            </span>
+            <span class="text-white btn-login-text">Entra con eIDAS</span>
+          </a>
+        </div>
+    </body>
+</html>

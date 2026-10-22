@@ -17,6 +17,7 @@
 package it.smartcommunitylab.aac.config;
 
 import it.smartcommunitylab.aac.identity.provider.IdentityProviderSettingsMap;
+import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
@@ -51,6 +52,9 @@ public class IdentityAuthoritiesProperties {
 
     @NestedConfigurationProperty
     private SpidIdentityProviderConfigMap spid;
+
+    @NestedConfigurationProperty
+    private EIDASIdentityProviderConfigMap eidas;
 
     @NestedConfigurationProperty
     private AppleIdentityProviderConfigMap apple;
@@ -112,6 +116,14 @@ public class IdentityAuthoritiesProperties {
 
     public void setSpid(SpidIdentityProviderConfigMap spid) {
         this.spid = spid;
+    }
+
+    public EIDASIdentityProviderConfigMap getEidas() {
+        return eidas;
+    }
+
+    public void setEidas(EIDASIdentityProviderConfigMap eidas) {
+        this.eidas = eidas;
     }
 
     public AppleIdentityProviderConfigMap getApple() {
