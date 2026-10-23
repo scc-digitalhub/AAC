@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.validation.Valid;
 import org.springframework.util.Assert;
 
@@ -105,6 +106,21 @@ public class InternalUserIdentity extends AbstractUserIdentity {
 
     public String getEmailAddress() {
         return account.getEmail();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(provider, account.getUsername());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (
+            obj instanceof InternalUserIdentity other &&
+            getClass() == other.getClass() &&
+            Objects.equals(provider, other.provider) &&
+            Objects.equals(account.getUsername(), other.account.getUsername())
+        );
     }
     // public List<UserCredentials> getCredentials() {
     //     return credentials;

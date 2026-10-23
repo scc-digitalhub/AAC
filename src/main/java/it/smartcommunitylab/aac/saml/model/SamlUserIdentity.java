@@ -22,6 +22,7 @@ import it.smartcommunitylab.aac.identity.base.AbstractUserIdentity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.util.Assert;
 
@@ -97,5 +98,20 @@ public class SamlUserIdentity extends AbstractUserIdentity {
         if (attributes != null) {
             this.attributes.addAll(attributes);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(provider, account.getSubjectId());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (
+            obj instanceof SamlUserIdentity other &&
+            getClass() == other.getClass() &&
+            Objects.equals(provider, other.provider) &&
+            Objects.equals(account.getSubjectId(), other.account.getSubjectId())
+        );
     }
 }

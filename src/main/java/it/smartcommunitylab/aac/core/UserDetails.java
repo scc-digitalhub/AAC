@@ -261,7 +261,11 @@ public class UserDetails implements CredentialsContainer, Serializable {
                 return;
             }
         }
-        // we add or replace
+        // we add or replace, keeping position: consumers read the first identity
+        List<UserIdentity> list = new ArrayList<>(identities);
+        list.replaceAll(i -> i.equals(identity) ? identity : i);
+        identities.clear();
+        identities.addAll(list);
         identities.add(identity);
 
         //        // we also check if profile is incomplete
