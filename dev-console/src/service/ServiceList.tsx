@@ -104,7 +104,7 @@ const ServiceListActions = () => {
             >
                 <ServiceCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="serviceId" />
+            <ImportButton variant="contained" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

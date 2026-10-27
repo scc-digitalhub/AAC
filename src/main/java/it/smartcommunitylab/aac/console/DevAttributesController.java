@@ -61,7 +61,7 @@ public class DevAttributesController extends BaseAttributeSetsController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<DefaultAttributesSet>>> typeRef =
         new TypeReference<Map<String, List<DefaultAttributesSet>>>() {};
-    private final String LIST_KEY = "sets";
+    private final String LIST_KEY = "attributeSets";
 
     @Autowired
     @Qualifier("yamlObjectMapper")
@@ -147,6 +147,15 @@ public class DevAttributesController extends BaseAttributeSetsController {
 
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    @GetMapping("/attributeset/{realm}/export")
+    public Map<String, Collection<AttributeSet>> exportRealmAttributeSets(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        // export the whole list under the same key used by RealmConfig and expected by the yaml import
+        Collection<AttributeSet> list = attributeManager.listAttributeSets(realm, false);
+        return Map.of(LIST_KEY, list);
     }
 
     @GetMapping("/attributeset/{realm}/{setId}/export")

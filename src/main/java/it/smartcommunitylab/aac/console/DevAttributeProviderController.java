@@ -84,7 +84,7 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ConfigurableAttributeProvider>>> typeRef =
         new TypeReference<Map<String, List<ConfigurableAttributeProvider>>>() {};
-    private final String LIST_KEY = "providers";
+    private final String LIST_KEY = "attributeProviders";
 
     // TODO replace with authorityManager to handle permissions
     @Autowired
@@ -340,6 +340,15 @@ public class DevAttributeProviderController extends BaseAttributeProviderControl
 
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    @GetMapping("/aps/{realm}/export")
+    public ResponseEntity<Map<String, Collection<ConfigurableAttributeProvider>>> exportRealmProviders(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        // export the whole list under the same key used by RealmConfig and expected by the yaml import
+        Collection<ConfigurableAttributeProvider> list = providerManager.listProviders(realm);
+        return ResponseEntity.ok(Map.of(LIST_KEY, list));
     }
 
     @GetMapping("/aps/{realm}/{providerId}/export")

@@ -88,7 +88,7 @@ public class DevClientAppController extends BaseClientAppController {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ClientApp>>> typeRef =
         new TypeReference<Map<String, List<ClientApp>>>() {};
-    private final String LIST_KEY = "clients";
+    private final String LIST_KEY = "clientApps";
 
     @Autowired
     private DevManager devManager;
@@ -203,6 +203,15 @@ public class DevClientAppController extends BaseClientAppController {
 
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    @GetMapping("/apps/{realm}/export")
+    public ResponseEntity<Map<String, Collection<ClientApp>>> exportRealmClientApps(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        // export the whole list under the same key used by RealmConfig and expected by the yaml import
+        Collection<ClientApp> list = clientManager.listClientApps(realm);
+        return ResponseEntity.ok(Map.of(LIST_KEY, list));
     }
 
     @GetMapping("/apps/{realm}/{clientId}/export")
