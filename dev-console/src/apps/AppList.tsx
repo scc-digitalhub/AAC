@@ -3,11 +3,10 @@ import {
     SearchInput,
     Datagrid,
     TopToolbar,
-    ExportButton,
     useTranslate,
     useRecordContext,
 } from 'react-admin';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportListButton } from '../components/ExportListButton';
 import { IdField } from '../components/IdField';
 import { PageTitle } from '../components/PageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
@@ -32,7 +31,6 @@ export const AppList = () => {
                 secondaryText={translate('page.apps.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<ListActions />}
                 filters={ListFilters}
                 sort={{ field: 'name', order: 'DESC' }}
@@ -111,8 +109,8 @@ const ListActions = () => {
             >
                 <AppCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="clientId" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" />
+            <ExportListButton variant="contained" />
         </TopToolbar>
     );
 };

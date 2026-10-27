@@ -96,7 +96,7 @@ const GroupListActions = () => {
             >
                 <GroupCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="groupId" />
+            <ImportButton variant="contained" />
             <ExportButton variant="contained" />
         </TopToolbar>
     );

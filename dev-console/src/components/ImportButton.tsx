@@ -3,17 +3,14 @@ import {
     BooleanInput,
     Button,
     ButtonProps,
-    CreateBase,
-    CreateProps,
-    Identifier,
-    RaRecord,
     required,
     SaveButton,
     SimpleForm,
     Toolbar,
-    useCreateContext,
     useGetResourceLabel,
+    useDataProvider,
     useNotify,
+    useRefresh,
     useResourceContext,
     useTranslate,
 } from 'react-admin';
@@ -45,12 +42,10 @@ export const ImportButton = (props: ImportButtonProps) => {
         fullWidth = true,
         label = 'action.import_one',
         color = 'info',
-        idField = null,
         variant,
-        mutationOptions = {},
+        onSuccess,
         record,
         sx,
-        ...rest
     } = props;
 
     const resource = useResourceContext(props);
@@ -58,10 +53,47 @@ export const ImportButton = (props: ImportButtonProps) => {
 
     const [open, setOpen] = useState(false);
     const notify = useNotify();
-    const { onSuccess } = mutationOptions;
+    const refresh = useRefresh();
+    const dataProvider = useDataProvider();
 
     const closeDialog = () => {
         setOpen(false);
+    };
+
+    // PUT /{resource}/{realm}?reset= with the yaml as-is:
+    // the server parses it, single element or list, and handles reset and realm
+    const handleSubmit = (data: any) => {
+        const body = new FormData();
+        body.append('yaml', toYaml(data.value));
+
+        return dataProvider
+            .invoke({
+                path: resource + '/' + realm,
+                params: { reset: !!data.reset },
+                body: body as any,
+                options: { method: 'PUT' },
+            })
+            .then(json => {
+                closeDialog();
+                refresh();
+
+                if (onSuccess) {
+                    return onSuccess(json);
+                }
+
+                notify('ra.notification.created', {
+                    type: 'info',
+                    messageArgs: { smart_count: 1 },
+                });
+            })
+            .catch(error => {
+                notify(
+                    typeof error === 'string'
+                        ? error
+                        : error?.message || 'ra.notification.http_error',
+                    { type: 'error' }
+                );
+            });
     };
 
     const handleDialogOpen: MouseEventHandler<HTMLButtonElement> = e => {
@@ -96,29 +128,8 @@ export const ImportButton = (props: ImportButtonProps) => {
                 scroll="paper"
                 sx={sx}
             >
-                <CreateBase
-                    resource={resource}
-                    redirect={false}
-                    {...rest}
-                    transform={data => {
-                        //unpack record
-                        const res = {
-                            ...data.value,
-                            realm: realm,
-                        };
-
-                        if (data.reset) {
-                            //reset fields
-                            delete res['id'];
-
-                            if (idField) {
-                                //delete additional id field
-                                delete res[idField];
-                            }
-                        }
-
-                        return res;
-                    }}
+                <ImportContent
+                    title={title}
                     record={{
                         reset: false,
                         value: record || {
@@ -126,39 +137,22 @@ export const ImportButton = (props: ImportButtonProps) => {
                             name: '',
                         },
                     }}
-                    mutationOptions={{
-                        ...mutationOptions,
-                        onSuccess: (data, variables, context) => {
-                            closeDialog();
-
-                            if (onSuccess) {
-                                return onSuccess(data, variables, context);
-                            }
-
-                            notify('ra.notification.created', {
-                                type: 'info',
-                                messageArgs: { smart_count: 1 },
-                            });
-                        },
-                    }}
-                >
-                    <CreateContent
-                        title={title}
-                        handleClose={handleDialogClose}
-                    />
-                </CreateBase>
+                    handleClose={handleDialogClose}
+                    handleSubmit={handleSubmit}
+                />
             </ImportDialog>
         </>
     );
 };
 
-const CreateContent = (props: {
+const ImportContent = (props: {
     title: string | ReactElement;
+    record: any;
     handleClose: MouseEventHandler;
+    handleSubmit: (data: any) => void;
 }) => {
-    const { title, handleClose } = props;
+    const { title, record, handleClose, handleSubmit } = props;
     const translate = useTranslate();
-    const { defaultTitle } = useCreateContext();
     const resource = useResourceContext();
     const getResourceLabel = useGetResourceLabel();
     const resourceLabel = getResourceLabel(resource, 1);
@@ -170,9 +164,7 @@ const CreateContent = (props: {
                     id="create-dialog-title"
                     className={ImportButtonClasses.title}
                 >
-                    {!title
-                        ? defaultTitle
-                        : typeof title === 'string'
+                    {typeof title === 'string'
                         ? translate(title, {
                               _: title,
                               resource: resourceLabel,
@@ -198,6 +190,8 @@ const CreateContent = (props: {
                     </Typography>
                 </Box>
                 <SimpleForm
+                    record={record}
+                    onSubmit={handleSubmit}
                     toolbar={
                         <Toolbar>
                             <SaveButton
@@ -229,26 +223,17 @@ const CreateContent = (props: {
     );
 };
 
-export type ImportButtonProps<
-    RecordType extends Omit<RaRecord, 'id'> = any,
-    MutationOptionsError = unknown,
-    ResultRecordType extends RaRecord = RecordType & { id: Identifier }
-> = Omit<
-    CreateProps<RecordType, MutationOptionsError, ResultRecordType>,
-    | 'actions'
-    | 'aside'
-    | 'component'
-    | 'hasEdit'
-    | 'hasShow'
-    | 'redirect'
-    | 'className'
-> & {
-    idField?: string;
+export type ImportButtonProps = {
+    title?: string | ReactElement;
+    resource?: string;
+    record?: any;
+    onSuccess?: (data: any) => void;
     maxWidth?: Breakpoint | false;
     fullWidth?: boolean;
     label?: string;
     variant?: 'text' | 'outlined' | 'contained';
     icon?: ReactElement;
+    sx?: any;
 } & Pick<ButtonProps, 'color'>;
 
 const PREFIX = 'RaImportButton';

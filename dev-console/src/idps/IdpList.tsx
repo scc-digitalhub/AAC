@@ -7,12 +7,11 @@ import {
     SearchInput,
     TopToolbar,
     useRecordContext,
-    ExportButton,
     useTranslate,
     BooleanField,
     FunctionField,
 } from 'react-admin';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportListButton } from '../components/ExportListButton';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { IdpCreateForm } from './IdpCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
@@ -38,7 +37,6 @@ export const IdpList = () => {
                 secondaryText={translate('page.idps.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<ListActions />}
                 filters={ListFilters}
                 sort={{ field: 'name', order: 'ASC' }}
@@ -153,8 +151,8 @@ const ListActions = () => {
             >
                 <IdpCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="provider" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" />
+            <ExportListButton variant="contained" />
         </TopToolbar>
     );
 };

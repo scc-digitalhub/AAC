@@ -94,7 +94,7 @@ const RoleListActions = () => {
             >
                 <RoleCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="roleId" />
+            <ImportButton variant="contained" />
             <ExportButton
                 variant="contained"
                 sort={{ field: 'name', order: 'ASC' }}
