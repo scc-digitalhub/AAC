@@ -16,7 +16,7 @@ const defaultIcon = <DownloadIcon />;
  * Export the whole list from GET /{resource}/{realm}/export:
  * the server returns the elements under the same list key used by RealmConfig and by the import
  */
-export const ExportListButton = (props: ExportListButtonProps) => {
+export const ExportAllButton = (props: ExportAllButtonProps) => {
     const {
         label = 'ra.action.export',
         icon = defaultIcon,
@@ -60,7 +60,7 @@ export const ExportListButton = (props: ExportListButtonProps) => {
     );
 };
 
-export type ExportListButtonProps = ButtonProps & {
+export type ExportAllButtonProps = ButtonProps & {
     resource?: string;
     filename?: string;
     icon?: ReactElement;

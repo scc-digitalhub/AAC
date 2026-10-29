@@ -6,7 +6,7 @@ import {
     useTranslate,
     useRecordContext,
 } from 'react-admin';
-import { ExportListButton } from '../components/ExportListButton';
+import { ExportAllButton } from '../components/ExportAllButton';
 import { IdField } from '../components/IdField';
 import { PageTitle } from '../components/PageTitle';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
@@ -110,7 +110,7 @@ const ListActions = () => {
                 <AppCreateForm />
             </CreateInDialogButton>
             <ImportButton variant="contained" />
-            <ExportListButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };

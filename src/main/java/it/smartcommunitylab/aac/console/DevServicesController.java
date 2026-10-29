@@ -162,6 +162,15 @@ public class DevServicesController extends BaseServicesController {
         }
     }
 
+    @GetMapping("/services/{realm}/export")
+    public Map<String, Collection<Service>> exportRealmServices(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        // export the whole list under the same key expected by the yaml import
+        Collection<Service> list = serviceManager.listServices(realm);
+        return Map.of(LIST_KEY, list);
+    }
+
     @GetMapping("/services/{realm}/{serviceId}/export")
     public void exportRealmService(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
