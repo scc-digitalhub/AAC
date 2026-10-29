@@ -5,10 +5,9 @@ import {
     TopToolbar,
     useTranslate,
     NumberField,
-    ExportButton,
 } from 'react-admin';
 import { Box } from '@mui/material';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportAllButton } from '../components/ExportAllButton';
 
 import React, { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -31,7 +30,6 @@ export const GroupList = () => {
                 secondaryText={translate('page.groups.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<GroupListActions />}
                 filters={GroupFilters}
                 sort={{ field: 'name', order: 'ASC' }}
@@ -96,8 +94,8 @@ const GroupListActions = () => {
             >
                 <GroupCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="groupId" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };

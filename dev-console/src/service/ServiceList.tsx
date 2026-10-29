@@ -4,14 +4,13 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    ExportButton,
     ArrayField,
     ChipField,
     SingleFieldList,
     FunctionField,
 } from 'react-admin';
 import { Box } from '@mui/material';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportAllButton } from '../components/ExportAllButton';
 
 import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -34,7 +33,6 @@ export const ServiceList = () => {
                 secondaryText={translate('page.services.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<ServiceListActions />}
                 filters={ServiceFilters}
                 sort={{ field: 'name', order: 'ASC' }}
@@ -104,8 +102,8 @@ const ServiceListActions = () => {
             >
                 <ServiceCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="serviceId" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };

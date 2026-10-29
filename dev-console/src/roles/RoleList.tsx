@@ -6,14 +6,13 @@ import {
     useTranslate,
     SearchInput,
     NumberField,
-    ExportButton,
 } from 'react-admin';
 import { RoleCreateForm } from './RoleCreate';
 import { Box } from '@mui/material';
 import { IdField } from '../components/IdField';
 import { ActionsButtons } from '../components/ActionsButtons';
 import { PageTitle } from '../components/PageTitle';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportAllButton } from '../components/ExportAllButton';
 import { ReactElement, isValidElement } from 'react';
 import { NameField } from '../components/NameField';
 import { Page } from '../components/Page';
@@ -30,7 +29,6 @@ export const RoleList = () => {
                 secondaryText={translate('page.roles.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<RoleListActions />}
                 filters={RoleFilters}
                 sort={{ field: 'name', order: 'ASC' }}
@@ -94,11 +92,8 @@ const RoleListActions = () => {
             >
                 <RoleCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="roleId" />
-            <ExportButton
-                variant="contained"
-                sort={{ field: 'name', order: 'ASC' }}
-            />
+            <ImportButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };
