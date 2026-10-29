@@ -11,7 +11,7 @@ import {
     BooleanField,
     FunctionField,
 } from 'react-admin';
-import { ExportListButton } from '../components/ExportListButton';
+import { ExportAllButton } from '../components/ExportAllButton';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { ApCreateForm } from './ApCreate';
 import { CreateInDialogButton } from '@dslab/ra-dialog-crud';
@@ -152,7 +152,7 @@ const ListActions = () => {
                 <ApCreateForm />
             </CreateInDialogButton>
             <ImportButton variant="contained" />
-            <ExportListButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };

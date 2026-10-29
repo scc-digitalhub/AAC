@@ -6,7 +6,7 @@ import {
     useTranslate,
 } from 'react-admin';
 import { Box } from '@mui/material';
-import { ExportListButton } from '../components/ExportListButton';
+import { ExportAllButton } from '../components/ExportAllButton';
 
 import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -92,7 +92,7 @@ const AttributeSetListActions = () => {
                 <AttributeSetCreateForm />
             </CreateInDialogButton>
             <ImportButton variant="contained" />
-            <ExportListButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };

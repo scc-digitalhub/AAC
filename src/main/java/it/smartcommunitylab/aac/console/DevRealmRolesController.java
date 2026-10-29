@@ -154,6 +154,15 @@ public class DevRealmRolesController extends BaseRealmRolesController {
         }
     }
 
+    @GetMapping("/roles/{realm}/export")
+    public Map<String, Collection<RealmRole>> exportRealmRoles(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) {
+        // export the whole list under the same key expected by the yaml import
+        Collection<RealmRole> list = roleManager.getRealmRoles(realm);
+        return Map.of(LIST_KEY, list);
+    }
+
     @GetMapping("/roles/{realm}/{roleId}/export")
     public void exportRealmRole(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

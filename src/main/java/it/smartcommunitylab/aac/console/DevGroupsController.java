@@ -153,6 +153,15 @@ public class DevGroupsController extends BaseGroupController {
         }
     }
 
+    @GetMapping("/groups/{realm}/export")
+    public Map<String, Collection<Group>> exportRealmGroups(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        // export the whole list under the same key expected by the yaml import
+        Collection<Group> list = groupManager.getGroups(realm);
+        return Map.of(LIST_KEY, list);
+    }
+
     @GetMapping("/groups/{realm}/{groupId}/export")
     public void exportGroup(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,

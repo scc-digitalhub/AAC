@@ -100,7 +100,7 @@ public class DevTemplatesController extends BaseTemplatesController {
     /*
      * Import/export for console
      */
-    @PutMapping("/templates/{realm}/models")
+    @PutMapping(path = { "/templates/{realm}/models", "/templatemodels/{realm}" })
     public Collection<TemplateModel> importTemplateModels(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
         @RequestParam(required = false, defaultValue = "false") boolean reset,
@@ -182,6 +182,15 @@ public class DevTemplatesController extends BaseTemplatesController {
 
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    @GetMapping(path = { "/templates/{realm}/models/export", "/templatemodels/{realm}/export" })
+    public Map<String, Collection<TemplateModel>> exportRealmTemplateModels(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) {
+        // export the whole list under the same key expected by the yaml import
+        Collection<TemplateModel> list = templatesManager.listTemplateModels(realm);
+        return Map.of(LIST_KEY, list);
     }
 
     @GetMapping("/templates/{realm}/models/{id}/export")
