@@ -105,35 +105,20 @@
                 <br />
             </div>
 
+            <!-- buttons carry the approval value as form submitter: no js needed -->
             <div class="row justify-content-center">
                 <div class="col-6 text-right">
-                    <input id="user_oauth_approval" name="user_oauth_approval" value="true" type="hidden" />
-
                     <label>
-                        <button id="authorize" class="btn btn-primary" name="authorize"
-                            th:text="#{action.authorize}"></button>
+                        <button type="submit" id="authorize" class="btn btn-primary"
+                            name="user_oauth_approval" value="true" th:text="#{action.authorize}"></button>
                     </label>
                 </div>
                 <div class="col-6">
-                    <label><button class="btn" id="deny" name="deny" th:text="#{action.deny}"></button></label>
+                    <label><button type="submit" id="deny" class="btn" formnovalidate
+                        name="user_oauth_approval" value="false" th:text="#{action.deny}"></button></label>
                 </div>
             </div>
         </form>
-
-        <script>
-            $('#authorize').click(function (event) {
-                if ($('#confirmationForm')[0].checkValidity()) {
-                    $('#user_oauth_approval').val(true);
-                    $('#confirmationForm').submit();
-                }
-                $('#confirmationForm').addClass('was-validated');
-                event.preventDefault();
-            });
-            $('#deny').click(function () {
-                $('#user_oauth_approval').val(false);
-                $('#confirmationForm').submit();
-            });
-        </script>
 
     </div>
 
