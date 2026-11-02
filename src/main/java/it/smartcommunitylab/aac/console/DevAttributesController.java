@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -150,12 +151,12 @@ public class DevAttributesController extends BaseAttributeSetsController {
     }
 
     @GetMapping("/attributeset/{realm}/export")
-    public Map<String, Collection<AttributeSet>> exportRealmAttributeSets(
+    public ResponseEntity<Map<String, Collection<AttributeSet>>> exportRealmAttributeSets(
         @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
     ) throws NoSuchRealmException {
         // export the whole list under the same key used by RealmConfig and expected by the yaml import
         Collection<AttributeSet> list = attributeManager.listAttributeSets(realm, false);
-        return Map.of(LIST_KEY, list);
+        return ResponseEntity.ok(Map.of(LIST_KEY, list));
     }
 
     @GetMapping("/attributeset/{realm}/{setId}/export")
