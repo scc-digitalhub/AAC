@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.eidas.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.eidas.model.EIDASAttribute;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
@@ -43,7 +44,7 @@ import java.util.Map;
 public class EIDASAccountPrincipalConverter extends SpidAccountPrincipalConverter {
 
     public EIDASAccountPrincipalConverter(String providerId, SpidIdentityProviderConfig config, String realm) {
-        super(providerId, config, realm);
+        super(SystemKeys.AUTHORITY_EIDAS, providerId, config, realm);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.attributes.AccountAttributesSet;
 import it.smartcommunitylab.aac.attributes.BasicAttributesSet;
 import it.smartcommunitylab.aac.attributes.EmailAttributesSet;
@@ -46,14 +47,21 @@ public class SpidAttributeProvider
     private final SpidAttributesMapper spidMapper;
 
     public SpidAttributeProvider(String providerId, SpidIdentityProviderConfig providerConfig, String realm) {
-        super(authorityOf(providerConfig), providerId, realm);
-        openidMapper = new OpenIdAttributesMapper();
-        spidMapper = new SpidAttributesMapper();
+        this(SystemKeys.AUTHORITY_SPID, providerId, providerConfig, realm);
     }
 
-    private static String authorityOf(SpidIdentityProviderConfig providerConfig) {
+    /* the authority is a parameter, as in SpidIdentityProviderConfig (eidas passes its own) */
+    public SpidAttributeProvider(
+        String authority,
+        String providerId,
+        SpidIdentityProviderConfig providerConfig,
+        String realm
+    ) {
+        super(authority, providerId, realm);
+        Assert.hasText(authority, "authority is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
-        return providerConfig.getAuthority();
+        openidMapper = new OpenIdAttributesMapper();
+        spidMapper = new SpidAttributesMapper();
     }
 
     @Override

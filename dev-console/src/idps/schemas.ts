@@ -367,26 +367,11 @@ export const uiSchemaSpidIdp: UiSchema = {
     },
 };
 
-// Form del provider eidas. Oggi i campi sono gli stessi di SPID, perche' la config map eidas
-// eredita quella SPID, ma lo uiSchema e' autonomo: aggiungere o togliere impostazioni qui non
-// tocca il form SPID, e viceversa.
-//
-// Nota per le modifiche: 'ui:order' e 'ui:layout' sono paralleli per indice (il secondo da' la
-// larghezza in griglia del campo che il primo elenca nella stessa posizione), e 'ui:order' deve
-// nominare tutte le proprieta' dello schema. Un campo aggiunto va messo in entrambi; un campo da
-// nascondere resta in entrambi e prende "ui:widget": "hidden".
-//
-// 'idps' non compare: la config map eidas lo esclude dallo schema, perche' verrebbe comunque
-// ignorato (il nodo si dichiara con idpMetadataUrl).
-//
-// 'eidasAttributes' sostituisce 'spidAttributes': catalogo proprio del modulo eidas (EIDASAttribute),
-// stessi nomi SPID ma solo gli attributi che un nodo rilascia; i quattro del minimum data set
-// (spidCode, name, familyName, dateOfBirth) sono il minimo richiesto, il backend lo verifica.
-//
-// 'authnContext' non ha una sua chiave in i18n/fields.json ed e' rimappato su field.spidLevel:
-// il valore sul filo e' davvero un SpidL1/2/3, perche' l'authority eidas gira sullo stack SPID.
+// eidas provider form: the config map inherits the SPID one, the uiSchema is its own.
+// 'ui:order' and 'ui:layout' are parallel by index; 'attributeSet' (minimum: index 99, full: index 100,
+// Avviso eIDAS n. 01-2018) replaces spidAttributes/attributeConsumingServiceIndex, 'authnContext' maps to spidLevel.
 export const uiSchemaEidasIdp: UiSchema = {
-    'ui:layout': [6, 6, 12, 12, 12, 12, 12, 12, 4, 4, 4, 6, 6, 12, 12, 12, 12, 6, 6, 12, 6, 6],
+    'ui:layout': [6, 6, 12, 12, 12, 12, 12, 12, 4, 4, 4, 6, 6, 12, 12, 12, 6, 6, 12, 6, 6],
     'ui:order': [
         'signingKey',
         'signingCertificate',
@@ -401,38 +386,34 @@ export const uiSchemaEidasIdp: UiSchema = {
         'organizationUrl',
         'contactPersonEmailAddress',
         'contactPersonIPACode',
-        'eidasAttributes',
+        'attributeSet',
         'idpMetadataUrl',
         'useAssertionConsumerServiceUrl',
-        'attributeConsumingServiceIndex',
         'authnContext',
-        'subAttributeName',
-        'usernameAttributeName',
-        // ogni proprieta' ereditata da SPID in futuro (es. assertionConsumerServiceUrlFormat) si
-        // renderizza in coda invece di rompere il form: RJSF rifiuta un ui:order incompleto
+        'subjectAttribute',
+        'usernameAttribute',
+        // any property inherited from SPID later renders at the end (RJSF refuses an incomplete order)
         '*',
     ],
     metadataXML: {
         'ui:widget': 'textarea',
     },
-    eidasAttributes: {
-        'ui:title': 'field.eidasAttributes.name',
-        'ui:description': 'field.eidasAttributes.helperText',
-        items: {
-            'ui:label': false,
-        },
+    attributeSet: {
+        'ui:widget': 'radio',
+        'ui:title': 'field.eidasAttributeSet.name',
+        'ui:description': 'field.eidasAttributeSet.helperText',
     },
     authnContext: {
         'ui:title': 'field.spidLevel.name',
         'ui:description': 'field.spidLevel.helperText',
     },
-    subAttributeName: {
-        'ui:title': 'field.eidasSubAttributeName.name',
-        'ui:description': 'field.eidasSubAttributeName.helperText',
+    subjectAttribute: {
+        'ui:title': 'field.eidasSubjectAttribute.name',
+        'ui:description': 'field.eidasSubjectAttribute.helperText',
     },
-    usernameAttributeName: {
-        'ui:title': 'field.eidasUsernameAttributeName.name',
-        'ui:description': 'field.eidasUsernameAttributeName.helperText',
+    usernameAttribute: {
+        'ui:title': 'field.eidasUsernameAttribute.name',
+        'ui:description': 'field.eidasUsernameAttribute.helperText',
     },
     signingKey: {
         'ui:widget': 'textarea',

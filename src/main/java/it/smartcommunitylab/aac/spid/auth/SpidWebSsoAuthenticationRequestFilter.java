@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
 import it.smartcommunitylab.aac.saml.auth.Saml2AuthenticationRequestRepository;
 import it.smartcommunitylab.aac.saml.auth.SerializableSaml2AuthenticationRequestContext;
@@ -69,6 +70,7 @@ public class SpidWebSsoAuthenticationRequestFilter
     private static final String DEFAULT_FILTER_URI =
         SpidIdentityAuthority.AUTHORITY_URL + "authenticate/{registrationId}"; // NOTE: if multiple upstream idps are possible, then registration id must somehow also encode which idp is target of the authentication request
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final String authority;
     private final String filterProcessingUrl;
     private final RequestMatcher requestMatcher;
 
@@ -94,10 +96,21 @@ public class SpidWebSsoAuthenticationRequestFilter
         RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
         String filterProcessingUrl
     ) {
+        this(SystemKeys.AUTHORITY_SPID, providerConfigRepository, relyingPartyRegistrationRepository, filterProcessingUrl);
+    }
+
+    /* the authority the events are attributed to: handed by the filter provider of the authority this filter serves */
+    public SpidWebSsoAuthenticationRequestFilter(
+        String authority,
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRepository,
+        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+        String filterProcessingUrl
+    ) {
+        Assert.hasText(authority, "authority is mandatory");
         Assert.notNull(providerConfigRepository, "registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
-        Assert.notNull(relyingPartyRegistrationRepository, "relying party repository cannot be null");
 
+        this.authority = authority;
         this.providerConfigRepository = providerConfigRepository;
         this.filterProcessingUrl = filterProcessingUrl;
         // use custom implementation to add secure relayState param
@@ -191,7 +204,7 @@ public class SpidWebSsoAuthenticationRequestFilter
         if (eventPublisher != null) {
             eventPublisher.publishEvent(
                 new SpidAuthenticationRequestEvent(
-                    config.getAuthority(),
+                    authority,
                     config.getProvider(),
                     config.getRealm(),
                     authenticationRequest

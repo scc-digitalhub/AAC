@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.auth;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.core.auth.ProviderWrappedAuthenticationToken;
 import it.smartcommunitylab.aac.core.auth.RealmAwareAuthenticationEntryPoint;
 import it.smartcommunitylab.aac.core.auth.UserAuthentication;
@@ -73,6 +74,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
     public static final String DEFAULT_FILTER_URI = SpidIdentityAuthority.AUTHORITY_URL + "sso/{registrationId}";
     private static final char PATH_DELIMITER = '/';
 
+    private final String authority;
     private final String filterProcessingUrl;
     private final RequestMatcher requestMatcher;
     private final ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRegistrationRepository;
@@ -96,11 +98,33 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         String filterProcessingUrl,
         AuthenticationEntryPoint authenticationEntryPoint
     ) {
+        this(
+            SystemKeys.AUTHORITY_SPID,
+            providerConfigRegistrationRepository,
+            relyingPartyRegistrationRepository,
+            filterProcessingUrl,
+            authenticationEntryPoint
+        );
+    }
+
+    /*
+     * The authority the authentication tokens and events are routed to: handed by the filter provider
+     * of the authority this filter serves (spid, eidas), as in SpidIdentityProviderConfig.
+     */
+    public SpidWebSsoAuthenticationFilter(
+        String authority,
+        ProviderConfigRepository<SpidIdentityProviderConfig> providerConfigRegistrationRepository,
+        RelyingPartyRegistrationRepository relyingPartyRegistrationRepository,
+        String filterProcessingUrl,
+        AuthenticationEntryPoint authenticationEntryPoint
+    ) {
         super(filterProcessingUrl);
+        Assert.hasText(authority, "authority is mandatory");
         Assert.notNull(providerConfigRegistrationRepository, "provider registration repository cannot be null");
         Assert.notNull(relyingPartyRegistrationRepository, "relyingPartyRegistrationRepository cannot be null");
         Assert.hasText(filterProcessingUrl, "filterProcessesUrl must contain a URL pattern");
 
+        this.authority = authority;
         this.providerConfigRegistrationRepository = providerConfigRegistrationRepository;
         this.filterProcessingUrl = filterProcessingUrl;
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
@@ -320,7 +344,7 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         if(eventPublisher != null) {
             eventPublisher.publishEvent(
                 new SpidAuthenticationResponseEvent(
-                    providerConfig.getAuthority(),
+                    authority,
                     providerConfig.getProvider(),
                     providerConfig.getRealm(),
                     authenticationRequest
@@ -329,11 +353,11 @@ public class SpidWebSsoAuthenticationFilter extends AbstractAuthenticationProces
         }
 
         // D. generate a wrapped authentication for the multi-provider auth manager
-        // the token is routed to the authority of the provider that issued the request (spid, eidas...)
+        // the token is routed to the authority this filter serves (spid, eidas...)
         ProviderWrappedAuthenticationToken wrappedAuthRequest = new ProviderWrappedAuthenticationToken(
             authenticationRequest,
             providerId,
-            providerConfig.getAuthority()
+            authority
         );
 
         // also collect request details

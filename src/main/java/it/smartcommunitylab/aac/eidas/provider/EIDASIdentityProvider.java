@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.eidas.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
@@ -29,12 +30,12 @@ import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.model.SpidRegistration;
 import it.smartcommunitylab.aac.spid.model.SpidUserAuthenticatedPrincipal;
+import it.smartcommunitylab.aac.spid.provider.SpidAccountService;
+import it.smartcommunitylab.aac.spid.provider.SpidAttributeProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfigMap;
-import it.smartcommunitylab.aac.spid.provider.SpidLoginProvider;
-import it.smartcommunitylab.aac.spid.provider.SpidAccountService;
 import it.smartcommunitylab.aac.spid.provider.SpidAccountServiceConfigConverter;
-import it.smartcommunitylab.aac.spid.provider.SpidAttributeProvider;
+import it.smartcommunitylab.aac.spid.provider.SpidLoginProvider;
 import it.smartcommunitylab.aac.spid.provider.SpidSubjectResolver;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -62,7 +63,7 @@ public class EIDASIdentityProvider
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    // internal providers, inherited from spid: they take the authority from the configuration
+    // internal providers, inherited from spid, built on the eidas authority
     private final SpidAccountService accountService;
     private final EIDASAccountPrincipalConverter principalConverter;
     private final SpidAttributeProvider attributeProvider;
@@ -75,20 +76,26 @@ public class EIDASIdentityProvider
         EIDASIdentityProviderConfig config,
         String realm
     ) {
-        super(config.getAuthority(), providerId, config, realm);
+        super(SystemKeys.AUTHORITY_EIDAS, providerId, config, realm);
         logger.debug("create eidas provider with id {}", providerId);
 
-        // the SPID components are authority-aware: the account service config, the attribute
-        // provider and the subject resolver carry the authority of this configuration (eidas)
+        // the SPID components take the authority as a parameter: every one of them is built on eidas
         SpidAccountServiceConfigConverter configConverter = new SpidAccountServiceConfigConverter();
         this.accountService =
-            new SpidAccountService(providerId, userAccountService, configConverter.convert(config), realm);
+            new SpidAccountService(
+                SystemKeys.AUTHORITY_EIDAS,
+                providerId,
+                userAccountService,
+                configConverter.convert(config),
+                realm
+            );
         // the converter is the spid one corrected for eidas (name/surname from the Minimum Data
         // Set, email never verified)
         this.principalConverter = new EIDASAccountPrincipalConverter(providerId, config, realm);
-        this.attributeProvider = new SpidAttributeProvider(providerId, config, realm);
+        this.attributeProvider = new SpidAttributeProvider(SystemKeys.AUTHORITY_EIDAS, providerId, config, realm);
         this.authenticationProvider = new EIDASAuthenticationProvider(providerId, userAccountService, config, realm);
-        this.subjectResolver = new SpidSubjectResolver(providerId, userAccountService, config, realm);
+        this.subjectResolver =
+            new SpidSubjectResolver(SystemKeys.AUTHORITY_EIDAS, providerId, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null) {

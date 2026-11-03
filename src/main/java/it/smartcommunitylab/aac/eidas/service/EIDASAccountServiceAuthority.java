@@ -46,8 +46,8 @@ import org.springframework.util.Assert;
  * this bean an eidas account exists in the repository and is invisible everywhere else.
  *
  * Mirrors SpidAccountServiceAuthority on the eidas configurations: the account service configs are
- * derived with the SPID converter, which keeps the authority of the source (eidas), and the SPID
- * account service takes its authority from them.
+ * derived with the SPID converter, and the SPID account service is built on the eidas authority,
+ * passed explicitly as every component of the SPID stack takes it.
  */
 @Service
 public class EIDASAccountServiceAuthority
@@ -76,7 +76,9 @@ public class EIDASAccountServiceAuthority
 
     @Override
     protected SpidAccountService buildProvider(SpidAccountServiceConfig config) {
+        // the authority is a parameter of the SPID account service: this authority builds on eidas
         SpidAccountService service = new SpidAccountService(
+            SystemKeys.AUTHORITY_EIDAS,
             config.getProvider(),
             accountService,
             config,

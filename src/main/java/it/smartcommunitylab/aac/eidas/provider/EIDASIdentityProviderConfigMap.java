@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.eidas.model.EIDASAttribute;
+import it.smartcommunitylab.aac.eidas.model.EIDASAttributeSet;
 import it.smartcommunitylab.aac.spid.model.SpidAttribute;
 import it.smartcommunitylab.aac.spid.model.SpidAuthnContext;
 import it.smartcommunitylab.aac.spid.model.SpidPurpose;
@@ -36,46 +37,32 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
- * Configuration of an eIDAS provider.
- *
- * The italian eIDAS node is configured exactly like a SPID one, so the SPID map is inherited whole:
- *  - entityId, signingKey, signingCertificate: our own SP identity
- *  - organization*, contactPerson_*: metadata sections required by the node
- *  - idpMetadataUrl: the eIDAS node (mandatory, it is the single upstream idp)
- *  - authnContext, subAttributeName, usernameAttributeName: level of assurance and which attribute
- *    carries the local identifier (spidCode by default)
- *
- * `spidAttributes` is REPLACED by `eidasAttributes`, the catalogue of the eidas module (EIDASAttribute):
- * the same SPID names, restricted to the attributes an eIDAS node releases, with the four of the
- * Minimum Data Set as the required minimum. The SPID stack keeps reading getSpidAttributes(), which
- * returns the translation; the SPID field is out of json and schema. Effects: the console offers
- * exactly the attributes a node releases (the enum is the list), a configuration asking for a SPID
- * attribute outside the catalogue fails to deserialize, one missing the minimum fails validation -
- * both refused at registration, not accepted and broken at the first login. When no attribute is
- * configured the minimum is assumed.
- *
- * The `idps` field is dropped: SpidIdentityProviderConfig.setIdentityProviders() reads it only in
- * the branch that picks the upstream idps from the local SPID registry, and that branch is reached
- * only when `idpMetadataUrl` is empty. For eidas the node is always declared by url and no local
- * registry is passed, so whatever is configured there would be silently ignored.
- *
- * The `purpose` field (SPID Professionale, AgID notice n.18) is dropped as well: it qualifies
- * professional identities and legal person attributes, which no eIDAS node releases.
- *
- * Having a type of its own keeps the eidas provider form (and its persisted configuration) separate
- * from the SPID one, and gives eidas specific options a place to live without touching SPID.
+ * Configuration of an eIDAS provider: the SPID map inherited whole (SP identity, organization, contact
+ * person, idpMetadataUrl for the node, authnContext), with three eidas replacements:
+ *  - attributeSet (minimum/index 99, full/index 100; Avviso eIDAS n. 01-2018, par. 4) in place of
+ *    spidAttributes and attributeConsumingServiceIndex: attributes and index come from the set;
+ *  - subjectAttribute and usernameAttribute, on the eidas catalogue, in place of the SPID identifiers
+ *    (subAttributeName, usernameAttributeName), of which only spidCode is an eidas attribute;
+ *  - idps and purpose dropped: SPID registry and SPID Professionale, nothing for an eIDAS node.
+ * The SPID stack keeps reading the SPID getters, which answer from the eidas fields; the SPID fields
+ * are out of json, persisted configuration and schema.
  */
 @Valid
 /*
- * the SPID-only fields are excluded at class level: an @JsonIgnore on a single accessor is not
- * enough when the parent declares the property with an explicit annotation on another accessor
- * (Jackson then drops only the annotated accessor and keeps the property). The class level ignore
- * covers json, the persisted configuration and the generated schema alike.
+ * SPID-only fields excluded at class level: @JsonIgnore on one accessor is not enough when the parent
+ * annotates another accessor of the same property. Covers json, persisted configuration and schema.
  */
-@JsonIgnoreProperties(value = { "spidAttributes", "idps", "purpose" }, ignoreUnknown = true)
+@JsonIgnoreProperties(
+    value = { "spidAttributes", "attributeConsumingServiceIndex", "subAttributeName", "usernameAttributeName", "idps", "purpose" },
+    ignoreUnknown = true
+)
 public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMap {
+
+    private static final Logger logger = LoggerFactory.getLogger(EIDASIdentityProviderConfigMap.class);
 
     private static final long serialVersionUID = SystemKeys.AAC_EIDAS_SERIAL_VERSION;
 
@@ -87,31 +74,57 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
         SystemKeys.AUTHORITY_EIDAS;
 
     /*
-     * the attributes requested to the node (SPID names, eidas catalogue); translated for the SPID stack
+     * The set requested to the node (EIDASAttributeSet), minimum by default, never null. Mind "full": its three
+     * further attributes are optional in eIDAS and a scheme lacking them omits them (seen on the pre-production
+     * node, 2026-10-28), while the SPID assertion validator rejects a Response missing a requested attribute.
      */
-    private Set<EIDASAttribute> eidasAttributes;
+    private EIDASAttributeSet attributeSet = EIDASAttributeSet.MINIMUM;
 
-    public Set<EIDASAttribute> getEidasAttributes() {
-        return eidasAttributes;
+    public EIDASAttributeSet getAttributeSet() {
+        return attributeSet;
     }
 
-    public void setEidasAttributes(Set<EIDASAttribute> eidasAttributes) {
-        this.eidasAttributes = eidasAttributes;
+    public void setAttributeSet(EIDASAttributeSet attributeSet) {
+        this.attributeSet = attributeSet != null ? attributeSet : EIDASAttributeSet.MINIMUM;
     }
 
     /*
-     * The SPID view of the requested attributes: what the SPID stack puts in the metadata and checks
-     * in the assertion. Derived from eidasAttributes (the minimum when unset); the inherited field is
-     * reachable only through the inherited setter, for the SPID code paths that use it, never from json.
+     * Subject and username, among the attributes of the configured set; spidCode by default, and whenever the
+     * choice falls outside the set (see assertValid). Only spidCode is unique and persistent.
      */
+    private EIDASAttribute subjectAttribute = EIDASAttribute.SPID_CODE;
+    private EIDASAttribute usernameAttribute = EIDASAttribute.SPID_CODE;
+
+    public EIDASAttribute getSubjectAttribute() {
+        return subjectAttribute;
+    }
+
+    public void setSubjectAttribute(EIDASAttribute subjectAttribute) {
+        this.subjectAttribute = subjectAttribute != null ? subjectAttribute : EIDASAttribute.SPID_CODE;
+    }
+
+    public EIDASAttribute getUsernameAttribute() {
+        return usernameAttribute;
+    }
+
+    public void setUsernameAttribute(EIDASAttribute usernameAttribute) {
+        this.usernameAttribute = usernameAttribute != null ? usernameAttribute : EIDASAttribute.SPID_CODE;
+    }
+
+    /* the SPID view of the requested attributes (metadata, assertion checks): those of the chosen set */
     @Override
     @JsonIgnore
     public Set<SpidAttribute> getSpidAttributes() {
-        return EIDASAttribute.toSpidAttributes(getEidasAttributesOrMinimum());
+        return toSpidAttributes(attributeSet.getAttributes());
     }
 
-    private Set<EIDASAttribute> getEidasAttributesOrMinimum() {
-        return eidasAttributes != null && !eidasAttributes.isEmpty() ? eidasAttributes : EIDASAttribute.mandatory();
+    /* the eidas catalogue translated for the SPID stack; kept with the overrides that feed it (and the config) */
+    static Set<SpidAttribute> toSpidAttributes(Set<EIDASAttribute> attributes) {
+        Set<SpidAttribute> spidAttributes = EnumSet.noneOf(SpidAttribute.class);
+        if (attributes != null) {
+            attributes.forEach(a -> spidAttributes.add(a.getAlias()));
+        }
+        return spidAttributes;
     }
 
     @Override
@@ -120,9 +133,20 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
         super.setSpidAttributes(spidAttributes);
     }
 
-    /*
-     * dropped from the eidas configuration: never read, see note above
-     */
+    /* the AuthnRequest index is the one prescribed for the chosen set (99 or 100): derived, never configured */
+    @Override
+    @JsonIgnore
+    public Integer getAttributeConsumingServiceIndex() {
+        return attributeSet.getIndex();
+    }
+
+    @Override
+    @JsonIgnore
+    public void setAttributeConsumingServiceIndex(Integer attributeConsumingServiceIndex) {
+        super.setAttributeConsumingServiceIndex(attributeConsumingServiceIndex);
+    }
+
+    /* dropped: read by SPID only when idpMetadataUrl is empty, never the case for eidas */
     @Override
     @JsonIgnore
     public Set<String> getIdps() {
@@ -135,9 +159,7 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
         super.setIdps(idps);
     }
 
-    /*
-     * dropped from the eidas configuration: SPID Professionale only, see note above
-     */
+    /* dropped: SPID Professionale only (AgID notice n.18), nothing an eIDAS node releases */
     @Override
     @JsonIgnore
     public SpidPurpose getPurpose() {
@@ -160,63 +182,45 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
         setConfiguration(map);
     }
 
-    /*
-     * the parent copies its own fields; the eidas ones are copied here. Validation happens here too,
-     * i.e. at registration: a configuration outside the eidas sets is refused.
-     */
+    /* the parent copies its fields, the eidas ones are copied here; validation runs here, i.e. at registration */
     public void setConfiguration(EIDASIdentityProviderConfigMap map) {
         super.setConfiguration(map);
-        this.eidasAttributes = map.getEidasAttributes();
+        setAttributeSet(map.getAttributeSet());
+        setSubjectAttribute(map.getSubjectAttribute());
+        setUsernameAttribute(map.getUsernameAttribute());
 
         assertValid();
     }
 
     /*
-     * Registration-time checks, as a single call that throws with a message naming what is wrong.
-     * Invoked by EIDASIdentityProviderConfig's constructor, so that - as SPID does with its signing
-     * credentials - a provider on an invalid configuration cannot be built, hence cannot be activated;
-     * saving a draft is allowed, and the error is reported when the provider is enabled.
+     * Registration-time checks, invoked by EIDASIdentityProviderConfig's constructor too: a provider on an invalid
+     * configuration cannot be built, hence cannot be enabled (a draft can still be saved).
      */
     public void assertValid() {
-        requireMinimumAttributes(eidasAttributes);
-        requireIdentifierAttribute("subAttributeName", getSubAttributeName());
-        requireIdentifierAttribute("usernameAttributeName", getUsernameAttributeName());
+        this.subjectAttribute = inConfiguredSet("subjectAttribute", subjectAttribute);
+        this.usernameAttribute = inConfiguredSet("usernameAttribute", usernameAttribute);
         requireNotifiedLevel(getAuthnContext());
     }
 
-    /*
-     * The minimum a provider must request is the Minimum Data Set (the four mandatory attributes of
-     * EIDASAttribute): a node releases them at every authentication and the SP metadata must ask for
-     * them. Unset means the minimum; set and incomplete is refused, naming what is missing.
-     */
-    private static Set<EIDASAttribute> missingMinimumAttributes(Set<EIDASAttribute> attributes) {
-        if (attributes == null || attributes.isEmpty()) {
-            return Collections.emptySet();
+    /* an identifier outside the configured set can never be in a Response: spidCode instead, with a warning */
+    private EIDASAttribute inConfiguredSet(String field, EIDASAttribute attribute) {
+        if (attribute == null || attributeSet.getAttributes().contains(attribute)) {
+            return attribute != null ? attribute : EIDASAttribute.SPID_CODE;
         }
-        Set<EIDASAttribute> missing = EIDASAttribute.mandatory();
-        missing.removeAll(attributes);
-        return missing;
-    }
-
-    private static void requireMinimumAttributes(Set<EIDASAttribute> attributes) {
-        Set<EIDASAttribute> missing = missingMinimumAttributes(attributes);
-        if (!missing.isEmpty()) {
-            throw new IllegalArgumentException(
-                "eidasAttributes must include the minimum data set, missing: " +
-                missing.stream().map(EIDASAttribute::getValue).collect(Collectors.joining(", "))
-            );
-        }
+        logger.warn(
+            "eidas {} {} is not in the {} attribute set, falling back to {}",
+            field,
+            attribute.getValue(),
+            attributeSet.getValue(),
+            EIDASAttribute.SPID_CODE.getValue()
+        );
+        return EIDASAttribute.SPID_CODE;
     }
 
     /*
-     * SPID is notified under eIDAS at all three levels of assurance (Cooperation Network Opinion No.
-     * 1/2018 on the italian scheme: "high", "substantial" and "low"), so every SPID level has an eIDAS
-     * level behind it: SpidL1 = low, SpidL2 = substantial, SpidL3 = high. All three are accepted; which
-     * one to require is the Service Provider's choice (note that, among the notified schemes, only the
-     * italian ones offer "low": towards foreign citizens SpidL1 and SpidL2 are served alike).
-     * Verified on the italian node, pre-production (2026-10-05): SpidL3 requested by the Service Provider
-     * leaves the node towards the eIDAS Connector as http://eidas.europa.eu/LoA/high, Comparison minimum.
-     * Unset is left to the SPID default.
+     * SPID is notified under eIDAS at all three levels (Cooperation Network Opinion No. 1/2018: SpidL1 = low,
+     * SpidL2 = substantial, SpidL3 = high), so all three are accepted; verified on the pre-production node,
+     * 2026-10-05: SpidL3 leaves the node as http://eidas.europa.eu/LoA/high. Unset is left to the SPID default.
      */
     public static final Set<SpidAuthnContext> NOTIFIED_LEVELS = Collections.unmodifiableSet(
         EnumSet.of(SpidAuthnContext.SPID_L1, SpidAuthnContext.SPID_L2, SpidAuthnContext.SPID_L3)
@@ -234,43 +238,31 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
     }
 
     /*
-     * Which SPID attribute is the local identifier (subject) and which is the username.
-     *
-     * SPID leaves the choice open among spidCode, fiscalNumber, email, mobilePhone, username, ivaCode
-     * and the SAML subject; for eidas only spidCode makes sense: it carries the unique and persistent
-     * identifier (the eIDAS PersonIdentifier) a node releases for every citizen. The others are either
-     * not eidas attributes at all (fiscalNumber, username, ivaCode), outside the catalogue (email,
-     * mobilePhone) or transient (the SAML subject: the node issues a new NameID per session, as SPID
-     * does, so nothing would ever match twice).
-     *
-     * When unset the identifier defaults to spidCode, instead of the SAML subject as in SPID.
+     * The SPID identifiers as the SPID stack reads them: always spidCode, the only SPID identifier that is an eidas
+     * attribute. The eidas choice is applied afterwards on the principal by EIDASAuthenticationProvider.
      */
-    public static final Set<SpidUserAttribute> IDENTIFIER_ATTRIBUTES = Collections.unmodifiableSet(
-        EnumSet.of(SpidUserAttribute.SPID_CODE)
-    );
-
     @Override
+    @JsonIgnore
     public SpidUserAttribute getSubAttributeName() {
-        SpidUserAttribute attribute = super.getSubAttributeName();
-        return attribute != null ? attribute : SpidUserAttribute.SPID_CODE;
+        return SpidUserAttribute.SPID_CODE;
     }
 
     @Override
+    @JsonIgnore
     public SpidUserAttribute getUsernameAttributeName() {
-        SpidUserAttribute attribute = super.getUsernameAttributeName();
-        return attribute != null ? attribute : SpidUserAttribute.SPID_CODE;
+        return SpidUserAttribute.SPID_CODE;
     }
 
-    private static void requireIdentifierAttribute(String field, SpidUserAttribute attribute) {
-        if (!IDENTIFIER_ATTRIBUTES.contains(attribute)) {
-            throw new IllegalArgumentException(
-                field +
-                " must be one of " +
-                IDENTIFIER_ATTRIBUTES.stream().map(SpidUserAttribute::getValue).collect(Collectors.joining(", ")) +
-                " for an eidas provider, found " +
-                attribute.getValue()
-            );
-        }
+    @Override
+    @JsonIgnore
+    public void setSubAttributeName(SpidUserAttribute subAttributeName) {
+        super.setSubAttributeName(subAttributeName);
+    }
+
+    @Override
+    @JsonIgnore
+    public void setUsernameAttributeName(SpidUserAttribute usernameAttributeName) {
+        super.setUsernameAttributeName(usernameAttributeName);
     }
 
     private static void narrowEnum(JsonSchema property, Set<String> values) {
@@ -279,21 +271,25 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
         }
     }
 
-    /*
-     * The generated schema, with the identifier attributes and the level narrowed to the eidas sets:
-     * the console offers exactly what the validation above accepts.
-     */
+    /* the generated schema, narrowed to what the validation accepts: identifiers, level, attribute set */
     @Override
     @JsonIgnore
     public JsonSchema getSchema() throws JsonMappingException {
         JsonSchema schema = schemaGen.generateSchema(EIDASIdentityProviderConfigMap.class);
 
-        Set<String> values = IDENTIFIER_ATTRIBUTES.stream()
-            .map(SpidUserAttribute::getValue)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
         Map<String, JsonSchema> properties = schema.asObjectSchema().getProperties();
-        for (String field : new String[] { "subAttributeName", "usernameAttributeName" }) {
-            narrowEnum(properties.get(field), values);
+
+        // subject and username, by the SPID names of the catalogue (the enum constant names otherwise)
+        Set<String> values = EnumSet.allOf(EIDASAttribute.class)
+            .stream()
+            .map(EIDASAttribute::getValue)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        for (String field : new String[] { "subjectAttribute", "usernameAttribute" }) {
+            JsonSchema property = properties.get(field);
+            narrowEnum(property, values);
+            if (property != null && property.isSimpleTypeSchema()) {
+                property.asSimpleTypeSchema().setDefault(EIDASAttribute.SPID_CODE.getValue());
+            }
         }
 
         // same for the level: the notified ones (all three, see NOTIFIED_LEVELS)
@@ -301,6 +297,20 @@ public class EIDASIdentityProviderConfigMap extends SpidIdentityProviderConfigMa
             properties.get("authnContext"),
             NOTIFIED_LEVELS.stream().map(SpidAuthnContext::getValue).collect(Collectors.toCollection(LinkedHashSet::new))
         );
+
+        // the attribute set by value, minimum as default; never "required": jackson emits it draft-3 style
+        // ("required": true on the property) and the console validator (ajv, draft-7) rejects the schema
+        JsonSchema attributeSetProperty = properties.get("attributeSet");
+        narrowEnum(
+            attributeSetProperty,
+            EnumSet.allOf(EIDASAttributeSet.class)
+                .stream()
+                .map(EIDASAttributeSet::getValue)
+                .collect(Collectors.toCollection(LinkedHashSet::new))
+        );
+        if (attributeSetProperty != null && attributeSetProperty.isSimpleTypeSchema()) {
+            attributeSetProperty.asSimpleTypeSchema().setDefault(EIDASAttributeSet.MINIMUM.getValue());
+        }
 
         return schema;
     }

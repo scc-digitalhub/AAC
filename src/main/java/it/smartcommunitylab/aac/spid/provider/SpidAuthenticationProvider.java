@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.claims.ScriptExecutionService;
 import it.smartcommunitylab.aac.common.InvalidDefinitionException;
@@ -51,6 +52,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class SpidAuthenticationProvider
@@ -77,7 +79,20 @@ public class SpidAuthenticationProvider
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        super(config.getAuthority(), providerId, realm);
+        this(SystemKeys.AUTHORITY_SPID, providerId, accountService, config, realm);
+    }
+
+    /* the authority is a parameter, as in SpidIdentityProviderConfig (eidas passes its own) */
+    public SpidAuthenticationProvider(
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> accountService,
+        SpidIdentityProviderConfig config,
+        String realm
+    ) {
+        super(authority, providerId, realm);
+        Assert.hasText(authority, "authority is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
         this.accountService = accountService;
         this.registrationIds = config.getRelyingPartyRegistrationIds();
         this.subjectAttribute = config.getSubAttributeName();

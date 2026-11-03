@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
 import it.smartcommunitylab.aac.accounts.provider.AccountProvider;
 import it.smartcommunitylab.aac.attributes.model.UserAttributes;
@@ -38,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.provider.AuthorizationRequest;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 public class SpidIdentityProvider
@@ -58,23 +60,37 @@ public class SpidIdentityProvider
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        // the authority is the one declared by the configuration: the SPID stack is reused as-is by
-        // other authorities (eidas) and every component below takes the authority from the config
-        super(config.getAuthority(), providerId, config, realm);
-        logger.debug("create {} provider with id {}", config.getAuthority(), providerId);
+        this(SystemKeys.AUTHORITY_SPID, providerId, userAccountService, config, realm);
+    }
+
+    /*
+     * The SPID provider is the base of the authorities built on the SPID stack (eidas): the authority
+     * is a parameter, as in SpidIdentityProviderConfig, and is handed to every component built here.
+     */
+    public SpidIdentityProvider(
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        SpidIdentityProviderConfig config,
+        String realm
+    ) {
+        super(authority, providerId, config, realm);
+        Assert.hasText(authority, "authority is mandatory");
+        logger.debug("create {} provider with id {}", authority, providerId);
         SpidAccountServiceConfigConverter configConverter = new SpidAccountServiceConfigConverter();
         this.accountService =
-            new SpidAccountService(providerId, userAccountService, configConverter.convert(config), realm);
-        this.principalConverter = new SpidAccountPrincipalConverter(providerId, config, realm);
-        this.attributeProvider = new SpidAttributeProvider(providerId, config, realm);
+            new SpidAccountService(authority, providerId, userAccountService, configConverter.convert(config), realm);
+        this.principalConverter = new SpidAccountPrincipalConverter(authority, providerId, config, realm);
+        this.attributeProvider = new SpidAttributeProvider(authority, providerId, config, realm);
         this.authenticationProvider =
             new SpidAuthenticationProvider(
+                authority,
                 providerId,
                 userAccountService, // TODO: remove? currently unused by AuthnProvider
                 config,
                 realm
             );
-        this.subjectResolver = new SpidSubjectResolver(providerId, userAccountService, config, realm);
+        this.subjectResolver = new SpidSubjectResolver(authority, providerId, userAccountService, config, realm);
 
         // function hooks from config
         if (config.getHookFunctions() != null) {

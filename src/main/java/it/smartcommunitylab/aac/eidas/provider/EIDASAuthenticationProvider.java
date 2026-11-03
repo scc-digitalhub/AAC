@@ -16,7 +16,9 @@
 
 package it.smartcommunitylab.aac.eidas.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.accounts.persistence.UserAccountService;
+import it.smartcommunitylab.aac.eidas.model.EIDASAttribute;
 import it.smartcommunitylab.aac.eidas.model.EIDASUserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.saml.model.SamlUserAccount;
 import it.smartcommunitylab.aac.spid.auth.SpidAuthenticationException;
@@ -32,7 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
+import org.springframework.util.StringUtils;
 
 /*
  * Authentication against the eIDAS node.
@@ -56,7 +60,7 @@ public class EIDASAuthenticationProvider extends SpidAuthenticationProvider {
         EIDASIdentityProviderConfig config,
         String realm
     ) {
-        super(providerId, accountService, config, realm);
+        super(SystemKeys.AUTHORITY_EIDAS, providerId, accountService, config, realm);
         this.config = config;
     }
 
@@ -144,12 +148,20 @@ public class EIDASAuthenticationProvider extends SpidAuthenticationProvider {
     }
 
     @Override
-    protected SpidUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
-        // let SPID do the parsing, the attribute extraction and the script hooks
+    protected EIDASUserAuthenticatedPrincipal createUserPrincipal(Object principal) {
+        // let SPID do the parsing, the attribute extraction and the script hooks; SPID identifies the
+        // user by spidCode (the only SPID identifier that is an eidas attribute, see the config map)
         SpidUserAuthenticatedPrincipal spidPrincipal = super.createUserPrincipal(principal);
         if (spidPrincipal == null) {
             return null;
         }
+
+        // the eidas choice of subject and username: any attribute of the configured set, read from
+        // the Response; spidCode (always released) when the chosen one is missing
+        Saml2AuthenticatedPrincipal samlDetails = (Saml2AuthenticatedPrincipal) principal;
+        EIDASIdentityProviderConfigMap configMap = (EIDASIdentityProviderConfigMap) config.getConfigMap();
+        String subjectId = attributeOrSpidCode(samlDetails, configMap.getSubjectAttribute(), spidPrincipal.getSubjectId());
+        String username = attributeOrSpidCode(samlDetails, configMap.getUsernameAttribute(), spidPrincipal.getUsername());
 
         // rebuild as an eidas principal
         EIDASUserAuthenticatedPrincipal user = new EIDASUserAuthenticatedPrincipal(
@@ -157,15 +169,20 @@ public class EIDASAuthenticationProvider extends SpidAuthenticationProvider {
             getProvider(),
             getRealm(),
             spidPrincipal.getUserId(),
-            spidPrincipal.getSubjectId()
+            subjectId
         );
         user.setPrincipal(spidPrincipal.getPrincipal());
-        user.setUsername(spidPrincipal.getUsername());
+        user.setUsername(username);
         user.setEmailAddress(spidPrincipal.getEmailAddress());
         user.setIdp(spidPrincipal.getIdp());
         user.setSpidCode(spidPrincipal.getSpidCode());
         user.setAttributes(spidPrincipal.getAttributes());
 
         return user;
+    }
+
+    private static String attributeOrSpidCode(Saml2AuthenticatedPrincipal principal, EIDASAttribute attribute, String spidCodeValue) {
+        String value = attribute != null ? principal.getFirstAttribute(attribute.getValue()) : null;
+        return StringUtils.hasText(value) ? value : spidCodeValue;
     }
 }

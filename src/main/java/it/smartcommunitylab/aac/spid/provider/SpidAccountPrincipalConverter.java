@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.spid.provider;
 
+import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.base.provider.AbstractProvider;
 import it.smartcommunitylab.aac.identity.model.UserAuthenticatedPrincipal;
 import it.smartcommunitylab.aac.identity.provider.AccountPrincipalConverter;
@@ -41,14 +42,24 @@ public class SpidAccountPrincipalConverter
     private final String repositoryId;
 
     public SpidAccountPrincipalConverter(String providerId, SpidIdentityProviderConfig config, String realm) {
-        super(authorityOf(config), providerId, realm);
-        this.config = config;
-        this.repositoryId = providerId;
+        this(SystemKeys.AUTHORITY_SPID, providerId, config, realm);
     }
 
-    private static String authorityOf(SpidIdentityProviderConfig config) {
+    /*
+     * The authority is a parameter, as in SpidIdentityProviderConfig: the authorities built on the
+     * SPID stack (eidas) pass their own, never derived at runtime from the configuration.
+     */
+    public SpidAccountPrincipalConverter(
+        String authority,
+        String providerId,
+        SpidIdentityProviderConfig config,
+        String realm
+    ) {
+        super(authority, providerId, realm);
+        Assert.hasText(authority, "authority is mandatory");
         Assert.notNull(config, "provider config is mandatory");
-        return config.getAuthority();
+        this.config = config;
+        this.repositoryId = providerId;
     }
 
     @Override

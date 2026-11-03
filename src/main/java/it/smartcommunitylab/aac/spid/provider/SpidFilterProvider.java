@@ -106,6 +106,7 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
 
         // build filters
         SpidWebSsoAuthenticationRequestFilter requestFilter = new SpidWebSsoAuthenticationRequestFilter(
+            authorityId,
             providerConfigRepository,
             relyingPartyRegistrationRepository,
             buildFilterUrl("authenticate/{registrationId}")
@@ -114,6 +115,7 @@ public class SpidFilterProvider implements FilterProvider, ApplicationEventPubli
         requestFilter.setAuthenticationRequestRepository(authenticationRequestRepository);
 
         SpidWebSsoAuthenticationFilter ssoFilter = new SpidWebSsoAuthenticationFilter(
+            authorityId,
             providerConfigRepository,
             relyingPartyRegistrationRepository,
             buildFilterUrl("sso/{registrationId}"),
