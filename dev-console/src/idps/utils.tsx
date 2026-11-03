@@ -12,6 +12,7 @@ import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
 import BusinessIcon from '@mui/icons-material/Business';
 import { SvgIconOwnProps } from '@mui/material';
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
+import EuroIcon from '@mui/icons-material/Euro';
 
 export const AppleIdpIcon = AppleIcon;
 export const InternalIdpIcon = LockPersonIcon;
@@ -24,6 +25,7 @@ export const OidcIdpIcon = AssuredWorkloadIcon;
 export const WebAuthnIdpIcon = VpnKeyIcon;
 export const OpenIdFedIcon = LocalPoliceIcon;
 export const SpidIcon = LocalPoliceIcon;
+export const EidasIcon = EuroIcon;
 
 export const authorities = {
     apple: { icon: AppleIdpIcon },
@@ -37,6 +39,7 @@ export const authorities = {
     oidc: { icon: OidcIdpIcon },
     openidfed: { icon: OpenIdFedIcon },
     spid: { icon: SpidIcon },
+    eidas: { icon: EidasIcon },
 };
 
 export const getIdpIcon = (authority?: string, props?: SvgIconOwnProps) => {

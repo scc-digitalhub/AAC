@@ -41,9 +41,21 @@ public class SpidSubjectResolver extends AbstractProvider<SamlUserAccount> imple
         SpidIdentityProviderConfig config,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
-        Assert.notNull(userAccountService, "account service is mandatory");
+        this(SystemKeys.AUTHORITY_SPID, providerId, userAccountService, config, realm);
+    }
+
+    /* the authority is a parameter, as in SpidIdentityProviderConfig (eidas passes its own) */
+    public SpidSubjectResolver(
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> userAccountService,
+        SpidIdentityProviderConfig config,
+        String realm
+    ) {
+        super(authority, providerId, realm);
+        Assert.hasText(authority, "authority is mandatory");
         Assert.notNull(config, "provider config is mandatory");
+        Assert.notNull(userAccountService, "account service is mandatory");
 
         this.accountService = userAccountService;
         this.config = config;

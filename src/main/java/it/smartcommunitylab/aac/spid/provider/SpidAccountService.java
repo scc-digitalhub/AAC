@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.util.Assert;
 
 @Transactional
 public class SpidAccountService
@@ -39,7 +40,19 @@ public class SpidAccountService
         SpidAccountServiceConfig config,
         String realm
     ) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, accountService, config, realm);
+        this(SystemKeys.AUTHORITY_SPID, providerId, accountService, config, realm);
+    }
+
+    /* the authority is a parameter, as in SpidIdentityProviderConfig (eidas passes its own) */
+    public SpidAccountService(
+        String authority,
+        String providerId,
+        UserAccountService<SamlUserAccount> accountService,
+        SpidAccountServiceConfig config,
+        String realm
+    ) {
+        super(authority, providerId, accountService, config, realm);
+        Assert.hasText(authority, "authority is mandatory");
     }
 
     @Override

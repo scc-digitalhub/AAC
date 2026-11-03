@@ -47,6 +47,7 @@ public class SpidMetadataFilter extends OncePerRequestFilter {
 
     private final RelyingPartyRegistrationResolver relyingPartyRegistrationResolver;
 	private final SpidMetadataResolver metadataResolver;
+    private final String filterProcessingUrl;
     private final RequestMatcher requestMatcher;
     private String metadataFilename = DEFAULT_METADATA_FILE_NAME;
 
@@ -69,12 +70,17 @@ public class SpidMetadataFilter extends OncePerRequestFilter {
             relyingPartyRegistrationRepository
         );
         this.metadataResolver = new SpidMetadataResolver(configRepository);
+        this.filterProcessingUrl = filterProcessingUrl;
         this.requestMatcher = new AntPathRequestMatcher(filterProcessingUrl);
     }
 
+    /*
+     * OncePerRequestFilter tells instances apart by name: the filter is instantiated once per
+     * authority built on the SPID stack (spid, eidas...), so the name carries the endpoint.
+     */
     @Nullable
     protected String getFilterName() {
-        return getClass().getName() + "." + SpidIdentityAuthority.AUTHORITY_URL;
+        return getClass().getName() + "." + filterProcessingUrl;
     }
 
     @Override

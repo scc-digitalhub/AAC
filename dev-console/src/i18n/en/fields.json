@@ -687,6 +687,18 @@
         "name": "Spid user attributes",
         "helperText": "List of attributes to be requested to Idp"
     },
+    "eidasAttributeSet": {
+        "name": "eIDAS attribute set",
+        "helperText": "The attribute set requested to the eIDAS node, as prescribed by AgID (Avviso eIDAS n. 01-2018): minimum (AttributeConsumingService index 99: spidCode, name, familyName, dateOfBirth, the default) or full (index 100: plus placeOfBirth, address, gender). The metadata always declare both services; the choice selects the index sent in the AuthnRequest. The three attributes of the full set are optional in eIDAS: a citizen whose scheme does not release them cannot log in"
+    },
+    "eidasSubjectAttribute": {
+        "name": "eIDAS subject attribute",
+        "helperText": "Attribute used as local identifier of the user, among those of the configured attribute set (a choice outside the set falls back to spidCode). spidCode is the eIDAS unique and persistent identifier, released for every citizen: any other attribute (a name, a date, an address) is neither unique nor stable, and two citizens sharing it become the same account"
+    },
+    "eidasUsernameAttribute": {
+        "name": "eIDAS username attribute",
+        "helperText": "Attribute used as username, among those of the configured attribute set (a choice outside the set falls back to spidCode). When the attribute is missing from the Response the username is the spidCode"
+    },
     "idps": {
         "name": "Identity Providers",
         "helperText": "IdP Configuration"
