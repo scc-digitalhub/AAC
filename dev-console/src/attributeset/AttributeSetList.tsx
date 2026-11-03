@@ -4,10 +4,9 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    ExportButton,
 } from 'react-admin';
 import { Box } from '@mui/material';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportAllButton } from '../components/ExportAllButton';
 
 import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -30,7 +29,6 @@ export const AttributeSetList = () => {
                 secondaryText={translate('page.attributeset.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<AttributeSetListActions />}
                 filters={AttributeSetFilters}
                 sort={{ field: 'name', order: 'ASC' }}
@@ -94,7 +92,7 @@ const AttributeSetListActions = () => {
                 <AttributeSetCreateForm />
             </CreateInDialogButton>
             <ImportButton variant="contained" />
-            <ExportButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };
