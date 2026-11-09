@@ -26,13 +26,14 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import UploadIcon from '@mui/icons-material/Upload';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
-import { toYaml } from '@dslab/ra-export-record-button';
-import yaml from 'yaml';
+import { AceEditorInput } from './AceEditorInput';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { get } from 'lodash';
 
 const defaultIcon = <UploadIcon />;
+
+// raw yaml shown in the editor and sent as-is: parsing happens server side only
+const importTemplate = (realm?: string) => `realm: ${realm}\nname: ""\n`;
 
 export const ImportButton = (props: ImportButtonProps) => {
     const {
@@ -64,7 +65,7 @@ export const ImportButton = (props: ImportButtonProps) => {
     // the server parses it, single element or list, and handles reset and realm
     const handleSubmit = (data: any) => {
         const body = new FormData();
-        body.append('yaml', toYaml(data.value));
+        body.append('yaml', data.value);
 
         return dataProvider
             .invoke({
@@ -132,10 +133,7 @@ export const ImportButton = (props: ImportButtonProps) => {
                     title={title}
                     record={{
                         reset: false,
-                        value: record || {
-                            realm: realm,
-                            name: '',
-                        },
+                        value: record || importTemplate(realm),
                     }}
                     handleClose={handleDialogClose}
                     handleSubmit={handleSubmit}
@@ -206,8 +204,6 @@ const ImportContent = (props: {
                         theme="github"
                         source="value"
                         label="fields.value.title"
-                        parse={toYaml}
-                        format={yaml.parse}
                         validate={[required()]}
                         minLines={20}
                         width="40vw"
@@ -226,7 +222,7 @@ const ImportContent = (props: {
 export type ImportButtonProps = {
     title?: string | ReactElement;
     resource?: string;
-    record?: any;
+    record?: string;
     onSuccess?: (data: any) => void;
     maxWidth?: Breakpoint | false;
     fullWidth?: boolean;

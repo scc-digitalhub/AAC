@@ -29,7 +29,7 @@ import { useEffect, useState } from 'react';
 import dataProvider from '../dataProvider';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import { DEFAULT_LANGUAGES } from '../App';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { AceEditorInput } from '../components/AceEditorInput';
 import { TemplatesEditorInput } from './TemplatesEditor';
 import { TemplatesPreviewButton } from './TemplatesPreview';
 
