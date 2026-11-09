@@ -47,7 +47,18 @@ public class SpidAttributeProvider
     private final SpidAttributesMapper spidMapper;
 
     public SpidAttributeProvider(String providerId, SpidIdentityProviderConfig providerConfig, String realm) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
+        this(SystemKeys.AUTHORITY_SPID, providerId, providerConfig, realm);
+    }
+
+    /* the authority is a parameter, as in SpidIdentityProviderConfig (eidas passes its own) */
+    public SpidAttributeProvider(
+        String authority,
+        String providerId,
+        SpidIdentityProviderConfig providerConfig,
+        String realm
+    ) {
+        super(authority, providerId, realm);
+        Assert.hasText(authority, "authority is mandatory");
         Assert.notNull(providerConfig, "provider config is mandatory");
         openidMapper = new OpenIdAttributesMapper();
         spidMapper = new SpidAttributesMapper();

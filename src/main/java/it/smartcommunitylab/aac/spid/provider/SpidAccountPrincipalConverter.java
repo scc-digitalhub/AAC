@@ -42,7 +42,22 @@ public class SpidAccountPrincipalConverter
     private final String repositoryId;
 
     public SpidAccountPrincipalConverter(String providerId, SpidIdentityProviderConfig config, String realm) {
-        super(SystemKeys.AUTHORITY_SPID, providerId, realm);
+        this(SystemKeys.AUTHORITY_SPID, providerId, config, realm);
+    }
+
+    /*
+     * The authority is a parameter, as in SpidIdentityProviderConfig: the authorities built on the
+     * SPID stack (eidas) pass their own, never derived at runtime from the configuration.
+     */
+    public SpidAccountPrincipalConverter(
+        String authority,
+        String providerId,
+        SpidIdentityProviderConfig config,
+        String realm
+    ) {
+        super(authority, providerId, realm);
+        Assert.hasText(authority, "authority is mandatory");
+        Assert.notNull(config, "provider config is mandatory");
         this.config = config;
         this.repositoryId = providerId;
     }

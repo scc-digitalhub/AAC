@@ -262,6 +262,15 @@ form .invalid-feedback {
   background-color: #0053a2;
 }
 
+/*EIDAS LOGIN BUTTON*/
+.btn.btn-login.login-eidas {
+  background-color: #06C;
+  transition: box-shadow .15s ease-in-out, background-color .15s ease-in-out;
+}
+.btn.btn-login.login-eidas:hover {
+  background-color: #036;
+  box-shadow: 0 4px 12px rgba(0, 51, 102, .35);
+}
 /*SPID LOGIN BUTTON*/
 .login-spid {
     font-size: 16px;
