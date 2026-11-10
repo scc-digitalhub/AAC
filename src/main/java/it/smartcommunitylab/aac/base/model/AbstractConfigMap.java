@@ -29,6 +29,7 @@ import it.smartcommunitylab.aac.attributes.provider.MapperAttributeProviderConfi
 import it.smartcommunitylab.aac.attributes.provider.ScriptAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.attributes.provider.WebhookAttributeProviderConfigMap;
 import it.smartcommunitylab.aac.core.model.ConfigMap;
+import it.smartcommunitylab.aac.eidas.provider.EIDASIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.internal.provider.InternalIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.oidc.apple.provider.AppleIdentityProviderConfigMap;
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfigMap;
@@ -53,6 +54,7 @@ import java.util.Map;
         @Type(value = OIDCIdentityProviderConfigMap.class, name = OIDCIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = SamlIdentityProviderConfigMap.class, name = SamlIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = SpidIdentityProviderConfigMap.class, name = SpidIdentityProviderConfigMap.RESOURCE_TYPE),
+        @Type(value = EIDASIdentityProviderConfigMap.class, name = EIDASIdentityProviderConfigMap.RESOURCE_TYPE),
         @Type(value = MapperAttributeProviderConfigMap.class, name = MapperAttributeProviderConfigMap.RESOURCE_TYPE),
         @Type(value = ScriptAttributeProviderConfigMap.class, name = ScriptAttributeProviderConfigMap.RESOURCE_TYPE),
         @Type(value = WebhookAttributeProviderConfigMap.class, name = WebhookAttributeProviderConfigMap.RESOURCE_TYPE),

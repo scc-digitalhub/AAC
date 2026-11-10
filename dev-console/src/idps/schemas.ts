@@ -366,6 +366,82 @@ export const uiSchemaSpidIdp: UiSchema = {
         },
     },
 };
+
+// eidas provider form: the config map inherits the SPID one, the uiSchema is its own.
+// 'ui:order' and 'ui:layout' are parallel by index; 'attributeSet' (minimum: index 99, full: index 100,
+// Avviso eIDAS n. 01-2018) replaces spidAttributes/attributeConsumingServiceIndex, 'authnContext' maps to spidLevel.
+export const uiSchemaEidasIdp: UiSchema = {
+    'ui:layout': [6, 6, 12, 12, 12, 12, 12, 12, 4, 4, 4, 6, 6, 12, 12, 12, 6, 6, 12, 6],
+    'ui:order': [
+        'signingKey',
+        'signingCertificate',
+        'signingCredentials',
+        'activeAuthRequestSigningCredentialId',
+        'activeMetadataSigningCredentialId',
+        'metadataUrl',
+        'metadataXML',
+        'entityId',
+        'organizationName',
+        'organizationDisplayName',
+        'organizationUrl',
+        'contactPersonEmailAddress',
+        'contactPersonIPACode',
+        'attributeSet',
+        'idpMetadataUrl',
+        'useAssertionConsumerServiceUrl',
+        'authnContext',
+        'usernameAttribute',
+        // any property inherited from SPID later renders at the end (RJSF refuses an incomplete order)
+        '*',
+    ],
+    metadataXML: {
+        'ui:widget': 'textarea',
+    },
+    attributeSet: {
+        'ui:widget': 'radio',
+        'ui:title': 'field.eidasAttributeSet.name',
+        'ui:description': 'field.eidasAttributeSet.helperText',
+    },
+    authnContext: {
+        'ui:title': 'field.spidLevel.name',
+        'ui:description': 'field.spidLevel.helperText',
+    },
+    usernameAttribute: {
+        'ui:title': 'field.eidasUsernameAttribute.name',
+        'ui:description': 'field.eidasUsernameAttribute.helperText',
+    },
+    signingKey: {
+        'ui:widget': 'textarea',
+        'ui:title': 'field.signingKey.name',
+        'ui:description': 'field.signingKey.helperText',
+    },
+    signingCertificate: {
+        'ui:widget': 'textarea',
+        'ui:title': 'field.signingCertificate.name',
+        'ui:description': 'field.signingCertificate.helperText',
+    },
+    signingCredentials: {
+        items: {
+            'ui:layout': [12, 6, 6],
+            'ui:order': ['credentialId', 'signingKey', 'signingCertificate'],
+            credentialId: {
+                'ui:title': 'field.credentialId.name',
+                'ui:description': 'field.credentialId.helperText',
+            },
+            signingKey: {
+                'ui:widget': 'textarea',
+                'ui:title': 'field.signingKey.name',
+                'ui:description': 'field.signingKey.helperText',
+            },
+            signingCertificate: {
+                'ui:widget': 'textarea',
+                'ui:title': 'field.signingCertificate.name',
+                'ui:description': 'field.signingCertificate.helperText',
+            },
+        },
+    },
+};
+
 //list
 
 export const idpUiSchemas = {
@@ -385,4 +461,6 @@ export const idpUiSchemas = {
         uiSchemaSamlIdp,
     'urn:jsonschema:it:smartcommunitylab:aac:spid:provider:SpidIdentityProviderConfigMap':
         uiSchemaSpidIdp,
+    'urn:jsonschema:it:smartcommunitylab:aac:eidas:provider:EIDASIdentityProviderConfigMap':
+        uiSchemaEidasIdp,
 };
