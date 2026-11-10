@@ -85,7 +85,7 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TypeReference<Map<String, List<ConfigurableIdentityProvider>>> typeRef =
         new TypeReference<Map<String, List<ConfigurableIdentityProvider>>>() {};
-    private final String LIST_KEY = "providers";
+    private final String LIST_KEY = "identityProviders";
 
     @Autowired
     private ClientManager clientManager;
@@ -260,6 +260,15 @@ public class DevIdentityProviderController extends BaseIdentityProviderControlle
 
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    @GetMapping("/idps/{realm}/export")
+    public ResponseEntity<Map<String, Collection<ConfigurableIdentityProvider>>> exportRealmProviders(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) throws NoSuchRealmException {
+        // export the whole list under the same key used by RealmConfig and expected by the yaml import
+        Collection<ConfigurableIdentityProvider> list = providerManager.listProviders(realm);
+        return ResponseEntity.ok(Map.of(LIST_KEY, list));
     }
 
     @GetMapping("/idps/{realm}/{providerId}/export")

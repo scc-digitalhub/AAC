@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -182,6 +183,27 @@ public class DevTemplatesController extends BaseTemplatesController {
 
             throw new RegistrationException(e.getMessage());
         }
+    }
+
+    @PutMapping("/templatemodels/{realm}")
+    public Collection<TemplateModel> importTemplateModelsByResource(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm,
+        @RequestParam(required = false, defaultValue = "false") boolean reset,
+        @RequestPart(name = "yaml", required = false) @Valid String yaml,
+        @RequestPart(name = "file", required = false) @Valid MultipartFile file
+    )
+        throws NoSuchRealmException, RegistrationException, NoSuchTemplateException, NoSuchProviderException, NoSuchAuthorityException {
+        // same import, on the resource name used by the console
+        return importTemplateModels(realm, reset, yaml, file);
+    }
+
+    @GetMapping("/templatemodels/{realm}/export")
+    public ResponseEntity<Map<String, Collection<TemplateModel>>> exportRealmTemplateModels(
+        @PathVariable @Valid @NotNull @Pattern(regexp = SystemKeys.SLUG_PATTERN) String realm
+    ) {
+        // export the whole list under the same key used by RealmConfig and expected by the yaml import
+        Collection<TemplateModel> list = templatesManager.listTemplateModels(realm);
+        return ResponseEntity.ok(Map.of(LIST_KEY, list));
     }
 
     @GetMapping("/templates/{realm}/models/{id}/export")
