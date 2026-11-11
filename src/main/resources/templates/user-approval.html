@@ -121,17 +121,21 @@
         </form>
 
         <script>
-            $('#authorize').click(function (event) {
-                if ($('#confirmationForm')[0].checkValidity()) {
-                    $('#user_oauth_approval').val(true);
-                    $('#confirmationForm').submit();
+            const confirmationForm = document.getElementById('confirmationForm');
+            const user_oauth_approval = document.getElementById('user_oauth_approval');
+
+            document.getElementById('authorize').addEventListener('click', function (event) {
+                if (confirmationForm.checkValidity()) {
+                    user_oauth_approval.value = true;
+                    confirmationForm.submit();
                 }
-                $('#confirmationForm').addClass('was-validated');
+                confirmationForm.classList.add('was-validated');
                 event.preventDefault();
             });
-            $('#deny').click(function () {
-                $('#user_oauth_approval').val(false);
-                $('#confirmationForm').submit();
+            document.getElementById('deny').addEventListener('click', function (event) {
+                user_oauth_approval.value = false;
+                confirmationForm.submit();
+                event.preventDefault();
             });
         </script>
 
