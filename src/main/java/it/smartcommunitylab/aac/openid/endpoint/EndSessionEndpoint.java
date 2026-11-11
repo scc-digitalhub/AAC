@@ -122,6 +122,11 @@ public class EndSessionEndpoint {
             session.setAttribute(STATE_KEY, state);
         }
 
+        // first party clients with a valid id_token_hint for the current session skip the confirmation
+        // OIDC RP-Initiated Logout 1.0 sec.6: the OP SHOULD ask the user, and MUST ask only when
+        // id_token_hint is missing or does not belong to the current session
+        boolean skipConfirmation = false;
+
         // parse the ID token hint to see if it's valid
         if (StringUtils.hasText(idTokenHint)) {
             try {
@@ -155,6 +160,14 @@ public class EndSessionEndpoint {
 
                     // add to model for UI
                     model.addAttribute("client", clientDetails);
+
+                    if (
+                        clientDetails.isFirstParty() &&
+                        userAuth != null &&
+                        userAuth.getUser().getSubjectId().equals(idTokenClaims.getSubject())
+                    ) {
+                        skipConfirmation = true;
+                    }
                 } else {
                     // not a valid token, drop request
                     throw new IllegalArgumentException("invalid id_token");
@@ -170,9 +183,10 @@ public class EndSessionEndpoint {
             }
         }
 
-        // are we logged in or not?
-        if (userAuth == null) {
-            // we're not logged in anyway, process the final redirect bits if needed
+        // logout happens only in processLogout, when approve is set and auth != null:
+        // not logged in, or first party client with a valid id_token_hint -> no confirmation page;
+        // any other client -> confirmation page, logout on POST /endsession/confirm
+        if (userAuth == null || skipConfirmation) {
             processLogout(Optional.of("true"), request, response, session, auth, model);
             return null;
         } else {
