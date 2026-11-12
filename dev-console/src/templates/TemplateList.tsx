@@ -4,14 +4,13 @@ import {
     Datagrid,
     TopToolbar,
     useTranslate,
-    ExportButton,
     ArrayField,
     ChipField,
     SingleFieldList,
     FunctionField,
 } from 'react-admin';
 import { Box } from '@mui/material';
-import { YamlExporter } from '../components/YamlExporter';
+import { ExportAllButton } from '../components/ExportAllButton';
 
 import { isValidElement, ReactElement } from 'react';
 import { useRootSelector } from '@dslab/ra-root-selector';
@@ -34,7 +33,6 @@ export const TemplateList = () => {
                 secondaryText={translate('page.templates.list.subtitle')}
             />
             <List
-                exporter={YamlExporter}
                 actions={<TemplateListActions />}
                 filters={TemplateFilters}
                 sort={{ field: 'name', order: 'ASC' }}
@@ -101,8 +99,8 @@ const TemplateListActions = () => {
             >
                 <TemplateCreateForm />
             </CreateInDialogButton>
-            <ImportButton variant="contained" idField="templateId" />
-            <ExportButton variant="contained" />
+            <ImportButton variant="contained" />
+            <ExportAllButton variant="contained" />
         </TopToolbar>
     );
 };

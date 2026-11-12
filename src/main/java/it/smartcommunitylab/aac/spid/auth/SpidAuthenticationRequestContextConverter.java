@@ -17,16 +17,21 @@
 package it.smartcommunitylab.aac.spid.auth;
 
 import it.smartcommunitylab.aac.core.provider.ProviderConfigRepository;
+import it.smartcommunitylab.aac.spid.model.SpidPurpose;
 import it.smartcommunitylab.aac.spid.provider.SpidIdentityProviderConfig;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.xml.namespace.QName;
 import org.opensaml.core.config.ConfigurationService;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistry;
+import org.opensaml.core.xml.schema.XSAny;
+import org.opensaml.core.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.saml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.Extensions;
 import org.opensaml.saml.saml2.core.Issuer;
 import org.opensaml.saml.saml2.core.NameIDPolicy;
 import org.opensaml.saml.saml2.core.NameIDType;
@@ -34,6 +39,7 @@ import org.opensaml.saml.saml2.core.RequestedAuthnContext;
 import org.opensaml.saml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestBuilder;
 import org.opensaml.saml.saml2.core.impl.AuthnRequestMarshaller;
+import org.opensaml.saml.saml2.core.impl.ExtensionsBuilder;
 import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml.saml2.core.impl.NameIDPolicyBuilder;
 import org.opensaml.saml.saml2.core.impl.RequestedAuthnContextBuilder;
@@ -66,6 +72,13 @@ public class SpidAuthenticationRequestContextConverter
 
     private RequestedAuthnContextBuilder reqAuthnContextBuilder;
 
+    // OpenSAML builders for the <spid:Purpose> extension (AgID Avviso SPID n.18, https://www.agid.gov.it/it/piattaforme/spid/avvisi-spid):
+    // ExtensionsBuilder creates <samlp:Extensions> (SAML 2.0 Core 3.2.1), XSAnyBuilder the generic xs:anyType element
+    // used for <spid:Purpose>, unknown to OpenSAML. See buildPurposeExtensions(SpidPurpose).
+    private ExtensionsBuilder extensionsBuilder;
+
+    private XSAnyBuilder xsAnyBuilder;
+
     public SpidAuthenticationRequestContextConverter(
         ProviderConfigRepository<SpidIdentityProviderConfig> registrationRepository
     ) {
@@ -85,6 +98,9 @@ public class SpidAuthenticationRequestContextConverter
             (RequestedAuthnContextBuilder) registry
                 .getBuilderFactory()
                 .getBuilder(RequestedAuthnContext.DEFAULT_ELEMENT_NAME);
+        this.extensionsBuilder =
+            (ExtensionsBuilder) registry.getBuilderFactory().getBuilder(Extensions.DEFAULT_ELEMENT_NAME);
+        this.xsAnyBuilder = (XSAnyBuilder) registry.getBuilderFactory().getBuilder(XSAny.TYPE_NAME);
     }
 
     @Override
@@ -144,6 +160,14 @@ public class SpidAuthenticationRequestContextConverter
         iss.setNameQualifier(issuer);
 
         auth.setIssuer(iss);
+
+        // SPID uso professionale / persona giuridica: declare the accepted identity type via the
+        // <spid:Purpose> extension (AgID Avviso n.18). Must be a direct child of AuthnRequest,
+        // placed right after Issuer. Absent when null (classic SPID, identity types 1 and 2 only).
+        if (providerConfig.getPurpose() != null) {
+            auth.setExtensions(buildPurposeExtensions(providerConfig.getPurpose()));
+        }
+
         auth.setDestination(destination);
 
         NameIDPolicy nameIDPolicy = nameIDPolicyBuilder.buildObject();
@@ -184,5 +208,25 @@ public class SpidAuthenticationRequestContextConverter
         //        scoping.setProxyCount(0);
         //        auth.setScoping(scoping);
         return auth;
+    }
+
+    /*
+     * Build <samlp:Extensions><spid:Purpose xmlns:spid="https://spid.gov.it/saml-extensions">VALUE</spid:Purpose></samlp:Extensions>
+     * as required by AgID Avviso SPID n.18: exactly one Purpose value per request.
+     */
+    private Extensions buildPurposeExtensions(SpidPurpose purpose) {
+        Assert.notNull(purpose, "purpose cannot be null");
+
+        QName purposeName = new QName(
+            SpidPurpose.NAMESPACE_URI,
+            SpidPurpose.ELEMENT_LOCAL_NAME,
+            SpidPurpose.NAMESPACE_PREFIX
+        );
+        XSAny purposeElement = xsAnyBuilder.buildObject(purposeName);
+        purposeElement.setTextContent(purpose.getValue());
+
+        Extensions extensions = extensionsBuilder.buildObject();
+        extensions.getUnknownXMLObjects().add(purposeElement);
+        return extensions;
     }
 }

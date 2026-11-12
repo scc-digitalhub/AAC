@@ -255,14 +255,17 @@ public class UserDetails implements CredentialsContainer, Serializable {
             throw new IllegalArgumentException("realm does not match");
         }
 
-        if (!replaceIfExists) {
-            if (identities.contains(identity)) {
-                // skip
-                return;
-            }
+        if (!identities.contains(identity)) {
+            identities.add(identity);
+        } else if (!replaceIfExists) {
+            // skip
+            return;
+        } else {
+            // replace keeping position: consumers read the first identity
+            List<UserIdentity> updated = identities.stream().map(i -> i.equals(identity) ? identity : i).toList();
+            identities.clear();
+            identities.addAll(updated);
         }
-        // we add or replace
-        identities.add(identity);
 
         //        // we also check if profile is incomplete
         //        updateProfile(identity.toBasicProfile());

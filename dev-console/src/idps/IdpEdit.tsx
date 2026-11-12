@@ -4,6 +4,7 @@ import {
     Edit,
     IconButtonWithTooltip,
     Labeled,
+    Pagination,
     RecordContextProvider,
     ReferenceManyField,
     SaveButton,
@@ -289,6 +290,8 @@ const IdpEditForm = () => {
                     sort={{ field: 'name', order: 'ASC' }}
                     target="providers"
                     label="app"
+                    perPage={15}
+                    pagination={<Pagination />}
                 >
                     {/* {record.apps && record.apps.map(app =>  (
                             <TextField source="name" />

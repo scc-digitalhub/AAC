@@ -101,6 +101,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         ClientRegistration registration = request.getRegistration();
         String name = registration.getName();
         String description = registration.getName();
+        String notes = registration.getNotes();
 
         if (StringUtils.hasText(name)) {
             name = Jsoup.clean(name, Safelist.none());
@@ -110,6 +111,9 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
         }
         if (StringUtils.hasText(description)) {
             description = Jsoup.clean(description, Safelist.none());
+        }
+        if (StringUtils.hasText(notes)) {
+            notes = Jsoup.clean(notes, Safelist.none());
         }
 
         // enable all providers for the given realm
@@ -143,6 +147,7 @@ public class OAuth2ClientRegistrationServices implements ClientRegistrationServi
             null,
             name,
             description,
+            notes,
             registration.getScope(),
             registration.getResourceIds(),
             providers,

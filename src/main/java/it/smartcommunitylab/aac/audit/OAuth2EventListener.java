@@ -16,6 +16,11 @@
 
 package it.smartcommunitylab.aac.audit;
 
+import it.smartcommunitylab.aac.core.UserDetails;
+import it.smartcommunitylab.aac.core.auth.UserAuthentication;
+import it.smartcommunitylab.aac.identity.model.UserIdentity;
+import it.smartcommunitylab.aac.model.EventsLevel;
+import it.smartcommunitylab.aac.model.Realm;
 import it.smartcommunitylab.aac.oauth.AACOAuth2AccessToken;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.event.OAuth2AuthorizationExceptionEvent;
@@ -23,11 +28,21 @@ import it.smartcommunitylab.aac.oauth.event.OAuth2Event;
 import it.smartcommunitylab.aac.oauth.event.OAuth2TokenExceptionEvent;
 import it.smartcommunitylab.aac.oauth.event.TokenGrantEvent;
 import it.smartcommunitylab.aac.oauth.model.OAuth2ClientDetails;
+import it.smartcommunitylab.aac.oauth.model.OAuth2ConfigurationMap;
 import it.smartcommunitylab.aac.oauth.service.OAuth2ClientDetailsService;
+
+import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import it.smartcommunitylab.aac.realms.service.RealmService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.audit.AuditEvent;
@@ -52,6 +67,14 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
     private ApplicationEventPublisher publisher;
 
     private final OAuth2ClientDetailsService clientService;
+
+    private RealmService realmService;
+
+    private static final EventsLevel DEFAULT_EVENTS_LEVEL = EventsLevel.MINIMAL;
+
+    public void setRealmService(RealmService realmService) {
+        this.realmService = realmService;
+    }
 
     public OAuth2EventListener(OAuth2ClientDetailsService clientService) {
         Assert.notNull(clientService, "client service is required");
@@ -149,30 +172,72 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
             OAuth2ClientAuthenticationToken authClient = event.getClientAuthentication();
             Authentication authUser = auth.getUserAuthentication();
 
-            //            String principal = auth.getName();
             String principal = token.getSubject();
             if (!StringUtils.hasText(principal)) {
                 principal = auth.getName();
             }
 
             String realm = token.getRealm();
+            // realm level detail configuration
+            EventsLevel levelRealmEvent = resolveOauth2EventsLevel(realm);
+
+            if (EventsLevel.NONE.equals(levelRealmEvent)) {
+                return;
+            }
+
+            // use LinkedHashMap so the serialized audit JSON preserves this insertion order
+            Map<String, Object> data = new LinkedHashMap<>();
+
+            if(auth.getOAuth2Request() != null) {
+                String grantType = auth.getOAuth2Request().getGrantType();
+                data.put("grant_type", grantType);
+            }
+
+            // IP ADDRESS OF CLIENT THAT REQUIRE TOKEN
+            if(!EventsLevel.MINIMAL.equals(levelRealmEvent) && authClient != null && authClient.getWebAuthenticationDetails() != null) {
+                data.put("webAuthenticationDetails", authClient.getWebAuthenticationDetails());
+            }
+
+            // CLIENT DATA
+            if (authClient != null) {
+                Map<String, Object> clientData = new LinkedHashMap<>();
+                OAuth2ClientDetails clientDetails = authClient.getOAuth2ClientDetails();
+
+                clientData.put("clientId", authClient.getClientId());
+                clientData.put("realm", clientDetails != null ? clientDetails.getRealm() : realm);
+                clientData.put("clientName", clientDetails != null ? clientDetails.getName() : authClient.getName());
+
+                data.put("client", clientData);
+            }
+
+            // USER DATA
+            if (authUser instanceof UserAuthentication userAuthentication) {
+                UserDetails userDetails = userAuthentication.getUser();
+
+                if(EventsLevel.FULL.equals(levelRealmEvent)){
+                    data.put("user", userDetails);
+                } else {
+                    Map<String, Object> userData =  new LinkedHashMap<>();
+                    userData.put("subjectId", userDetails.getSubjectId());
+                    userData.put("realm", userDetails.getRealm());
+                    userData.put("username", userDetails.getUsername());
+
+                    if(EventsLevel.DETAILS.equals(levelRealmEvent)){
+                        userData.put("details", extractUserPrincipalAccounts(userDetails.getIdentities()));
+                    }
+                    data.put("user", userData);
+                }
+            }
+
             String type = auth.getUserAuthentication() == null ? "client" : "user";
-
-            Map<String, Object> data = new HashMap<>();
-            Map<String, Object> webAuthenticationDetails = new HashMap<>();
-
-            if (authClient != null && authClient.getWebAuthenticationDetails() != null) {
-                webAuthenticationDetails.put("client", authClient.getWebAuthenticationDetails());
-            }
-
-            if (authUser != null && authUser.getDetails() != null) {
-                webAuthenticationDetails.put("user", authUser.getDetails());
-            }
-
-            data.put("webAuthenticationDetails", webAuthenticationDetails);
-
             data.put("type", type);
-            data.put("token", token.getValue());
+
+            // TOKEN VALUE SANITIZE
+            if(!EventsLevel.MINIMAL.equals(levelRealmEvent)) {
+                String safeTokenValue = sanitizeToken(token.getValue());
+                data.put("token", safeTokenValue);
+            }
+
             data.put("scope", token.getScope());
 
             data.put("jti", token.getToken());
@@ -200,5 +265,65 @@ public class OAuth2EventListener implements ApplicationListener<OAuth2Event>, Ap
         if (getPublisher() != null) {
             getPublisher().publishEvent(new AuditApplicationEvent(event));
         }
+    }
+
+    // Extracts all account where identities contains principal
+    private static Map<String, Serializable> extractUserPrincipalAccounts(Collection<UserIdentity> rawIdentities) {
+        try {
+            // Early exit guard
+            if (rawIdentities == null || rawIdentities.isEmpty()) {
+                return null;
+            }
+            List<Map<String, Serializable>> safeIdentities = new ArrayList<>();
+
+            // Process identities directly
+            for (UserIdentity identity : rawIdentities) {
+                if (identity != null && identity.getPrincipal() != null && identity.getAccount() != null) {
+                    Map<String, Serializable> safeIdentity = new LinkedHashMap<>();
+
+                    // Put the entire account object directly
+                    safeIdentity.put("account", identity.getAccount());
+                    safeIdentities.add(safeIdentity);
+                }
+            }
+
+            // Wrap the list inside the expected "identities" root map
+            Map<String, Serializable> safeDetails = new LinkedHashMap<>();
+            if (!safeIdentities.isEmpty()) {
+                safeDetails.put("identities", (Serializable) safeIdentities);
+            }
+
+            return safeDetails;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Error converting details object properties: " + e.getMessage(), e);
+        }
+    }
+
+    private static String sanitizeToken(String tokenValue) {
+        if (tokenValue == null || tokenValue.isEmpty()) {
+            return tokenValue;
+        }
+        int firstDot = tokenValue.indexOf('.');
+        if (firstDot != -1) {
+            int secondDot = tokenValue.indexOf('.', firstDot + 1);
+
+            // Ensure exactly two dots for a valid JWT format
+            if (secondDot != -1 && tokenValue.indexOf('.', secondDot + 1) == -1) {
+                return tokenValue.substring(0, secondDot + 1) + "__SIGNATURE__";
+            }
+        }
+        // Fallback for non-JWT formats
+        return "***MASKED_TOKEN***";
+    }
+
+    private EventsLevel resolveOauth2EventsLevel(String realm) {
+        if (realmService == null || !StringUtils.hasText(realm)) {
+            return DEFAULT_EVENTS_LEVEL;
+        }
+
+        return Optional.ofNullable(realmService.findRealm(realm))
+            .map(Realm::getOAuthConfiguration)
+            .map(OAuth2ConfigurationMap::getEventsLevel)
+            .orElse(DEFAULT_EVENTS_LEVEL);
     }
 }

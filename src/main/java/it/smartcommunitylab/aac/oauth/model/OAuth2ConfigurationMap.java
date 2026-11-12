@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.smartcommunitylab.aac.core.model.ConfigurableProperties;
+import it.smartcommunitylab.aac.model.EventsLevel;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
 
     private Boolean enableClientRegistration;
     private Boolean openClientRegistration;
+    private EventsLevel eventsLevel;
 
     public OAuth2ConfigurationMap() {
         enableClientRegistration = false;
@@ -69,6 +71,14 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
         this.openClientRegistration = openClientRegistration;
     }
 
+    public EventsLevel getEventsLevel() {
+        return eventsLevel;
+    }
+
+    public void setEventsLevel(EventsLevel eventsLevel) {
+        this.eventsLevel = eventsLevel;
+    }
+
     @Override
     @JsonIgnore
     public Map<String, Serializable> getConfiguration() {
@@ -86,5 +96,6 @@ public class OAuth2ConfigurationMap implements ConfigurableProperties {
 
         this.enableClientRegistration = map.getEnableClientRegistration();
         this.openClientRegistration = map.getOpenClientRegistration();
+        this.eventsLevel = map.getEventsLevel();
     }
 }

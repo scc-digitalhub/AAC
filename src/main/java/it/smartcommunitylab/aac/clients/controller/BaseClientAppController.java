@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +43,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.Assert;
@@ -92,20 +95,43 @@ public class BaseClientAppController implements InitializingBean {
         Pageable pageRequest
     ) throws NoSuchRealmException {
         logger.debug("list client apps for realm {}", StringUtils.trimAllWhitespace(realm));
-        
-        if(providers == null || providers.length == 0) {
-            return clientManager.searchClientApps(realm, q, pageRequest);
-        } else {
-            //manually filter, breaks pagination
-            Set<String> ps = new HashSet<>(Arrays.asList(providers));
-            Page<ClientApp> page = clientManager.searchClientApps(realm, q, pageRequest);
-            return PageableExecutionUtils.getPage(
-                page.getContent().stream().filter(a -> Arrays.asList(a.getProviders()).stream().anyMatch(p -> ps.contains(p))).toList(),
-                pageRequest,
-                () -> page.getTotalElements()
-            );
-           
+
+        // The DB collation is case-sensitive (uppercase before lowercase):
+        // we force a case-insensitive sorting (ORDER BY UPPER(...)) so that the
+        // alphabetical order is what the user expects.
+        Sort sort = pageRequest.getSort().isSorted()
+            ? Sort.by(pageRequest.getSort().stream().map(Sort.Order::ignoreCase).toList())
+            : pageRequest.getSort();
+        Pageable req = PageRequest.of(pageRequest.getPageNumber(), pageRequest.getPageSize(), sort);
+
+        // No provider filter: the store paginates and sorts natively
+        if (providers == null || providers.length == 0) {
+            return clientManager.searchClientApps(realm, q, req);
         }
+
+        // The provider association is not a queryable column, therefore the filtering
+        // cannot be delegated to the store. We fetch the entire set filtered by
+        // keyword (sorted by the store), filter by provider in-memory, and then
+        // paginate the FILTERED list, so that content and totalElements remain consistent.
+        Set<String> ps = new HashSet<>(Arrays.asList(providers));
+
+        Pageable allSorted = PageRequest.of(0, Integer.MAX_VALUE, sort);
+        List<ClientApp> filtered = clientManager
+            .searchClientApps(realm, q, allSorted)
+            .getContent()
+            .stream()
+            .filter(a ->
+                a.getProviders() != null &&
+                    Arrays.stream(a.getProviders()).anyMatch(ps::contains)
+            )
+            .toList();
+
+        int total = filtered.size();
+        int start = (int) req.getOffset();
+        int end = Math.min(start + req.getPageSize(), total);
+        List<ClientApp> content = start >= total ? List.of() : filtered.subList(start, end);
+
+        return PageableExecutionUtils.getPage(content, req, () -> total);
     }
 
     @GetMapping("/apps/{realm}/{clientId}")

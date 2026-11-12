@@ -55,11 +55,15 @@ public class OIDCKeys {
         JwtClaimNames.NBF,
     };
 
+    static final String[] HIDDEN_ATTRIBUTES_VALUES = { "provider", "realm", "authority" };
+
     public static final Set<String> JWT_ATTRIBUTES;
     public static final Set<String> ACCOUNT_ATTRIBUTES;
+    public static final Set<String> HIDDEN_ATTRIBUTES;
 
     static {
         JWT_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(JWT_ATTRIBUTES_VALUES)));
         ACCOUNT_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(ACCOUNT_ATTRIBUTES_VALUES)));
+        HIDDEN_ATTRIBUTES = Collections.unmodifiableSortedSet(new TreeSet<>(Arrays.asList(HIDDEN_ATTRIBUTES_VALUES)));
     }
 }

@@ -30,6 +30,7 @@ public enum SpidAttribute {
     COMPANY_NAME("companyName"),
     REGISTERED_OFFICE("registeredOffice"),
     FISCAL_NUMBER("fiscalNumber"),
+    COMPANY_FISCAL_NUMBER("companyFiscalNumber"),
     IVA_CODE("ivaCode"),
     ID_CARD("idCard"),
     MOBILE_PHONE("mobilePhone"),

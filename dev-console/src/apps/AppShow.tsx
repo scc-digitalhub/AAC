@@ -16,8 +16,8 @@ import {
     useTranslate,
 } from 'react-admin';
 import { SectionTitle } from '../components/SectionTitle';
-import { ExportRecordButton } from '@dslab/ra-export-record-button';
-import { InspectButton } from '@dslab/ra-inspect-button';
+import { RefreshingExportButton } from '../components/RefreshingExportButton';
+import { RefreshingInspectButton } from '../components/RefreshingInspectButton';
 import { Page } from '../components/Page';
 import { IdField } from '../components/IdField';
 import { AppEndpointsView } from './AppEndpoints';
@@ -114,6 +114,7 @@ const AppView = () => {
                     reference="roles"
                     label="field.roles.name"
                 />
+                <TextField source="description" label="field.description.name" />
                 <TextField source="notes" label="field.notes.name" />
             </TabbedShowLayout.Tab>
             <TabbedShowLayout.Tab label="tab.credentials">
@@ -193,8 +194,8 @@ const ShowToolBarActions = () => (
     <TopToolbar>
         <TestDialogButton />
         <EditButton />
-        <InspectButton />
+        <RefreshingInspectButton />
         <DeleteWithConfirmButton />
-        <ExportRecordButton language="yaml" color="info" />
+        <RefreshingExportButton />
     </TopToolbar>
 );

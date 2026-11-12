@@ -21,7 +21,7 @@ import {
     useRefresh,
 } from 'react-admin';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
-import { InspectButton } from '@dslab/ra-inspect-button';
+import { RefreshingInspectButton } from '../components/RefreshingInspectButton';
 import { SectionTitle } from '../components/SectionTitle';
 import {
     claimMappingDefaultValue,
@@ -259,6 +259,7 @@ const AppEditForm = () => {
                     label="field.providers.name"
                     helperText="field.providers.helperText"
                     reference="idps"
+                    perPage={100} 
                     sort={{ field: 'name', order: 'ASC' }}
                 >
                     <CheckboxGroupInput
@@ -373,7 +374,7 @@ const ActionsToolbar = () => {
         <TopToolbar>
             <TestDialogButton />
             <ShowButton />
-            <InspectButton />
+            <RefreshingInspectButton />
             <AuthoritiesDialogButton onSuccess={() => refresh()} />
             <DeleteWithConfirmButton />
             <RefreshingExportButton />

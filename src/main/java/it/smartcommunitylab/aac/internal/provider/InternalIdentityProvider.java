@@ -78,7 +78,7 @@ public class InternalIdentityProvider
 
         // always expose a valid resolver to satisfy authenticationManager at post login
         // TODO refactor to avoid fetching via resolver at this stage
-        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, false, realm);
+        this.subjectResolver = new InternalSubjectResolver(providerId, userAccountService, repositoryId, config.isLinkable(), realm);
     }
 
     public void setResourceService(ResourceEntityService resourceService) {

@@ -35,7 +35,7 @@ public class SecureStringKeyGenerator implements StringKeyGenerator {
     }
 
     public SecureStringKeyGenerator(int keyLength) {
-        this(DEFAULT_KEY_LENGTH, DEFAULT_ENCODE_CHARSET);
+        this(keyLength, DEFAULT_ENCODE_CHARSET);
     }
 
     public SecureStringKeyGenerator(int keyLength, Charset charset) {

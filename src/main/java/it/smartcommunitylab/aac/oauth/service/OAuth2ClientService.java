@@ -421,6 +421,7 @@ public class OAuth2ClientService implements ClientService {
                 null,
                 null,
                 null,
+                null,
                 null
             );
     }
@@ -429,6 +430,7 @@ public class OAuth2ClientService implements ClientService {
         String realm,
         String name,
         String description,
+        String notes,
         Collection<String> scopes,
         Collection<String> resourceIds,
         Collection<String> providers,
@@ -461,6 +463,7 @@ public class OAuth2ClientService implements ClientService {
             clientId,
             name,
             description,
+            notes,
             scopes,
             resourceIds,
             providers,
@@ -491,6 +494,7 @@ public class OAuth2ClientService implements ClientService {
         String clientId,
         String name,
         String description,
+        String notes,
         Collection<String> scopes,
         Collection<String> resourceIds,
         Collection<String> providers,
@@ -620,6 +624,7 @@ public class OAuth2ClientService implements ClientService {
             OAuth2Client.CLIENT_TYPE,
             name,
             description,
+            notes,
             scopes,
             resourceIds,
             providers,
