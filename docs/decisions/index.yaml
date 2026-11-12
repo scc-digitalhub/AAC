@@ -15,3 +15,7 @@ decisions:
             - author: gianpaolo-tndigit
               date: "2026-11-13 09:52:21"
               comment: "1"
+    "0003":
+        adr_id: "0003"
+        title: FirstPartyEndSessionWithoutConfirmation
+        status: open
