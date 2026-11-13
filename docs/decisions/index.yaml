@@ -10,4 +10,8 @@ decisions:
     "0002":
         adr_id: "0002"
         title: OAuth2TokenGrantAuditFiltering
-        status: open
+        status: decided
+        comments:
+            - author: gianpaolo-tndigit
+              date: "2026-11-13 09:52:21"
+              comment: "1"
