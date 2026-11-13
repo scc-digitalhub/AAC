@@ -55,6 +55,7 @@ import it.smartcommunitylab.aac.oidc.persistence.OIDCUserAccountEntityRepository
 import it.smartcommunitylab.aac.oidc.provider.OIDCIdentityProviderConfig;
 import it.smartcommunitylab.aac.oidc.service.OIDCJpaUserAccountService;
 import it.smartcommunitylab.aac.openidfed.provider.OpenIdFedIdentityProviderConfig;
+import it.smartcommunitylab.aac.otp.provider.OtpIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.persistence.InternalUserPasswordEntityRepository;
 import it.smartcommunitylab.aac.password.provider.PasswordIdentityProviderConfig;
 import it.smartcommunitylab.aac.password.service.InternalPasswordJpaUserCredentialsService;
@@ -337,6 +338,11 @@ public class PersistenceConfig {
     @Bean
     public ProviderConfigRepository<PasswordIdentityProviderConfig> internalPasswordProviderConfigRepository() {
         return buildProviderConfigRepository(PasswordIdentityProviderConfig.class, SystemKeys.AUTHORITY_PASSWORD);
+    }
+    
+    @Bean
+    public ProviderConfigRepository<OtpIdentityProviderConfig> internalOtpProviderConfigRepository() {
+        return buildProviderConfigRepository(OtpIdentityProviderConfig.class, SystemKeys.AUTHORITY_OTP);
     }
 
     @Bean
