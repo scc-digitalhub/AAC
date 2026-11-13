@@ -7,3 +7,19 @@ decisions:
             - author: gianpaolo-tndigit
               date: "2026-07-22 14:24:31"
               comment: "1"
+    "0002":
+        adr_id: "0002"
+        title: OAuth2TokenGrantAuditFiltering
+        status: decided
+        comments:
+            - author: gianpaolo-tndigit
+              date: "2026-11-13 09:52:21"
+              comment: "1"
+    "0003":
+        adr_id: "0003"
+        title: FirstPartyEndSessionWithoutConfirmation
+        status: open
+    "0004":
+        adr_id: "0004"
+        title: UserAuthenticationAuditLevelConfiguration
+        status: open
