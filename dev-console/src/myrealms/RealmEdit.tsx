@@ -29,7 +29,7 @@ import {
     DeveloperListActions,
     DeveloperListView,
 } from '../developers/DeveloperList';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { AceEditorInput } from '../components/AceEditorInput';
 import { RealmLogoEditor } from './RealmLogoEditor';
 import { BackupExportButton } from '../components/BackupExportButton';
 

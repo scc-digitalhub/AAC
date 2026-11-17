@@ -28,7 +28,7 @@ import { Page } from '../components/Page';
 import { JsonSchemaInput } from '@dslab/ra-jsonschema-input';
 import { Alert, Box, Stack, Typography } from '@mui/material';
 import { SectionTitle } from '../components/SectionTitle';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { AceEditorInput } from '../components/AceEditorInput';
 import { RefreshingExportButton } from '../components/RefreshingExportButton';
 import { useRootSelector } from '@dslab/ra-root-selector';
 import {

@@ -45,7 +45,7 @@ import RegisteredIcon from '@mui/icons-material/VerifiedUser';
 import { AttributeSetIcon } from '../attributeset/AttributeSetIcon';
 import { NameField } from '../components/NameField';
 import utils from '../utils';
-import { AceEditorInput } from '@dslab/ra-ace-editor';
+import { AceEditorInput } from '../components/AceEditorInput';
 
 export const ApEdit = () => {
     return (

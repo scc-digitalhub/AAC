@@ -1,7 +1,8 @@
 import { FieldTitle, isRequired, Labeled, useInput } from 'react-admin';
 import { Checkbox, FormControlLabel } from '@mui/material';
 import { useState } from 'react';
-import { AceEditorInput, AceInputProps } from '@dslab/ra-ace-editor';
+import { AceInputProps } from '@dslab/ra-ace-editor';
+import { AceEditorInput } from './AceEditorInput';
 
 export const ControlledEditorInput = (
     props: AceInputProps & { disabledValue?: any }
