@@ -20,13 +20,20 @@ import it.smartcommunitylab.aac.SystemKeys;
 import it.smartcommunitylab.aac.model.Subject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.Session;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SessionManager {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private AuthenticationHelper authHelper;
@@ -34,6 +41,10 @@ public class SessionManager {
     // TODO track active sessions via SessionRegistry
     @Autowired
     private SessionRegistry sessionRegistry;
+
+    // spring session repository, sessions are indexed by principal name; missing when sessions are disabled
+    @Autowired(required = false)
+    private FindByIndexNameSessionRepository<? extends Session> sessionRepository;
 
     /*
      * User sessions
@@ -53,8 +64,16 @@ public class SessionManager {
     }
 
     public void destroyUserSessions(String userId) {
-        // destroy sessions for users
-        // we revoke session but not tokens, those should be handled eslewhere
+        // we revoke sessions but not tokens, those should be handled elsewhere
+        // note: SessionInformation.expireNow() only flags the session, we need to delete it
+        if (sessionRepository == null || userId == null) {
+            logger.debug("session repository or user id not available, skip destroy sessions for user {}", userId);
+            return;
+        }
+
+        Map<String, ? extends Session> sessions = sessionRepository.findByPrincipalName(userId);
+        logger.debug("destroy {} sessions for user {}", sessions.size(), userId);
+        sessions.keySet().forEach(sessionRepository::deleteById);
     }
 
     /*

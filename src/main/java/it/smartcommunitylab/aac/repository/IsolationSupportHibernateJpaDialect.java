@@ -36,9 +36,6 @@ public class IsolationSupportHibernateJpaDialect extends HibernateJpaDialect {
 
     private static final long serialVersionUID = SystemKeys.AAC_CORE_SERIAL_VERSION;
 
-    private ThreadLocal<Connection> connectionThreadLocal = new ThreadLocal<Connection>();
-    private ThreadLocal<Integer> originalIsolation = new ThreadLocal<Integer>();
-
     @Override
     public Object beginTransaction(EntityManager entityManager, TransactionDefinition definition)
         throws PersistenceException, SQLException, TransactionException {
@@ -48,22 +45,36 @@ public class IsolationSupportHibernateJpaDialect extends HibernateJpaDialect {
             throw new TransactionSystemException("invalid connection handle");
         }
         Connection connection = handle.getConnection();
-        connectionThreadLocal.set(connection);
-        originalIsolation.set(DataSourceUtils.prepareConnectionForTransaction(connection, definition));
+        Integer originalIsolation = DataSourceUtils.prepareConnectionForTransaction(connection, definition);
 
         entityManager.getTransaction().begin();
 
-        return prepareTransaction(entityManager, readOnly, definition.getName());
+        // keep connection state per transaction, not per thread: nested REQUIRES_NEW must not clobber it
+        Object transactionData = prepareTransaction(entityManager, readOnly, definition.getName());
+        return new IsolationTransactionData(transactionData, connection, originalIsolation);
     }
 
     @Override
     public void cleanupTransaction(Object transactionData) {
+        IsolationTransactionData data = (IsolationTransactionData) transactionData;
         try {
-            super.cleanupTransaction(transactionData);
-            DataSourceUtils.resetConnectionAfterTransaction(connectionThreadLocal.get(), originalIsolation.get(), true);
+            super.cleanupTransaction(data.delegate);
         } finally {
-            connectionThreadLocal.remove();
-            originalIsolation.remove();
+            DataSourceUtils.resetConnectionAfterTransaction(data.connection, data.originalIsolation, true);
         }
     }
+
+    private static class IsolationTransactionData {
+
+        private final Object delegate;
+        private final Connection connection;
+        private final Integer originalIsolation;
+
+        IsolationTransactionData(Object delegate, Connection connection, Integer originalIsolation) {
+            this.delegate = delegate;
+            this.connection = connection;
+            this.originalIsolation = originalIsolation;
+        }
+    }
+    
 }

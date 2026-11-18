@@ -124,6 +124,47 @@ realms:
         name: Test
         surname: User       
         confirmed: true       
+      # users reserved to UserSessionRevocationTest
+      - uuid: d0000000000000000000000000000001
+        userId: d0000001-0000-4000-8000-000000000001
+        username: del-session-admin
+        email: del-session-admin@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000002
+        userId: d0000002-0000-4000-8000-000000000002
+        username: del-session-self
+        email: del-session-self@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000003
+        userId: d0000003-0000-4000-8000-000000000003
+        username: del-session-multi
+        email: del-session-multi@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000004
+        userId: d0000004-0000-4000-8000-000000000004
+        username: del-session-other
+        email: del-session-other@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
     
     credentials:
       - type: credentials:password
@@ -133,6 +174,34 @@ realms:
         username: test
         userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
         password: test123        
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000001-0000-4000-8000-000000000001
+        username: del-session-admin
+        userId: d0000001-0000-4000-8000-000000000001
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000002-0000-4000-8000-000000000002
+        username: del-session-self
+        userId: d0000002-0000-4000-8000-000000000002
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000003-0000-4000-8000-000000000003
+        username: del-session-multi
+        userId: d0000003-0000-4000-8000-000000000003
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000004-0000-4000-8000-000000000004
+        username: del-session-other
+        userId: d0000004-0000-4000-8000-000000000004
+        password: test123
         
         
   - name: "two"
