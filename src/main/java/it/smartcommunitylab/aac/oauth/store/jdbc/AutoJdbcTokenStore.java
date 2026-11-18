@@ -23,6 +23,10 @@ import it.smartcommunitylab.aac.oauth.store.ExtendedAuthenticationKeyGenerator;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -31,6 +35,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.SqlLobValue;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.ExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
@@ -59,6 +64,8 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
 	private static final String DEFAULT_REFRESH_TOKEN_INSERT_STATEMENT = "insert into oauth_refresh_token (token_id, token, authentication_id, user_name, client_id, issued_at, expires_at, authentication) values (?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String DEFAULT_DELETE_EXPIRED_ACCESS_TOKENS_STATEMENT = "delete from oauth_access_token where expires_at < ?";
     private static final String DEFAULT_DELETE_EXPIRED_REFRESH_TOKENS_STATEMENT = "delete from oauth_refresh_token where expires_at < ?";
+    private static final String DEFAULT_REFRESH_TOKENS_FROM_USERNAME_SELECT_STATEMENT = "select token_id, token from oauth_refresh_token where user_name = ?";
+    private static final String DEFAULT_REFRESH_TOKEN_DELETE_BY_ID_STATEMENT = "delete from oauth_refresh_token where token_id = ?";
 
     private String insertAccessTokenSql = DEFAULT_ACCESS_TOKEN_INSERT_STATEMENT;
     private String selectAccessTokenFromRefreshTokenSql = DEFAULT_SELECT_ACCESS_TOKEN_FROM_REFRESH_TOKEN;
@@ -67,6 +74,8 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
 	private String insertRefreshTokenSql = DEFAULT_REFRESH_TOKEN_INSERT_STATEMENT;
     private String selectRefreshTokenSql = DEFAULT_REFRESH_TOKEN_SELECT_STATEMENT;
     private String deleteExpiredRefreshTokenSql = DEFAULT_DELETE_EXPIRED_REFRESH_TOKENS_STATEMENT;
+    private String selectRefreshTokensFromUserNameSql = DEFAULT_REFRESH_TOKENS_FROM_USERNAME_SELECT_STATEMENT;
+    private String deleteRefreshTokenByIdSql = DEFAULT_REFRESH_TOKEN_DELETE_BY_ID_STATEMENT;
 
     private AuthenticationKeyGenerator authenticationKeyGenerator = new DefaultAuthenticationKeyGenerator();
 
@@ -208,5 +217,48 @@ public class AutoJdbcTokenStore extends JdbcTokenStore implements ExtTokenStore 
 
           jdbcTemplate.update(deleteExpiredRefreshTokenSql, new Object[] {new java.sql.Timestamp(timestamp)}, new int[] {Types.TIMESTAMP});
       }
-   
+
+    @Override
+    public Collection<OAuth2RefreshToken> findRefreshTokensByUserName(String userName) {
+        // as for access tokens: unreadable tokens are removed and skipped
+        List<OAuth2RefreshToken> refreshTokens = jdbcTemplate.query(
+            selectRefreshTokensFromUserNameSql,
+            (rs, rowNum) -> {
+                try {
+                    return deserializeRefreshToken(rs.getBytes(2));
+                } catch (IllegalArgumentException e) {
+                    jdbcTemplate.update(deleteRefreshTokenByIdSql, rs.getString(1));
+                    return null;
+                }
+            },
+            userName
+        );
+
+        return refreshTokens.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    @Override
+    public void removeTokensByUserName(String userName, String subjectId) {
+        if (userName == null || subjectId == null) {
+            // nothing to match: tokens are looked up by username and checked by subject
+            return;
+        }
+
+        // refresh tokens first: we need to revoke all their access tokens as well
+        for (OAuth2RefreshToken refreshToken : findRefreshTokensByUserName(userName)) {
+            OAuth2Authentication auth = readAuthenticationForRefreshToken(refreshToken);
+            Authentication user = auth != null ? auth.getUserAuthentication() : null;
+            if (user != null && subjectId.equals(user.getName())) {
+                removeAccessTokenUsingRefreshToken(refreshToken);
+                removeRefreshToken(refreshToken);
+            }
+        }
+
+        // access tokens left are those issued without a refresh token
+        for (OAuth2AccessToken accessToken : findTokensByUserName(userName)) {
+            if (accessToken instanceof AACOAuth2AccessToken && subjectId.equals(((AACOAuth2AccessToken) accessToken).getSubject())) {
+                removeAccessToken(accessToken);
+            }
+        }
+    }
 }

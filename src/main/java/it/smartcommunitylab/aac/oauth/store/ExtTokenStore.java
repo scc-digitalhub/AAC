@@ -57,6 +57,18 @@ public interface ExtTokenStore extends TokenStore {
      */
     Collection<OAuth2AccessToken> findTokensByUserName(String userName);
 
+    /**
+     * @param userName the user name to search
+     * @return a collection of refresh tokens
+     */
+    Collection<OAuth2RefreshToken> findRefreshTokensByUserName(String userName);
+
+    /*
+     * Remove the access and refresh tokens of a user. Tokens are stored by
+     * username, which is not unique: only those bound to the subject are removed.
+     */
+    public void removeTokensByUserName(String userName, String subjectId);
+
 
     /**
      * Delete tokens expired since interval

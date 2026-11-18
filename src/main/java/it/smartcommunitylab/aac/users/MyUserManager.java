@@ -188,7 +188,8 @@ public class MyUserManager {
                 approvalStore.revokeApprovals(clientApprovals);
             } catch (Exception e) {}
 
-            // TODO tokens
+            // tokens are stored by username: remove those bound to this user
+            tokenStore.removeTokensByUserName(details.getUsername(), userId);
 
             // let userService handle account, registrations etc
             userService.deleteUser(userId);

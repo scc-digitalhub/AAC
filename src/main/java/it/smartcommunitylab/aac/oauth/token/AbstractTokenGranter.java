@@ -16,6 +16,7 @@
 
 package it.smartcommunitylab.aac.oauth.token;
 
+import it.smartcommunitylab.aac.core.service.SubjectService;
 import it.smartcommunitylab.aac.oauth.auth.OAuth2ClientAuthenticationToken;
 import it.smartcommunitylab.aac.oauth.event.OAuth2EventPublisher;
 import it.smartcommunitylab.aac.oauth.flow.FlowExtensionsService;
@@ -28,6 +29,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.exceptions.UnsupportedGrantTypeException;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -50,6 +52,8 @@ public abstract class AbstractTokenGranter implements TokenGranter {
     protected ScopeRegistry scopeRegistry;
 
     protected FlowExtensionsService flowExtensionsService;
+
+    protected SubjectService subjectService;
 
     protected OAuth2EventPublisher eventPublisher = new OAuth2EventPublisher();
 
@@ -82,6 +86,9 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
         // fetch authentication
         OAuth2Authentication authentication = getOAuth2Authentication(client, tokenRequest);
+
+        // stored authentications (code, refresh) may outlive the user
+        validateUser(authentication);
 
         // validate scopes, checks approval if required
         validateScope(tokenRequest.getScope(), authentication);
@@ -130,6 +137,19 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
     protected void validateScope(Set<String> scope, OAuth2Authentication authentication) {}
 
+    protected void validateUser(OAuth2Authentication authentication) {
+        if (subjectService == null || authentication == null || authentication.getUserAuthentication() == null) {
+            return;
+        }
+
+        // a user authentication without a subject cannot belong to an existing user
+        String subjectId = authentication.getUserAuthentication().getName();
+        if (subjectId == null || subjectService.findSubject(subjectId) == null) {
+            logger.debug("refuse grant for missing user " + subjectId);
+            throw new InvalidGrantException("Invalid user: " + subjectId);
+        }
+    }
+
     protected AuthorizationServerTokenServices getTokenServices() {
         return tokenServices;
     }
@@ -144,6 +164,10 @@ public abstract class AbstractTokenGranter implements TokenGranter {
 
     public void setFlowExtensionsService(FlowExtensionsService flowExtensionsService) {
         this.flowExtensionsService = flowExtensionsService;
+    }
+
+    public void setSubjectService(SubjectService subjectService) {
+        this.subjectService = subjectService;
     }
 
     public void setEventPublisher(OAuth2EventPublisher eventPublisher) {
