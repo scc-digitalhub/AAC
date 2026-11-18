@@ -307,7 +307,9 @@ public class UserManager {
             approvalStore.revokeApprovals(clientApprovals);
         } catch (Exception e) {}
 
-        // TODO tokens
+        // tokens are stored by username: remove those bound to this user
+        tokenStore.removeTokensByUserName(userService.getUser(userId).getUsername(), userId);
+
         // TODO proxy for different realms?
 
         // let userService handle account, registrations etc

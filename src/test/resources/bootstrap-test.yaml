@@ -124,6 +124,57 @@ realms:
         name: Test
         surname: User       
         confirmed: true       
+      # users reserved to UserTokenRevocationTest
+      - uuid: d0000000000000000000000000000005
+        userId: d0000005-0000-4000-8000-000000000005
+        username: del-token-refresh
+        email: del-token-refresh@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000006
+        userId: d0000006-0000-4000-8000-000000000006
+        username: del-token-code
+        email: del-token-code@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000007
+        userId: d0000007-0000-4000-8000-000000000007
+        username: del-token-self
+        email: del-token-self@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000008
+        userId: d0000008-0000-4000-8000-000000000008
+        username: del-token-keep
+        email: del-token-keep@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d0000000000000000000000000000009
+        userId: d0000009-0000-4000-8000-000000000009
+        username: del-token-introspect
+        email: del-token-introspect@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
     
     credentials:
       - type: credentials:password
@@ -133,6 +184,41 @@ realms:
         username: test
         userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
         password: test123        
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000005-0000-4000-8000-000000000005
+        username: del-token-refresh
+        userId: d0000005-0000-4000-8000-000000000005
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000006-0000-4000-8000-000000000006
+        username: del-token-code
+        userId: d0000006-0000-4000-8000-000000000006
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000007-0000-4000-8000-000000000007
+        username: del-token-self
+        userId: d0000007-0000-4000-8000-000000000007
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000008-0000-4000-8000-000000000008
+        username: del-token-keep
+        userId: d0000008-0000-4000-8000-000000000008
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e0000009-0000-4000-8000-000000000009
+        username: del-token-introspect
+        userId: d0000009-0000-4000-8000-000000000009
+        password: test123
         
         
   - name: "two"

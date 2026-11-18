@@ -324,7 +324,8 @@ public class OAuth2Config {
         UserService userService,
         FlowExtensionsService flowExtensionsService,
         OAuth2EventPublisher oauth2EventPublisher,
-        TokenStore tokenStore
+        TokenStore tokenStore,
+        SubjectService subjectService
     ) {
         // build our own list of granters
         List<AbstractTokenGranter> granters = new ArrayList<>();
@@ -406,6 +407,9 @@ public class OAuth2Config {
             passwordTokenGranter.setUserService(userService);
             granters.add(passwordTokenGranter);
         }
+
+        // every granter refuses tokens for users which no longer exist
+        granters.forEach(g -> g.setSubjectService(subjectService));
 
         return new CompositeTokenGranter(new ArrayList<>(granters));
     }
