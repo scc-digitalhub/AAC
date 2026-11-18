@@ -357,3 +357,27 @@ form .invalid-feedback {
     clip: rect(0, 0, 0, 0);
     border: 0
 }
+
+.login-wrapper {
+    display: inline-block;
+    vertical-align: top;
+}
+
+/* error message shown under a login button when the provider is unavailable */
+.login-error {
+    display: block;
+    font-size: 12px;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 280px;
+    margin: 8px 0 0 0;
+    padding: 8px 12px;
+    background-image: none;
+}
+
+.btn.btn-login.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}

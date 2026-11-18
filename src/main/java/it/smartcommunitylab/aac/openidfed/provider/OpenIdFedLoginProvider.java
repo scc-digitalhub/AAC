@@ -25,7 +25,12 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class OpenIdFedLoginProvider extends AbstractLoginProvider {
 
+    public static final String ERROR_PROVIDER_UNAVAILABLE = "error.provider_unavailable";
+
     private List<OpenIdFedLogin> entries = Collections.emptyList();
+
+    // message key describing why no login entry is available, null when ok
+    private String error;
 
     public OpenIdFedLoginProvider(String provider, String realm, String name) {
         this(SystemKeys.AUTHORITY_OPENIDFED, provider, realm, name);
@@ -56,6 +61,18 @@ public class OpenIdFedLoginProvider extends AbstractLoginProvider {
 
     public void setEntries(List<OpenIdFedLogin> entries) {
         this.entries = entries;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public boolean isAvailable() {
+        return entries != null && !entries.isEmpty();
     }
 
     public static final String[] ICONS = { "cie", "spid" };
