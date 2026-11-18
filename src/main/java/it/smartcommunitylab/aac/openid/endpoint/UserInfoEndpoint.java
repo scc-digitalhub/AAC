@@ -38,8 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.exceptions.ClientAuthenticationException;
 import org.springframework.security.oauth2.common.exceptions.InsufficientScopeException;
@@ -209,6 +211,19 @@ public class UserInfoEndpoint {
             .status(exception.getHttpErrorCode())
             .header(HttpHeaders.WWW_AUTHENTICATE, msg.toString())
             .build();
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException exception) {
+        // build message with handling for WWW header
+        StringBuilder msg = new StringBuilder();
+
+        msg.append("error=" + OAuth2Exception.INVALID_TOKEN);
+        if (exception.getMessage() != null) {
+            msg.append(",error_description=" + exception.getMessage());
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).header(HttpHeaders.WWW_AUTHENTICATE, msg.toString()).build();
     }
 
     @ExceptionHandler(OAuth2Exception.class)
