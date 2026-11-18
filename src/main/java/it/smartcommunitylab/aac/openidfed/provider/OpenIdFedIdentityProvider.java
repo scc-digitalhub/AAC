@@ -272,6 +272,17 @@ public class OpenIdFedIdentityProvider
 
             lp.setEntries(entries);
         }
+
+        // no usable entry: every discovered provider failed to resolve (or none was discovered)
+        // flag the login provider so the template can disable the button and explain why
+        if (!lp.isAvailable()) {
+            logger.warn(
+                "no login entries available for federation provider {}: marking login as unavailable",
+                lp.getProvider()
+            );
+            lp.setError(OpenIdFedLoginProvider.ERROR_PROVIDER_UNAVAILABLE);
+        }
+
         return lp;
     }
 }
