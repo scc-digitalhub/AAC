@@ -39,7 +39,9 @@ import it.smartcommunitylab.aac.common.NoSuchRealmException;
 import it.smartcommunitylab.aac.common.NoSuchScopeException;
 import it.smartcommunitylab.aac.common.NoSuchUserException;
 import it.smartcommunitylab.aac.common.RegistrationException;
+import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.SessionManager;
+import it.smartcommunitylab.aac.events.UserDeleteEvent;
 import it.smartcommunitylab.aac.internal.model.InternalUserAccount;
 import it.smartcommunitylab.aac.model.ConnectedApp;
 import it.smartcommunitylab.aac.model.Group;
@@ -71,10 +73,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -153,6 +157,12 @@ public class UserManager {
 
     @Autowired
     private AuditEventStore auditStore;
+
+    @Autowired
+    private AuthenticationHelper authHelper;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     /*
      * Manage users
@@ -312,6 +322,11 @@ public class UserManager {
 
         // let userService handle account, registrations etc
         userService.deleteUser(userId);
+
+        // publish for audit, with the subject performing the delete as actor
+        Authentication auth = authHelper.getAuthentication();
+        String actor = auth != null ? auth.getName() : null;
+        eventPublisher.publishEvent(new UserDeleteEvent(userId, user.getRealm(), actor));
     }
 
     public User inviteUser(String realm, String provider, String emailAddress)
