@@ -74,7 +74,7 @@ const UserActions = ({ user }: { user: any }) => {
                         confirmContent="page.accounts.delete_user.content"
                         icon={<DeleteForeverIcon />}
                         translateOptions={{ id: user.username }}
-                        onClick={e => logout()}
+                        mutationOptions={{ onSuccess: () => logout() }}
                     />
                 </CardToolbar>
             </Box>
