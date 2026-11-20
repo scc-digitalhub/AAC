@@ -146,6 +146,7 @@ const PostFilterForm = () => {
                                     id: 'CLIENT_AUTHENTICATION_FAILURE',
                                     name: 'CLIENT_AUTHENTICATION_FAILURE',
                                 },
+                                { id: 'USER_DELETE', name: 'USER_DELETE' },
                                 { id: 'TOKEN_GRANT', name: 'TOKEN_GRANT' },
                             ]}
                         />
