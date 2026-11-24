@@ -39,6 +39,7 @@ import it.smartcommunitylab.aac.core.AuthenticationHelper;
 import it.smartcommunitylab.aac.core.SessionManager;
 import it.smartcommunitylab.aac.core.UserDetails;
 import it.smartcommunitylab.aac.credentials.service.UserCredentialsService;
+import it.smartcommunitylab.aac.events.UserDeleteEvent;
 import it.smartcommunitylab.aac.identity.model.ConfigurableIdentityProvider;
 import it.smartcommunitylab.aac.identity.service.IdentityProviderService;
 import it.smartcommunitylab.aac.internal.InternalAccountServiceAuthority;
@@ -81,6 +82,7 @@ import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.audit.AuditEvent;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.oauth2.provider.approval.Approval;
@@ -140,6 +142,9 @@ public class MyUserManager {
     private AuditEventStore auditStore;
 
     @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
     private ProfileManager profileManager;
 
     @Autowired
@@ -192,6 +197,9 @@ public class MyUserManager {
 
             // let userService handle account, registrations etc
             userService.deleteUser(userId);
+
+            // publish for audit, the user is the actor of its own delete
+            eventPublisher.publishEvent(new UserDeleteEvent(userId, details.getRealm(), userId));
         } catch (NoSuchUserException e) {
             // nothing more to do
         }

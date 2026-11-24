@@ -22,6 +22,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import it.smartcommunitylab.aac.audit.listeners.AuthorizationEventListener;
 import it.smartcommunitylab.aac.audit.listeners.ClientAuthenticationEventListener;
 import it.smartcommunitylab.aac.audit.listeners.UserAuthenticationEventListener;
+import it.smartcommunitylab.aac.audit.listeners.UserEventListener;
 import it.smartcommunitylab.aac.audit.store.AutoJdbcAuditEventStore;
 import it.smartcommunitylab.aac.audit.store.SignedAuditDataReader;
 import it.smartcommunitylab.aac.audit.store.SignedAuditDataWriter;
@@ -131,6 +132,11 @@ public class AuditConfig {
         listener.setProviderService(providerService);
 
         return listener;
+    }
+
+    @Bean
+    public UserEventListener userEventListener() {
+        return new UserEventListener();
     }
 
     @Bean

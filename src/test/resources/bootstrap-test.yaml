@@ -124,6 +124,57 @@ realms:
         name: Test
         surname: User       
         confirmed: true       
+      # users reserved to UserDeleteAuditTest and UserSelfDeleteTest
+      - uuid: d000000000000000000000000000000a
+        userId: d000000a-0000-4000-8000-00000000000a
+        username: del-audit-admin
+        email: del-audit-admin@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d000000000000000000000000000000b
+        userId: d000000b-0000-4000-8000-00000000000b
+        username: del-audit-self
+        email: del-audit-self@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d000000000000000000000000000000c
+        userId: d000000c-0000-4000-8000-00000000000c
+        username: del-self-late
+        email: del-self-late@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d000000000000000000000000000000d
+        userId: d000000d-0000-4000-8000-00000000000d
+        username: del-self-first
+        email: del-self-first@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
+      - uuid: d000000000000000000000000000000e
+        userId: d000000e-0000-4000-8000-00000000000e
+        username: del-self-path
+        email: del-self-path@local.it
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Delete
+        surname: Me
+        confirmed: true
     
     credentials:
       - type: credentials:password
@@ -133,6 +184,41 @@ realms:
         username: test
         userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
         password: test123        
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e000000a-0000-4000-8000-00000000000a
+        username: del-audit-admin
+        userId: d000000a-0000-4000-8000-00000000000a
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e000000b-0000-4000-8000-00000000000b
+        username: del-audit-self
+        userId: d000000b-0000-4000-8000-00000000000b
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e000000c-0000-4000-8000-00000000000c
+        username: del-self-late
+        userId: d000000c-0000-4000-8000-00000000000c
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e000000d-0000-4000-8000-00000000000d
+        username: del-self-first
+        userId: d000000d-0000-4000-8000-00000000000d
+        password: test123
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: e000000e-0000-4000-8000-00000000000e
+        username: del-self-path
+        userId: d000000e-0000-4000-8000-00000000000e
+        password: test123
         
         
   - name: "two"
