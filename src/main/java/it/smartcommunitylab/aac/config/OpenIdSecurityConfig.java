@@ -27,10 +27,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -54,6 +58,9 @@ public class OpenIdSecurityConfig {
     @Autowired
     private InternalOpaqueTokenIntrospector tokenIntrospector;
 
+    @Autowired
+    private UserInfoEndpoint userInfoEndpoint;
+
     /*
      * Configure a separated security context for API
      */
@@ -66,11 +73,15 @@ public class OpenIdSecurityConfig {
             .authorizeRequests(authorizeRequests ->
                 authorizeRequests.anyRequest().hasAnyAuthority(Config.R_USER, Config.R_CLIENT)
             )
+            // bare authentication manager with only bearer
+            .authenticationManager(new ProviderManager(new OpaqueTokenAuthenticationProvider(tokenIntrospector)))
             // support passing token in request body via custom resolver
             .oauth2ResourceServer(oauth2 ->
                 oauth2
                     .bearerTokenResolver(bearerTokenResolver())
                     .opaqueToken(opaqueToken -> opaqueToken.introspector(tokenIntrospector))
+                    // token failures are raised in the filter: map them with the endpoint handler
+                    .authenticationEntryPoint(bearerTokenEntryPoint())
             )
             // disable request cache, we override redirects but still better enforce it
             .requestCache(requestCache -> requestCache.disable())
@@ -89,6 +100,14 @@ public class OpenIdSecurityConfig {
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         return http.build();
+    }
+
+    private AuthenticationEntryPoint bearerTokenEntryPoint() {
+        return (request, response, exception) -> {
+            ResponseEntity<Object> result = userInfoEndpoint.handleAuthenticationException(exception);
+            result.getHeaders().forEach((name, values) -> values.forEach(value -> response.addHeader(name, value)));
+            response.setStatus(result.getStatusCodeValue());
+        };
     }
 
     public BearerTokenResolver bearerTokenResolver() {
